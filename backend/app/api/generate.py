@@ -1,9 +1,11 @@
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from app.api.deps import get_current_user
 from app.core.db import get_session, get_session_maker
 from app.llm.factory import provider_available
+from app.models.brand_profile import BrandProfile
 from app.models.project import Project
 from app.models.user import User
 from app.schemas.generation import GenerateRequest, JobResponse, JobStatusResponse
@@ -33,6 +35,21 @@ async def start_generation(
             status_code=status.HTTP_404_NOT_FOUND, detail="Project not found"
         )
 
+    # Load brand profile for this project (may be None)
+    result = await session.execute(
+        select(BrandProfile).where(BrandProfile.project_id == payload.project_id)
+    )
+    profile = result.scalar_one_or_none()
+    brand_profile_data: dict = {}
+    if profile is not None:
+        brand_profile_data = {
+            "brand_name": profile.brand_name,
+            "tone": profile.tone,
+            "writing_style": profile.writing_style,
+            "preferred_words": profile.preferred_words or [],
+            "forbidden_words": profile.forbidden_words or [],
+        }
+
     job = await generation_service.create_job(
         session,
         payload.project_id,
@@ -45,7 +62,7 @@ async def start_generation(
         "content_type": payload.content_type,
         "brief": payload.brief,
         "marketing_goal": payload.marketing_goal,
-        "brand_profile": {},
+        "brand_profile": brand_profile_data,
         "provider_available": provider_available(),
         "errors": [],
     }

@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 from app.agents.brand import brand
 from app.agents.planner import planner
 from app.agents.research import research
@@ -11,6 +13,7 @@ from app.schemas.agents import FacebookPostDraft, FusedBrief, Review
 
 def _mock_state():
     return {
+        "project_id": 1,
         "brief": "eco-friendly water bottles",
         "marketing_goal": "brand awareness",
         "provider_available": False,
@@ -38,7 +41,9 @@ async def test_seo_mock_uses_brief_as_keyword_source():
     assert parsed.secondary_keywords
 
 
-async def test_brand_mock_returns_empty_context_in_m2():
+@patch("app.agents.brand.retrieve", return_value=[])
+@patch("app.agents.brand.embed_query", return_value=[0.1] * 384)
+async def test_brand_returns_empty_context_when_no_docs(mock_embed, mock_retrieve):
     out = await brand(_mock_state())
     parsed = BrandContext(**out["brand_context"])
     assert parsed.relevant_context == []
@@ -98,3 +103,21 @@ async def test_reviewer_mock_scores_and_returns_final():
     # `final` is the improved post, surfaced as its own state key
     FacebookPostDraft(**out["final"])
     assert out["final"]["hook"]
+
+
+async def test_copywriter_mock_uses_brand_profile():
+    state = _downstream_state()
+    state["fused_brief"] = {"unified_brief": "write a post"}
+    state["brand_profile"] = {
+        "brand_name": "EcoBottle",
+        "tone": "friendly",
+        "writing_style": "conversational",
+        "preferred_words": ["sustainable"],
+        "forbidden_words": ["cheap"],
+    }
+    out = await copywriter(state)
+    parsed = FacebookPostDraft(**out["draft"])
+    # Mock output should include brand_name in the hook
+    assert "EcoBottle" in parsed.hook
+    # Mock output should include tone in the body
+    assert "friendly" in parsed.body

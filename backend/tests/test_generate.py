@@ -1,3 +1,6 @@
+from unittest.mock import patch
+
+
 async def _register(client, email="gen@example.com"):
     resp = await client.post(
         "/auth/register",
@@ -19,7 +22,9 @@ async def test_generate_requires_auth(client):
     assert resp.status_code in (401, 403)
 
 
-async def test_generate_then_poll_completes_in_mock_mode(client):
+@patch("app.agents.brand.retrieve", return_value=[])
+@patch("app.agents.brand.embed_query", return_value=[0.1] * 384)
+async def test_generate_then_poll_completes_in_mock_mode(mock_embed, mock_retrieve, client):
     token = await _register(client)
     headers = {"Authorization": f"Bearer {token}"}
     project_id = await _project(client, headers)
@@ -84,3 +89,46 @@ async def test_poll_unknown_job_is_404(client):
         "/generate/99999", headers={"Authorization": f"Bearer {token}"}
     )
     assert resp.status_code == 404
+
+
+@patch("app.agents.brand.retrieve", return_value=[])
+@patch("app.agents.brand.embed_query", return_value=[0.1] * 384)
+async def test_generate_uses_brand_profile_in_output(mock_embed, mock_retrieve, client):
+    token = await _register(client, "bp@example.com")
+    headers = {"Authorization": f"Bearer {token}"}
+    project_id = await _project(client, headers)
+
+    # Upsert brand profile first
+    await client.post(
+        "/brand-profile",
+        json={
+            "project_id": project_id,
+            "brand_name": "EcoBottle",
+            "tone": "friendly",
+            "writing_style": "conversational",
+            "preferred_words": ["sustainable"],
+            "forbidden_words": ["cheap"],
+        },
+        headers=headers,
+    )
+
+    # Generate — should pick up the brand profile
+    start = await client.post(
+        "/generate",
+        json={
+            "project_id": project_id,
+            "content_type": "facebook_post",
+            "brief": "eco-friendly water bottles",
+            "marketing_goal": "awareness",
+        },
+        headers=headers,
+    )
+    assert start.status_code == 202
+    job_id = start.json()["job_id"]
+
+    poll = await client.get(f"/generate/{job_id}", headers=headers)
+    assert poll.status_code == 200
+    body = poll.json()
+    assert body["status"] == "done"
+    # The mock copywriter should have injected the brand name into the hook
+    assert "EcoBottle" in body["result"]["draft"]["hook"]
