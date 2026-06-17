@@ -1,6 +1,3 @@
-from unittest.mock import patch
-
-
 async def _register(client, email="brand@example.com"):
     resp = await client.post(
         "/auth/register",
