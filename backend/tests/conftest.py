@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from sqlalchemy.pool import StaticPool
 
 import app.models  # noqa: F401  register models on Base.metadata
-from app.core.db import Base, get_session
+from app.core.db import Base, get_session, get_session_maker
 from app.main import app
 
 
@@ -29,6 +29,7 @@ async def client(session_maker):
             yield session
 
     app.dependency_overrides[get_session] = override_get_session
+    app.dependency_overrides[get_session_maker] = lambda: session_maker
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as ac:
         yield ac
