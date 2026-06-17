@@ -1,0 +1,534 @@
+# PROJECT_MVP.md
+
+# AI Marketing Multi-Agent SaaS MVP
+
+## Objective
+
+Build a production-ready MVP for an AI-powered Marketing Content Generation Platform.
+
+The system must use a Multi-Agent Architecture where specialized AI agents collaborate to generate high-quality marketing content.
+
+The primary goal is to allow users to create marketing content from a single brief while maintaining brand consistency and content quality.
+
+---
+
+# Business Goal
+
+A user provides:
+
+* Product information
+* Target audience
+* Marketing objective
+
+The system automatically:
+
+* Researches the topic
+* Understands brand context
+* Generates content
+* Reviews content quality
+
+And returns a polished marketing asset.
+
+---
+
+# MVP Scope
+
+The MVP should focus on:
+
+1. Multi-Agent Workflow
+2. Content Generation
+3. RAG Knowledge Base
+4. Brand Voice
+5. Content History
+
+Do not implement advanced analytics, scheduling, payment systems, or social publishing in the MVP.
+
+---
+
+# Technology Stack
+
+## Frontend
+
+* NextJS
+* React
+* TailwindCSS
+* Shadcn UI
+
+## Backend
+
+* FastAPI
+* Python 3.12+
+
+## AI Layer
+
+* OpenAI API
+* LangGraph
+
+## Database
+
+* PostgreSQL
+
+## Vector Database
+
+* Qdrant
+
+## Deployment
+
+* Docker
+* Docker Compose
+
+---
+
+# Multi-Agent Architecture
+
+The system must be built using LangGraph.
+
+Workflow:
+
+User Request
+
+↓
+
+Planner Agent
+
+↓
+
+Parallel Execution
+
+├── Research Agent
+├── SEO Agent
+└── Brand Agent
+
+↓
+
+Fusion Agent
+
+↓
+
+Copywriter Agent
+
+↓
+
+Reviewer Agent
+
+↓
+
+Final Output
+
+---
+
+# Agent Responsibilities
+
+## 1. Planner Agent
+
+Purpose:
+
+Analyze user input and create execution plan.
+
+Input:
+
+* User brief
+* Content type
+* Marketing goal
+
+Output:
+
+{
+"tasks": [
+"research",
+"seo",
+"brand"
+]
+}
+
+---
+
+## 2. Research Agent
+
+Purpose:
+
+Collect marketing insights.
+
+Generate:
+
+* Pain Points
+* Customer Motivations
+* Product Benefits
+* Industry Context
+
+Output JSON format.
+
+---
+
+## 3. SEO Agent
+
+Purpose:
+
+Generate SEO information.
+
+Generate:
+
+* Primary Keyword
+* Secondary Keywords
+* Search Intent
+* Suggested Meta Description
+
+Output JSON format.
+
+---
+
+## 4. Brand Agent
+
+Purpose:
+
+Use uploaded company documents.
+
+Retrieve relevant context from Qdrant.
+
+Examples:
+
+* Brand Guidelines
+* Product Catalogs
+* Company Documents
+
+Output:
+
+Relevant brand information.
+
+---
+
+## 5. Fusion Agent
+
+Purpose:
+
+Merge outputs from:
+
+* Research Agent
+* SEO Agent
+* Brand Agent
+
+Produce a unified content brief.
+
+---
+
+## 6. Copywriter Agent
+
+Purpose:
+
+Generate marketing content.
+
+Supported types:
+
+* Facebook Post
+* SEO Blog
+* Email
+* Landing Page
+* TikTok Script
+
+Frameworks:
+
+* AIDA
+* PAS
+* FAB
+* Storytelling
+
+Output:
+
+Structured content.
+
+---
+
+## 7. Reviewer Agent
+
+Purpose:
+
+Review generated content.
+
+Check:
+
+* Grammar
+* Readability
+* Marketing Quality
+* Brand Consistency
+
+Generate:
+
+* Score
+* Suggestions
+* Final Improved Version
+
+---
+
+# Supported Content Types
+
+## Facebook Post
+
+Output:
+
+* Hook
+* Body
+* CTA
+* Hashtags
+
+---
+
+## SEO Blog
+
+Output:
+
+* SEO Title
+* Meta Description
+* Outline
+* Blog Content
+* FAQ
+
+---
+
+## Email Marketing
+
+Output:
+
+* Subject
+* Email Body
+* CTA
+
+---
+
+## Landing Page
+
+Output:
+
+* Headline
+* Subheadline
+* Benefits
+* CTA
+
+---
+
+## TikTok Script
+
+Output:
+
+* Hook
+* Script
+* CTA
+
+---
+
+# RAG System
+
+Allow upload:
+
+* PDF
+* DOCX
+* TXT
+
+Workflow:
+
+Upload
+→ Chunking
+→ Embedding
+→ Qdrant
+→ Retrieval
+
+Use retrieved documents as context for Brand Agent.
+
+---
+
+# Brand Voice Module
+
+Each user can configure:
+
+* Brand Name
+* Brand Tone
+* Writing Style
+* Preferred Words
+* Forbidden Words
+
+The Copywriter Agent must follow these settings.
+
+---
+
+# User Flow
+
+Step 1:
+
+Create Project
+
+Step 2:
+
+Upload Brand Documents
+
+Step 3:
+
+Configure Brand Voice
+
+Step 4:
+
+Select Content Type
+
+Step 5:
+
+Enter Topic
+
+Step 6:
+
+Generate Content
+
+Step 7:
+
+Review Result
+
+Step 8:
+
+Save To History
+
+---
+
+# Database Schema
+
+Users
+
+* id
+* name
+* email
+* password_hash
+
+Projects
+
+* id
+* user_id
+* name
+
+Documents
+
+* id
+* project_id
+* filename
+
+BrandProfiles
+
+* id
+* project_id
+* tone
+* style
+* preferred_words
+* forbidden_words
+
+ContentHistory
+
+* id
+* project_id
+* content_type
+* prompt
+* output
+
+---
+
+# API Endpoints
+
+POST /auth/register
+
+POST /auth/login
+
+POST /projects
+
+POST /documents/upload
+
+POST /brand-profile
+
+POST /generate
+
+GET /history
+
+DELETE /history/{id}
+
+---
+
+# UI Pages
+
+Login Page
+
+Dashboard
+
+Projects Page
+
+Knowledge Base Page
+
+Brand Voice Page
+
+Content Generator Page
+
+History Page
+
+---
+
+# Folder Structure
+
+backend/
+
+app/
+
+api/
+
+agents/
+
+planner/
+
+research/
+
+seo/
+
+brand/
+
+fusion/
+
+copywriter/
+
+reviewer/
+
+rag/
+
+models/
+
+schemas/
+
+services/
+
+frontend/
+
+app/
+
+components/
+
+hooks/
+
+services/
+
+store/
+
+---
+
+# Expected Deliverables
+
+1. Fully Functional MVP
+
+2. LangGraph Multi-Agent Workflow
+
+3. RAG Integration
+
+4. Brand Voice Support
+
+5. Dockerized Deployment
+
+6. PostgreSQL Integration
+
+7. Qdrant Integration
+
+8. OpenAI Integration
+
+9. Clean Architecture
+
+10. Production-Ready Code
+
+The solution must be modular, scalable, maintainable, and designed for future expansion into a full AI Marketing SaaS platform.
