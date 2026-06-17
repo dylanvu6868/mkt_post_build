@@ -1,5 +1,7 @@
 import pytest
 
+from app.core.security import create_access_token
+
 
 async def _register(client, email="user@example.com"):
     resp = await client.post(
@@ -42,3 +44,13 @@ async def test_projects_isolated_per_user(client):
     )
     assert listing_b.status_code == 200
     assert listing_b.json() == []
+
+
+async def test_token_with_empty_subject_rejected(client):
+    # A token signed with the correct secret but an empty `sub` must be
+    # rejected with 401, not crash with a 500 (int("") ValueError).
+    token = create_access_token("")
+    resp = await client.get(
+        "/projects", headers={"Authorization": f"Bearer {token}"}
+    )
+    assert resp.status_code == 401

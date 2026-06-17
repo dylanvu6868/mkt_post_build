@@ -14,7 +14,7 @@ async def get_current_user(
     session: AsyncSession = Depends(get_session),
 ) -> User:
     subject = decode_access_token(credentials.credentials)
-    if subject is None:
+    if not subject:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token"
         )
