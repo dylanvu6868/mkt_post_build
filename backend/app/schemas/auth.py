@@ -1,19 +1,19 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 
 
 class RegisterRequest(BaseModel):
-    name: str
+    name: str = Field(min_length=1, max_length=255)
     email: EmailStr
-    password: str
+    password: str = Field(min_length=8, max_length=128)
 
 
 class LoginRequest(BaseModel):
     email: EmailStr
-    password: str
+    password: str = Field(min_length=1, max_length=128)
 
 
 class OAuthRequest(BaseModel):
-    token: str
+    token: str = Field(min_length=1, max_length=4096)
 
 
 class UserResponse(BaseModel):

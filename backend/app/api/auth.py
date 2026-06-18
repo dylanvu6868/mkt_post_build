@@ -51,6 +51,11 @@ async def login(
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials"
         )
+    if user.is_banned:
+        logger.warning("Login blocked: banned user email=%s", payload.email)
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Account is banned"
+        )
     logger.info("User logged in user_id=%s email=%s", user.id, payload.email)
     token = create_access_token(str(user.id))
     return TokenResponse(access_token=token, user=UserResponse.model_validate(user))

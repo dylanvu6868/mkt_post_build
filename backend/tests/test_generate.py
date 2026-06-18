@@ -64,7 +64,7 @@ async def test_generate_rejects_unsupported_content_type(client):
         json={
             "project_id": project_id,
             "content_type": "billboard_ad",
-            "brief": "x",
+            "brief": "eco bottles for active lifestyles",
         },
         headers=headers,
     )
@@ -77,7 +77,7 @@ async def test_generate_rejects_other_users_project(client):
     token_b = await _register(client, "b@example.com")
     resp = await client.post(
         "/generate",
-        json={"project_id": project_a, "brief": "x"},
+        json={"project_id": project_a, "brief": "eco bottles"},
         headers={"Authorization": f"Bearer {token_b}"},
     )
     assert resp.status_code == 404

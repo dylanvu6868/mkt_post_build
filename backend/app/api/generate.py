@@ -1,9 +1,10 @@
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from app.api.deps import get_current_user
 from app.core.db import get_session, get_session_maker
+from app.core.rate_limit import limiter
 from app.llm.factory import provider_available
 from app.models.brand_profile import BrandProfile
 from app.models.project import Project
@@ -17,7 +18,9 @@ SUPPORTED_CONTENT_TYPES = {"facebook_post", "seo_blog", "email", "landing_page",
 
 
 @router.post("", response_model=JobResponse, status_code=status.HTTP_202_ACCEPTED)
+@limiter.limit("10/minute")
 async def start_generation(
+    request: Request,
     payload: GenerateRequest,
     background_tasks: BackgroundTasks,
     current_user: User = Depends(get_current_user),
