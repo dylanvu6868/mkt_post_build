@@ -64,19 +64,22 @@ async def seed_admin():
     from app.core.security import hash_password
     from app.models.user import User
 
-    async with async_session_maker() as session:
-        result = await session.execute(select(User).where(User.is_admin == True))  # noqa: E712
-        if result.scalar_one_or_none() is not None:
-            return
-        admin_user = User(
-            name="Admin",
-            email=settings.admin_email,
-            password_hash=hash_password(settings.admin_password),
-            is_admin=True,
-        )
-        session.add(admin_user)
-        await session.commit()
-        logger.info("Default admin created: %s", settings.admin_email)
+    try:
+        async with async_session_maker() as session:
+            result = await session.execute(select(User).where(User.is_admin == True))  # noqa: E712
+            if result.scalar_one_or_none() is not None:
+                return
+            admin_user = User(
+                name="Admin",
+                email=settings.admin_email,
+                password_hash=hash_password(settings.admin_password),
+                is_admin=True,
+            )
+            session.add(admin_user)
+            await session.commit()
+            logger.info("Default admin created: %s", settings.admin_email)
+    except Exception:
+        logger.warning("Skipping admin seed — run 'alembic upgrade head' first")
 
 
 app.include_router(admin.router)
