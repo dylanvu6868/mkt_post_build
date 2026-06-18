@@ -57,6 +57,28 @@ app.add_middleware(SecurityHeadersMiddleware)
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
+@app.on_event("startup")
+async def seed_admin():
+    from sqlalchemy import select
+    from app.core.db import async_session_maker
+    from app.core.security import hash_password
+    from app.models.user import User
+
+    async with async_session_maker() as session:
+        result = await session.execute(select(User).where(User.is_admin == True))  # noqa: E712
+        if result.scalar_one_or_none() is not None:
+            return
+        admin_user = User(
+            name="Admin",
+            email=settings.admin_email,
+            password_hash=hash_password(settings.admin_password),
+            is_admin=True,
+        )
+        session.add(admin_user)
+        await session.commit()
+        logger.info("Default admin created: %s", settings.admin_email)
+
+
 app.include_router(admin.router)
 app.include_router(auth.router)
 app.include_router(projects.router)
