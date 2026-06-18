@@ -10,17 +10,38 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+
+const TYPE_LABELS: Record<string, string> = {
+  facebook_post: "Facebook Post",
+  seo_blog: "SEO Blog",
+  email: "Email",
+  landing_page: "Landing Page",
+  tiktok_script: "TikTok Script",
+};
 
 export default function DashboardPage() {
   const activeProject = useProjectStore((s) => s.activeProject);
   const { data: projects } = useProjects();
   const { data: history } = useHistory(activeProject?.id);
 
+  const typeCounts: Record<string, number> = {};
+  let totalScore = 0;
+  let scoredCount = 0;
+  for (const item of history ?? []) {
+    typeCounts[item.content_type] = (typeCounts[item.content_type] ?? 0) + 1;
+    if (item.score != null) {
+      totalScore += item.score;
+      scoredCount++;
+    }
+  }
+  const avgScore = scoredCount > 0 ? Math.round(totalScore / scoredCount) : null;
+
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold">Dashboard</h1>
 
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardHeader>
             <CardDescription>Total Projects</CardDescription>
@@ -41,7 +62,32 @@ export default function DashboardPage() {
             <CardTitle className="text-3xl">{history?.length ?? 0}</CardTitle>
           </CardHeader>
         </Card>
+        <Card>
+          <CardHeader>
+            <CardDescription>Avg. Score</CardDescription>
+            <CardTitle className="text-3xl">
+              {avgScore !== null ? `${avgScore}/100` : "—"}
+            </CardTitle>
+          </CardHeader>
+        </Card>
       </div>
+
+      {Object.keys(typeCounts).length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Content by Type</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex gap-3 flex-wrap">
+              {Object.entries(typeCounts).map(([type, count]) => (
+                <Badge key={type} variant="secondary" className="text-sm px-3 py-1">
+                  {TYPE_LABELS[type] ?? type}: {count}
+                </Badge>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {activeProject && (
         <Card>
@@ -54,7 +100,8 @@ export default function DashboardPage() {
           <CardContent>
             {!history?.length ? (
               <p className="text-sm text-muted-foreground">
-                No content generated yet. Go to Generate to create your first post.
+                No content generated yet. Go to Generate to create your first
+                post.
               </p>
             ) : (
               <div className="space-y-2">
@@ -66,13 +113,14 @@ export default function DashboardPage() {
                     <div>
                       <p className="text-sm font-medium">{item.prompt}</p>
                       <p className="text-xs text-muted-foreground">
-                        {item.content_type} &middot;{" "}
+                        {TYPE_LABELS[item.content_type] ?? item.content_type}{" "}
+                        &middot;{" "}
                         {new Date(item.created_at).toLocaleDateString()}
                       </p>
                     </div>
                     {item.score !== null && (
                       <span className="text-sm font-mono">
-                        {item.score}/10
+                        {item.score}/100
                       </span>
                     )}
                   </div>

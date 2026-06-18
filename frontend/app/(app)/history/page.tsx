@@ -165,6 +165,34 @@ function DraftViewer({
   );
 }
 
+function formatDraftAsText(
+  contentType: string,
+  draft: Record<string, unknown>,
+): string {
+  if (contentType === "facebook_post") {
+    const d = draft as { hook?: string; body?: string; cta?: string; hashtags?: string[] };
+    return [d.hook, "", d.body, "", d.cta, "", d.hashtags?.join(" ")].filter(Boolean).join("\n");
+  }
+  if (contentType === "seo_blog") {
+    const d = draft as { seo_title?: string; meta_description?: string; blog_content?: string; faq?: { question: string; answer: string }[] };
+    const faqText = d.faq?.map((f) => `Q: ${f.question}\nA: ${f.answer}`).join("\n\n") ?? "";
+    return [d.seo_title, d.meta_description, "", d.blog_content, "", faqText].filter(Boolean).join("\n");
+  }
+  if (contentType === "email") {
+    const d = draft as { subject?: string; body?: string; cta?: string };
+    return [`Subject: ${d.subject}`, "", d.body, "", d.cta].filter(Boolean).join("\n");
+  }
+  if (contentType === "landing_page") {
+    const d = draft as { headline?: string; subheadline?: string; benefits?: string[]; cta?: string };
+    return [d.headline, d.subheadline, "", d.benefits?.map((b) => `• ${b}`).join("\n"), "", d.cta].filter(Boolean).join("\n");
+  }
+  if (contentType === "tiktok_script") {
+    const d = draft as { hook?: string; script?: string; cta?: string };
+    return [`[HOOK] ${d.hook}`, "", d.script, "", `[CTA] ${d.cta}`].filter(Boolean).join("\n");
+  }
+  return JSON.stringify(draft, null, 2);
+}
+
 function ViewField({
   label,
   value,
@@ -277,10 +305,29 @@ export default function HistoryPage() {
             <DialogTitle>{selected?.prompt}</DialogTitle>
           </DialogHeader>
           {selected?.output?.draft != null && (
-            <DraftViewer
-              contentType={selected.content_type}
-              draft={selected.output.draft as Record<string, unknown>}
-            />
+            <>
+              <DraftViewer
+                contentType={selected.content_type}
+                draft={selected.output.draft as Record<string, unknown>}
+              />
+              <div className="mt-4 flex justify-end">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    navigator.clipboard.writeText(
+                      formatDraftAsText(
+                        selected.content_type,
+                        selected.output!.draft as Record<string, unknown>,
+                      ),
+                    );
+                    toast.success("Copied to clipboard");
+                  }}
+                >
+                  Copy
+                </Button>
+              </div>
+            </>
           )}
         </DialogContent>
       </Dialog>

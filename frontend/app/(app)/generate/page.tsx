@@ -209,6 +209,34 @@ function Field({
   );
 }
 
+function formatDraftAsText(
+  contentType: string,
+  draft: Record<string, unknown>,
+): string {
+  if (contentType === "facebook_post") {
+    const d = draft as { hook?: string; body?: string; cta?: string; hashtags?: string[] };
+    return [d.hook, "", d.body, "", d.cta, "", d.hashtags?.join(" ")].filter(Boolean).join("\n");
+  }
+  if (contentType === "seo_blog") {
+    const d = draft as { seo_title?: string; meta_description?: string; blog_content?: string; faq?: { question: string; answer: string }[] };
+    const faqText = d.faq?.map((f) => `Q: ${f.question}\nA: ${f.answer}`).join("\n\n") ?? "";
+    return [d.seo_title, d.meta_description, "", d.blog_content, "", faqText].filter(Boolean).join("\n");
+  }
+  if (contentType === "email") {
+    const d = draft as { subject?: string; body?: string; cta?: string };
+    return [`Subject: ${d.subject}`, "", d.body, "", d.cta].filter(Boolean).join("\n");
+  }
+  if (contentType === "landing_page") {
+    const d = draft as { headline?: string; subheadline?: string; benefits?: string[]; cta?: string };
+    return [d.headline, d.subheadline, "", d.benefits?.map((b) => `• ${b}`).join("\n"), "", d.cta].filter(Boolean).join("\n");
+  }
+  if (contentType === "tiktok_script") {
+    const d = draft as { hook?: string; script?: string; cta?: string };
+    return [`[HOOK] ${d.hook}`, "", d.script, "", `[CTA] ${d.cta}`].filter(Boolean).join("\n");
+  }
+  return JSON.stringify(draft, null, 2);
+}
+
 export default function GeneratePage() {
   const activeProject = useProjectStore((s) => s.activeProject);
   const { start, jobStatus, polling, reset } = useGenerate();
@@ -397,16 +425,39 @@ export default function GeneratePage() {
           )}
 
           {(jobStatus.status === "done" || jobStatus.status === "error") && (
-            <Button
-              variant="outline"
-              onClick={() => {
-                reset();
-                setBrief("");
-                setGoal("");
-              }}
-            >
-              Generate Another
-            </Button>
+            <div className="flex gap-2">
+              {jobStatus.status === "done" && draft && (
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    navigator.clipboard.writeText(
+                      formatDraftAsText(contentType, draft),
+                    );
+                    toast.success("Copied to clipboard");
+                  }}
+                >
+                  Copy
+                </Button>
+              )}
+              <Button
+                variant="outline"
+                onClick={() => {
+                  reset();
+                }}
+              >
+                Re-generate
+              </Button>
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  reset();
+                  setBrief("");
+                  setGoal("");
+                }}
+              >
+                New Topic
+              </Button>
+            </div>
           )}
         </>
       )}
