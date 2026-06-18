@@ -26,6 +26,7 @@ interface ChatState {
   messages: ChatMessage[];
   streaming: boolean;
   streamContent: string;
+  suggestions: string[];
   contentPanel: { visible: boolean; generating: boolean; result: Record<string, unknown> | null };
 
   loadConversations: () => Promise<void>;
@@ -46,6 +47,7 @@ export const useChatStore = create<ChatState>()((set, get) => ({
   messages: [],
   streaming: false,
   streamContent: "",
+  suggestions: [],
   contentPanel: { visible: false, generating: false, result: null },
 
   loadConversations: async () => {
@@ -118,6 +120,7 @@ export const useChatStore = create<ChatState>()((set, get) => ({
       messages: [...s.messages, userMsg],
       streaming: true,
       streamContent: "",
+      suggestions: [],
     }));
 
     const token = (() => {
@@ -163,6 +166,8 @@ export const useChatStore = create<ChatState>()((set, get) => ({
           if (data.type === "token") {
             fullContent += data.content;
             set({ streamContent: fullContent });
+          } else if (data.type === "suggestions") {
+            set({ suggestions: data.suggestions ?? [] });
           } else if (data.type === "done") {
             fullContent = data.content;
             const generateMatch = fullContent.match(/```generate\n([\s\S]*?)\n```/);

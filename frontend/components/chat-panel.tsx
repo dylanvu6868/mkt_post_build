@@ -5,7 +5,7 @@ import { useChatStore } from "@/store/chat";
 import { cn } from "@/lib/utils";
 
 export function ChatPanel() {
-  const { messages, activeConversationId, streaming, streamContent, sendMessage, createConversation } = useChatStore();
+  const { messages, activeConversationId, streaming, streamContent, suggestions, sendMessage, createConversation } = useChatStore();
   const [input, setInput] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -32,11 +32,25 @@ export function ChatPanel() {
           <p className="text-muted-foreground mb-6">
             Start a conversation to create marketing content. I&apos;ll guide you through the process with questions.
           </p>
+          <div className="flex flex-wrap justify-center gap-2 mb-4">
+            {["Facebook Post", "SEO Blog", "Email Marketing", "Landing Page", "TikTok Script"].map((label) => (
+              <button
+                key={label}
+                onClick={async () => {
+                  await createConversation();
+                  await sendMessage(`I want to write a ${label}`);
+                }}
+                className="rounded-full border px-4 py-2 text-sm hover:bg-muted transition-colors"
+              >
+                {label}
+              </button>
+            ))}
+          </div>
           <form onSubmit={handleSubmit} className="flex gap-2">
             <input
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="E.g., I want to write a Facebook post..."
+              placeholder="Or type your own request..."
               className="flex-1 rounded-lg border bg-background px-4 py-2.5 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
             />
             <button type="submit" disabled={!input.trim()} className="rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground disabled:opacity-50">
@@ -88,7 +102,20 @@ export function ChatPanel() {
         <div ref={bottomRef} />
       </div>
 
-      <div className="border-t p-4">
+      <div className="border-t p-4 space-y-3">
+        {suggestions.length > 0 && !streaming && (
+          <div className="flex flex-wrap gap-2">
+            {suggestions.map((s) => (
+              <button
+                key={s}
+                onClick={() => sendMessage(s)}
+                className="rounded-full border bg-background px-3 py-1.5 text-sm hover:bg-muted transition-colors"
+              >
+                {s}
+              </button>
+            ))}
+          </div>
+        )}
         <form onSubmit={handleSubmit} className="flex gap-2">
           <input
             value={input}
