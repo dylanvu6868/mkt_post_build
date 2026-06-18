@@ -20,5 +20,12 @@ class Settings(BaseSettings):
     jwt_algorithm: str = "HS256"
     access_token_expire_minutes: int = 1440
 
+    # RAG (M3)
+    qdrant_collection_name: str = "marketing_docs"
+    embedding_model: str = "BAAI/bge-small-en-v1.5"
+    rag_chunk_size: int = 800
+    rag_chunk_overlap: int = 100
+    rag_top_k: int = 5
+
 
 settings = Settings()

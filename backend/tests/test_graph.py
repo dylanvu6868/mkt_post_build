@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 from app.graph.build import build_graph
 
 
@@ -13,7 +15,9 @@ def _initial_state():
     }
 
 
-async def test_graph_runs_all_seven_agents_end_to_end_in_mock_mode():
+@patch("app.agents.brand.retrieve", return_value=[])
+@patch("app.agents.brand.embed_query", return_value=[0.1] * 384)
+async def test_graph_runs_all_seven_agents_end_to_end_in_mock_mode(mock_embed, mock_retrieve):
     graph = build_graph()
     final = await graph.ainvoke(_initial_state())
 
@@ -28,7 +32,9 @@ async def test_graph_runs_all_seven_agents_end_to_end_in_mock_mode():
     assert final["final"]["hook"]
 
 
-async def test_graph_is_deterministic_in_mock_mode():
+@patch("app.agents.brand.retrieve", return_value=[])
+@patch("app.agents.brand.embed_query", return_value=[0.1] * 384)
+async def test_graph_is_deterministic_in_mock_mode(mock_embed, mock_retrieve):
     graph = build_graph()
     a = await graph.ainvoke(_initial_state())
     b = await graph.ainvoke(_initial_state())

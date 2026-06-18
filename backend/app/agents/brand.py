@@ -1,17 +1,37 @@
 from typing import Any
 
+from app.rag.embeddings import embed_query
+from app.rag.qdrant_store import retrieve
 from app.schemas.agents import BrandContext
 
 
 async def brand(state: dict[str, Any]) -> dict[str, Any]:
-    """M2 has no RAG yet (wired in M3), so return an empty grounded context.
+    """Retrieve relevant brand documents from Qdrant for the project.
 
-    Kept as a graph node so the 7-agent topology and fan-in are exercised now;
-    M3 replaces the body with a Qdrant retrieval filtered by project_id.
+    Embeds the user brief as a query, retrieves top-k chunks filtered by
+    project_id, and returns them as grounded brand context for downstream
+    agents.
     """
+    project_id = state.get("project_id", 0)
+    brief = state.get("brief", "")
+
+    try:
+        query_vector = embed_query(brief)
+        chunks = retrieve(project_id, query_vector)
+    except Exception:  # noqa: BLE001 — Qdrant/embed failure should not crash the pipeline
+        chunks = []
+
+    if chunks:
+        brand_notes = (
+            f"Retrieved {len(chunks)} relevant brand document chunks. "
+            f"Use these to maintain brand consistency."
+        )
+    else:
+        brand_notes = "No brand documents found for this project."
+
     return {
         "brand_context": BrandContext(
-            relevant_context=[],
-            brand_notes="No brand documents ingested yet (RAG arrives in M3).",
+            relevant_context=chunks,
+            brand_notes=brand_notes,
         ).model_dump()
     }

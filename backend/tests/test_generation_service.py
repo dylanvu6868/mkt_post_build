@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 from app.models.generation_job import GenerationJob
 from app.services.generation_service import (
     create_job,
@@ -18,7 +20,11 @@ def _initial_state(brief="eco-friendly water bottles"):
     }
 
 
-async def test_run_generation_job_completes_and_stores_result(session_maker):
+@patch("app.agents.brand.retrieve", return_value=[])
+@patch("app.agents.brand.embed_query", return_value=[0.1] * 384)
+async def test_run_generation_job_completes_and_stores_result(
+    mock_embed, mock_retrieve, session_maker
+):
     async with session_maker() as session:
         job = await create_job(
             session,
@@ -40,7 +46,11 @@ async def test_run_generation_job_completes_and_stores_result(session_maker):
         assert 0 <= done.result_json["review"]["score"] <= 100
 
 
-async def test_run_generation_job_records_error_on_failure(session_maker):
+@patch("app.agents.brand.retrieve", return_value=[])
+@patch("app.agents.brand.embed_query", return_value=[0.1] * 384)
+async def test_run_generation_job_records_error_on_failure(
+    mock_embed, mock_retrieve, session_maker
+):
     async with session_maker() as session:
         job = await create_job(
             session,
