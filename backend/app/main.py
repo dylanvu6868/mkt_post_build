@@ -1,9 +1,19 @@
+import logging
+
 from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.api import auth, brand, documents, generate, history, projects
 from app.core.config import settings
+from app.core.rate_limit import limiter
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+)
 
 
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
@@ -37,6 +47,9 @@ app.add_middleware(
 )
 
 app.add_middleware(SecurityHeadersMiddleware)
+
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 app.include_router(auth.router)
 app.include_router(projects.router)

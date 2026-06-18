@@ -1,3 +1,7 @@
+import os
+
+os.environ.setdefault("ENVIRONMENT", "test")
+
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
