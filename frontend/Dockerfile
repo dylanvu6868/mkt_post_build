@@ -7,6 +7,7 @@ COPY package*.json ./
 RUN npm ci
 
 COPY . .
+ENV DOCKER_BUILD=1
 RUN npm run build
 
 # ---- runtime stage ----
