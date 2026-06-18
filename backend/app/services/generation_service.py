@@ -1,6 +1,9 @@
+import logging
 from typing import Any
 
 from sqlalchemy import select
+
+logger = logging.getLogger(__name__)
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from app.graph.build import build_graph
@@ -33,6 +36,7 @@ async def create_job(
     session.add(job)
     await session.commit()
     await session.refresh(job)
+    logger.info("Job created job_id=%s project_id=%s content_type=%s", job.id, project_id, content_type)
     return job
 
 
@@ -72,6 +76,7 @@ async def run_generation_job(
         job.status = "running"
         await session.commit()
 
+    logger.info("Generation started job_id=%s", job_id)
     state: dict[str, Any] = dict(initial_state)
     try:
         async for update in graph.astream(initial_state, stream_mode="updates"):
@@ -82,6 +87,7 @@ async def run_generation_job(
                         state["errors"].extend(value)
                     else:
                         state[key] = value
+                logger.info("Agent step completed job_id=%s step=%s", job_id, node)
                 await _set_step(session_maker, job_id, node)
 
         result = {key: state.get(key) for key in _RESULT_KEYS}
@@ -102,7 +108,9 @@ async def run_generation_job(
                 result,
                 score=score,
             )
+        logger.info("Generation completed job_id=%s score=%s", job_id, score)
     except Exception as exc:  # noqa: BLE001 — any agent/LLM failure marks the job errored
+        logger.error("Generation failed job_id=%s error=%s", job_id, exc)
         async with session_maker() as session:
             job = await session.get(GenerationJob, job_id)
             if job is not None:

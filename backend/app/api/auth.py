@@ -1,5 +1,9 @@
+import logging
+
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
+
+logger = logging.getLogger(__name__)
 
 from app.core.db import get_session
 from app.core.rate_limit import limiter
@@ -21,12 +25,14 @@ async def register(
 ) -> TokenResponse:
     existing = await auth_service.get_user_by_email(session, payload.email)
     if existing is not None:
+        logger.warning("Register failed: email already exists email=%s", payload.email)
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT, detail="Email already registered"
         )
     user = await auth_service.create_user(
         session, payload.name, payload.email, payload.password
     )
+    logger.info("User registered user_id=%s email=%s", user.id, payload.email)
     token = create_access_token(str(user.id))
     return TokenResponse(access_token=token, user=UserResponse.model_validate(user))
 
@@ -40,8 +46,10 @@ async def login(
 ) -> TokenResponse:
     user = await auth_service.authenticate(session, payload.email, payload.password)
     if user is None:
+        logger.warning("Login failed: invalid credentials email=%s", payload.email)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials"
         )
+    logger.info("User logged in user_id=%s email=%s", user.id, payload.email)
     token = create_access_token(str(user.id))
     return TokenResponse(access_token=token, user=UserResponse.model_validate(user))
