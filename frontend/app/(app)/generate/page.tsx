@@ -15,6 +15,13 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { toast } from "sonner";
 
 const AGENT_STEPS = [
@@ -27,12 +34,188 @@ const AGENT_STEPS = [
   "reviewer",
 ];
 
+const CONTENT_TYPES = [
+  { value: "facebook_post", label: "Facebook Post" },
+  { value: "seo_blog", label: "SEO Blog" },
+  { value: "email", label: "Email" },
+  { value: "landing_page", label: "Landing Page" },
+  { value: "tiktok_script", label: "TikTok Script" },
+];
+
+function DraftRenderer({
+  contentType,
+  draft,
+}: {
+  contentType: string;
+  draft: Record<string, unknown>;
+}) {
+  if (contentType === "facebook_post") {
+    const d = draft as {
+      hook?: string;
+      body?: string;
+      cta?: string;
+      hashtags?: string[];
+    };
+    return (
+      <div className="space-y-4">
+        <Field label="HOOK" value={d.hook} bold />
+        <Field label="BODY" value={d.body} pre />
+        <Field label="CTA" value={d.cta} medium />
+        {d.hashtags && (
+          <div className="flex gap-1 flex-wrap">
+            {d.hashtags.map((tag) => (
+              <Badge key={tag} variant="outline">
+                {tag}
+              </Badge>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  if (contentType === "seo_blog") {
+    const d = draft as {
+      seo_title?: string;
+      meta_description?: string;
+      outline?: string[];
+      blog_content?: string;
+      faq?: { question: string; answer: string }[];
+    };
+    return (
+      <div className="space-y-4">
+        <Field label="SEO TITLE" value={d.seo_title} bold />
+        <Field label="META DESCRIPTION" value={d.meta_description} />
+        {d.outline && (
+          <div>
+            <p className="text-xs font-medium text-muted-foreground mb-1">
+              OUTLINE
+            </p>
+            <ul className="list-disc list-inside text-sm space-y-1">
+              {d.outline.map((item, i) => (
+                <li key={i}>{item}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+        <Field label="BLOG CONTENT" value={d.blog_content} pre />
+        {d.faq && d.faq.length > 0 && (
+          <div>
+            <p className="text-xs font-medium text-muted-foreground mb-1">
+              FAQ
+            </p>
+            <div className="space-y-2">
+              {d.faq.map((item, i) => (
+                <div key={i} className="rounded-md border p-3">
+                  <p className="text-sm font-medium">{item.question}</p>
+                  <p className="text-sm text-muted-foreground">{item.answer}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  if (contentType === "email") {
+    const d = draft as { subject?: string; body?: string; cta?: string };
+    return (
+      <div className="space-y-4">
+        <Field label="SUBJECT" value={d.subject} bold />
+        <Field label="BODY" value={d.body} pre />
+        <Field label="CTA" value={d.cta} medium />
+      </div>
+    );
+  }
+
+  if (contentType === "landing_page") {
+    const d = draft as {
+      headline?: string;
+      subheadline?: string;
+      benefits?: string[];
+      cta?: string;
+    };
+    return (
+      <div className="space-y-4">
+        <Field label="HEADLINE" value={d.headline} bold />
+        <Field label="SUBHEADLINE" value={d.subheadline} />
+        {d.benefits && (
+          <div>
+            <p className="text-xs font-medium text-muted-foreground mb-1">
+              BENEFITS
+            </p>
+            <ul className="list-disc list-inside text-sm space-y-1">
+              {d.benefits.map((b, i) => (
+                <li key={i}>{b}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+        <Field label="CTA" value={d.cta} medium />
+      </div>
+    );
+  }
+
+  if (contentType === "tiktok_script") {
+    const d = draft as { hook?: string; script?: string; cta?: string };
+    return (
+      <div className="space-y-4">
+        <Field label="HOOK (first 3s)" value={d.hook} bold />
+        <Field label="SCRIPT" value={d.script} pre />
+        <Field label="CTA" value={d.cta} medium />
+      </div>
+    );
+  }
+
+  return (
+    <pre className="text-sm whitespace-pre-wrap">
+      {JSON.stringify(draft, null, 2)}
+    </pre>
+  );
+}
+
+function Field({
+  label,
+  value,
+  bold,
+  medium,
+  pre,
+}: {
+  label: string;
+  value?: string;
+  bold?: boolean;
+  medium?: boolean;
+  pre?: boolean;
+}) {
+  if (!value) return null;
+  return (
+    <div>
+      <p className="text-xs font-medium text-muted-foreground mb-1">{label}</p>
+      <p
+        className={
+          bold
+            ? "text-lg font-semibold"
+            : medium
+              ? "font-medium"
+              : pre
+                ? "whitespace-pre-wrap"
+                : ""
+        }
+      >
+        {value}
+      </p>
+    </div>
+  );
+}
+
 export default function GeneratePage() {
   const activeProject = useProjectStore((s) => s.activeProject);
   const { start, jobStatus, polling, reset } = useGenerate();
 
   const [brief, setBrief] = useState("");
   const [goal, setGoal] = useState("");
+  const [contentType, setContentType] = useState("facebook_post");
   const [loading, setLoading] = useState(false);
 
   if (!activeProject) {
@@ -53,7 +236,7 @@ export default function GeneratePage() {
     try {
       await start({
         project_id: activeProject.id,
-        content_type: "facebook_post",
+        content_type: contentType,
         brief: brief.trim(),
         marketing_goal: goal.trim(),
       });
@@ -64,13 +247,14 @@ export default function GeneratePage() {
     }
   };
 
-  const draft = jobStatus?.result?.draft as
-    | { hook?: string; body?: string; cta?: string; hashtags?: string[] }
-    | undefined;
+  const draft = jobStatus?.result?.draft as Record<string, unknown> | undefined;
 
   const review = jobStatus?.result?.review as
-    | { score?: number; suggestions?: string[]; final_version?: Record<string, unknown> }
+    | { score?: number; suggestions?: string[] }
     | undefined;
+
+  const typeLabel =
+    CONTENT_TYPES.find((t) => t.value === contentType)?.label ?? contentType;
 
   return (
     <div className="space-y-6">
@@ -79,13 +263,29 @@ export default function GeneratePage() {
       {!jobStatus && (
         <Card>
           <CardHeader>
-            <CardTitle>Generate Facebook Post</CardTitle>
+            <CardTitle>Generate Content</CardTitle>
             <CardDescription>
-              Describe your topic and the AI agents will create content
+              Choose a content type, describe your topic, and the AI agents will
+              create it
             </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleGenerate} className="space-y-4 max-w-lg">
+              <div className="space-y-2">
+                <Label htmlFor="content-type">Content Type</Label>
+                <Select value={contentType} onValueChange={setContentType}>
+                  <SelectTrigger id="content-type">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {CONTENT_TYPES.map((ct) => (
+                      <SelectItem key={ct.value} value={ct.value}>
+                        {ct.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
               <div className="space-y-2">
                 <Label htmlFor="brief">Topic / Brief</Label>
                 <Textarea
@@ -141,10 +341,7 @@ export default function GeneratePage() {
                   );
                   const stepIdx = AGENT_STEPS.indexOf(step);
                   let variant: "default" | "secondary" | "outline" = "outline";
-                  if (
-                    jobStatus.status === "done" ||
-                    stepIdx < currentIdx
-                  ) {
+                  if (jobStatus.status === "done" || stepIdx < currentIdx) {
                     variant = "default";
                   } else if (stepIdx === currentIdx) {
                     variant = "secondary";
@@ -173,44 +370,18 @@ export default function GeneratePage() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  Generated Post
+                  Generated {typeLabel}
                   {review?.score != null && (
                     <Badge variant="secondary">
-                      Score: {review.score}/10
+                      Score: {review.score}/100
                     </Badge>
                   )}
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <p className="text-xs font-medium text-muted-foreground mb-1">
-                    HOOK
-                  </p>
-                  <p className="text-lg font-semibold">{draft.hook}</p>
-                </div>
-                <div>
-                  <p className="text-xs font-medium text-muted-foreground mb-1">
-                    BODY
-                  </p>
-                  <p className="whitespace-pre-wrap">{draft.body}</p>
-                </div>
-                <div>
-                  <p className="text-xs font-medium text-muted-foreground mb-1">
-                    CTA
-                  </p>
-                  <p className="font-medium">{draft.cta}</p>
-                </div>
-                {draft.hashtags && (
-                  <div className="flex gap-1 flex-wrap">
-                    {draft.hashtags.map((tag) => (
-                      <Badge key={tag} variant="outline">
-                        {tag}
-                      </Badge>
-                    ))}
-                  </div>
-                )}
+              <CardContent>
+                <DraftRenderer contentType={contentType} draft={draft} />
                 {review?.suggestions && review.suggestions.length > 0 && (
-                  <div>
+                  <div className="mt-4">
                     <p className="text-xs font-medium text-muted-foreground mb-1">
                       REVIEWER SUGGESTIONS
                     </p>

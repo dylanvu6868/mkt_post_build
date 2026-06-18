@@ -30,6 +30,167 @@ interface HistoryItem {
   created_at: string;
 }
 
+const TYPE_LABELS: Record<string, string> = {
+  facebook_post: "Facebook Post",
+  seo_blog: "SEO Blog",
+  email: "Email",
+  landing_page: "Landing Page",
+  tiktok_script: "TikTok Script",
+};
+
+function DraftViewer({
+  contentType,
+  draft,
+}: {
+  contentType: string;
+  draft: Record<string, unknown>;
+}) {
+  if (contentType === "facebook_post") {
+    const d = draft as {
+      hook?: string;
+      body?: string;
+      cta?: string;
+      hashtags?: string[];
+    };
+    return (
+      <div className="space-y-4">
+        <ViewField label="HOOK" value={d.hook} bold />
+        <ViewField label="BODY" value={d.body} pre />
+        <ViewField label="CTA" value={d.cta} />
+        {d.hashtags && (
+          <div className="flex gap-1 flex-wrap">
+            {d.hashtags.map((tag) => (
+              <Badge key={tag} variant="outline">
+                {tag}
+              </Badge>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  if (contentType === "seo_blog") {
+    const d = draft as {
+      seo_title?: string;
+      meta_description?: string;
+      outline?: string[];
+      blog_content?: string;
+      faq?: { question: string; answer: string }[];
+    };
+    return (
+      <div className="space-y-4">
+        <ViewField label="SEO TITLE" value={d.seo_title} bold />
+        <ViewField label="META DESCRIPTION" value={d.meta_description} />
+        {d.outline && (
+          <div>
+            <p className="text-xs font-medium text-muted-foreground mb-1">OUTLINE</p>
+            <ul className="list-disc list-inside text-sm space-y-1">
+              {d.outline.map((item, i) => (
+                <li key={i}>{item}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+        <ViewField label="BLOG CONTENT" value={d.blog_content} pre />
+        {d.faq && d.faq.length > 0 && (
+          <div>
+            <p className="text-xs font-medium text-muted-foreground mb-1">FAQ</p>
+            <div className="space-y-2">
+              {d.faq.map((item, i) => (
+                <div key={i} className="rounded-md border p-3">
+                  <p className="text-sm font-medium">{item.question}</p>
+                  <p className="text-sm text-muted-foreground">{item.answer}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  if (contentType === "email") {
+    const d = draft as { subject?: string; body?: string; cta?: string };
+    return (
+      <div className="space-y-4">
+        <ViewField label="SUBJECT" value={d.subject} bold />
+        <ViewField label="BODY" value={d.body} pre />
+        <ViewField label="CTA" value={d.cta} />
+      </div>
+    );
+  }
+
+  if (contentType === "landing_page") {
+    const d = draft as {
+      headline?: string;
+      subheadline?: string;
+      benefits?: string[];
+      cta?: string;
+    };
+    return (
+      <div className="space-y-4">
+        <ViewField label="HEADLINE" value={d.headline} bold />
+        <ViewField label="SUBHEADLINE" value={d.subheadline} />
+        {d.benefits && (
+          <div>
+            <p className="text-xs font-medium text-muted-foreground mb-1">BENEFITS</p>
+            <ul className="list-disc list-inside text-sm space-y-1">
+              {d.benefits.map((b, i) => (
+                <li key={i}>{b}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+        <ViewField label="CTA" value={d.cta} />
+      </div>
+    );
+  }
+
+  if (contentType === "tiktok_script") {
+    const d = draft as { hook?: string; script?: string; cta?: string };
+    return (
+      <div className="space-y-4">
+        <ViewField label="HOOK (first 3s)" value={d.hook} bold />
+        <ViewField label="SCRIPT" value={d.script} pre />
+        <ViewField label="CTA" value={d.cta} />
+      </div>
+    );
+  }
+
+  return (
+    <pre className="text-sm whitespace-pre-wrap">
+      {JSON.stringify(draft, null, 2)}
+    </pre>
+  );
+}
+
+function ViewField({
+  label,
+  value,
+  bold,
+  pre,
+}: {
+  label: string;
+  value?: string;
+  bold?: boolean;
+  pre?: boolean;
+}) {
+  if (!value) return null;
+  return (
+    <div>
+      <p className="text-xs font-medium text-muted-foreground mb-1">{label}</p>
+      <p
+        className={
+          bold ? "text-lg font-semibold" : pre ? "whitespace-pre-wrap" : ""
+        }
+      >
+        {value}
+      </p>
+    </div>
+  );
+}
+
 export default function HistoryPage() {
   const activeProject = useProjectStore((s) => s.activeProject);
   const { data: history, isLoading } = useHistory(activeProject?.id);
@@ -57,11 +218,6 @@ export default function HistoryPage() {
     }
   };
 
-  const getDraft = (item: HistoryItem) =>
-    item.output?.draft as
-      | { hook?: string; body?: string; cta?: string; hashtags?: string[] }
-      | undefined;
-
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold">History</h1>
@@ -85,13 +241,14 @@ export default function HistoryPage() {
               <div>
                 <CardTitle className="text-base">{item.prompt}</CardTitle>
                 <CardDescription>
-                  {item.content_type} &middot;{" "}
+                  {TYPE_LABELS[item.content_type] ?? item.content_type}{" "}
+                  &middot;{" "}
                   {new Date(item.created_at).toLocaleDateString()}
                 </CardDescription>
               </div>
               <div className="flex items-center gap-2">
                 {item.score !== null && (
-                  <Badge variant="secondary">{item.score}/10</Badge>
+                  <Badge variant="secondary">{item.score}/100</Badge>
                 )}
                 <Button
                   variant="outline"
@@ -119,40 +276,11 @@ export default function HistoryPage() {
           <DialogHeader>
             <DialogTitle>{selected?.prompt}</DialogTitle>
           </DialogHeader>
-          {selected && getDraft(selected) && (
-            <div className="space-y-4">
-              <div>
-                <p className="text-xs font-medium text-muted-foreground mb-1">
-                  HOOK
-                </p>
-                <p className="text-lg font-semibold">
-                  {getDraft(selected)?.hook}
-                </p>
-              </div>
-              <div>
-                <p className="text-xs font-medium text-muted-foreground mb-1">
-                  BODY
-                </p>
-                <p className="whitespace-pre-wrap">
-                  {getDraft(selected)?.body}
-                </p>
-              </div>
-              <div>
-                <p className="text-xs font-medium text-muted-foreground mb-1">
-                  CTA
-                </p>
-                <p className="font-medium">{getDraft(selected)?.cta}</p>
-              </div>
-              {getDraft(selected)?.hashtags && (
-                <div className="flex gap-1 flex-wrap">
-                  {getDraft(selected)!.hashtags!.map((tag) => (
-                    <Badge key={tag} variant="outline">
-                      {tag}
-                    </Badge>
-                  ))}
-                </div>
-              )}
-            </div>
+          {selected?.output?.draft != null && (
+            <DraftViewer
+              contentType={selected.content_type}
+              draft={selected.output.draft as Record<string, unknown>}
+            />
           )}
         </DialogContent>
       </Dialog>
