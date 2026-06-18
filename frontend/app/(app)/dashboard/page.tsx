@@ -11,6 +11,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const TYPE_LABELS: Record<string, string> = {
   facebook_post: "Facebook Post",
@@ -22,8 +23,9 @@ const TYPE_LABELS: Record<string, string> = {
 
 export default function DashboardPage() {
   const activeProject = useProjectStore((s) => s.activeProject);
-  const { data: projects } = useProjects();
-  const { data: history } = useHistory(activeProject?.id);
+  const { data: projects, isLoading: projectsLoading } = useProjects();
+  const { data: history, isLoading: historyLoading } = useHistory(activeProject?.id);
+  const isLoading = projectsLoading || historyLoading;
 
   const typeCounts: Record<string, number> = {};
   let totalScore = 0;
@@ -42,34 +44,47 @@ export default function DashboardPage() {
       <h1 className="text-2xl font-bold">Dashboard</h1>
 
       <div className="grid gap-4 md:grid-cols-4">
-        <Card>
-          <CardHeader>
-            <CardDescription>Total Projects</CardDescription>
-            <CardTitle className="text-3xl">{projects?.length ?? 0}</CardTitle>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardDescription>Active Project</CardDescription>
-            <CardTitle className="text-lg truncate">
-              {activeProject?.name ?? "None selected"}
-            </CardTitle>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardDescription>Generated Content</CardDescription>
-            <CardTitle className="text-3xl">{history?.length ?? 0}</CardTitle>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardDescription>Avg. Score</CardDescription>
-            <CardTitle className="text-3xl">
-              {avgScore !== null ? `${avgScore}/100` : "—"}
-            </CardTitle>
-          </CardHeader>
-        </Card>
+        {isLoading ? (
+          Array.from({ length: 4 }).map((_, i) => (
+            <Card key={i}>
+              <CardHeader>
+                <Skeleton className="h-4 w-24 mb-2" />
+                <Skeleton className="h-8 w-16" />
+              </CardHeader>
+            </Card>
+          ))
+        ) : (
+          <>
+            <Card>
+              <CardHeader>
+                <CardDescription>Total Projects</CardDescription>
+                <CardTitle className="text-3xl">{projects?.length ?? 0}</CardTitle>
+              </CardHeader>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardDescription>Active Project</CardDescription>
+                <CardTitle className="text-lg truncate">
+                  {activeProject?.name ?? "None selected"}
+                </CardTitle>
+              </CardHeader>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardDescription>Generated Content</CardDescription>
+                <CardTitle className="text-3xl">{history?.length ?? 0}</CardTitle>
+              </CardHeader>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardDescription>Avg. Score</CardDescription>
+                <CardTitle className="text-3xl">
+                  {avgScore !== null ? `${avgScore}/100` : "—"}
+                </CardTitle>
+              </CardHeader>
+            </Card>
+          </>
+        )}
       </div>
 
       {Object.keys(typeCounts).length > 0 && (

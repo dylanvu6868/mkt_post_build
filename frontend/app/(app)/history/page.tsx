@@ -18,6 +18,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 
 interface HistoryItem {
@@ -251,7 +252,22 @@ export default function HistoryPage() {
       <h1 className="text-2xl font-bold">History</h1>
 
       {isLoading && (
-        <p className="text-muted-foreground">Loading history...</p>
+        <div className="space-y-3">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Card key={i}>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <div className="space-y-2">
+                  <Skeleton className="h-5 w-48" />
+                  <Skeleton className="h-3 w-32" />
+                </div>
+                <div className="flex gap-2">
+                  <Skeleton className="h-8 w-12" />
+                  <Skeleton className="h-8 w-16" />
+                </div>
+              </CardHeader>
+            </Card>
+          ))}
+        </div>
       )}
 
       {!isLoading && !history?.length && (

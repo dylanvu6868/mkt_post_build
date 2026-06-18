@@ -12,6 +12,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 
 export default function ProjectsPage() {
@@ -57,9 +58,18 @@ export default function ProjectsPage() {
       </Card>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {isLoading && (
-          <p className="text-muted-foreground">Loading projects...</p>
-        )}
+        {isLoading &&
+          Array.from({ length: 3 }).map((_, i) => (
+            <Card key={i}>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <div className="space-y-2">
+                  <Skeleton className="h-5 w-32" />
+                  <Skeleton className="h-3 w-20" />
+                </div>
+                <Skeleton className="h-8 w-16" />
+              </CardHeader>
+            </Card>
+          ))}
         {projects?.map((project) => (
           <Card
             key={project.id}
