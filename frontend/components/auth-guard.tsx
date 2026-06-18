@@ -4,13 +4,14 @@ import { useAuthStore } from "@/store/auth";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
-export default function Home() {
+export function AuthGuard({ children }: { children: React.ReactNode }) {
   const token = useAuthStore((s) => s.token);
   const router = useRouter();
 
   useEffect(() => {
-    router.replace(token ? "/dashboard" : "/login");
+    if (!token) router.replace("/login");
   }, [token, router]);
 
-  return null;
+  if (!token) return null;
+  return <>{children}</>;
 }
