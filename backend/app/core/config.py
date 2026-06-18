@@ -22,6 +22,11 @@ class Settings(BaseSettings):
     jwt_algorithm: str = "HS256"
     access_token_expire_minutes: int = 1440
 
+    # OAuth
+    google_client_id: str = ""
+    facebook_app_id: str = ""
+    facebook_app_secret: str = ""
+
     # RAG (M3)
     qdrant_collection_name: str = "marketing_docs"
     embedding_model: str = "BAAI/bge-small-en-v1.5"

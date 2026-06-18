@@ -12,6 +12,10 @@ class LoginRequest(BaseModel):
     password: str
 
 
+class OAuthRequest(BaseModel):
+    token: str
+
+
 class UserResponse(BaseModel):
     id: int
     name: str

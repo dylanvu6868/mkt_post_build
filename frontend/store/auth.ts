@@ -13,6 +13,7 @@ interface AuthState {
   user: User | null;
   login: (email: string, password: string) => Promise<void>;
   register: (name: string, email: string, password: string) => Promise<void>;
+  socialLogin: (provider: "google" | "facebook", token: string) => Promise<void>;
   logout: () => void;
 }
 
@@ -35,6 +36,14 @@ export const useAuthStore = create<AuthState>()(
           access_token: string;
           user: User;
         }>("/auth/register", { name, email, password });
+        set({ token: data.access_token, user: data.user });
+      },
+
+      socialLogin: async (provider, token) => {
+        const data = await api.post<{
+          access_token: string;
+          user: User;
+        }>(`/auth/${provider}`, { token });
         set({ token: data.access_token, user: data.user });
       },
 

@@ -8,8 +8,9 @@ logger = logging.getLogger(__name__)
 from app.core.db import get_session
 from app.core.rate_limit import limiter
 from app.core.security import create_access_token
-from app.schemas.auth import LoginRequest, RegisterRequest, TokenResponse, UserResponse
+from app.schemas.auth import LoginRequest, OAuthRequest, RegisterRequest, TokenResponse, UserResponse
 from app.services import auth_service
+from app.services.oauth_service import find_or_create_oauth_user, verify_facebook_token, verify_google_token
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -51,5 +52,45 @@ async def login(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials"
         )
     logger.info("User logged in user_id=%s email=%s", user.id, payload.email)
+    token = create_access_token(str(user.id))
+    return TokenResponse(access_token=token, user=UserResponse.model_validate(user))
+
+
+@router.post("/google", response_model=TokenResponse)
+@limiter.limit("10/minute")
+async def google_login(
+    request: Request,
+    payload: OAuthRequest,
+    session: AsyncSession = Depends(get_session),
+) -> TokenResponse:
+    profile = await verify_google_token(payload.token)
+    if profile is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid Google token"
+        )
+    user = await find_or_create_oauth_user(
+        session, "google", profile["oauth_id"], profile["email"], profile["name"]
+    )
+    logger.info("Google login user_id=%s email=%s", user.id, profile["email"])
+    token = create_access_token(str(user.id))
+    return TokenResponse(access_token=token, user=UserResponse.model_validate(user))
+
+
+@router.post("/facebook", response_model=TokenResponse)
+@limiter.limit("10/minute")
+async def facebook_login(
+    request: Request,
+    payload: OAuthRequest,
+    session: AsyncSession = Depends(get_session),
+) -> TokenResponse:
+    profile = await verify_facebook_token(payload.token)
+    if profile is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid Facebook token"
+        )
+    user = await find_or_create_oauth_user(
+        session, "facebook", profile["oauth_id"], profile["email"], profile["name"]
+    )
+    logger.info("Facebook login user_id=%s email=%s", user.id, profile["email"])
     token = create_access_token(str(user.id))
     return TokenResponse(access_token=token, user=UserResponse.model_validate(user))
