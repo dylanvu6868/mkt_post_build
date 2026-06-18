@@ -6,7 +6,7 @@ from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from app.api import auth, brand, documents, generate, history, projects
+from app.api import admin, auth, brand, documents, generate, history, projects
 from app.core.config import settings
 from app.core.rate_limit import limiter
 
@@ -51,6 +51,7 @@ app.add_middleware(SecurityHeadersMiddleware)
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
+app.include_router(admin.router)
 app.include_router(auth.router)
 app.include_router(projects.router)
 app.include_router(documents.router)

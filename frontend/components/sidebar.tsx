@@ -16,6 +16,12 @@ const NAV_ITEMS = [
   { href: "/history", label: "History" },
 ];
 
+const ADMIN_ITEMS = [
+  { href: "/admin", label: "Analytics" },
+  { href: "/admin/users", label: "Users" },
+  { href: "/admin/content", label: "Content" },
+];
+
 export function Sidebar() {
   const pathname = usePathname();
   const logout = useAuthStore((s) => s.logout);
@@ -48,6 +54,29 @@ export function Sidebar() {
             {item.label}
           </Link>
         ))}
+        {user?.is_admin && (
+          <>
+            <div className="pt-3 pb-1">
+              <span className="px-3 text-xs font-semibold uppercase text-muted-foreground">
+                Admin
+              </span>
+            </div>
+            {ADMIN_ITEMS.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={cn(
+                  "block rounded-md px-3 py-2 text-sm transition-colors",
+                  pathname === item.href
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                )}
+              >
+                {item.label}
+              </Link>
+            ))}
+          </>
+        )}
       </nav>
 
       <div className="mt-auto space-y-2 border-t pt-4">
