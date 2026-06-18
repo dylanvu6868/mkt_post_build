@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from app.graph.build import build_graph
 from app.models.generation_job import GenerationJob
 from app.models.project import Project
+from app.services import history_service
 
 _RESULT_KEYS = (
     "plan",
@@ -90,6 +91,17 @@ async def run_generation_job(
                 job.status = "done"
                 job.result_json = result
                 await session.commit()
+
+            review = result.get("review") or {}
+            score = review.get("score") if isinstance(review, dict) else None
+            await history_service.save_to_history(
+                session,
+                initial_state["project_id"],
+                initial_state["content_type"],
+                initial_state["brief"],
+                result,
+                score=score,
+            )
     except Exception as exc:  # noqa: BLE001 — any agent/LLM failure marks the job errored
         async with session_maker() as session:
             job = await session.get(GenerationJob, job_id)
