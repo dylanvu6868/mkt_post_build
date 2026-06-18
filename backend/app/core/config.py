@@ -5,6 +5,8 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
     app_name: str = "AI Marketing Backend"
+    environment: str = "development"
+    cors_origins: str = "http://localhost:3000"
     database_url: str = "postgresql+asyncpg://postgres:postgres@db:5432/marketing"
     qdrant_url: str = "http://qdrant:6333"
 
