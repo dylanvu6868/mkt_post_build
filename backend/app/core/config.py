@@ -23,7 +23,7 @@ class Settings(BaseSettings):
     access_token_expire_minutes: int = 1440
 
     # Default admin (seeded on first startup)
-    admin_email: str = "admin@marketing.local"
+    admin_email: str = "admin@mktplatform.com"
     admin_password: str = "Admin@123456"
 
     # OAuth
