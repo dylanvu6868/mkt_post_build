@@ -63,7 +63,7 @@ async def test_generate_rejects_unsupported_content_type(client):
         "/generate",
         json={
             "project_id": project_id,
-            "content_type": "tiktok_script",
+            "content_type": "billboard_ad",
             "brief": "x",
         },
         headers=headers,

@@ -28,11 +28,11 @@ def test_facebook_post_draft_fields():
     }
 
 
-def test_review_nests_final_content_as_facebook_post():
+def test_review_nests_final_content_as_dict():
     review = Review(
         score=90,
         suggestions=["tighten"],
-        final_content=FacebookPostDraft(hook="h", body="b", cta="c", hashtags=[]),
+        final_content={"hook": "h", "body": "b", "cta": "c", "hashtags": []},
     )
     dumped = review.model_dump()
     assert dumped["score"] == 90

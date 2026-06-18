@@ -28,6 +28,8 @@ class FusedBrief(BaseModel):
     unified_brief: str
 
 
+# --- Content type drafts ---
+
 class FacebookPostDraft(BaseModel):
     hook: str
     body: str
@@ -35,7 +37,48 @@ class FacebookPostDraft(BaseModel):
     hashtags: list[str]
 
 
+class FAQItem(BaseModel):
+    question: str
+    answer: str
+
+
+class SeoBlogDraft(BaseModel):
+    seo_title: str
+    meta_description: str
+    outline: list[str]
+    blog_content: str
+    faq: list[FAQItem]
+
+
+class EmailDraft(BaseModel):
+    subject: str
+    body: str
+    cta: str
+
+
+class LandingPageDraft(BaseModel):
+    headline: str
+    subheadline: str
+    benefits: list[str]
+    cta: str
+
+
+class TikTokScriptDraft(BaseModel):
+    hook: str
+    script: str
+    cta: str
+
+
+DRAFT_SCHEMAS: dict[str, type[BaseModel]] = {
+    "facebook_post": FacebookPostDraft,
+    "seo_blog": SeoBlogDraft,
+    "email": EmailDraft,
+    "landing_page": LandingPageDraft,
+    "tiktok_script": TikTokScriptDraft,
+}
+
+
 class Review(BaseModel):
     score: int
     suggestions: list[str]
-    final_content: FacebookPostDraft
+    final_content: dict

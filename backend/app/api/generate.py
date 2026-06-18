@@ -13,7 +13,7 @@ from app.services import generation_service
 
 router = APIRouter(prefix="/generate", tags=["generate"])
 
-SUPPORTED_CONTENT_TYPES = {"facebook_post"}
+SUPPORTED_CONTENT_TYPES = {"facebook_post", "seo_blog", "email", "landing_page", "tiktok_script"}
 
 
 @router.post("", response_model=JobResponse, status_code=status.HTTP_202_ACCEPTED)

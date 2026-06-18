@@ -54,6 +54,7 @@ def _downstream_state():
     return {
         "brief": "eco-friendly water bottles",
         "marketing_goal": "brand awareness",
+        "content_type": "facebook_post",
         "provider_available": False,
         "brand_profile": {},
         "research": {
@@ -100,8 +101,6 @@ async def test_reviewer_mock_scores_and_returns_final():
     review = Review(**out["review"])
     assert 0 <= review.score <= 100
     assert review.suggestions
-    # `final` is the improved post, surfaced as its own state key
-    FacebookPostDraft(**out["final"])
     assert out["final"]["hook"]
 
 
@@ -121,3 +120,68 @@ async def test_copywriter_mock_uses_brand_profile():
     assert "EcoBottle" in parsed.hook
     # Mock output should include tone in the body
     assert "friendly" in parsed.body
+
+
+async def test_copywriter_mock_produces_seo_blog():
+    state = _downstream_state()
+    state["content_type"] = "seo_blog"
+    state["fused_brief"] = {"unified_brief": "write a blog post"}
+    out = await copywriter(state)
+    assert "seo_title" in out["draft"]
+    assert "blog_content" in out["draft"]
+    assert "faq" in out["draft"]
+
+
+async def test_copywriter_mock_produces_email():
+    state = _downstream_state()
+    state["content_type"] = "email"
+    state["fused_brief"] = {"unified_brief": "write an email"}
+    out = await copywriter(state)
+    assert "subject" in out["draft"]
+    assert "body" in out["draft"]
+    assert "cta" in out["draft"]
+
+
+async def test_copywriter_mock_produces_landing_page():
+    state = _downstream_state()
+    state["content_type"] = "landing_page"
+    state["fused_brief"] = {"unified_brief": "write a landing page"}
+    out = await copywriter(state)
+    assert "headline" in out["draft"]
+    assert "subheadline" in out["draft"]
+    assert "benefits" in out["draft"]
+    assert "cta" in out["draft"]
+
+
+async def test_copywriter_mock_produces_tiktok_script():
+    state = _downstream_state()
+    state["content_type"] = "tiktok_script"
+    state["fused_brief"] = {"unified_brief": "write a tiktok script"}
+    out = await copywriter(state)
+    assert "hook" in out["draft"]
+    assert "script" in out["draft"]
+    assert "cta" in out["draft"]
+
+
+async def test_reviewer_mock_handles_seo_blog():
+    state = _downstream_state()
+    state["content_type"] = "seo_blog"
+    state["draft"] = {
+        "seo_title": "title",
+        "meta_description": "desc",
+        "outline": ["intro"],
+        "blog_content": "content",
+        "faq": [{"question": "q", "answer": "a"}],
+    }
+    out = await reviewer(state)
+    assert 0 <= out["review"]["score"] <= 100
+    assert out["final"]["seo_title"]
+
+
+async def test_reviewer_mock_handles_email():
+    state = _downstream_state()
+    state["content_type"] = "email"
+    state["draft"] = {"subject": "s", "body": "b", "cta": "c"}
+    out = await reviewer(state)
+    assert 0 <= out["review"]["score"] <= 100
+    assert out["final"]["subject"]
