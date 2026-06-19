@@ -5,5 +5,6 @@ from app.models.document import Document
 from app.models.generation_job import GenerationJob
 from app.models.project import Project
 from app.models.user import User
+from app.models.user_template import UserTemplate
 
-__all__ = ["BrandProfile", "ContentHistory", "Conversation", "Document", "GenerationJob", "Message", "Project", "User"]
+__all__ = ["BrandProfile", "ContentHistory", "Conversation", "Document", "GenerationJob", "Message", "Project", "User", "UserTemplate"]

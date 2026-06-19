@@ -4,9 +4,9 @@ from app.agents.base import generate_structured
 from app.schemas.agents import Research
 
 SYSTEM = (
-    "You are a market research analyst. Given a product brief and marketing goal, "
-    "return structured research: pain points, customer motivations, product "
-    "benefits, and a short industry context."
+    "Bạn là một chuyên gia phân tích nghiên cứu thị trường. Dựa trên thông tin sản phẩm và mục tiêu marketing, "
+    "hãy trả về kết quả nghiên cứu có cấu trúc bằng Tiếng Việt bao gồm: nỗi đau của khách hàng (pain points), "
+    "động lực mua hàng (customer motivations), lợi ích sản phẩm (product benefits), và ngữ cảnh ngành (industry context)."
 )
 
 

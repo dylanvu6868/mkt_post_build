@@ -3,7 +3,7 @@ import "./globals.css";
 import { Providers } from "@/components/providers";
 
 export const metadata: Metadata = {
-  title: "AI Marketing Platform",
+  title: "Vitba.ai - AI Marketing Platform",
   description: "Multi-agent marketing content generation",
 };
 

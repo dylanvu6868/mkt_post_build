@@ -6,21 +6,22 @@ class Settings(BaseSettings):
 
     app_name: str = "AI Marketing Backend"
     environment: str = "development"
-    cors_origins: str = "http://localhost:3000"
+    cors_origins: str = "http://localhost:3000,http://localhost:3001"
     database_url: str = "postgresql+asyncpg://postgres:postgres@db:5432/marketing"
     qdrant_url: str = "http://qdrant:6333"
 
     # LLM (provider-agnostic; consumed in later milestones)
-    llm_provider: str = "openai"
+    llm_provider: str = "deepseek"
     openai_api_key: str = ""
     anthropic_api_key: str = ""
-    llm_model_fast: str = "gpt-4o-mini"
-    llm_model_smart: str = "gpt-4o"
+    deepseek_api_key: str = ""
+    llm_model_fast: str = "deepseek-chat"
+    llm_model_smart: str = "deepseek-reasoner"
 
     # Auth (consumed in M1)
     jwt_secret: str = "change-me"
     jwt_algorithm: str = "HS256"
-    access_token_expire_minutes: int = 1440
+    access_token_expire_minutes: int = 43200  # 30 days
 
     # Default admin (seeded on first startup)
     admin_email: str = "admin@mktplatform.com"

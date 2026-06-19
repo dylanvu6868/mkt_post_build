@@ -9,12 +9,13 @@ from app.llm.factory import provider_available
 from app.models.brand_profile import BrandProfile
 from app.models.project import Project
 from app.models.user import User
+from app.models.user_template import UserTemplate
 from app.schemas.generation import GenerateRequest, JobResponse, JobStatusResponse
 from app.services import generation_service
 
 router = APIRouter(prefix="/generate", tags=["generate"])
 
-SUPPORTED_CONTENT_TYPES = {"facebook_post", "seo_blog", "email", "landing_page", "tiktok_script"}
+SUPPORTED_CONTENT_TYPES = {"facebook_post", "seo_blog", "email", "landing_page", "tiktok_script", "marketing_plan"}
 
 
 @router.post("", response_model=JobResponse, status_code=status.HTTP_202_ACCEPTED)
@@ -53,6 +54,16 @@ async def start_generation(
             "forbidden_words": profile.forbidden_words or [],
         }
 
+    # Load custom template for this user and content type
+    template_result = await session.execute(
+        select(UserTemplate).where(
+            UserTemplate.user_id == current_user.id,
+            UserTemplate.content_type == payload.content_type
+        )
+    )
+    user_template = template_result.scalar_one_or_none()
+    custom_template = user_template.template_text if user_template else None
+
     job = await generation_service.create_job(
         session,
         payload.project_id,
@@ -66,6 +77,8 @@ async def start_generation(
         "brief": payload.brief,
         "marketing_goal": payload.marketing_goal,
         "brand_profile": brand_profile_data,
+        "custom_template": custom_template,
+        "formatted_final": {},
         "provider_available": provider_available(),
         "errors": [],
     }

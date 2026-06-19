@@ -6,18 +6,29 @@ from app.core.config import settings
 
 
 def provider_available() -> bool:
-    """True only when a real LLM should be called (a non-mock provider with a key)."""
     provider = settings.llm_provider.lower()
     if provider == "openai":
         return bool(settings.openai_api_key)
     if provider == "anthropic":
         return bool(settings.anthropic_api_key)
-    return False  # "mock" or anything unrecognized → run agents in mock mode
+    if provider == "deepseek":
+        return bool(settings.deepseek_api_key)
+    return False
 
 
 def get_chat_model(tier: str) -> Any:
-    """Return a LangChain chat model for the given tier ("fast" | "smart")."""
     model = settings.llm_model_smart if tier == "smart" else settings.llm_model_fast
+    provider = settings.llm_provider.lower()
+
+    if provider == "deepseek":
+        from langchain_openai import ChatOpenAI
+        return ChatOpenAI(
+            model=model,
+            api_key=settings.deepseek_api_key,
+            base_url="https://api.deepseek.com",
+            temperature=0.7,
+        )
+
     return init_chat_model(
-        model, model_provider=settings.llm_provider, temperature=0.7
+        model, model_provider=provider, temperature=0.7
     )

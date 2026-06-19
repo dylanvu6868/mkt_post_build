@@ -57,20 +57,20 @@ export default function AdminContentPage() {
   }, [filter]);
 
   const handleDelete = async (id: number) => {
-    if (!confirm("Delete this content?")) return;
+    if (!confirm("Xoá nội dung này?")) return;
     try {
       await api.delete(`/admin/content/${id}`);
       setItems((prev) => prev.filter((item) => item.id !== id));
-      toast.success("Content deleted");
+      toast.success("Đã xoá nội dung");
     } catch {
-      toast.error("Failed to delete content");
+      toast.error("Không thể xoá");
     }
   };
 
   if (loading) {
     return (
       <div className="space-y-6">
-        <h1 className="text-2xl font-bold">Content Moderation</h1>
+        <h1 className="text-2xl font-bold">Quản lý nội dung</h1>
         {Array.from({ length: 3 }).map((_, i) => (
           <Card key={i}>
             <CardContent className="p-4">
@@ -85,14 +85,14 @@ export default function AdminContentPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Content Moderation</h1>
+        <h1 className="text-2xl font-bold">Quản lý nội dung</h1>
         <div className="flex items-center gap-2">
           <Select value={filter} onValueChange={setFilter}>
             <SelectTrigger className="w-44">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Types</SelectItem>
+              <SelectItem value="all">Tất cả</SelectItem>
               {Object.entries(TYPE_LABELS).map(([value, label]) => (
                 <SelectItem key={value} value={value}>
                   {label}
@@ -100,17 +100,17 @@ export default function AdminContentPage() {
               ))}
             </SelectContent>
           </Select>
-          <Badge variant="secondary">{items.length} items</Badge>
+          <Badge variant="secondary">{items.length} mục</Badge>
         </div>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>All Content</CardTitle>
+          <CardTitle>Tất cả nội dung</CardTitle>
         </CardHeader>
         <CardContent>
           {items.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No content found.</p>
+            <p className="text-sm text-muted-foreground">Không tìm thấy nội dung.</p>
           ) : (
             <div className="space-y-3">
               {items.map((item) => (
@@ -131,7 +131,7 @@ export default function AdminContentPage() {
                     <p className="text-xs text-muted-foreground">
                       {item.user_name} ({item.user_email}) &middot;{" "}
                       {item.project_name} &middot;{" "}
-                      {new Date(item.created_at).toLocaleDateString()}
+                      {new Date(item.created_at).toLocaleDateString("vi-VN")}
                     </p>
                   </div>
                   <Button
@@ -139,7 +139,7 @@ export default function AdminContentPage() {
                     size="sm"
                     onClick={() => handleDelete(item.id)}
                   >
-                    Delete
+                    Xoá
                   </Button>
                 </div>
               ))}

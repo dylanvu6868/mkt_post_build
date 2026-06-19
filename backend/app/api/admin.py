@@ -7,7 +7,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import require_admin
 from app.core.db import get_session
+from sqlalchemy import cast, Date
+
 from app.models.content_history import ContentHistory
+from app.models.conversation import Conversation, Message
 from app.models.generation_job import GenerationJob
 from app.models.project import Project
 from app.models.user import User
@@ -148,6 +151,125 @@ async def get_analytics(session: AsyncSession = Depends(get_session)):
     ).all()
     jobs_by_status = {r[0]: r[1] for r in jobs_by_status_rows}
 
+    total_conversations = (
+        await session.execute(select(func.count(Conversation.id)))
+    ).scalar() or 0
+    conversations_today = (
+        await session.execute(
+            select(func.count(Conversation.id)).where(Conversation.created_at >= today_start)
+        )
+    ).scalar() or 0
+    total_messages = (
+        await session.execute(select(func.count(Message.id)))
+    ).scalar() or 0
+    total_projects = (
+        await session.execute(select(func.count(Project.id)))
+    ).scalar() or 0
+    content_today = (
+        await session.execute(
+            select(func.count(ContentHistory.id)).where(ContentHistory.created_at >= today_start)
+        )
+    ).scalar() or 0
+    content_week = (
+        await session.execute(
+            select(func.count(ContentHistory.id)).where(ContentHistory.created_at >= week_ago)
+        )
+    ).scalar() or 0
+    total_jobs = (
+        await session.execute(select(func.count(GenerationJob.id)))
+    ).scalar() or 0
+    jobs_done = jobs_by_status.get("done", 0)
+    jobs_error = jobs_by_status.get("error", 0)
+    job_success_rate = round((jobs_done / total_jobs) * 100, 1) if total_jobs > 0 else None
+
+    user_growth_rows = (
+        await session.execute(
+            select(
+                cast(User.created_at, Date).label("day"),
+                func.count(User.id).label("count"),
+            )
+            .where(User.created_at >= week_ago)
+            .group_by(cast(User.created_at, Date))
+            .order_by(cast(User.created_at, Date))
+        )
+    ).all()
+    user_growth = [
+        {"date": r.day.isoformat(), "count": r.count} for r in user_growth_rows
+    ]
+
+    content_daily_rows = (
+        await session.execute(
+            select(
+                cast(ContentHistory.created_at, Date).label("day"),
+                func.count(ContentHistory.id).label("count"),
+                func.avg(ContentHistory.score).label("avg_score"),
+            )
+            .where(ContentHistory.created_at >= week_ago)
+            .group_by(cast(ContentHistory.created_at, Date))
+            .order_by(cast(ContentHistory.created_at, Date))
+        )
+    ).all()
+    content_daily = [
+        {
+            "date": r.day.isoformat(),
+            "count": r.count,
+            "avg_score": round(r.avg_score, 1) if r.avg_score else None,
+        }
+        for r in content_daily_rows
+    ]
+
+    activities: list[dict] = []
+    recent_users = (
+        await session.execute(
+            select(User.name, User.email, User.oauth_provider, User.created_at)
+            .order_by(User.created_at.desc())
+            .limit(5)
+        )
+    ).all()
+    for u in recent_users:
+        provider = f" qua {u.oauth_provider.capitalize()}" if u.oauth_provider else ""
+        activities.append({
+            "type": "register",
+            "text": f"{u.name} đã đăng ký{provider}",
+            "time": u.created_at.isoformat() if u.created_at else None,
+        })
+
+    recent_content = (
+        await session.execute(
+            select(ContentHistory.content_type, ContentHistory.score, ContentHistory.created_at, User.name)
+            .join(Project, ContentHistory.project_id == Project.id)
+            .join(User, Project.user_id == User.id)
+            .order_by(ContentHistory.created_at.desc())
+            .limit(5)
+        )
+    ).all()
+    for c in recent_content:
+        score_txt = f" (điểm {c.score:.0f}/100)" if c.score else ""
+        activities.append({
+            "type": "content",
+            "text": f"{c.name} tạo {c.content_type.replace('_', ' ')}{score_txt}",
+            "time": c.created_at.isoformat() if c.created_at else None,
+        })
+
+    recent_jobs = (
+        await session.execute(
+            select(GenerationJob.status, GenerationJob.content_type, GenerationJob.created_at, GenerationJob.error)
+            .where(GenerationJob.status.in_(["done", "error"]))
+            .order_by(GenerationJob.created_at.desc())
+            .limit(5)
+        )
+    ).all()
+    for j in recent_jobs:
+        if j.status == "error":
+            activities.append({
+                "type": "error",
+                "text": f"Job {j.content_type.replace('_', ' ')} thất bại",
+                "time": j.created_at.isoformat() if j.created_at else None,
+            })
+
+    activities.sort(key=lambda x: x["time"] or "", reverse=True)
+    activities = activities[:10]
+
     return {
         "users": {
             "total": total_users,
@@ -157,11 +279,23 @@ async def get_analytics(session: AsyncSession = Depends(get_session)):
         },
         "content": {
             "total": total_content,
+            "today": content_today,
+            "this_week": content_week,
             "avg_score": round(avg_score, 1) if avg_score else None,
             "type_distribution": type_distribution,
         },
-        "top_users": top_users,
+        "conversations": {
+            "total": total_conversations,
+            "today": conversations_today,
+        },
+        "messages": total_messages,
+        "projects": total_projects,
         "jobs": jobs_by_status,
+        "job_success_rate": job_success_rate,
+        "top_users": top_users,
+        "user_growth": user_growth,
+        "content_daily": content_daily,
+        "activities": activities,
     }
 
 

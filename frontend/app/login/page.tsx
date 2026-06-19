@@ -1,43 +1,28 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Script from "next/script";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ApiError } from "@/services/api";
 import { toast } from "sonner";
+import { Check, Mail, Lock, Sparkles, Search, TrendingUp, Calendar, ShieldCheck, Zap } from "lucide-react";
 
 declare global {
   interface Window {
-    google?: {
-      accounts: {
-        id: {
-          initialize: (config: { client_id: string; callback: (response: { credential: string }) => void }) => void;
-          renderButton: (element: HTMLElement, config: { theme: string; size: string; width: number }) => void;
-        };
-      };
-    };
-    FB?: {
-      init: (config: { appId: string; version: string }) => void;
-      login: (callback: (response: { authResponse?: { accessToken: string } }) => void, config: { scope: string }) => void;
-    };
+    google?: any;
+    FB?: any;
   }
 }
 
 export default function LoginPage() {
   const router = useRouter();
   const { login, register, socialLogin } = useAuthStore();
+
+  const [isRegister, setIsRegister] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
 
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
@@ -48,15 +33,13 @@ export default function LoginPage() {
   const [regPassword, setRegPassword] = useState("");
   const [regLoading, setRegLoading] = useState(false);
   const [socialLoading, setSocialLoading] = useState(false);
-  const [showLoginPw, setShowLoginPw] = useState(false);
-  const [showRegPw, setShowRegPw] = useState(false);
 
   const googleBtnRef = useRef<HTMLDivElement>(null);
 
   const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ?? "";
   const facebookAppId = process.env.NEXT_PUBLIC_FACEBOOK_APP_ID ?? "";
 
-  useEffect(() => {
+  const initGoogle = useCallback(() => {
     if (!googleClientId || !window.google || !googleBtnRef.current) return;
     window.google.accounts.id.initialize({
       client_id: googleClientId,
@@ -73,11 +56,17 @@ export default function LoginPage() {
       },
     });
     window.google.accounts.id.renderButton(googleBtnRef.current, {
-      theme: "outline",
+      theme: "filled_black",
       size: "large",
-      width: 400,
+      width: 380,
+      shape: "pill",
+      text: "continue_with",
     });
   }, [googleClientId, socialLogin, router]);
+
+  useEffect(() => {
+    initGoogle();
+  }, [initGoogle, isRegister]);
 
   const handleFacebookLogin = () => {
     if (!window.FB) {
@@ -85,7 +74,7 @@ export default function LoginPage() {
       return;
     }
     window.FB.login(
-      async (response) => {
+      async (response: any) => {
         if (!response.authResponse) {
           toast.error("Facebook login cancelled");
           return;
@@ -100,7 +89,7 @@ export default function LoginPage() {
           setSocialLoading(false);
         }
       },
-      { scope: "email,public_profile" },
+      { scope: "email,public_profile" }
     );
   };
 
@@ -111,9 +100,7 @@ export default function LoginPage() {
       await login(loginEmail, loginPassword);
       router.push("/dashboard");
     } catch (err) {
-      toast.error(
-        err instanceof ApiError ? err.message : "Login failed",
-      );
+      toast.error(err instanceof ApiError ? err.message : "Login failed");
     } finally {
       setLoginLoading(false);
     }
@@ -126,9 +113,7 @@ export default function LoginPage() {
       await register(regName, regEmail, regPassword);
       router.push("/dashboard");
     } catch (err) {
-      toast.error(
-        err instanceof ApiError ? err.message : "Registration failed",
-      );
+      toast.error(err instanceof ApiError ? err.message : "Registration failed");
     } finally {
       setRegLoading(false);
     }
@@ -137,7 +122,7 @@ export default function LoginPage() {
   return (
     <>
       {googleClientId && (
-        <Script src="https://accounts.google.com/gsi/client" strategy="afterInteractive" />
+        <Script src="https://accounts.google.com/gsi/client" strategy="afterInteractive" onLoad={initGoogle} />
       )}
       {facebookAppId && (
         <Script
@@ -148,149 +133,231 @@ export default function LoginPage() {
           }}
         />
       )}
-      <main className="flex min-h-screen items-center justify-center bg-background">
-        <Card className="w-full max-w-md">
-          <CardHeader className="text-center">
-            <CardTitle className="text-2xl">AI Marketing Platform</CardTitle>
-            <CardDescription>
-              Sign in or create an account to get started
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {(googleClientId || facebookAppId) && (
-              <div className="space-y-3 mb-6">
-                {googleClientId && (
-                  <div ref={googleBtnRef} className="flex justify-center" />
-                )}
-                {facebookAppId && (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="w-full"
-                    disabled={socialLoading}
-                    onClick={handleFacebookLogin}
-                  >
-                    <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-                    </svg>
-                    Continue with Facebook
-                  </Button>
-                )}
-                <div className="relative">
-                  <div className="absolute inset-0 flex items-center">
-                    <span className="w-full border-t" />
-                  </div>
-                  <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-background px-2 text-muted-foreground">
-                      Or continue with email
-                    </span>
-                  </div>
-                </div>
+
+      <main
+        className="h-screen w-full text-foreground flex flex-col lg:flex-row relative overflow-hidden font-sans"
+        style={{ background: "linear-gradient(135deg, #080600 0%, #150f00 35%, #221800 65%, #302200 100%)" }}
+      >
+        {/* Ambient glows */}
+        <div className="absolute top-0 left-0 w-[55%] h-[55%] rounded-full bg-yellow-600/6 blur-[200px] pointer-events-none" />
+        <div className="absolute bottom-0 right-0 w-[45%] h-[45%] rounded-full bg-amber-500/10 blur-[160px] pointer-events-none" />
+
+        {/* ══════════════════════════════════
+            LEFT COLUMN — Brand & Features
+        ══════════════════════════════════ */}
+        <div className="hidden lg:flex lg:w-1/2 h-full flex-col relative z-10">
+          
+          {/* Content container — Căn giữa dọc bình thường */}
+          <div className="flex-1 flex flex-col justify-center px-12 xl:px-20 pb-10">
+            <div className="flex flex-col w-full max-w-[560px]">
+
+              {/* Logo in flow - Đặt trực tiếp vào luồng nội dung, kích thước lớn hơn một chút */}
+              <div className="mb-10 shrink-0">
+                <img
+                  src="/logo.png"
+                  alt="Vitba.ai"
+                  className="h-28 w-auto object-contain object-left drop-shadow-[0_0_24px_rgba(234,179,8,0.6)] rounded-lg"
+                />
               </div>
-            )}
-            <Tabs defaultValue="login">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="login">Login</TabsTrigger>
-              <TabsTrigger value="register">Register</TabsTrigger>
-            </TabsList>
 
-            <TabsContent value="login">
-              <form onSubmit={handleLogin} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="login-email">Email</Label>
+              {/* Badge pill */}
+              <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full border border-yellow-500/30 bg-gradient-to-r from-yellow-500/10 to-amber-500/5 w-fit mb-6 shadow-[0_0_15px_rgba(234,179,8,0.1)]">
+                <Sparkles className="w-3.5 h-3.5 text-yellow-400 shrink-0" />
+                <span className="text-[11px] font-bold tracking-widest text-yellow-400 uppercase">
+                  Nền tảng Content Marketing đột phá
+                </span>
+              </div>
+
+              {/* Headline - Dùng ngắt dòng <br /> thay vì khoá cứng bằng whitespace-nowrap gây lỗi */}
+              <h1 className="text-[36px] xl:text-[44px] font-extrabold tracking-tight leading-[1.25] mb-5">
+                Tạo nội dung ấn tượng. <br className="hidden lg:block" />
+                <span className="whitespace-nowrap">
+                  Thu hút <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-amber-300 to-yellow-200">đúng khách hàng.</span>
+                </span>
+              </h1>
+
+              {/* Description */}
+              <p className="text-[15px] text-neutral-400 leading-relaxed mb-10 max-w-[480px]">
+                Vitba.ai giúp bạn nghiên cứu, viết, tối ưu và quản lý nội dung hiệu quả – tất cả trong một nền tảng thông minh.
+              </p>
+
+              {/* Feature 2×2 grid */}
+              <div className="grid grid-cols-2 gap-4">
+                {[
+                  { icon: <Sparkles className="w-5 h-5 text-yellow-400" />, label: "Viết nội dung", sub: "AI thông minh" },
+                  { icon: <Search className="w-5 h-5 text-yellow-400" />, label: "Nghiên cứu", sub: "thị trường" },
+                  { icon: <TrendingUp className="w-5 h-5 text-yellow-400" />, label: "Tối ưu SEO", sub: "toàn diện" },
+                  { icon: <Calendar className="w-5 h-5 text-yellow-400" />, label: "Lập kế hoạch", sub: "nội dung" },
+                ].map((item, i) => (
+                  <div
+                    key={i}
+                    className="flex items-center gap-4 bg-muted border border-border rounded-2xl p-4 hover:bg-accent hover:border-yellow-500/30 transition-all duration-300 hover:shadow-[0_0_20px_rgba(234,179,8,0.1)] group"
+                  >
+                    <div className="p-3 rounded-xl bg-yellow-500/10 border border-yellow-500/20 shrink-0 group-hover:scale-110 group-hover:bg-yellow-500/20 group-hover:shadow-[0_0_15px_rgba(234,179,8,0.2)] transition-all duration-300">
+                      {item.icon}
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-[14px] font-semibold text-neutral-200 leading-tight mb-1">
+                        {item.label}
+                      </span>
+                      <span className="text-[11px] text-neutral-500 font-medium leading-tight">
+                        {item.sub}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* ══════════════════════════════════
+            RIGHT COLUMN — Auth Form
+        ══════════════════════════════════ */}
+        <div className="w-full lg:w-1/2 h-full flex items-center justify-center p-4 sm:p-8 relative z-10">
+          {/* Nới rộng form card lên max-w-[460px] để tiêu đề không rớt dòng */}
+          <div className="w-full max-w-[460px]">
+
+            {/* Mobile-only Logo */}
+            <div className="lg:hidden flex justify-center mb-6">
+              <img src="/logo.png" alt="Vitba.ai" className="h-10 w-auto object-contain" />
+            </div>
+
+            {/* Glass card */}
+            <div className="w-full bg-[#0a0804]/60 backdrop-blur-3xl border border-border rounded-3xl p-8 lg:p-10 shadow-[0_8px_32px_rgba(0,0,0,0.8)] relative overflow-hidden">
+              {/* Accent top line */}
+              <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-yellow-500/80 to-transparent" />
+
+              <h2 className="text-[22px] font-bold mb-2 tracking-tight">
+                {isRegister ? "Tạo tài khoản mới" : "Chào mừng bạn đến với Vitba.ai"}
+                {!isRegister && <span className="text-yellow-400 ml-2">👋</span>}
+              </h2>
+              <p className="text-neutral-400 text-[13px] mb-8">
+                {isRegister
+                  ? "Đăng ký để trải nghiệm sức mạnh AI Content"
+                  : "Đăng nhập để tiếp tục hành trình sáng tạo"}
+              </p>
+
+              <form onSubmit={isRegister ? handleRegister : handleLogin} className="space-y-4">
+                {isRegister && (
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-neutral-500">
+                        <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
+                      </svg>
+                    </div>
+                    <Input
+                      type="text"
+                      placeholder="Họ và tên"
+                      value={regName}
+                      onChange={(e) => setRegName(e.target.value)}
+                      required
+                      className="pl-10 h-12 bg-muted border-border focus-visible:ring-yellow-500/50 focus-visible:border-yellow-500/50 text-foreground rounded-xl text-sm placeholder:text-neutral-500 transition-all hover:bg-accent"
+                    />
+                  </div>
+                )}
+
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Mail className="w-4 h-4 text-neutral-500" />
+                  </div>
                   <Input
-                    id="login-email"
                     type="email"
-                    value={loginEmail}
-                    onChange={(e) => setLoginEmail(e.target.value)}
+                    placeholder="Email của bạn"
+                    value={isRegister ? regEmail : loginEmail}
+                    onChange={(e) => isRegister ? setRegEmail(e.target.value) : setLoginEmail(e.target.value)}
                     required
+                    className="pl-10 h-12 bg-muted border-border focus-visible:ring-yellow-500/50 focus-visible:border-yellow-500/50 text-foreground rounded-xl text-sm placeholder:text-neutral-500 transition-all hover:bg-accent"
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="login-password">Password</Label>
-                  <div className="relative">
-                    <Input
-                      id="login-password"
-                      type={showLoginPw ? "text" : "password"}
-                      value={loginPassword}
-                      onChange={(e) => setLoginPassword(e.target.value)}
-                      required
-                      className="pr-10"
-                    />
-                    <button
-                      type="button"
-                      className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                      onClick={() => setShowLoginPw(!showLoginPw)}
-                      tabIndex={-1}
-                    >
-                      {showLoginPw ? (
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
-                      ) : (
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                      )}
-                    </button>
+
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Lock className="w-4 h-4 text-neutral-500" />
                   </div>
+                  <Input
+                    type="password"
+                    placeholder="Mật khẩu"
+                    value={isRegister ? regPassword : loginPassword}
+                    onChange={(e) => isRegister ? setRegPassword(e.target.value) : setLoginPassword(e.target.value)}
+                    required
+                    className="pl-10 h-12 bg-muted border-border focus-visible:ring-yellow-500/50 focus-visible:border-yellow-500/50 text-foreground rounded-xl text-sm placeholder:text-neutral-500 transition-all hover:bg-accent"
+                  />
                 </div>
-                <Button type="submit" className="w-full" disabled={loginLoading}>
-                  {loginLoading ? "Signing in..." : "Sign In"}
+
+                {!isRegister && (
+                  <div className="flex items-center justify-between pt-0.5">
+                    <label className="flex items-center gap-2 cursor-pointer" onClick={(e) => { e.preventDefault(); setRememberMe(!rememberMe); }}>
+                      <div className={`w-3.5 h-3.5 rounded border flex items-center justify-center transition-colors ${rememberMe ? "bg-yellow-500 border-yellow-500" : "bg-transparent border-neutral-600"}`}>
+                        {rememberMe && <Check className="w-2.5 h-2.5 text-primary-foreground" />}
+                      </div>
+                      <span className="text-[11px] text-neutral-400 select-none hover:text-neutral-300 transition-colors">Ghi nhớ đăng nhập</span>
+                    </label>
+                    <a href="#" className="text-[11px] text-yellow-500/80 hover:text-yellow-400 transition-colors">
+                      Quên mật khẩu?
+                    </a>
+                  </div>
+                )}
+
+                <Button
+                  type="submit"
+                  disabled={isRegister ? regLoading : loginLoading}
+                  className="w-full h-12 mt-4 bg-gradient-to-r from-yellow-500 to-amber-500 hover:from-yellow-400 hover:to-amber-400 text-primary-foreground font-bold rounded-xl shadow-[0_4px_20px_rgba(234,179,8,0.3)] hover:shadow-[0_8px_30px_rgba(234,179,8,0.4)] transition-all duration-300 border-0 text-[15px] tracking-wide"
+                >
+                  {(isRegister ? regLoading : loginLoading)
+                    ? "Đang xử lý..."
+                    : isRegister ? "Tạo tài khoản" : "Đăng nhập"}
                 </Button>
               </form>
-            </TabsContent>
 
-            <TabsContent value="register">
-              <form onSubmit={handleRegister} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="reg-name">Name</Label>
-                  <Input
-                    id="reg-name"
-                    value={regName}
-                    onChange={(e) => setRegName(e.target.value)}
-                    required
-                  />
+              {/* Divider */}
+              <div className="my-7 relative flex items-center justify-center">
+                <div className="absolute w-full h-px bg-muted" />
+                <span className="relative bg-[#0a0804] px-4 text-[11px] text-neutral-500 font-semibold uppercase tracking-widest">
+                  hoặc tiếp tục với
+                </span>
+              </div>
+
+              {/* Social login buttons */}
+              <div className="w-full flex justify-center">
+                <div ref={googleBtnRef}></div>
+              </div>
+
+              {/* Switch login/register */}
+              <div className="mt-8 text-center text-[13px] text-neutral-400 font-medium">
+                {isRegister ? "Đã có tài khoản? " : "Chưa có tài khoản? "}
+                <button
+                  onClick={() => setIsRegister(!isRegister)}
+                  className="text-yellow-400 font-bold hover:text-yellow-300 transition-colors underline-offset-4 hover:underline"
+                >
+                  {isRegister ? "Đăng nhập ngay" : "Đăng ký ngay"}
+                </button>
+              </div>
+            </div>
+
+            {/* Trust badges */}
+            <div className="mt-8 grid grid-cols-3 gap-4 px-2">
+              <div className="text-center group">
+                <div className="flex items-center justify-center gap-1.5 text-yellow-500/80 text-xs font-semibold mb-1 group-hover:text-yellow-400 transition-colors">
+                  <ShieldCheck className="w-4 h-4" /> Bảo mật
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="reg-email">Email</Label>
-                  <Input
-                    id="reg-email"
-                    type="email"
-                    value={regEmail}
-                    onChange={(e) => setRegEmail(e.target.value)}
-                    required
-                  />
+                <p className="text-[11px] text-neutral-500 leading-tight">Mã hóa end-to-end</p>
+              </div>
+              <div className="text-center group">
+                <div className="flex items-center justify-center gap-1.5 text-yellow-500/80 text-xs font-semibold mb-1 group-hover:text-yellow-400 transition-colors">
+                  <Zap className="w-4 h-4" /> Nhanh 10x
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="reg-password">Password</Label>
-                  <div className="relative">
-                    <Input
-                      id="reg-password"
-                      type={showRegPw ? "text" : "password"}
-                      value={regPassword}
-                      onChange={(e) => setRegPassword(e.target.value)}
-                      required
-                      className="pr-10"
-                    />
-                    <button
-                      type="button"
-                      className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                      onClick={() => setShowRegPw(!showRegPw)}
-                      tabIndex={-1}
-                    >
-                      {showRegPw ? (
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
-                      ) : (
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                      )}
-                    </button>
-                  </div>
+                <p className="text-[11px] text-neutral-500 leading-tight">So với viết tay</p>
+              </div>
+              <div className="text-center group">
+                <div className="flex items-center justify-center gap-1.5 text-yellow-500/80 text-xs font-semibold mb-1 group-hover:text-yellow-400 transition-colors">
+                  <Sparkles className="w-4 h-4" /> Chất lượng
                 </div>
-                <Button type="submit" className="w-full" disabled={regLoading}>
-                  {regLoading ? "Creating account..." : "Create Account"}
-                </Button>
-              </form>
-            </TabsContent>
-            </Tabs>
-          </CardContent>
-        </Card>
+                <p className="text-[11px] text-neutral-500 leading-tight">Chuẩn SEO Google</p>
+              </div>
+            </div>
+          </div>
+        </div>
       </main>
     </>
   );

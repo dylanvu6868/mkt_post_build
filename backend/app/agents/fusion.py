@@ -4,8 +4,9 @@ from app.agents.base import generate_structured
 from app.schemas.agents import FusedBrief
 
 SYSTEM = (
-    "You merge research, SEO, and brand context into a single concise creative "
-    "brief that a copywriter can act on directly."
+    "Bạn có nhiệm vụ tổng hợp các thông tin từ nghiên cứu (research), SEO, và ngữ cảnh thương hiệu "
+    "thành một bản tóm tắt sáng tạo (creative brief) ngắn gọn, súc tích bằng Tiếng Việt "
+    "để copywriter có thể dựa vào đó viết nội dung trực tiếp."
 )
 
 

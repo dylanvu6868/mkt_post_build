@@ -18,6 +18,8 @@ class GraphState(TypedDict, total=False):
     draft: dict[str, Any]
     review: dict[str, Any]
     final: dict[str, Any]
+    custom_template: str | None
+    formatted_final: dict[str, Any]
     # control
     provider_available: bool
     errors: Annotated[list[str], operator.add]  # reducer: parallel branches append

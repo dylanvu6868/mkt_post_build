@@ -1,5 +1,7 @@
 import { create } from "zustand";
+import { persist } from "zustand/middleware";
 import { api } from "@/services/api";
+import { useProjectStore } from "@/store/project";
 
 export interface Conversation {
   id: number;
@@ -39,10 +41,13 @@ interface ChatState {
 
   sendMessage: (content: string) => Promise<void>;
   setContentPanel: (panel: Partial<ChatState["contentPanel"]>) => void;
+  startGeneration: (payload: any) => Promise<void>;
 }
 
-export const useChatStore = create<ChatState>()((set, get) => ({
-  conversations: [],
+export const useChatStore = create<ChatState>()(
+  persist(
+    (set, get) => ({
+      conversations: [],
   activeConversationId: null,
   messages: [],
   streaming: false,
@@ -173,6 +178,13 @@ export const useChatStore = create<ChatState>()((set, get) => ({
             const generateMatch = fullContent.match(/```generate\n([\s\S]*?)\n```/);
             if (generateMatch) {
               set({ contentPanel: { visible: true, generating: true, result: null } });
+              try {
+                const payload = JSON.parse(generateMatch[1]);
+                const projectId = useProjectStore.getState().activeProject?.id;
+                if (projectId) {
+                  get().startGeneration({ ...payload, project_id: projectId });
+                }
+              } catch {}
             }
           }
         } catch {}
@@ -200,7 +212,122 @@ export const useChatStore = create<ChatState>()((set, get) => ({
     }));
   },
 
-  setContentPanel: (panel) => {
-    set((s) => ({ contentPanel: { ...s.contentPanel, ...panel } }));
-  },
-}));
+      setContentPanel: (panel) => {
+        set((s) => ({ contentPanel: { ...s.contentPanel, ...panel } }));
+      },
+
+      startGeneration: async (payload: any) => {
+        const token = (() => {
+          try {
+            const raw = localStorage.getItem("auth-storage");
+            if (!raw) return null;
+            return JSON.parse(raw)?.state?.token ?? null;
+          } catch {
+            return null;
+          }
+        })();
+        const baseUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+
+        try {
+          const res = await fetch(`${baseUrl}/generate`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            },
+            body: JSON.stringify(payload),
+          });
+          if (!res.ok) return;
+          const data = await res.json();
+          const jobId = data.job_id;
+
+          let isPolling = true;
+          while (isPolling) {
+            await new Promise((resolve) => setTimeout(resolve, 1500));
+            const statusRes = await fetch(`${baseUrl}/generate/${jobId}`, {
+              headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+            });
+            if (!statusRes.ok) continue;
+            const statusData = await statusRes.json();
+
+            if (statusData.status === "error") {
+              set({
+                contentPanel: { visible: true, generating: false, result: { error: statusData.error } },
+                streamContent: "",
+              });
+              isPolling = false;
+              break;
+            }
+
+            if (statusData.status === "done" && statusData.result) {
+              // Extract text to fake stream
+              let draftText = "";
+              if (statusData.result.draft) {
+                const d = statusData.result.draft;
+                if (payload.content_type === "facebook_post") {
+                  draftText = [d.hook, "", d.body, "", d.cta, "", d.hashtags?.join(" ")].filter(Boolean).join("\n");
+                } else if (payload.content_type === "seo_blog") {
+                  const faqText = d.faq?.map((f: any) => `Q: ${f.question}\nA: ${f.answer}`).join("\n\n") ?? "";
+                  draftText = [d.seo_title, d.meta_description, "", d.blog_content, "", faqText].filter(Boolean).join("\n");
+                } else if (payload.content_type === "email") {
+                  draftText = [`Subject: ${d.subject}`, "", d.body, "", d.cta].filter(Boolean).join("\n");
+                } else if (payload.content_type === "landing_page") {
+                  draftText = [d.headline, d.subheadline, "", d.benefits?.map((b: string) => `• ${b}`).join("\n"), "", d.cta].filter(Boolean).join("\n");
+                } else if (payload.content_type === "tiktok_script") {
+                  draftText = [`[HOOK] ${d.hook}`, "", d.script, "", `[CTA] ${d.cta}`].filter(Boolean).join("\n");
+                } else {
+                  draftText = JSON.stringify(d, null, 2);
+                }
+              } else if (statusData.result.final) {
+                const f = statusData.result.final;
+                draftText = f.body || JSON.stringify(f, null, 2);
+              }
+
+              set({ streamContent: "" });
+              
+              let i = 0;
+              const typeInterval = setInterval(() => {
+                if (i < draftText.length) {
+                  set((s) => ({ streamContent: s.streamContent + draftText.charAt(i) }));
+                  i++;
+                } else {
+                  clearInterval(typeInterval);
+                  set({
+                    contentPanel: { visible: true, generating: false, result: statusData.result },
+                    streamContent: "",
+                  });
+                }
+              }, 15);
+
+              isPolling = false;
+              break;
+            } else {
+              const step = statusData.current_step || "chuẩn bị";
+              const stepMap: Record<string, string> = {
+                planner: "Lên kế hoạch",
+                research: "Nghiên cứu thị trường",
+                seo: "Tối ưu hóa SEO",
+                brand: "Phân tích thương hiệu",
+                fusion: "Tổng hợp dữ liệu",
+                copywriter: "Viết nội dung",
+                reviewer: "Kiểm duyệt & Đánh giá",
+              };
+              set({ streamContent: `Đang xử lý: ${stepMap[step] || step}...` });
+            }
+          }
+        } catch (err) {
+          console.error(err);
+        }
+      },
+    }),
+    {
+      name: "chat-storage",
+      partialize: (state) => ({ 
+        contentPanel: { 
+          ...state.contentPanel, 
+          generating: false // Never persist generating state so it doesn't get stuck on refresh
+        } 
+      }),
+    }
+  )
+);

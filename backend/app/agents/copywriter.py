@@ -15,28 +15,29 @@ from app.schemas.agents import (
 
 SYSTEM_TEMPLATES: dict[str, str] = {
     "facebook_post": (
-        "You are an expert Facebook copywriter. Use the AIDA framework. Honor the "
-        "brand voice (tone, preferred and forbidden words) if provided. Return a "
-        "structured post with a hook, body, CTA, and hashtags."
+        "Bạn là một chuyên gia viết copywriter cho Facebook. Hãy sử dụng mô hình AIDA. "
+        "Tuân thủ giọng điệu thương hiệu (tone, từ ngữ ưu tiên và từ ngữ cấm) nếu có. "
+        "Trả về một bài đăng có cấu trúc với hook (câu mở đầu), body (nội dung), CTA (kêu gọi hành động) và hashtags. "
+        "LUÔN LUÔN VIẾT BẰNG TIẾNG VIỆT."
     ),
     "seo_blog": (
-        "You are an expert SEO blog writer. Write a search-optimized blog post with "
-        "an SEO title, meta description, outline, full blog content, and FAQ section. "
-        "Honor the brand voice if provided."
+        "Bạn là một chuyên gia viết blog chuẩn SEO. Hãy viết một bài blog tối ưu hóa tìm kiếm "
+        "với tiêu đề SEO, meta description, dàn ý (outline), nội dung đầy đủ và phần FAQ (câu hỏi thường gặp). "
+        "Tuân thủ giọng điệu thương hiệu nếu có. LUÔN LUÔN VIẾT BẰNG TIẾNG VIỆT."
     ),
     "email": (
-        "You are an expert email marketer. Write a marketing email with a compelling "
-        "subject line, engaging body, and clear CTA. Honor the brand voice if provided."
+        "Bạn là một chuyên gia Email Marketing. Hãy viết một email tiếp thị với tiêu đề hấp dẫn, "
+        "nội dung thu hút và CTA rõ ràng. Tuân thủ giọng điệu thương hiệu nếu có. LUÔN LUÔN VIẾT BẰNG TIẾNG VIỆT."
     ),
     "landing_page": (
-        "You are an expert landing page copywriter. Write a high-converting landing "
-        "page with headline, subheadline, benefits list, and CTA. Honor the brand "
-        "voice if provided."
+        "Bạn là một chuyên gia viết nội dung Landing Page. Hãy viết một trang đích có tỷ lệ chuyển đổi cao "
+        "với tiêu đề chính, tiêu đề phụ, danh sách lợi ích và CTA. Tuân thủ giọng điệu thương hiệu nếu có. "
+        "LUÔN LUÔN VIẾT BẰNG TIẾNG VIỆT."
     ),
     "tiktok_script": (
-        "You are an expert TikTok content creator. Write a short, engaging TikTok "
-        "script with a hook (first 3 seconds), main script, and CTA. Honor the brand "
-        "voice if provided."
+        "Bạn là một chuyên gia sáng tạo nội dung TikTok. Hãy viết một kịch bản TikTok ngắn gọn, "
+        "thu hút với hook (trong 3 giây đầu), nội dung chính và CTA. Tuân thủ giọng điệu thương hiệu nếu có. "
+        "LUÔN LUÔN VIẾT BẰNG TIẾNG VIỆT."
     ),
 }
 

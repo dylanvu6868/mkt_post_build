@@ -2,9 +2,55 @@
 
 import { useChatStore } from "@/store/chat";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+
+function cleanContent(content: string) {
+  if (!content) return "";
+  let c = content
+    .replace(/```generate\n[\s\S]*?\n```/g, "")
+    .replace(/```suggestions\n[\s\S]*?\n```/g, "");
+  c = c.replace(/```(generate|suggestions)\n[\s\S]*$/, "");
+  return c.trim();
+}
+
+function MarkdownContent({ content }: { content: string }) {
+  const cleaned = cleanContent(content);
+  if (!cleaned) return null;
+  return (
+    <ReactMarkdown
+      remarkPlugins={[remarkGfm]}
+      components={{
+        p: ({ children }) => <p className="mb-3 last:mb-0 leading-relaxed text-[15px] text-muted-foreground">{children}</p>,
+        ul: ({ children }) => <ul className="mb-4 ml-6 list-disc last:mb-0 space-y-1">{children}</ul>,
+        ol: ({ children }) => <ol className="mb-4 ml-6 list-decimal last:mb-0 space-y-1">{children}</ol>,
+        li: ({ children }) => <li className="mb-1 text-[15px] text-muted-foreground">{children}</li>,
+        strong: ({ children }) => <strong className="font-semibold text-foreground">{children}</strong>,
+        code: ({ children, className }) => {
+          const isBlock = className?.includes("language-");
+          if (isBlock) {
+            return (
+              <pre className="my-4 overflow-x-auto rounded-[12px] bg-muted border border-border p-4 text-[13px] text-foreground custom-scrollbar shadow-inner">
+                <code>{children}</code>
+              </pre>
+            );
+          }
+          return <code className="rounded-[4px] bg-primary/20 text-primary px-1.5 py-0.5 text-[13px] font-mono">{children}</code>;
+        },
+        h1: ({ children }) => <h1 className="mb-4 mt-6 text-2xl font-bold text-foreground">{children}</h1>,
+        h2: ({ children }) => <h2 className="mb-3 mt-6 text-xl font-bold text-foreground">{children}</h2>,
+        h3: ({ children }) => <h3 className="mb-2 mt-5 text-lg font-semibold text-foreground">{children}</h3>,
+        h4: ({ children }) => <h4 className="mb-2 mt-4 text-base font-medium text-foreground">{children}</h4>,
+      }}
+    >
+      {cleaned}
+    </ReactMarkdown>
+  );
+}
 
 export function ContentPanel() {
-  const { contentPanel, setContentPanel } = useChatStore();
+  const { contentPanel, setContentPanel, streamContent } = useChatStore();
 
   if (!contentPanel.visible) return null;
 
@@ -12,70 +58,80 @@ export function ContentPanel() {
     if (!contentPanel.result) return;
     const text = formatResult(contentPanel.result);
     navigator.clipboard.writeText(text);
-    toast.success("Copied to clipboard");
+    toast.success("Đã sao chép vào khay nhớ tạm");
   };
 
   const handleDownload = () => {
     if (!contentPanel.result) return;
     const text = formatResult(contentPanel.result);
-    const blob = new Blob([text], { type: "text/plain" });
+    
+    const isHtml = text.trim().toLowerCase().startsWith("<!doctype html>") || text.trim().toLowerCase().startsWith("<html");
+    const mimeType = isHtml ? "text/html" : "text/plain";
+    const extension = isHtml ? ".html" : ".txt";
+    const filename = isHtml ? "landing-page" : "marketing-content";
+
+    const blob = new Blob([text], { type: mimeType });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "marketing-content.txt";
+    a.download = `${filename}${extension}`;
     a.click();
     URL.revokeObjectURL(url);
   };
 
   return (
-    <aside className="flex h-screen w-96 flex-col border-l bg-card">
-      <div className="flex items-center justify-between border-b px-4 py-3">
-        <h2 className="text-sm font-semibold">Generated Content</h2>
+    <aside className="flex h-screen w-[450px] flex-col border-l border-border bg-card/95 backdrop-blur-3xl z-50 shadow-2xl">
+      <div className="flex items-center justify-between border-b border-border px-6 py-4 bg-background/80">
+        <h2 className="text-[15px] font-semibold text-foreground tracking-tight">Kết quả Nội dung</h2>
         <button
           onClick={() => setContentPanel({ visible: false })}
-          className="rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
+          className="rounded-full p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4">
+      <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
         {contentPanel.generating && !contentPanel.result && (
-          <div className="flex flex-col items-center justify-center py-12 text-center">
-            <div className="mb-4 h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-            <p className="text-sm font-medium">Generating content...</p>
-            <p className="mt-1 text-xs text-muted-foreground">AI agents are working on your content</p>
+          <div className="flex flex-col items-start justify-start h-full">
+            <div className="w-full">
+              <MarkdownContent content={streamContent || "Đang kết nối AI Agents..."} />
+              <span className="animate-pulse inline-block ml-1 text-primary">|</span>
+            </div>
           </div>
         )}
 
         {contentPanel.result && (
-          <div className="space-y-4">
+          <div className="space-y-6">
             {contentPanel.result.score !== undefined && (
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-muted-foreground">Quality Score:</span>
-                <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary">
+              <div className="flex items-center justify-between bg-primary/10 border border-primary/20 rounded-xl p-4 shadow-[inset_0_0_20px_rgba(255,213,74,0.05)]">
+                <span className="text-[13px] text-muted-foreground font-medium">Điểm đánh giá chất lượng (AI Score):</span>
+                <span className="rounded-full bg-primary px-3 py-1 text-[13px] font-bold text-primary-foreground shadow-[0_0_15px_rgba(255,213,74,0.4)]">
                   {String(contentPanel.result.score)}/100
                 </span>
               </div>
             )}
 
-            <div className="rounded-lg border p-4">
-              <pre className="whitespace-pre-wrap text-sm">{formatResult(contentPanel.result)}</pre>
+            <div className="text-foreground">
+              <MarkdownContent content={formatResult(contentPanel.result)} />
             </div>
           </div>
         )}
       </div>
 
       {contentPanel.result && (
-        <div className="flex gap-2 border-t p-3">
-          <button onClick={handleCopy} className="flex flex-1 items-center justify-center gap-1.5 rounded-md border px-3 py-2 text-xs hover:bg-muted">
+        <div className="flex gap-3 border-t border-border p-5 bg-gradient-to-t from-background to-transparent">
+          <button onClick={handleCopy} className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-border bg-muted px-4 py-2.5 text-[13px] font-medium text-foreground hover:bg-accent hover:border-border transition-all hover:scale-[1.02] active:scale-[0.98]">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
             Copy
           </button>
-          <button onClick={handleDownload} className="flex flex-1 items-center justify-center gap-1.5 rounded-md border px-3 py-2 text-xs hover:bg-muted">
-            Download
+          <button onClick={handleDownload} className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-border bg-muted px-4 py-2.5 text-[13px] font-medium text-foreground hover:bg-accent hover:border-border transition-all hover:scale-[1.02] active:scale-[0.98]">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+            Tải về
           </button>
-          <button onClick={() => setContentPanel({ generating: false, result: null })} className="flex flex-1 items-center justify-center gap-1.5 rounded-md border px-3 py-2 text-xs hover:bg-muted">
-            Regenerate
+          <button onClick={() => setContentPanel({ generating: false, result: null })} className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-primary/30 bg-primary/10 px-4 py-2.5 text-[13px] font-medium text-primary hover:bg-primary/20 hover:border-primary/50 transition-all hover:scale-[1.02] active:scale-[0.98] shadow-sm">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+            Làm lại
           </button>
         </div>
       )}

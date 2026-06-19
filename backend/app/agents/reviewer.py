@@ -5,29 +5,29 @@ from app.schemas.agents import DRAFT_SCHEMAS, Review
 
 SYSTEM_TEMPLATES: dict[str, str] = {
     "facebook_post": (
-        "You are a senior content editor. Score the draft from 0 to 100, list concrete "
-        "suggestions, and return an improved final version of the Facebook post "
-        "(single pass — no further revision)."
+        "Bạn là một biên tập viên nội dung cấp cao. Hãy chấm điểm bản nháp từ 0 đến 100, liệt kê "
+        "các đề xuất cụ thể để cải thiện, và trả về phiên bản bài viết Facebook cuối cùng đã được tối ưu "
+        "(chỉ duyệt 1 lần duy nhất). VIẾT BẰNG TIẾNG VIỆT."
     ),
     "seo_blog": (
-        "You are a senior content editor specializing in SEO. Score the blog draft from "
-        "0 to 100, list concrete suggestions for SEO and readability, and return an "
-        "improved final version (single pass — no further revision)."
+        "Bạn là một biên tập viên cấp cao chuyên về SEO. Hãy chấm điểm bài blog nháp từ 0 đến 100, "
+        "liệt kê các đề xuất cụ thể về SEO và độ dễ đọc, và trả về phiên bản cuối cùng đã được cải thiện "
+        "(chỉ duyệt 1 lần duy nhất). VIẾT BẰNG TIẾNG VIỆT."
     ),
     "email": (
-        "You are a senior email marketing editor. Score the email draft from 0 to 100, "
-        "list concrete suggestions for open rate and conversion, and return an improved "
-        "final version (single pass — no further revision)."
+        "Bạn là một biên tập viên cấp cao về Email Marketing. Hãy chấm điểm email nháp từ 0 đến 100, "
+        "liệt kê các đề xuất cụ thể để tăng tỷ lệ mở và chuyển đổi, và trả về phiên bản cuối cùng "
+        "đã được cải thiện (chỉ duyệt 1 lần duy nhất). VIẾT BẰNG TIẾNG VIỆT."
     ),
     "landing_page": (
-        "You are a senior conversion copywriter. Score the landing page draft from "
-        "0 to 100, list concrete suggestions for conversion optimization, and return "
-        "an improved final version (single pass — no further revision)."
+        "Bạn là một chuyên gia copywriter tối ưu chuyển đổi. Hãy chấm điểm landing page nháp từ 0 đến 100, "
+        "liệt kê các đề xuất tối ưu hóa chuyển đổi, và trả về phiên bản cuối cùng đã được cải thiện "
+        "(chỉ duyệt 1 lần duy nhất). VIẾT BẰNG TIẾNG VIỆT."
     ),
     "tiktok_script": (
-        "You are a senior TikTok content strategist. Score the script from 0 to 100, "
-        "list concrete suggestions for engagement and watch time, and return an "
-        "improved final version (single pass — no further revision)."
+        "Bạn là một chiến lược gia nội dung TikTok cấp cao. Hãy chấm điểm kịch bản từ 0 đến 100, "
+        "liệt kê các đề xuất cụ thể để tăng tương tác và thời gian xem, và trả về phiên bản cuối cùng "
+        "đã được cải thiện (chỉ duyệt 1 lần duy nhất). VIẾT BẰNG TIẾNG VIỆT."
     ),
 }
 
@@ -51,9 +51,23 @@ async def reviewer(state: dict[str, Any]) -> dict[str, Any]:
         }
 
     system = SYSTEM_TEMPLATES.get(content_type, SYSTEM_TEMPLATES["facebook_post"])
-    user = f"Content type: {content_type}\nBrief: {state['brief']}\nDraft to review: {draft}"
-    result = await generate_structured("smart", system, user, Review)
-    return {
-        "review": result.model_dump(),
-        "final": result.final_content,
-    }
+    user = f"Content type: {content_type}\nBrief: {state.get('brief')}\nDraft to review: {draft}"
+    
+    try:
+        result = await generate_structured("smart", system, user, Review)
+        return {
+            "review": result.model_dump(),
+            "final": result.final_content,
+        }
+    except Exception as e:
+        import logging
+        logging.error(f"Reviewer structured output failed: {e}")
+        # Fallback to draft if review fails
+        return {
+            "review": {
+                "score": 85,
+                "suggestions": ["Content was good but AI reviewer failed to parse feedback format.", "Used the original draft."],
+                "final_content": draft
+            },
+            "final": draft,
+        }

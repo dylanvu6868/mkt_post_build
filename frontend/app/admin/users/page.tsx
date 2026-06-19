@@ -38,27 +38,27 @@ export default function AdminUsersPage() {
     try {
       await api.patch(`/admin/users/${userId}/ban`);
       fetchUsers();
-      toast.success("User status updated");
+      toast.success("Đã cập nhật trạng thái");
     } catch {
-      toast.error("Failed to update user");
+      toast.error("Không thể cập nhật");
     }
   };
 
   const handleDelete = async (userId: number, email: string) => {
-    if (!confirm(`Delete user ${email}? This cannot be undone.`)) return;
+    if (!confirm(`Xoá người dùng ${email}? Không thể hoàn tác.`)) return;
     try {
       await api.delete(`/admin/users/${userId}`);
       fetchUsers();
-      toast.success("User deleted");
+      toast.success("Đã xoá người dùng");
     } catch {
-      toast.error("Failed to delete user");
+      toast.error("Không thể xoá");
     }
   };
 
   if (loading) {
     return (
       <div className="space-y-6">
-        <h1 className="text-2xl font-bold">User Management</h1>
+        <h1 className="text-2xl font-bold">Quản lý người dùng</h1>
         {Array.from({ length: 3 }).map((_, i) => (
           <Card key={i}>
             <CardContent className="p-4">
@@ -73,13 +73,13 @@ export default function AdminUsersPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">User Management</h1>
-        <Badge variant="secondary">{users.length} users</Badge>
+        <h1 className="text-2xl font-bold">Quản lý người dùng</h1>
+        <Badge variant="secondary">{users.length} người dùng</Badge>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>All Users</CardTitle>
+          <CardTitle>Tất cả người dùng</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
@@ -98,8 +98,8 @@ export default function AdminUsersPage() {
                     )}
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    {u.email} &middot; {u.project_count} projects &middot;{" "}
-                    {new Date(u.created_at).toLocaleDateString()}
+                    {u.email} &middot; {u.project_count} dự án &middot;{" "}
+                    {new Date(u.created_at).toLocaleDateString("vi-VN")}
                   </p>
                 </div>
                 {!u.is_admin && (
@@ -109,14 +109,14 @@ export default function AdminUsersPage() {
                       size="sm"
                       onClick={() => handleBan(u.id)}
                     >
-                      {u.is_banned ? "Unban" : "Ban"}
+                      {u.is_banned ? "Bỏ cấm" : "Cấm"}
                     </Button>
                     <Button
                       variant="destructive"
                       size="sm"
                       onClick={() => handleDelete(u.id, u.email)}
                     >
-                      Delete
+                      Xoá
                     </Button>
                   </div>
                 )}

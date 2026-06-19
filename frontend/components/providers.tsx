@@ -17,7 +17,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
   );
 
   return (
-    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+    <ThemeProvider attribute="class" defaultTheme="system" enableSystem={true}>
       <PostHogProvider>
         <QueryClientProvider client={queryClient}>
           {children}
