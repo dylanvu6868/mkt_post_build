@@ -32,6 +32,9 @@ class Settings(BaseSettings):
     facebook_app_id: str = ""
     facebook_app_secret: str = ""
 
+    # SePay payment gateway
+    sepay_api_key: str = ""
+
     # RAG (M3)
     qdrant_collection_name: str = "marketing_docs"
     embedding_model: str = "BAAI/bge-small-en-v1.5"

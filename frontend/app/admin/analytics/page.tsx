@@ -44,8 +44,8 @@ const TYPE_LABELS: Record<string, string> = {
   tiktok_script: "TikTok Script",
 };
 
-function formatDate(iso: string): string {
-  const d = new Date(iso);
+function formatDate(iso: unknown): string {
+  const d = new Date(String(iso));
   return `${d.getDate()}/${d.getMonth() + 1}`;
 }
 

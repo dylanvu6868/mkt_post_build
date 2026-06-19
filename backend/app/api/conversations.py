@@ -1,9 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import select, desc
+from sqlalchemy import func, select, desc
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_user
 from app.core.db import get_session
+from app.core.plan_limits import get_limits
 from app.models.conversation import Conversation, Message
 from app.models.user import User
 from app.schemas.conversation import (
@@ -51,6 +52,17 @@ async def create_conversation(
     current_user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
 ):
+    limits = get_limits(current_user)
+    count_result = await session.execute(
+        select(func.count(Conversation.id)).where(Conversation.user_id == current_user.id)
+    )
+    conv_count = count_result.scalar() or 0
+    if conv_count >= limits["max_conversations"]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"Gói của bạn giới hạn {limits['max_conversations']} cuộc trò chuyện. Vui lòng nâng cấp gói.",
+        )
+
     conv = Conversation(
         user_id=current_user.id,
         title=payload.title,

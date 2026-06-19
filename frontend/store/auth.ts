@@ -7,6 +7,8 @@ interface User {
   name: string;
   email: string;
   is_admin?: boolean;
+  plan?: string;
+  plan_expires_at?: string | null;
 }
 
 interface AuthState {
@@ -15,6 +17,7 @@ interface AuthState {
   login: (email: string, password: string) => Promise<void>;
   register: (name: string, email: string, password: string) => Promise<void>;
   socialLogin: (provider: "google" | "facebook", token: string) => Promise<void>;
+  refreshUser: () => Promise<void>;
   logout: () => void;
 }
 
@@ -46,6 +49,15 @@ export const useAuthStore = create<AuthState>()(
           user: User;
         }>(`/auth/${provider}`, { token });
         set({ token: data.access_token, user: data.user });
+      },
+
+      refreshUser: async () => {
+        const { token } = useAuthStore.getState();
+        if (!token) return;
+        try {
+          const data = await api.get<User>("/auth/me");
+          set({ user: data });
+        } catch {}
       },
 
       logout: () => set({ token: null, user: null }),

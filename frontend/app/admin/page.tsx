@@ -66,8 +66,8 @@ function timeAgo(iso: string | null): string {
   return `${days} ngày trước`;
 }
 
-function formatDate(iso: string): string {
-  const d = new Date(iso);
+function formatDate(iso: unknown): string {
+  const d = new Date(String(iso));
   return `${d.getDate()}/${d.getMonth() + 1}`;
 }
 

@@ -145,14 +145,28 @@ async def copywriter(state: dict[str, Any]) -> dict[str, Any]:
         draft = _mock_draft(content_type, brief, brand_profile)
         return {"draft": draft.model_dump()}
 
-    system = SYSTEM_TEMPLATES.get(content_type, SYSTEM_TEMPLATES["facebook_post"])
+    base_system = SYSTEM_TEMPLATES.get(content_type, SYSTEM_TEMPLATES["facebook_post"])
     schema = DRAFT_SCHEMAS.get(content_type, FacebookPostDraft)
 
     brand_voice_section = _format_brand_voice(brand_profile)
+    insights_data = state.get("insights") or {}
+
+    system = (
+        f"{base_system}\n"
+        "Trước khi viết, hãy tự phân tích: nỗi đau khách hàng, lợi ích sản phẩm, "
+        "từ khóa SEO chính, và góc sáng tạo. Sau đó viết nội dung dựa trên phân tích đó."
+    )
+
+    insights_section = ""
+    if insights_data:
+        insights_section = f"Pre-analyzed insights: {insights_data}\n"
+
     user = (
         f"Topic: {brief}\n"
-        f"Creative brief: {state.get('fused_brief')}\n"
+        f"Marketing goal: {state.get('marketing_goal', '')}\n"
+        f"{insights_section}"
         f"{brand_voice_section}"
     )
-    result = await generate_structured("smart", system, user, schema)
-    return {"draft": result.model_dump()}
+    result = await generate_structured("fast", system, user, schema)
+    final = result.model_dump()
+    return {"draft": final, "final": final, "formatted_final": final}

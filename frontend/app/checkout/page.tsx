@@ -10,13 +10,13 @@ import { useState, Suspense } from "react";
 const PLAN_INFO: Record<string, { name: string; monthlyPrice: number; color: string; features: string[] }> = {
   pro: {
     name: "Pro",
-    monthlyPrice: 199000,
+    monthlyPrice: 89000,
     color: "text-amber-600 dark:text-amber-400",
     features: ["20 bài viết/ngày", "5 Brand Voice", "50 tài liệu KB", "5 Landing Page/tháng", "Export PDF/Docx"],
   },
   max: {
     name: "Max",
-    monthlyPrice: 499000,
+    monthlyPrice: 219000,
     color: "text-violet-600 dark:text-violet-400",
     features: ["Không giới hạn bài viết", "Không giới hạn Brand Voice", "Không giới hạn KB", "Không giới hạn Landing Page", "Model AI Reasoner"],
   },
@@ -178,7 +178,13 @@ function CheckoutContent() {
                 </div>
 
                 <button
-                  onClick={() => setStep("transfer")}
+                  onClick={async () => {
+                    try {
+                      const { api } = await import("@/services/api");
+                      await api.post("/payments/create-order", { plan: planId, cycle, transfer_code: transferCode });
+                    } catch {}
+                    setStep("transfer");
+                  }}
                   className={cn(
                     "w-full mt-6 rounded-[14px] py-3 text-sm font-semibold transition-all",
                     planId === "max"

@@ -18,13 +18,7 @@ import { toast } from "sonner";
 import { Sparkles, Bot, Send, Plus, Check, Copy, RefreshCcw, FileText } from "lucide-react";
 
 const AGENT_STEPS = [
-  "planner",
-  "research",
-  "seo",
-  "brand",
-  "fusion",
   "copywriter",
-  "reviewer",
 ];
 
 const CONTENT_TYPES = [
@@ -345,7 +339,7 @@ export default function GeneratePage() {
                         <div key={step} className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-wider border transition-all duration-300 ${isDone ? 'bg-yellow-500/10 border-yellow-500/30 text-yellow-500' : isActive ? 'bg-muted border-border text-foreground shadow-[0_0_15px_rgba(255,255,255,0.1)] scale-105' : 'bg-transparent border-border text-neutral-600'}`}>
                           {isDone && <Check className="w-3 h-3" />}
                           {isActive && <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />}
-                          <span>{step}</span>
+                          <span>{{insights_agent: "Insights", copywriter: "Copywriter"}[step] ?? step}</span>
                         </div>
                       );
                     })}

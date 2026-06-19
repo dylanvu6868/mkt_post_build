@@ -12,14 +12,9 @@ from app.models.project import Project
 from app.services import history_service
 
 _RESULT_KEYS = (
-    "plan",
-    "research",
-    "seo",
-    "brand_context",
-    "fused_brief",
     "draft",
-    "review",
     "final",
+    "formatted_final",
 )
 
 
@@ -98,8 +93,7 @@ async def run_generation_job(
                 job.result_json = result
                 await session.commit()
 
-            review = result.get("review") or {}
-            score = review.get("score") if isinstance(review, dict) else None
+            score = None
             await history_service.save_to_history(
                 session,
                 initial_state["project_id"],

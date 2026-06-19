@@ -15,6 +15,20 @@ dist/
 .DS_Store
 .idea/
 .vscode/
+# Sensitive files
+ssh-key-*
+*.key
+*.pem
+reset_pw.py
+# Temp/generated
+image.png
+logo.png
+process_*.py
+schema.sql
+dashboard.md
+skills-lock.json
+SKILL.md
+.agents/
 # Data
 qdrant_storage/
 postgres_data/

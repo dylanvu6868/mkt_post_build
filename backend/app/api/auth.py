@@ -5,9 +5,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = logging.getLogger(__name__)
 
+from app.api.deps import get_current_user
 from app.core.db import get_session
+from app.core.plan_limits import get_limits, get_user_plan
 from app.core.rate_limit import limiter
 from app.core.security import create_access_token
+from app.models.user import User
 from app.schemas.auth import LoginRequest, OAuthRequest, RegisterRequest, TokenResponse, UserResponse
 from app.services import auth_service
 from app.services.oauth_service import find_or_create_oauth_user, verify_facebook_token, verify_google_token
@@ -99,3 +102,25 @@ async def facebook_login(
     logger.info("Facebook login user_id=%s email=%s", user.id, profile["email"])
     token = create_access_token(str(user.id))
     return TokenResponse(access_token=token, user=UserResponse.model_validate(user))
+
+
+@router.get("/me", response_model=UserResponse)
+async def get_me(current_user: User = Depends(get_current_user)):
+    return UserResponse.model_validate(current_user)
+
+
+@router.get("/me/limits")
+async def get_my_limits(current_user: User = Depends(get_current_user)):
+    plan = get_user_plan(current_user)
+    limits = get_limits(current_user)
+    return {
+        "plan": plan,
+        "limits": {
+            "daily_generations": limits["daily_generations"],
+            "content_types": sorted(limits["content_types"]),
+            "max_projects": limits["max_projects"],
+            "max_conversations": limits["max_conversations"],
+            "max_kb_files": limits["max_kb_files"],
+            "max_brand_profiles": limits["max_brand_profiles"],
+        },
+    }

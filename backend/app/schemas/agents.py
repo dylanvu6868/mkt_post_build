@@ -28,6 +28,14 @@ class FusedBrief(BaseModel):
     unified_brief: str
 
 
+class Insights(BaseModel):
+    primary_keyword: str
+    secondary_keywords: list[str]
+    pain_points: list[str]
+    product_benefits: list[str]
+    creative_angle: str
+
+
 # --- Content type drafts ---
 
 class FacebookPostDraft(BaseModel):

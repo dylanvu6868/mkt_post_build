@@ -180,7 +180,19 @@ export const useChatStore = create<ChatState>()(
               set({ contentPanel: { visible: true, generating: true, result: null } });
               try {
                 const payload = JSON.parse(generateMatch[1]);
-                const projectId = useProjectStore.getState().activeProject?.id;
+                let projectId = useProjectStore.getState().activeProject?.id;
+                if (!projectId) {
+                  const createRes = await fetch(`${baseUrl}/projects`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+                    body: JSON.stringify({ name: "Default Project" }),
+                  });
+                  if (createRes.ok) {
+                    const proj = await createRes.json();
+                    projectId = proj.id;
+                    useProjectStore.getState().setActiveProject(proj);
+                  }
+                }
                 if (projectId) {
                   get().startGeneration({ ...payload, project_id: projectId });
                 }
@@ -243,7 +255,7 @@ export const useChatStore = create<ChatState>()(
 
           let isPolling = true;
           while (isPolling) {
-            await new Promise((resolve) => setTimeout(resolve, 1500));
+            await new Promise((resolve) => setTimeout(resolve, 800));
             const statusRes = await fetch(`${baseUrl}/generate/${jobId}`, {
               headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
             });

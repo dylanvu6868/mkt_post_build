@@ -30,6 +30,8 @@ async def list_users(session: AsyncSession = Depends(get_session)):
             User.oauth_provider,
             User.is_admin,
             User.is_banned,
+            User.plan,
+            User.plan_expires_at,
             User.created_at,
             func.count(Project.id.distinct()).label("project_count"),
         )
@@ -46,6 +48,8 @@ async def list_users(session: AsyncSession = Depends(get_session)):
             "oauth_provider": r.oauth_provider,
             "is_admin": r.is_admin,
             "is_banned": r.is_banned,
+            "plan": r.plan,
+            "plan_expires_at": r.plan_expires_at.isoformat() if r.plan_expires_at else None,
             "created_at": r.created_at.isoformat() if r.created_at else None,
             "project_count": r.project_count,
         }
@@ -69,6 +73,37 @@ async def toggle_ban(
     action = "banned" if user.is_banned else "unbanned"
     logger.info("Admin %s %s user_id=%s", admin.email, action, user_id)
     return {"id": user.id, "is_banned": user.is_banned}
+
+
+VALID_PLANS = {"lite", "pro", "max"}
+
+
+@router.patch("/users/{user_id}/plan")
+async def update_user_plan(
+    user_id: int,
+    body: dict,
+    session: AsyncSession = Depends(get_session),
+    admin: User = Depends(require_admin),
+):
+    plan = body.get("plan", "").lower()
+    if plan not in VALID_PLANS:
+        raise HTTPException(status_code=400, detail=f"Invalid plan. Must be one of: {', '.join(VALID_PLANS)}")
+    user = await session.get(User, user_id)
+    if user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    expires_at = None
+    if plan != "lite" and body.get("expires_at"):
+        try:
+            expires_at = datetime.fromisoformat(body["expires_at"])
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid expires_at format")
+
+    user.plan = plan
+    user.plan_expires_at = expires_at if plan != "lite" else None
+    await session.commit()
+    logger.info("Admin %s changed user_id=%s plan to %s", admin.email, user_id, plan)
+    return {"id": user.id, "plan": user.plan, "plan_expires_at": user.plan_expires_at.isoformat() if user.plan_expires_at else None}
 
 
 @router.delete("/users/{user_id}", status_code=status.HTTP_204_NO_CONTENT)

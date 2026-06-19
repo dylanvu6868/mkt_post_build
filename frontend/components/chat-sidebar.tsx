@@ -166,7 +166,11 @@ export function ChatSidebar() {
               <div className="min-w-0 flex-1 flex flex-col justify-center">
                 <div className="flex items-center gap-1.5">
                   <span className="truncate text-[13px] font-semibold text-foreground">{user?.name}</span>
-                  <span className="shrink-0 rounded-full bg-zinc-500/15 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-zinc-400">Lite</span>
+                  <span className={`shrink-0 rounded-full px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider ${
+                    (user?.plan || "lite") === "max" ? "bg-yellow-500/20 text-yellow-400" :
+                    (user?.plan || "lite") === "pro" ? "bg-blue-500/20 text-blue-400" :
+                    "bg-zinc-500/15 text-zinc-400"
+                  }`}>{user?.plan || "lite"}</span>
                 </div>
                 <span className="truncate text-[11px] text-muted-foreground">{user?.email}</span>
               </div>
