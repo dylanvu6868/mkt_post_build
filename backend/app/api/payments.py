@@ -160,9 +160,13 @@ async def sepay_webhook(
             raise HTTPException(status_code=401, detail="Invalid API Key")
 
     body = json.loads(raw_body or b"{}")
+    print("Webhook payload:", body)
     logger.info("SePay webhook received: gateway=%s account=%s amount=%s",
                 body.get("gateway"), body.get("accountNumber"), body.get("transferAmount"))
+    
     content = (body.get("content") or body.get("code") or "").strip().upper()
+    print("Content:", content)
+    
     amount = body.get("transferAmount") or 0
     transaction_id = str(body.get("id", ""))
     transfer_type = body.get("transferType", "")
@@ -174,25 +178,47 @@ async def sepay_webhook(
         logger.warning("SePay webhook: empty content")
         return {"success": False, "message": "No content"}
 
+    # Extract transfer_code from content (first word before space)
+    transfer_code = content.split(" ")[0] if content else ""
+    print("Transfer code:", transfer_code)
+    
+    if not transfer_code:
+        logger.warning("SePay webhook: could not extract transfer_code from content=%s", content)
+        return {"success": False, "message": "Invalid transfer code"}
+
+    # Idempotency check: prevent duplicate transaction processing
+    existing_order = (
+        await session.execute(
+            select(PaymentOrder).where(
+                PaymentOrder.sepay_transaction_id == transaction_id
+            )
+        )
+    ).scalar_one_or_none()
+    if existing_order:
+        logger.info("SePay webhook: duplicate transaction_id=%s, order_id=%s already processed", transaction_id, existing_order.id)
+        return {"success": True, "message": "Transaction already processed"}
+
     order = (
         await session.execute(
             select(PaymentOrder).where(
-                PaymentOrder.transfer_code == content,
+                PaymentOrder.transfer_code == transfer_code,
                 PaymentOrder.status == "pending",
             )
         )
     ).scalar_one_or_none()
 
+    print("Order found:", order)
+    
     if not order:
-        logger.warning("SePay webhook: no pending order for code=%s", content)
+        logger.warning("SePay webhook: no pending order for transfer_code=%s (content=%s)", transfer_code, content)
         return {"success": False, "message": "Order not found"}
 
     if float(amount) < order.amount:
-        logger.warning("SePay webhook: amount mismatch code=%s expected=%s got=%s", content, order.amount, amount)
+        logger.warning("SePay webhook: amount mismatch transfer_code=%s expected=%s got=%s", transfer_code, order.amount, amount)
         return {"success": False, "message": "Amount mismatch"}
 
     now = datetime.now(timezone.utc)
-    order.status = "confirmed"
+    order.status = "paid"
     order.sepay_transaction_id = transaction_id
     order.confirmed_at = now
 
