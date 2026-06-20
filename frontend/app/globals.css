@@ -110,5 +110,10 @@
   .no-scrollbar::-webkit-scrollbar {
     display: none;
   }
+
+  /* Remove Google button border */
+  [id^="gid"] iframe {
+    border: none !important;
+  }
 }
 
