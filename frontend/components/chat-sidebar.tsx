@@ -131,7 +131,7 @@ export function ChatSidebar() {
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto px-3 pb-4 custom-scrollbar">
+        <div className="flex-1 overflow-y-auto px-4 pb-4 no-scrollbar">
           <AnimatePresence initial={false}>
             {pinned.length > 0 && (
               <motion.div layout className="mb-4">
