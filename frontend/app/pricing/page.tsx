@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/auth";
+import { normalizePlan } from "@/lib/plan";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -76,7 +77,20 @@ const PLANS = [
 export default function PricingPage() {
   const router = useRouter();
   const token = useAuthStore((s) => s.token);
+  const user = useAuthStore((s) => s.user);
+  const currentPlan = normalizePlan(user?.plan);
   const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("monthly");
+
+  const getPlanCta = (planId: string) => {
+    if (planId === currentPlan) return "Gói hiện tại";
+    const order = { lite: 0, pro: 1, max: 2 };
+    if ((order[planId as keyof typeof order] ?? 0) > (order[currentPlan] ?? 0)) {
+      return planId === "pro" ? "Nâng cấp Pro" : "Nâng cấp Max";
+    }
+    return "Chọn gói";
+  };
+
+  const isPlanDisabled = (planId: string) => planId === currentPlan || planId === "lite";
 
   const handleSelectPlan = (planId: string) => {
     if (planId === "lite") return;
@@ -234,17 +248,17 @@ export default function PricingPage() {
 
                 <button
                   onClick={() => handleSelectPlan(plan.id)}
-                  disabled={plan.id === "lite"}
+                  disabled={isPlanDisabled(plan.id)}
                   className={cn(
                     "w-full rounded-[14px] py-2.5 text-sm font-semibold transition-all duration-200",
-                    plan.id === "lite"
+                    isPlanDisabled(plan.id)
                       ? "border border-border text-muted-foreground cursor-default"
                       : plan.id === "pro"
                         ? "bg-gradient-to-r from-yellow-400 to-amber-500 text-amber-950 hover:from-yellow-300 hover:to-amber-400 shadow-lg shadow-yellow-500/20"
                         : "bg-violet-600 text-white hover:bg-violet-700 shadow-lg shadow-violet-600/20"
                   )}
                 >
-                  {plan.cta}
+                  {getPlanCta(plan.id)}
                 </button>
               </motion.div>
             );

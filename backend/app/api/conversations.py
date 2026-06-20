@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_user
 from app.core.db import get_session
-from app.core.plan_limits import get_limits
+from app.core.plan_limits import check_conversation_limit, upgrade_message
 from app.models.conversation import Conversation, Message
 from app.models.user import User
 from app.schemas.conversation import (
@@ -52,15 +52,14 @@ async def create_conversation(
     current_user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
 ):
-    limits = get_limits(current_user)
-    count_result = await session.execute(
-        select(func.count(Conversation.id)).where(Conversation.user_id == current_user.id)
-    )
-    conv_count = count_result.scalar() or 0
-    if conv_count >= limits["max_conversations"]:
+    allowed, used, limit = await check_conversation_limit(session, current_user)
+    if not allowed:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail=f"Gói của bạn giới hạn {limits['max_conversations']} cuộc trò chuyện. Vui lòng nâng cấp gói.",
+            detail=(
+                f"Bạn đã dùng hết {limit} cuộc trò chuyện ({used}/{limit}). "
+                + upgrade_message("tạo thêm cuộc trò chuyện")
+            ),
         )
 
     conv = Conversation(

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { useProjectStore } from "@/store/project";
 import { useGenerate } from "@/hooks/use-generate";
 import { Button } from "@/components/ui/button";
@@ -16,17 +17,13 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { Sparkles, Bot, Send, Plus, Check, Copy, RefreshCcw, FileText } from "lucide-react";
+import { CONTENT_TYPE_LABELS, ALL_CONTENT_TYPES } from "@/lib/plan";
+import { usePlanLimits } from "@/hooks/use-plan-limits";
+import { handleApiPlanError } from "@/lib/plan-errors";
+import { PlanUsageBar } from "@/components/plan-usage-bar";
 
 const AGENT_STEPS = [
   "copywriter",
-];
-
-const CONTENT_TYPES = [
-  { value: "facebook_post", label: "Facebook Post" },
-  { value: "seo_blog", label: "SEO Blog" },
-  { value: "email", label: "Email" },
-  { value: "landing_page", label: "Landing Page" },
-  { value: "tiktok_script", label: "TikTok Script" },
 ];
 
 function Field({
@@ -219,8 +216,19 @@ function formatDraftAsText(
 }
 
 export default function GeneratePage() {
+  const router = useRouter();
   const activeProject = useProjectStore((s) => s.activeProject);
   const { start, jobStatus, polling, reset } = useGenerate();
+  const { data: planData } = usePlanLimits();
+
+  const allowedTypes = planData?.limits.content_types ?? ["facebook_post", "email"];
+  const contentTypes = ALL_CONTENT_TYPES
+    .filter((t) => allowedTypes.includes(t))
+    .map((value) => ({
+      value,
+      label: CONTENT_TYPE_LABELS[value] ?? value,
+      locked: false,
+    }));
 
   const [brief, setBrief] = useState("");
   const [goal, setGoal] = useState("");
@@ -228,6 +236,12 @@ export default function GeneratePage() {
   const [loading, setLoading] = useState(false);
   
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (contentTypes.length > 0 && !contentTypes.some((t) => t.value === contentType)) {
+      setContentType(contentTypes[0].value);
+    }
+  }, [contentTypes, contentType]);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -258,8 +272,8 @@ export default function GeneratePage() {
         brief: brief.trim(),
         marketing_goal: goal.trim(),
       });
-    } catch {
-      toast.error("Failed to start generation");
+    } catch (err) {
+      handleApiPlanError(err, () => router.push("/pricing"), "Failed to start generation");
     } finally {
       setLoading(false);
     }
@@ -273,7 +287,7 @@ export default function GeneratePage() {
 
   const draft = jobStatus?.result?.draft as Record<string, unknown> | undefined;
   const review = jobStatus?.result?.review as { score?: number; suggestions?: string[] } | undefined;
-  const typeLabel = CONTENT_TYPES.find((t) => t.value === contentType)?.label ?? contentType;
+  const typeLabel = contentTypes.find((t) => t.value === contentType)?.label ?? contentType;
 
   return (
     <div className="flex flex-col h-[calc(100vh-6rem)] max-w-4xl mx-auto px-4 relative">
@@ -414,6 +428,11 @@ export default function GeneratePage() {
 
       {/* Floating Prompt Box Area */}
       <div className="pb-6 pt-2 shrink-0 relative z-10">
+        {planData?.usage.daily_generations && (
+          <div className="mb-3 px-1">
+            <PlanUsageBar label="Lượt tạo hôm nay" item={planData.usage.daily_generations} />
+          </div>
+        )}
         <div className="bg-black/60 backdrop-blur-xl border border-border rounded-3xl p-3 shadow-[0_-10px_40px_rgba(0,0,0,0.5)] focus-within:border-yellow-500/50 focus-within:shadow-[0_0_30px_rgba(234,179,8,0.15)] transition-all duration-300">
           
           <div className="flex gap-2 mb-3 px-1">
@@ -422,7 +441,7 @@ export default function GeneratePage() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {CONTENT_TYPES.map((ct) => (
+                {contentTypes.map((ct) => (
                   <SelectItem key={ct.value} value={ct.value}>
                     {ct.label}
                   </SelectItem>

@@ -10,7 +10,11 @@ from app.models.brand_profile import BrandProfile
 from app.models.project import Project
 from app.models.user import User
 from app.models.user_template import UserTemplate
-from app.core.plan_limits import check_content_type_allowed, check_daily_generation_limit
+from app.core.plan_limits import (
+    check_content_type_allowed,
+    check_daily_generation_limit,
+    upgrade_message,
+)
 from app.schemas.generation import GenerateRequest, JobResponse, JobStatusResponse
 from app.services import generation_service
 
@@ -38,14 +42,17 @@ async def start_generation(
     if not check_content_type_allowed(current_user, payload.content_type):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail=f"Gói của bạn không hỗ trợ loại nội dung '{payload.content_type}'. Vui lòng nâng cấp gói.",
+            detail=upgrade_message(f"loại nội dung '{payload.content_type}'"),
         )
 
     allowed, used, limit = await check_daily_generation_limit(session, current_user)
     if not allowed:
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-            detail=f"Bạn đã dùng hết {limit} lượt tạo hôm nay ({used}/{limit}). Nâng cấp gói để tạo thêm.",
+            detail=(
+                f"Bạn đã dùng hết {limit} lượt tạo hôm nay ({used}/{limit}). "
+                + upgrade_message("tạo thêm nội dung")
+            ),
         )
 
     project = await session.get(Project, payload.project_id)

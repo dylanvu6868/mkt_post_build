@@ -34,7 +34,7 @@ Mục tiêu: {marketing_goal}
 
 async def marketing_planner_rag(state: GraphState):
     """Generates a marketing plan using RAG."""
-    model = get_chat_model("reasoning")
+    model = get_chat_model("fast")
     
     project_id = state.get("project_id")
     brief = state.get("brief", "")

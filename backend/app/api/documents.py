@@ -3,6 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from app.api.deps import get_current_user
 from app.core.db import get_session, get_session_maker
+from app.core.plan_limits import check_kb_file_limit, upgrade_message
 from app.models.project import Project
 from app.models.user import User
 from app.schemas.document import DocumentResponse
@@ -29,7 +30,16 @@ async def upload_document(
             status_code=status.HTTP_404_NOT_FOUND, detail="Project not found"
         )
 
-    # Validate file extension
+    allowed, used, limit = await check_kb_file_limit(session, current_user)
+    if not allowed:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=(
+                f"Bạn đã dùng hết {limit} tài liệu Knowledge Base ({used}/{limit}). "
+                + upgrade_message("tải thêm tài liệu KB")
+            ),
+        )
+
     filename = file.filename or "unknown"
     ext = "." + filename.rsplit(".", 1)[-1].lower() if "." in filename else ""
     if ext not in ALLOWED_EXTENSIONS:

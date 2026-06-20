@@ -29,7 +29,9 @@ export function useUploadDocument() {
         formData,
       );
     },
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: ["documents"] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["documents"] });
+      queryClient.invalidateQueries({ queryKey: ["plan-limits"] });
+    },
   });
 }

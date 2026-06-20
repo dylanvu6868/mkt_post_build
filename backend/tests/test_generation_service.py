@@ -41,9 +41,8 @@ async def test_run_generation_job_completes_and_stores_result(
     async with session_maker() as session:
         done = await session.get(GenerationJob, job_id)
         assert done.status == "done"
-        assert done.current_step == "reviewer"  # last node streamed
-        assert done.result_json["final"]["hook"]
-        assert 0 <= done.result_json["review"]["score"] <= 100
+        assert done.current_step == "copywriter"
+        assert done.result_json["draft"]["hook"]
 
 
 @patch("app.agents.brand.retrieve", return_value=[])

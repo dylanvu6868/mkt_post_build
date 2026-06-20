@@ -3,6 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_user
 from app.core.db import get_session
+from app.core.plan_limits import check_brand_profile_limit, upgrade_message
 from app.models.project import Project
 from app.models.user import User
 from app.schemas.brand import BrandProfileResponse, BrandProfileUpsert
@@ -21,6 +22,18 @@ async def upsert_brand_profile(
     if project is None or project.user_id != current_user.id:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Project not found"
+        )
+
+    allowed, used, limit = await check_brand_profile_limit(
+        session, current_user, payload.project_id
+    )
+    if not allowed:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=(
+                f"Bạn đã dùng hết {limit} Brand Voice profile ({used}/{limit}). "
+                + upgrade_message("tạo thêm Brand Voice")
+            ),
         )
 
     profile = await brand_service.upsert_brand_profile(

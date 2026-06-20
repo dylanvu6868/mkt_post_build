@@ -7,6 +7,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.user import User
 
+HISTORY_RETENTION_DAYS: dict[str, int | None] = {
+    "lite": 30,
+    "pro": 90,
+    "max": None,
+}
+
+
 PLAN_LIMITS = {
     "lite": {
         "daily_generations": 3,
@@ -71,3 +78,131 @@ async def check_daily_generation_limit(session: AsyncSession, user: User) -> tup
 def check_content_type_allowed(user: User, content_type: str) -> bool:
     limits = get_limits(user)
     return content_type in limits["content_types"]
+
+
+def get_history_retention_days(user: User) -> int | None:
+    return HISTORY_RETENTION_DAYS.get(get_user_plan(user), 30)
+
+
+def upgrade_message(feature: str) -> str:
+    return (
+        f"Gói hiện tại không hỗ trợ {feature}. "
+        "Vui lòng nâng cấp gói Pro hoặc Max để sử dụng tính năng này."
+    )
+
+
+async def check_kb_file_limit(session: AsyncSession, user: User) -> tuple[bool, int, int]:
+    from app.models.document import Document
+    from app.models.project import Project
+
+    limits = get_limits(user)
+    limit = limits["max_kb_files"]
+    count_result = await session.execute(
+        select(func.count(Document.id))
+        .join(Project, Document.project_id == Project.id)
+        .where(Project.user_id == user.id)
+    )
+    used = count_result.scalar() or 0
+    return used < limit, used, limit
+
+
+async def check_brand_profile_limit(
+    session: AsyncSession, user: User, project_id: int
+) -> tuple[bool, int, int]:
+    from app.models.brand_profile import BrandProfile
+    from app.models.project import Project
+
+    limits = get_limits(user)
+    limit = limits["max_brand_profiles"]
+
+    existing = await session.execute(
+        select(BrandProfile).where(BrandProfile.project_id == project_id)
+    )
+    if existing.scalar_one_or_none() is not None:
+        return True, 0, limit
+
+    count_result = await session.execute(
+        select(func.count(BrandProfile.id))
+        .join(Project, BrandProfile.project_id == Project.id)
+        .where(Project.user_id == user.id)
+    )
+    used = count_result.scalar() or 0
+    return used < limit, used, limit
+
+
+async def check_project_limit(session: AsyncSession, user: User) -> tuple[bool, int, int]:
+    from app.models.project import Project
+
+    limits = get_limits(user)
+    limit = limits["max_projects"]
+    count_result = await session.execute(
+        select(func.count(Project.id)).where(Project.user_id == user.id)
+    )
+    used = count_result.scalar() or 0
+    return used < limit, used, limit
+
+
+async def check_conversation_limit(session: AsyncSession, user: User) -> tuple[bool, int, int]:
+    from app.models.conversation import Conversation
+
+    limits = get_limits(user)
+    limit = limits["max_conversations"]
+    count_result = await session.execute(
+        select(func.count(Conversation.id)).where(Conversation.user_id == user.id)
+    )
+    used = count_result.scalar() or 0
+    return used < limit, used, limit
+
+
+def _usage_item(used: int, max_val: int) -> dict:
+    return {"used": used, "max": max_val if max_val < 999999 else None}
+
+
+async def get_usage_stats(session: AsyncSession, user: User) -> dict:
+    """Return current usage counts vs plan limits."""
+    from app.models.brand_profile import BrandProfile
+    from app.models.conversation import Conversation
+    from app.models.document import Document
+    from app.models.generation_job import GenerationJob
+    from app.models.project import Project
+
+    limits = get_limits(user)
+    user_id = user.id
+
+    _, gen_used, gen_max = await check_daily_generation_limit(session, user)
+
+    project_count = (
+        await session.execute(
+            select(func.count(Project.id)).where(Project.user_id == user_id)
+        )
+    ).scalar() or 0
+
+    conv_count = (
+        await session.execute(
+            select(func.count(Conversation.id)).where(Conversation.user_id == user_id)
+        )
+    ).scalar() or 0
+
+    brand_count = (
+        await session.execute(
+            select(func.count(BrandProfile.id))
+            .join(Project, BrandProfile.project_id == Project.id)
+            .where(Project.user_id == user_id)
+        )
+    ).scalar() or 0
+
+    kb_count = (
+        await session.execute(
+            select(func.count(Document.id))
+            .join(Project, Document.project_id == Project.id)
+            .where(Project.user_id == user_id)
+        )
+    ).scalar() or 0
+
+    return {
+        "daily_generations": _usage_item(gen_used, gen_max),
+        "projects": _usage_item(project_count, limits["max_projects"]),
+        "conversations": _usage_item(conv_count, limits["max_conversations"]),
+        "brand_profiles": _usage_item(brand_count, limits["max_brand_profiles"]),
+        "kb_files": _usage_item(kb_count, limits["max_kb_files"]),
+    }

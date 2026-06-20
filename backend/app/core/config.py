@@ -16,7 +16,7 @@ class Settings(BaseSettings):
     anthropic_api_key: str = ""
     deepseek_api_key: str = ""
     llm_model_fast: str = "deepseek-chat"
-    llm_model_smart: str = "deepseek-reasoner"
+    llm_model_smart: str = "deepseek-chat"
 
     # Auth (consumed in M1)
     jwt_secret: str = "change-me"
@@ -29,6 +29,7 @@ class Settings(BaseSettings):
 
     # OAuth
     google_client_id: str = ""
+    google_web_client_id: str = ""
     facebook_app_id: str = ""
     facebook_app_secret: str = ""
 

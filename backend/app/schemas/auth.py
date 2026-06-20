@@ -1,4 +1,9 @@
+from datetime import datetime
+
 from pydantic import BaseModel, EmailStr, Field
+
+from app.core.plan_limits import get_user_plan
+from app.models.user import User
 
 
 class RegisterRequest(BaseModel):
@@ -31,3 +36,17 @@ class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
     user: UserResponse
+
+
+def user_to_response(user: User) -> UserResponse:
+    expires = user.plan_expires_at
+    if isinstance(expires, datetime):
+        expires = expires.isoformat()
+    return UserResponse(
+        id=user.id,
+        name=user.name,
+        email=user.email,
+        is_admin=user.is_admin,
+        plan=get_user_plan(user),
+        plan_expires_at=expires,
+    )

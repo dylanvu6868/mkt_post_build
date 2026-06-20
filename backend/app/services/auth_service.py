@@ -24,6 +24,6 @@ async def authenticate(
     session: AsyncSession, email: str, password: str
 ) -> User | None:
     user = await get_user_by_email(session, email)
-    if user is None or not verify_password(password, user.password_hash):
+    if user is None or user.password_hash is None or not verify_password(password, user.password_hash):
         return None
     return user

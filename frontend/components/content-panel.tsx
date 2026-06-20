@@ -2,6 +2,7 @@
 
 import { useChatStore } from "@/store/chat";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -51,6 +52,7 @@ function MarkdownContent({ content }: { content: string }) {
 
 export function ContentPanel() {
   const { contentPanel, setContentPanel, streamContent } = useChatStore();
+  const router = useRouter();
 
   if (!contentPanel.visible) return null;
 
@@ -103,6 +105,20 @@ export function ContentPanel() {
 
         {contentPanel.result && (
           <div className="space-y-6">
+            {contentPanel.result.error ? (
+              <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-5 space-y-4">
+                <p className="text-sm text-red-300 leading-relaxed">{String(contentPanel.result.error)}</p>
+                {(contentPanel.result.upgradeRequired as boolean) && (
+                  <button
+                    onClick={() => router.push("/pricing")}
+                    className="rounded-lg bg-gradient-to-r from-yellow-400 to-amber-500 px-4 py-2 text-xs font-bold text-amber-950 hover:from-yellow-300 hover:to-amber-400 transition-all"
+                  >
+                    Nâng cấp gói
+                  </button>
+                )}
+              </div>
+            ) : (
+              <>
             {contentPanel.result.score !== undefined && (
               <div className="flex items-center justify-between bg-primary/10 border border-primary/20 rounded-xl p-4 shadow-[inset_0_0_20px_rgba(255,213,74,0.05)]">
                 <span className="text-[13px] text-muted-foreground font-medium">Điểm đánh giá chất lượng (AI Score):</span>
@@ -115,11 +131,13 @@ export function ContentPanel() {
             <div className="text-foreground">
               <MarkdownContent content={formatResult(contentPanel.result)} />
             </div>
+              </>
+            )}
           </div>
         )}
       </div>
 
-      {contentPanel.result && (
+      {contentPanel.result && !contentPanel.result.error && (
         <div className="flex gap-3 border-t border-border p-5 bg-gradient-to-t from-background to-transparent">
           <button onClick={handleCopy} className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-border bg-muted px-4 py-2.5 text-[13px] font-medium text-foreground hover:bg-accent hover:border-border transition-all hover:scale-[1.02] active:scale-[0.98]">
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
@@ -140,6 +158,7 @@ export function ContentPanel() {
 }
 
 function formatResult(result: Record<string, unknown>): string {
+  if (result.error) return String(result.error);
   if (result.final && typeof result.final === "object") {
     const final = result.final as Record<string, string>;
     const parts: string[] = [];

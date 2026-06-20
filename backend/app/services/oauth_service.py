@@ -21,7 +21,9 @@ async def verify_google_token(id_token: str) -> dict | None:
     if resp.status_code != 200:
         return None
     data = resp.json()
-    if data.get("aud") != settings.google_client_id:
+    allowed_auds = {cid for cid in (settings.google_client_id, settings.google_web_client_id) if cid}
+    if data.get("aud") not in allowed_auds:
+        logger.warning("Google token aud mismatch: got=%s expected=%s", data.get("aud"), allowed_auds)
         return None
     return {
         "oauth_id": data["sub"],

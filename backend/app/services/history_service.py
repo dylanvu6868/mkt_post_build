@@ -1,10 +1,13 @@
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.plan_limits import get_history_retention_days
 from app.models.content_history import ContentHistory
 from app.models.project import Project
+from app.models.user import User
 
 
 async def save_to_history(
@@ -29,14 +32,19 @@ async def save_to_history(
 
 
 async def list_history(
-    session: AsyncSession, project_id: int, user_id: int
+    session: AsyncSession, project_id: int, user_id: int, user: User
 ) -> list[ContentHistory]:
-    result = await session.execute(
+    query = (
         select(ContentHistory)
         .join(Project, ContentHistory.project_id == Project.id)
         .where(ContentHistory.project_id == project_id, Project.user_id == user_id)
-        .order_by(ContentHistory.created_at.desc())
     )
+    retention_days = get_history_retention_days(user)
+    if retention_days is not None:
+        cutoff = datetime.now(timezone.utc) - timedelta(days=retention_days)
+        query = query.where(ContentHistory.created_at >= cutoff)
+
+    result = await session.execute(query.order_by(ContentHistory.created_at.desc()))
     return list(result.scalars().all())
 
 

@@ -4,8 +4,10 @@ import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useChatStore } from "@/store/chat";
 import { useAuthStore } from "@/store/auth";
+import { normalizePlan, PLAN_META } from "@/lib/plan";
 import { ThemeToggle } from "./theme-toggle";
 import { cn } from "@/lib/utils";
+import { handleApiPlanError } from "@/lib/plan-errors";
 import { motion, AnimatePresence } from "framer-motion";
 import { SettingsModal } from "./settings-modal";
 
@@ -14,6 +16,8 @@ export function ChatSidebar() {
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
   const router = useRouter();
+  const userPlan = normalizePlan(user?.plan);
+  const planMeta = PLAN_META[userPlan];
 
   const [search, setSearch] = useState("");
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -51,9 +55,13 @@ export function ChatSidebar() {
     setOpen(false);
   };
 
-  const handleCreate = () => {
-    createConversation();
-    setOpen(false);
+  const handleCreate = async () => {
+    try {
+      await createConversation();
+      setOpen(false);
+    } catch (err) {
+      handleApiPlanError(err, () => router.push("/pricing"), "Không thể tạo cuộc trò chuyện");
+    }
   };
 
   return (
@@ -82,6 +90,7 @@ export function ChatSidebar() {
               Vitba.ai
             </h1>
             <ThemeToggle />
+            {userPlan !== "max" && (
             <button
               onClick={() => router.push("/pricing")}
               title="Nâng gói"
@@ -90,6 +99,7 @@ export function ChatSidebar() {
               <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
               Nâng gói
             </button>
+            )}
           </div>
           <div className="flex items-center gap-1">
             <button onClick={() => setOpen(false)} className="rounded-full p-2 hover:bg-accent md:hidden text-muted-foreground hover:text-foreground transition-colors">
@@ -166,11 +176,9 @@ export function ChatSidebar() {
               <div className="min-w-0 flex-1 flex flex-col justify-center">
                 <div className="flex items-center gap-1.5">
                   <span className="truncate text-[13px] font-semibold text-foreground">{user?.name}</span>
-                  <span className={`shrink-0 rounded-full px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider ${
-                    (user?.plan || "lite") === "max" ? "bg-yellow-500/20 text-yellow-400" :
-                    (user?.plan || "lite") === "pro" ? "bg-blue-500/20 text-blue-400" :
-                    "bg-zinc-500/15 text-zinc-400"
-                  }`}>{user?.plan || "lite"}</span>
+                  <span className={cn("shrink-0 rounded-full px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider", planMeta.badgeBg, planMeta.badgeColor)}>
+                    {planMeta.name}
+                  </span>
                 </div>
                 <span className="truncate text-[11px] text-muted-foreground">{user?.email}</span>
               </div>

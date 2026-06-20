@@ -22,7 +22,9 @@ async def list_history(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Project not found"
         )
-    items = await history_service.list_history(session, project_id, current_user.id)
+    items = await history_service.list_history(
+        session, project_id, current_user.id, current_user
+    )
     return [HistoryResponse.model_validate(i) for i in items]
 
 

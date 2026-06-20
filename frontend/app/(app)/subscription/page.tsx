@@ -3,46 +3,24 @@
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { usePlanLimits } from "@/hooks/use-plan-limits";
+import { normalizePlan, PLAN_META, usagePercent, CONTENT_TYPE_LABELS } from "@/lib/plan";
 
-const PLAN_DETAILS: Record<string, { name: string; color: string; bgColor: string; limits: { label: string; current: number; max: number | null }[] }> = {
-  lite: {
-    name: "Lite",
-    color: "text-zinc-600 dark:text-zinc-400",
-    bgColor: "bg-zinc-100 dark:bg-zinc-800",
-    limits: [
-      { label: "Bài viết hôm nay", current: 1, max: 3 },
-      { label: "Brand Voice profiles", current: 1, max: 1 },
-      { label: "Tài liệu Knowledge Base", current: 2, max: 5 },
-    ],
-  },
-  pro: {
-    name: "Pro",
-    color: "text-amber-600 dark:text-amber-400",
-    bgColor: "bg-amber-100 dark:bg-amber-900/30",
-    limits: [
-      { label: "Bài viết hôm nay", current: 5, max: 20 },
-      { label: "Brand Voice profiles", current: 2, max: 5 },
-      { label: "Tài liệu Knowledge Base", current: 10, max: 50 },
-      { label: "Landing Page tháng này", current: 1, max: 5 },
-    ],
-  },
-  max: {
-    name: "Max",
-    color: "text-violet-600 dark:text-violet-400",
-    bgColor: "bg-violet-100 dark:bg-violet-900/30",
-    limits: [
-      { label: "Bài viết hôm nay", current: 12, max: null },
-      { label: "Brand Voice profiles", current: 8, max: null },
-      { label: "Tài liệu Knowledge Base", current: 25, max: null },
-      { label: "Landing Page tháng này", current: 3, max: null },
-    ],
-  },
-};
+const USAGE_LABELS = [
+  { key: "daily_generations" as const, label: "Bài viết hôm nay" },
+  { key: "brand_profiles" as const, label: "Brand Voice profiles" },
+  { key: "kb_files" as const, label: "Tài liệu Knowledge Base" },
+  { key: "projects" as const, label: "Dự án" },
+  { key: "conversations" as const, label: "Cuộc trò chuyện" },
+];
 
 export default function SubscriptionPage() {
   const router = useRouter();
-  const currentPlan: string = "lite";
-  const plan = PLAN_DETAILS[currentPlan];
+  const { data, isLoading } = usePlanLimits();
+  const currentPlan = normalizePlan(data?.plan);
+  const plan = PLAN_META[currentPlan];
+
+  const contentTypes = data?.limits.content_types ?? [];
 
   return (
     <div className="flex h-full items-center justify-center p-6">
@@ -56,6 +34,11 @@ export default function SubscriptionPage() {
             <div>
               <p className="text-sm text-muted-foreground">Gói hiện tại</p>
               <h2 className={cn("text-2xl font-bold", plan.color)}>{plan.name}</h2>
+              {data?.plan_expires_at && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  Hết hạn: {new Date(data.plan_expires_at).toLocaleDateString("vi-VN")}
+                </p>
+              )}
             </div>
             <div className={cn("flex h-12 w-12 items-center justify-center rounded-[16px]", plan.bgColor)}>
               {currentPlan === "lite" && (
@@ -70,32 +53,60 @@ export default function SubscriptionPage() {
             </div>
           </div>
 
-          <div className="space-y-4">
-            {plan.limits.map((limit, i) => (
-              <div key={i}>
-                <div className="flex items-center justify-between mb-1.5">
-                  <span className="text-sm text-muted-foreground">{limit.label}</span>
-                  <span className="text-sm font-semibold text-foreground">
-                    {limit.current}{limit.max !== null ? ` / ${limit.max}` : ""}
-                    {limit.max === null && <span className="text-muted-foreground font-normal ml-1">(unlimited)</span>}
-                  </span>
-                </div>
-                {limit.max !== null && (
-                  <div className="h-2 rounded-full bg-muted overflow-hidden">
-                    <div
-                      className={cn(
-                        "h-full rounded-full transition-all",
-                        limit.current / limit.max > 0.8 ? "bg-red-500"
-                          : limit.current / limit.max > 0.5 ? "bg-amber-500"
-                          : "bg-green-500"
-                      )}
-                      style={{ width: `${Math.min(100, (limit.current / limit.max) * 100)}%` }}
-                    />
+          {isLoading ? (
+            <p className="text-sm text-muted-foreground py-4 text-center">Đang tải...</p>
+          ) : (
+            <div className="space-y-4">
+              {USAGE_LABELS.map(({ key, label }) => {
+                const item = data?.usage[key];
+                if (!item) return null;
+                const pct = usagePercent(item);
+                return (
+                  <div key={key}>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="text-sm text-muted-foreground">{label}</span>
+                      <span className="text-sm font-semibold text-foreground">
+                        {item.used}
+                        {item.max !== null ? ` / ${item.max}` : ""}
+                        {item.max === null && (
+                          <span className="text-muted-foreground font-normal ml-1">(không giới hạn)</span>
+                        )}
+                      </span>
+                    </div>
+                    {item.max !== null && (
+                      <div className="h-2 rounded-full bg-muted overflow-hidden">
+                        <div
+                          className={cn(
+                            "h-full rounded-full transition-all",
+                            pct > 80 ? "bg-red-500" : pct > 50 ? "bg-amber-500" : "bg-green-500"
+                          )}
+                          style={{ width: `${pct}%` }}
+                        />
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
-            ))}
-          </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        <div className="rounded-[20px] border border-border bg-card p-6">
+          <h3 className="text-sm font-bold text-foreground mb-3">Loại nội dung được phép</h3>
+          {contentTypes.length > 0 ? (
+            <div className="flex flex-wrap gap-2">
+              {contentTypes.map((ct) => (
+                <span
+                  key={ct}
+                  className="rounded-full bg-primary/10 text-primary px-3 py-1 text-xs font-medium"
+                >
+                  {CONTENT_TYPE_LABELS[ct] ?? ct.replace(/_/g, " ")}
+                </span>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">Đang tải...</p>
+          )}
         </div>
 
         {currentPlan !== "max" && (
@@ -112,6 +123,15 @@ export default function SubscriptionPage() {
             </button>
           </div>
         )}
+
+        <div className="rounded-[20px] border border-border bg-card p-6">
+          <h3 className="text-sm font-bold text-foreground mb-3">Lịch sử nội dung</h3>
+          <p className="text-sm text-muted-foreground">
+            {data?.limits.history_retention_days === null
+              ? "Gói Max: lưu lịch sử không giới hạn thời gian."
+              : `Gói hiện tại lưu lịch sử ${data?.limits.history_retention_days ?? 30} ngày gần nhất.`}
+          </p>
+        </div>
 
         <div className="rounded-[20px] border border-border bg-card p-6">
           <h3 className="text-sm font-bold text-foreground mb-3">Lịch sử thanh toán</h3>

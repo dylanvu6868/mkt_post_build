@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from app.api.deps import get_current_user
 from app.core.db import get_session, get_session_maker
+from app.core.plan_limits import get_limits, get_user_plan
 from app.llm.factory import get_chat_model, provider_available
 from app.models.conversation import Conversation, Message
 from app.models.user import User
@@ -54,7 +55,21 @@ Các content_type hợp lệ: facebook_post, seo_blog, email, landing_page, tikt
 """
 
 
-async def _build_messages(session: AsyncSession, conversation_id: int, limit: int = 20):
+def _build_system_prompt(user: User) -> str:
+    plan = get_user_plan(user)
+    allowed = ", ".join(sorted(get_limits(user)["content_types"]))
+    return (
+        f"{SYSTEM_PROMPT}\n\n"
+        f"## Giới hạn gói {plan.upper()} của người dùng hiện tại:\n"
+        f"- Chỉ được dùng khối ```generate``` với content_type thuộc: {allowed}\n"
+        "- Nếu người dùng yêu cầu loại nội dung KHÔNG có trong danh sách trên, "
+        "KHÔNG dùng ```generate```. Hãy trả lời thân thiện: "
+        '"Tính năng này cần gói Pro hoặc Max. Bạn vui lòng nâng cấp gói tại trang Pricing để sử dụng."\n'
+        "- Nếu người dùng hết lượt tạo trong ngày, thông báo nâng cấp gói thay vì generate."
+    )
+
+
+async def _build_messages(session: AsyncSession, conversation_id: int, limit: int = 12):
     result = await session.execute(
         select(Message)
         .where(Message.conversation_id == conversation_id)
@@ -211,7 +226,7 @@ async def send_message(
     await session.commit()
 
     history = await _build_messages(session, conversation_id)
-    chat_messages = [{"role": "system", "content": SYSTEM_PROMPT}] + history
+    chat_messages = [{"role": "system", "content": _build_system_prompt(current_user)}] + history
 
     async def event_stream():
         full_response = ""

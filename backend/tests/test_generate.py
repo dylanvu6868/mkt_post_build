@@ -22,9 +22,10 @@ async def test_generate_requires_auth(client):
     assert resp.status_code in (401, 403)
 
 
+@patch("app.api.generate.provider_available", return_value=False)
 @patch("app.agents.brand.retrieve", return_value=[])
 @patch("app.agents.brand.embed_query", return_value=[0.1] * 384)
-async def test_generate_then_poll_completes_in_mock_mode(mock_embed, mock_retrieve, client):
+async def test_generate_then_poll_completes_in_mock_mode(mock_embed, mock_retrieve, mock_provider, client):
     token = await _register(client)
     headers = {"Authorization": f"Bearer {token}"}
     project_id = await _project(client, headers)
@@ -49,9 +50,8 @@ async def test_generate_then_poll_completes_in_mock_mode(mock_embed, mock_retrie
     assert poll.status_code == 200
     body = poll.json()
     assert body["status"] == "done"
-    assert body["current_step"] == "reviewer"
-    assert body["result"]["final"]["hook"]
-    assert 0 <= body["result"]["review"]["score"] <= 100
+    assert body["current_step"] == "copywriter"
+    assert body["result"]["draft"]["hook"]
     assert body["error"] is None
 
 
@@ -91,9 +91,10 @@ async def test_poll_unknown_job_is_404(client):
     assert resp.status_code == 404
 
 
+@patch("app.api.generate.provider_available", return_value=False)
 @patch("app.agents.brand.retrieve", return_value=[])
 @patch("app.agents.brand.embed_query", return_value=[0.1] * 384)
-async def test_generate_uses_brand_profile_in_output(mock_embed, mock_retrieve, client):
+async def test_generate_uses_brand_profile_in_output(mock_embed, mock_retrieve, mock_provider, client):
     token = await _register(client, "bp@example.com")
     headers = {"Authorization": f"Bearer {token}"}
     project_id = await _project(client, headers)

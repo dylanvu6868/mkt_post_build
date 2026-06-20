@@ -19,6 +19,9 @@ export function useCreateProject() {
   return useMutation({
     mutationFn: (name: string) =>
       api.post<Project>("/projects", { name }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["projects"] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
+      queryClient.invalidateQueries({ queryKey: ["plan-limits"] });
+    },
   });
 }

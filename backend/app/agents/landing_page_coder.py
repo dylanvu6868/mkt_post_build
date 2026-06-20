@@ -21,7 +21,7 @@ Mục tiêu: {marketing_goal}
 
 async def landing_page_coder(state: GraphState):
     """Generates a complete HTML Landing Page."""
-    model = get_chat_model("reasoning")
+    model = get_chat_model("fast")
     
     brief = state.get("brief", "Không có thông tin chi tiết")
     goal = state.get("marketing_goal", "Tạo chuyển đổi")

@@ -19,16 +19,27 @@ import { useBrandProfile, useUpsertBrand } from "@/hooks/use-brand";
 import { useDocuments, useUploadDocument } from "@/hooks/use-documents";
 import { useTemplate, useUpsertTemplate } from "@/hooks/use-template";
 import { useAuthStore } from "@/store/auth";
+import { usePlanLimits } from "@/hooks/use-plan-limits";
+import { normalizePlan, PLAN_META, CONTENT_TYPE_LABELS, ALL_CONTENT_TYPES } from "@/lib/plan";
+import { handleApiPlanError } from "@/lib/plan-errors";
+import { PlanUsageBar, PlanUpgradeBanner } from "@/components/plan-usage-bar";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 // 1. Projects Component
-function ProjectsTab() {
+function ProjectsTab({ onUpgrade }: { onUpgrade: () => void }) {
   const { data: projects, isLoading } = useProjects();
   const createProject = useCreateProject();
   const { activeProject, setActiveProject } = useProjectStore();
+  const { data: planData } = usePlanLimits();
   const [name, setName] = useState("");
+
+  const projectUsage = planData?.usage.projects;
+  const atProjectLimit =
+    projectUsage?.max !== null &&
+    projectUsage !== undefined &&
+    projectUsage.used >= projectUsage.max;
 
   // Auto-select valid project if activeProject is invalid or missing
   useEffect(() => {
@@ -43,19 +54,28 @@ function ProjectsTab() {
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim()) return;
+    if (!name.trim() || atProjectLimit) return;
     try {
       const project = await createProject.mutateAsync(name.trim());
       setActiveProject(project);
       setName("");
       toast.success("Đã tạo dự án mới");
-    } catch {
-      toast.error("Tạo dự án thất bại");
+    } catch (err) {
+      handleApiPlanError(err, onUpgrade, "Tạo dự án thất bại");
     }
   };
 
   return (
     <div className="space-y-6">
+      {projectUsage && (
+        <PlanUsageBar label="Dự án" item={projectUsage} />
+      )}
+      {atProjectLimit && (
+        <PlanUpgradeBanner
+          message={`Bạn đã dùng hết ${projectUsage?.max} dự án. Nâng cấp gói để tạo thêm dự án mới.`}
+          onUpgrade={onUpgrade}
+        />
+      )}
       <div className="bg-muted p-4 rounded-xl border border-border shadow-inner">
         <h3 className="text-sm font-semibold text-foreground mb-3">Tạo dự án mới</h3>
         <form onSubmit={handleCreate} className="flex gap-2">
@@ -67,7 +87,7 @@ function ProjectsTab() {
           />
           <button 
             type="submit" 
-            disabled={createProject.isPending}
+            disabled={createProject.isPending || atProjectLimit}
             className="px-4 rounded-md bg-primary text-primary-foreground font-medium text-sm hover:bg-primary/90 disabled:opacity-50 transition-colors"
           >
             {createProject.isPending ? "Đang tạo..." : "Tạo"}
@@ -108,9 +128,10 @@ function ProjectsTab() {
 }
 
 // 2. Brand Voice Component
-function BrandVoiceTab() {
+function BrandVoiceTab({ onUpgrade }: { onUpgrade: () => void }) {
   const activeProject = useProjectStore((s) => s.activeProject);
   const { data: profile, isLoading } = useBrandProfile(activeProject?.id);
+  const { data: planData } = usePlanLimits();
   const upsert = useUpsertBrand();
 
   const [brandName, setBrandName] = useState("");
@@ -133,8 +154,17 @@ function BrandVoiceTab() {
     return <p className="text-sm text-muted-foreground bg-muted p-4 rounded-xl border border-border">Vui lòng chọn một dự án ở tab "Dự án" trước khi cấu hình giọng điệu.</p>;
   }
 
+  const brandUsage = planData?.usage.brand_profiles;
+  const isNewProfile = !profile && !isLoading;
+  const atBrandLimit =
+    isNewProfile &&
+    brandUsage?.max !== null &&
+    brandUsage !== undefined &&
+    brandUsage.used >= brandUsage.max;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (atBrandLimit) return;
     try {
       await upsert.mutateAsync({
         project_id: activeProject.id,
@@ -145,12 +175,20 @@ function BrandVoiceTab() {
         forbidden_words: forbiddenWords.split(",").map((w) => w.trim()).filter(Boolean),
       });
       toast.success("Đã lưu cấu hình giọng điệu");
-    } catch {
-      toast.error("Lưu cấu hình thất bại");
+    } catch (err) {
+      handleApiPlanError(err, onUpgrade, "Lưu cấu hình thất bại");
     }
   };
 
   return (
+    <div className="space-y-4">
+      {brandUsage && <PlanUsageBar label="Brand Voice profiles" item={brandUsage} />}
+      {atBrandLimit && (
+        <PlanUpgradeBanner
+          message={`Bạn đã dùng hết ${brandUsage?.max} Brand Voice. Nâng cấp gói để tạo thêm trên dự án khác.`}
+          onUpgrade={onUpgrade}
+        />
+      )}
     <form onSubmit={handleSubmit} className="space-y-4 max-h-[400px] overflow-y-auto custom-scrollbar pr-2">
       <div className="space-y-2">
         <Label className="text-muted-foreground">Tên thương hiệu</Label>
@@ -172,19 +210,27 @@ function BrandVoiceTab() {
         <Label className="text-muted-foreground">Từ vựng cấm dùng (cách nhau bằng dấu phẩy)</Label>
         <Input value={forbiddenWords} onChange={(e) => setForbiddenWords(e.target.value)} placeholder="VD: giá rẻ, bình dân" className="bg-muted border-border text-foreground focus-visible:ring-primary/50" />
       </div>
-      <button type="submit" disabled={upsert.isPending} className="w-full py-3 rounded-xl bg-primary text-primary-foreground font-semibold hover:bg-primary/90 disabled:opacity-50 mt-4 transition-all hover:scale-[1.02] active:scale-[0.98]">
+      <button type="submit" disabled={upsert.isPending || atBrandLimit} className="w-full py-3 rounded-xl bg-primary text-primary-foreground font-semibold hover:bg-primary/90 disabled:opacity-50 mt-4 transition-all hover:scale-[1.02] active:scale-[0.98]">
         {upsert.isPending ? "Đang lưu..." : "Lưu giọng điệu"}
       </button>
     </form>
+    </div>
   );
 }
 
 // 3. Knowledge Base Component
-function KnowledgeBaseTab() {
+function KnowledgeBaseTab({ onUpgrade }: { onUpgrade: () => void }) {
   const activeProject = useProjectStore((s) => s.activeProject);
   const { data: documents, isLoading } = useDocuments(activeProject?.id);
+  const { data: planData } = usePlanLimits();
   const upload = useUploadDocument();
   const fileRef = useRef<HTMLInputElement>(null);
+
+  const kbUsage = planData?.usage.kb_files;
+  const atKbLimit =
+    kbUsage?.max !== null &&
+    kbUsage !== undefined &&
+    kbUsage.used >= kbUsage.max;
 
   if (!activeProject) {
     return <p className="text-sm text-muted-foreground bg-muted p-4 rounded-xl border border-border">Vui lòng chọn một dự án ở tab "Dự án" trước khi tải tài liệu lên.</p>;
@@ -192,19 +238,32 @@ function KnowledgeBaseTab() {
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
+    if (!file || atKbLimit) return;
     try {
       await upload.mutateAsync({ projectId: activeProject.id, file });
       toast.success("Đã tải tài liệu lên thành công");
-    } catch {
-      toast.error("Tải tài liệu thất bại");
+    } catch (err) {
+      handleApiPlanError(err, onUpgrade, "Tải tài liệu thất bại");
     }
     if (fileRef.current) fileRef.current.value = "";
   };
 
   return (
     <div className="space-y-6">
-      <div className="bg-muted p-6 rounded-xl border border-border text-center border-dashed border-2 hover:border-primary/50 transition-colors cursor-pointer group" onClick={() => fileRef.current?.click()}>
+      {kbUsage && <PlanUsageBar label="Tài liệu Knowledge Base" item={kbUsage} />}
+      {atKbLimit && (
+        <PlanUpgradeBanner
+          message={`Bạn đã dùng hết ${kbUsage?.max} tài liệu KB. Nâng cấp gói để tải thêm.`}
+          onUpgrade={onUpgrade}
+        />
+      )}
+      <div
+        className={cn(
+          "bg-muted p-6 rounded-xl border border-border text-center border-dashed border-2 transition-colors group",
+          atKbLimit ? "opacity-50 cursor-not-allowed" : "hover:border-primary/50 cursor-pointer",
+        )}
+        onClick={() => !atKbLimit && fileRef.current?.click()}
+      >
         <input ref={fileRef} type="file" accept=".pdf,.docx,.txt" className="hidden" onChange={handleUpload} />
         <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center mx-auto mb-3 group-hover:bg-primary/10 transition-colors">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-muted-foreground group-hover:text-primary transition-colors"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
@@ -232,19 +291,25 @@ function KnowledgeBaseTab() {
 }
 
 // 4. Templates Component
-const CONTENT_TYPES = [
-  { value: "facebook_post", label: "Bài đăng Facebook" },
-  { value: "seo_blog", label: "SEO Blog" },
-  { value: "email", label: "Email Marketing" },
-  { value: "landing_page", label: "Landing Page" },
-  { value: "tiktok_script", label: "Kịch bản TikTok" },
-];
-
-function TemplatesTab() {
+function TemplatesTab({ onUpgrade }: { onUpgrade: () => void }) {
+  const { data: planData } = usePlanLimits();
+  const allowedTypes = planData?.limits.content_types ?? ["facebook_post", "email"];
   const [contentType, setContentType] = useState("facebook_post");
   const [templateText, setTemplateText] = useState("");
   const { data: template, isLoading } = useTemplate(contentType);
   const upsert = useUpsertTemplate();
+
+  const templateOptions = ALL_CONTENT_TYPES.map((value) => ({
+    value,
+    label: CONTENT_TYPE_LABELS[value] ?? value,
+    allowed: allowedTypes.includes(value),
+  }));
+
+  useEffect(() => {
+    if (templateOptions.length > 0 && !allowedTypes.includes(contentType)) {
+      setContentType(allowedTypes[0]);
+    }
+  }, [allowedTypes, contentType, templateOptions.length]);
 
   useEffect(() => {
     if (template) {
@@ -273,13 +338,26 @@ function TemplatesTab() {
             <SelectValue placeholder="Chọn loại" />
           </SelectTrigger>
           <SelectContent className="bg-card border-border text-foreground">
-            {CONTENT_TYPES.map((type) => (
-              <SelectItem key={type.value} value={type.value} className="focus:bg-muted focus:text-foreground cursor-pointer">
-                {type.label}
+            {templateOptions.map((type) => (
+              <SelectItem
+                key={type.value}
+                value={type.value}
+                disabled={!type.allowed}
+                className="focus:bg-muted focus:text-foreground cursor-pointer"
+              >
+                {type.label}{!type.allowed ? " (Cần nâng gói)" : ""}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
+        {templateOptions.some((t) => !t.allowed) && (
+          <p className="text-[11px] text-muted-foreground">
+            Một số loại nội dung cần gói Pro/Max.{" "}
+            <button type="button" onClick={onUpgrade} className="text-primary underline">
+              Nâng cấp ngay
+            </button>
+          </p>
+        )}
       </div>
       <div className="space-y-2">
         <Label className="text-muted-foreground">Cấu trúc mẫu (Template Format)</Label>
@@ -302,14 +380,9 @@ function TemplatesTab() {
 function AccountTab({ onClose }: { onClose: () => void }) {
   const user = useAuthStore((s) => s.user);
   const router = useRouter();
-  const currentPlan: string = "lite";
-
-  const planConfig: Record<string, { label: string; color: string; bg: string }> = {
-    lite: { label: "Lite", color: "text-zinc-400", bg: "bg-zinc-500/15" },
-    pro: { label: "Pro", color: "text-yellow-400", bg: "bg-yellow-500/15" },
-    max: { label: "Max", color: "text-violet-400", bg: "bg-violet-500/15" },
-  };
-  const plan = planConfig[currentPlan];
+  const { data: planData } = usePlanLimits();
+  const currentPlan = normalizePlan(user?.plan ?? planData?.plan);
+  const plan = PLAN_META[currentPlan];
 
   return (
     <div className="space-y-6">
@@ -320,11 +393,16 @@ function AccountTab({ onClose }: { onClose: () => void }) {
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
             <p className="text-base font-bold text-foreground truncate">{user?.name}</p>
-            <span className={cn("rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider", plan.bg, plan.color)}>
-              {plan.label}
+            <span className={cn("rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider", plan.badgeBg, plan.badgeColor)}>
+              {plan.name}
             </span>
           </div>
           <p className="text-sm text-muted-foreground truncate">{user?.email}</p>
+          {planData?.plan_expires_at && (
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Hết hạn: {new Date(planData.plan_expires_at).toLocaleDateString("vi-VN")}
+            </p>
+          )}
         </div>
       </div>
 
@@ -335,7 +413,7 @@ function AccountTab({ onClose }: { onClose: () => void }) {
             { label: "Tên hiển thị", value: user?.name || "—" },
             { label: "Email", value: user?.email || "—" },
             { label: "Vai trò", value: user?.is_admin ? "Quản trị viên" : "Thành viên" },
-            { label: "Gói hiện tại", value: plan.label },
+            { label: "Gói hiện tại", value: plan.name },
           ].map((item) => (
             <div key={item.label} className="flex items-center justify-between rounded-xl bg-muted border border-border px-4 py-3">
               <span className="text-sm text-muted-foreground">{item.label}</span>
@@ -368,6 +446,11 @@ function AccountTab({ onClose }: { onClose: () => void }) {
 // Main Modal Component
 export function SettingsModal({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
+  const router = useRouter();
+  const goUpgrade = () => {
+    setOpen(false);
+    router.push("/pricing");
+  };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -422,28 +505,28 @@ export function SettingsModal({ children }: { children: React.ReactNode }) {
                   <h2 className="text-xl font-bold text-foreground">Quản lý Dự án</h2>
                   <p className="text-[14px] text-muted-foreground mt-1">Dự án là "thư mục" riêng biệt để chứa Giọng điệu, Tài liệu AI và Mẫu nội dung của từng chiến dịch.</p>
                 </div>
-                <ProjectsTab />
+                <ProjectsTab onUpgrade={goUpgrade} />
               </TabsContent>
               <TabsContent value="brand" className="mt-0 h-full data-[state=active]:animate-in data-[state=active]:fade-in-50 data-[state=active]:slide-in-from-bottom-2">
                 <div className="mb-6">
                   <h2 className="text-xl font-bold text-foreground">Giọng điệu thương hiệu</h2>
                   <p className="text-[14px] text-muted-foreground mt-1">Định hình phong cách viết cho dự án hiện hành.</p>
                 </div>
-                <BrandVoiceTab />
+                <BrandVoiceTab onUpgrade={goUpgrade} />
               </TabsContent>
               <TabsContent value="knowledge" className="mt-0 h-full data-[state=active]:animate-in data-[state=active]:fade-in-50 data-[state=active]:slide-in-from-bottom-2">
                 <div className="mb-6">
                   <h2 className="text-xl font-bold text-foreground">Cơ sở kiến thức (RAG)</h2>
                   <p className="text-[14px] text-muted-foreground mt-1">Cung cấp tài liệu (PDF, Word) để AI hiểu rõ ngữ cảnh dự án.</p>
                 </div>
-                <KnowledgeBaseTab />
+                <KnowledgeBaseTab onUpgrade={goUpgrade} />
               </TabsContent>
               <TabsContent value="templates" className="mt-0 h-full data-[state=active]:animate-in data-[state=active]:fade-in-50 data-[state=active]:slide-in-from-bottom-2">
                 <div className="mb-6">
                   <h2 className="text-xl font-bold text-foreground">Mẫu Cấu trúc (Templates)</h2>
                   <p className="text-[14px] text-muted-foreground mt-1">Ép AI xuất ra kết quả theo đúng cấu trúc mẫu mà bạn yêu cầu.</p>
                 </div>
-                <TemplatesTab />
+                <TemplatesTab onUpgrade={goUpgrade} />
               </TabsContent>
             </div>
           </Tabs>

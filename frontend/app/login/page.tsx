@@ -41,6 +41,7 @@ export default function LoginPage() {
 
   const initGoogle = useCallback(() => {
     if (!googleClientId || !window.google || !googleBtnRef.current) return;
+    googleBtnRef.current.innerHTML = "";
     window.google.accounts.id.initialize({
       client_id: googleClientId,
       callback: async (response: { credential: string }) => {
@@ -58,7 +59,7 @@ export default function LoginPage() {
     window.google.accounts.id.renderButton(googleBtnRef.current, {
       theme: "filled_black",
       size: "large",
-      width: 380,
+      width: 360,
       shape: "pill",
       text: "continue_with",
     });
@@ -319,8 +320,17 @@ export default function LoginPage() {
               </div>
 
               {/* Social login buttons */}
-              <div className="w-full flex justify-center">
-                <div ref={googleBtnRef}></div>
+              <div className="w-full flex flex-col items-center gap-2">
+                {googleClientId ? (
+                  <div ref={googleBtnRef} className="min-h-[44px]" />
+                ) : (
+                  <p className="text-xs text-neutral-500 text-center px-2">
+                    Đăng nhập Google chưa được cấu hình. Liên hệ quản trị viên hoặc dùng email/mật khẩu.
+                  </p>
+                )}
+                {socialLoading && (
+                  <p className="text-xs text-neutral-400">Đang xử lý đăng nhập...</p>
+                )}
               </div>
 
               {/* Switch login/register */}

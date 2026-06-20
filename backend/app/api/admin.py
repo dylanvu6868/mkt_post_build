@@ -7,7 +7,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import require_admin
 from app.core.db import get_session
-from sqlalchemy import cast, Date
 
 from app.models.content_history import ContentHistory
 from app.models.conversation import Conversation, Message
@@ -220,33 +219,33 @@ async def get_analytics(session: AsyncSession = Depends(get_session)):
     user_growth_rows = (
         await session.execute(
             select(
-                cast(User.created_at, Date).label("day"),
+                func.date(User.created_at).label("day"),
                 func.count(User.id).label("count"),
             )
             .where(User.created_at >= week_ago)
-            .group_by(cast(User.created_at, Date))
-            .order_by(cast(User.created_at, Date))
+            .group_by(func.date(User.created_at))
+            .order_by(func.date(User.created_at))
         )
     ).all()
     user_growth = [
-        {"date": r.day.isoformat(), "count": r.count} for r in user_growth_rows
+        {"date": str(r.day), "count": r.count} for r in user_growth_rows
     ]
 
     content_daily_rows = (
         await session.execute(
             select(
-                cast(ContentHistory.created_at, Date).label("day"),
+                func.date(ContentHistory.created_at).label("day"),
                 func.count(ContentHistory.id).label("count"),
                 func.avg(ContentHistory.score).label("avg_score"),
             )
             .where(ContentHistory.created_at >= week_ago)
-            .group_by(cast(ContentHistory.created_at, Date))
-            .order_by(cast(ContentHistory.created_at, Date))
+            .group_by(func.date(ContentHistory.created_at))
+            .order_by(func.date(ContentHistory.created_at))
         )
     ).all()
     content_daily = [
         {
-            "date": r.day.isoformat(),
+            "date": str(r.day),
             "count": r.count,
             "avg_score": round(r.avg_score, 1) if r.avg_score else None,
         }

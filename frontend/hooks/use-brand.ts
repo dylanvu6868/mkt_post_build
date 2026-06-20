@@ -34,7 +34,9 @@ export function useUpsertBrand() {
   return useMutation({
     mutationFn: (data: BrandProfileUpsert) =>
       api.post<BrandProfile>("/brand-profile", data),
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: ["brand-profile"] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["brand-profile"] });
+      queryClient.invalidateQueries({ queryKey: ["plan-limits"] });
+    },
   });
 }

@@ -17,7 +17,13 @@ def provider_available() -> bool:
 
 
 def get_chat_model(tier: str) -> Any:
-    model = settings.llm_model_smart if tier == "smart" else settings.llm_model_fast
+    # "reasoning" is a legacy alias — use fast model for speed
+    if tier in ("smart", "reasoning"):
+        model = settings.llm_model_smart
+        temperature = 0.5
+    else:
+        model = settings.llm_model_fast
+        temperature = 0.7
     provider = settings.llm_provider.lower()
 
     if provider == "deepseek":
@@ -26,9 +32,11 @@ def get_chat_model(tier: str) -> Any:
             model=model,
             api_key=settings.deepseek_api_key,
             base_url="https://api.deepseek.com",
-            temperature=0.7,
+            temperature=temperature,
+            timeout=90,
+            max_tokens=4096,
         )
 
     return init_chat_model(
-        model, model_provider=provider, temperature=0.7
+        model, model_provider=provider, temperature=temperature
     )

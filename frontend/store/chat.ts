@@ -249,7 +249,22 @@ export const useChatStore = create<ChatState>()(
             },
             body: JSON.stringify(payload),
           });
-          if (!res.ok) return;
+          if (!res.ok) {
+            const body = await res.json().catch(() => ({ detail: "Không thể tạo nội dung" }));
+            const message = typeof body.detail === "string" ? body.detail : "Không thể tạo nội dung";
+            set({
+              contentPanel: {
+                visible: true,
+                generating: false,
+                result: {
+                  error: message,
+                  upgradeRequired: res.status === 403 || res.status === 429,
+                },
+              },
+              streamContent: "",
+            });
+            return;
+          }
           const data = await res.json();
           const jobId = data.job_id;
 
