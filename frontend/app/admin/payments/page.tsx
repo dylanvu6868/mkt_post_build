@@ -47,10 +47,40 @@ export default function AdminPaymentsPage() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editPlan, setEditPlan] = useState("free");
   const [saving, setSaving] = useState(false);
+  const [appOrigin, setAppOrigin] = useState("");
 
   useEffect(() => {
     api.get<UserRow[]>("/admin/users").then(setUsers).finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    setAppOrigin(window.location.origin);
+  }, []);
+
+  const apiOrigin = (process.env.NEXT_PUBLIC_API_URL ?? "").replace(/\/$/, "");
+  const webhookUrl = apiOrigin ? `${apiOrigin}/payments/sepay-webhook` : "/payments/sepay-webhook";
+  const successUrl = appOrigin ? `${appOrigin}/checkout/success` : "/checkout/success";
+  const checkoutLinks = PLAN_TIERS
+    .filter((tier) => tier.key !== "free")
+    .flatMap((tier) => [
+      {
+        label: `${tier.label} tháng`,
+        value: appOrigin
+          ? `${appOrigin}/checkout?plan=${tier.key}&cycle=monthly`
+          : `/checkout?plan=${tier.key}&cycle=monthly`,
+      },
+      {
+        label: `${tier.label} năm`,
+        value: appOrigin
+          ? `${appOrigin}/checkout?plan=${tier.key}&cycle=yearly`
+          : `/checkout?plan=${tier.key}&cycle=yearly`,
+      },
+    ]);
+
+  const copyUrl = async (url: string) => {
+    await navigator.clipboard.writeText(url);
+    toast.success("Đã sao chép URL");
+  };
 
   const handleSavePlan = async (userId: number) => {
     setSaving(true);
@@ -235,10 +265,56 @@ export default function AdminPaymentsPage() {
       <div className="rounded-[14px] border border-amber-500/20 bg-amber-500/5 p-4">
         <div className="flex gap-2">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 mt-0.5 text-amber-500"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
-          <div className="text-[12px] text-muted-foreground space-y-1">
+          <div className="min-w-0 flex-1 text-[12px] text-muted-foreground space-y-2">
             <p><strong className="text-foreground">Tích hợp SePay</strong>: Webhook tự động nâng gói khi nhận chuyển khoản.</p>
-            <p>Endpoint: <code className="text-[11px] bg-muted px-1.5 py-0.5 rounded">POST /payments/sepay-webhook</code></p>
-            <p>Cấu hình webhook URL trong SePay dashboard trỏ tới endpoint trên.</p>
+            {[
+              { label: "Webhook URL", value: webhookUrl, method: "POST" },
+              { label: "Success URL", value: successUrl, method: "GET" },
+            ].map((item) => (
+              <div key={item.label} className="rounded-[10px] border border-border/70 bg-background/50 p-3">
+                <div className="mb-1 flex items-center justify-between gap-3">
+                  <span className="font-medium text-foreground">{item.label}</span>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-7 px-2 text-[11px]"
+                    onClick={() => copyUrl(item.value)}
+                  >
+                    Copy
+                  </Button>
+                </div>
+                <code className="block break-all rounded bg-muted px-2 py-1 text-[11px] text-foreground">
+                  {item.method} {item.value}
+                </code>
+              </div>
+            ))}
+            <div className="rounded-[10px] border border-border/70 bg-background/50 p-3">
+              <p className="mb-1 font-medium text-foreground">Checkout URL theo gói</p>
+              <p className="mb-3 text-[11px]">
+                Thay <code className="rounded bg-muted px-1 text-foreground">plan</code> bằng <code className="rounded bg-muted px-1 text-foreground">lite</code>, <code className="rounded bg-muted px-1 text-foreground">pro</code>, <code className="rounded bg-muted px-1 text-foreground">max</code>; thay <code className="rounded bg-muted px-1 text-foreground">cycle</code> bằng <code className="rounded bg-muted px-1 text-foreground">monthly</code> hoặc <code className="rounded bg-muted px-1 text-foreground">yearly</code>.
+              </p>
+              <div className="grid gap-2 sm:grid-cols-2">
+                {checkoutLinks.map((item) => (
+                  <div key={item.value} className="rounded border border-border/60 bg-muted/40 p-2">
+                    <div className="mb-1 flex items-center justify-between gap-2">
+                      <span className="font-medium text-foreground">{item.label}</span>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-6 px-2 text-[10px]"
+                        onClick={() => copyUrl(item.value)}
+                      >
+                        Copy
+                      </Button>
+                    </div>
+                    <code className="block break-all text-[10px] text-foreground">
+                      {item.value}
+                    </code>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <p>Cấu hình webhook trong SePay trỏ tới Webhook URL; Success URL dùng làm trang trả về/hiển thị thành công.</p>
           </div>
         </div>
       </div>

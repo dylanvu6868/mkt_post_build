@@ -73,14 +73,16 @@ function CheckoutContent() {
         if (res.status === "confirmed") {
           if (pollRef.current) clearInterval(pollRef.current);
           await refreshUser();
-          setStep("done");
+          router.replace(
+            `/checkout/success?plan=${encodeURIComponent(planId)}&cycle=${encodeURIComponent(cycle)}&code=${encodeURIComponent(transferCode)}`
+          );
         }
       } catch {}
     }, 4000);
     return () => {
       if (pollRef.current) clearInterval(pollRef.current);
     };
-  }, [step, transferCode, refreshUser]);
+  }, [step, transferCode, refreshUser, router, planId, cycle]);
 
   if (!plan) {
     router.push("/pricing");
