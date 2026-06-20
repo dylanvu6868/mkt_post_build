@@ -70,7 +70,7 @@ function CheckoutContent() {
         const res = await api.get<{ status: string }>(
           `/payments/order-status?code=${encodeURIComponent(transferCode)}`
         );
-        if (res.status === "confirmed") {
+        if (res.status === "paid") {
           if (pollRef.current) clearInterval(pollRef.current);
           await refreshUser();
           router.replace(
