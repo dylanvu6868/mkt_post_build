@@ -26,7 +26,7 @@ class UserResponse(BaseModel):
     name: str
     email: str
     is_admin: bool = False
-    plan: str = "lite"
+    plan: str = "free"
     plan_expires_at: str | None = None
 
     model_config = {"from_attributes": True}

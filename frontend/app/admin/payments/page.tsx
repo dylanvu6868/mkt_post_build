@@ -30,9 +30,10 @@ interface UserRow {
 }
 
 const PLAN_TIERS = [
-  { key: "lite", label: "Lite", color: "bg-zinc-500", badge: "text-zinc-500 border-zinc-500/30", price: "Miễn phí", monthly: 0 },
-  { key: "pro", label: "Pro", color: "bg-blue-500", badge: "text-blue-500 border-blue-500/30", price: "89.000₫/tháng", monthly: 89000 },
-  { key: "max", label: "Max", color: "bg-amber-500", badge: "text-amber-500 border-amber-500/30", price: "219.000₫/tháng", monthly: 219000 },
+  { key: "free", label: "Free", color: "bg-zinc-500", badge: "text-zinc-500 border-zinc-500/30", price: "Miễn phí", monthly: 0 },
+  { key: "lite", label: "Lite", color: "bg-sky-500", badge: "text-sky-500 border-sky-500/30", price: "99.000₫/tháng", monthly: 99000 },
+  { key: "pro", label: "Pro", color: "bg-blue-500", badge: "text-blue-500 border-blue-500/30", price: "219.000₫/tháng", monthly: 219000 },
+  { key: "max", label: "Max", color: "bg-amber-500", badge: "text-amber-500 border-amber-500/30", price: "469.000₫/tháng", monthly: 469000 },
 ];
 
 function planBadge(plan: string) {
@@ -44,7 +45,7 @@ export default function AdminPaymentsPage() {
   const [users, setUsers] = useState<UserRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<number | null>(null);
-  const [editPlan, setEditPlan] = useState("lite");
+  const [editPlan, setEditPlan] = useState("free");
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -77,10 +78,10 @@ export default function AdminPaymentsPage() {
   }
 
   const totalUsers = users.length;
-  const countByPlan = (p: string) => users.filter((u) => (u.plan || "lite") === p).length;
-  const paidUsers = users.filter((u) => u.plan && u.plan !== "lite").length;
+  const countByPlan = (p: string) => users.filter((u) => (u.plan || "free") === p).length;
+  const paidUsers = users.filter((u) => u.plan && u.plan !== "free").length;
   const mrr = users.reduce((sum, u) => {
-    const tier = PLAN_TIERS.find((t) => t.key === (u.plan || "lite"));
+    const tier = PLAN_TIERS.find((t) => t.key === (u.plan || "free"));
     return sum + (tier?.monthly || 0);
   }, 0);
 
@@ -147,9 +148,10 @@ export default function AdminPaymentsPage() {
                 </div>
                 <p className="text-[12px] text-muted-foreground">{tier.price}</p>
                 <div className="text-[11px] text-muted-foreground space-y-1 pt-1">
-                  {tier.key === "lite" && <><p>• 5 lượt tạo/ngày</p><p>• 1 dự án</p><p>• Chatbot cơ bản</p></>}
-                  {tier.key === "pro" && <><p>• 50 lượt tạo/ngày</p><p>• 10 dự án</p><p>• Tất cả loại nội dung</p><p>• RAG nâng cao</p></>}
-                  {tier.key === "max" && <><p>• Không giới hạn</p><p>• Dự án không giới hạn</p><p>• API access</p><p>• Hỗ trợ ưu tiên</p></>}
+                  {tier.key === "free" && <><p>• 3 lượt tạo/ngày</p><p>• 1 dự án</p><p>• FB Post, Email</p></>}
+                  {tier.key === "lite" && <><p>• 15 lượt tạo/ngày</p><p>• 3 dự án</p><p>• + SEO Blog, TikTok</p></>}
+                  {tier.key === "pro" && <><p>• 50 lượt tạo/ngày</p><p>• 10 dự án</p><p>• + Marketing Plan</p><p>• Lịch sử 90 ngày</p></>}
+                  {tier.key === "max" && <><p>• Không giới hạn</p><p>• + Landing Page</p><p>• Model R1 Reasoner</p><p>• Hỗ trợ ưu tiên</p></>}
                 </div>
               </div>
             ))}
@@ -191,6 +193,7 @@ export default function AdminPaymentsPage() {
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
+                            <SelectItem value="free">Free</SelectItem>
                             <SelectItem value="lite">Lite</SelectItem>
                             <SelectItem value="pro">Pro</SelectItem>
                             <SelectItem value="max">Max</SelectItem>
@@ -205,7 +208,7 @@ export default function AdminPaymentsPage() {
                       </>
                     ) : (
                       <>
-                        {planBadge(u.plan || "lite")}
+                        {planBadge(u.plan || "free")}
                         {u.plan_expires_at && (
                           <span className="text-[10px] text-muted-foreground">
                             đến {new Date(u.plan_expires_at).toLocaleDateString("vi-VN")}
@@ -215,7 +218,7 @@ export default function AdminPaymentsPage() {
                           size="sm"
                           variant="outline"
                           className="h-7 text-[10px] px-2"
-                          onClick={() => { setEditingId(u.id); setEditPlan(u.plan || "lite"); }}
+                          onClick={() => { setEditingId(u.id); setEditPlan(u.plan || "free"); }}
                         >
                           Chỉnh gói
                         </Button>

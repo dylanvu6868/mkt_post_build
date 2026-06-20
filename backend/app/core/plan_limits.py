@@ -7,7 +7,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.user import User
 
+# The free, default tier for users who have never paid.
+FREE_PLAN = "free"
+
 HISTORY_RETENTION_DAYS: dict[str, int | None] = {
+    "free": 7,
     "lite": 30,
     "pro": 90,
     "max": None,
@@ -15,7 +19,7 @@ HISTORY_RETENTION_DAYS: dict[str, int | None] = {
 
 
 PLAN_LIMITS = {
-    "lite": {
+    "free": {
         "daily_generations": 3,
         "content_types": {"facebook_post", "email"},
         "max_projects": 1,
@@ -23,13 +27,21 @@ PLAN_LIMITS = {
         "max_kb_files": 3,
         "max_brand_profiles": 1,
     },
-    "pro": {
-        "daily_generations": 30,
-        "content_types": {"facebook_post", "email", "seo_blog", "tiktok_script", "marketing_plan"},
-        "max_projects": 5,
-        "max_conversations": 100,
-        "max_kb_files": 30,
+    "lite": {
+        "daily_generations": 15,
+        "content_types": {"facebook_post", "email", "seo_blog", "tiktok_script"},
+        "max_projects": 3,
+        "max_conversations": 50,
+        "max_kb_files": 15,
         "max_brand_profiles": 3,
+    },
+    "pro": {
+        "daily_generations": 50,
+        "content_types": {"facebook_post", "email", "seo_blog", "tiktok_script", "marketing_plan"},
+        "max_projects": 10,
+        "max_conversations": 200,
+        "max_kb_files": 50,
+        "max_brand_profiles": 10,
     },
     "max": {
         "daily_generations": 999999,
@@ -43,15 +55,16 @@ PLAN_LIMITS = {
 
 
 def get_user_plan(user: User) -> str:
-    plan = user.plan or "lite"
-    if plan != "lite" and user.plan_expires_at:
+    plan = user.plan or FREE_PLAN
+    # Paid plans revert to free once expired.
+    if plan != FREE_PLAN and user.plan_expires_at:
         if user.plan_expires_at < datetime.now(timezone.utc):
-            return "lite"
-    return plan
+            return FREE_PLAN
+    return plan if plan in PLAN_LIMITS else FREE_PLAN
 
 
 def get_limits(user: User) -> dict:
-    return PLAN_LIMITS.get(get_user_plan(user), PLAN_LIMITS["lite"])
+    return PLAN_LIMITS.get(get_user_plan(user), PLAN_LIMITS[FREE_PLAN])
 
 
 async def check_daily_generation_limit(session: AsyncSession, user: User) -> tuple[bool, int, int]:

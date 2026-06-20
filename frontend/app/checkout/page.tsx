@@ -18,17 +18,23 @@ interface BankInfo {
 }
 
 const PLAN_INFO: Record<string, { name: string; monthlyPrice: number; color: string; features: string[] }> = {
+  lite: {
+    name: "Lite",
+    monthlyPrice: 99000,
+    color: "text-sky-600 dark:text-sky-400",
+    features: ["15 lượt tạo/ngày", "3 Brand Voice", "15 tài liệu KB", "SEO Blog, TikTok Script", "Lịch sử 30 ngày"],
+  },
   pro: {
     name: "Pro",
-    monthlyPrice: 89000,
+    monthlyPrice: 219000,
     color: "text-amber-600 dark:text-amber-400",
-    features: ["20 bài viết/ngày", "5 Brand Voice", "50 tài liệu KB", "5 Landing Page/tháng", "Export PDF/Docx"],
+    features: ["50 lượt tạo/ngày", "10 Brand Voice", "50 tài liệu KB", "+ Marketing Plan", "Lịch sử 90 ngày"],
   },
   max: {
     name: "Max",
-    monthlyPrice: 219000,
+    monthlyPrice: 469000,
     color: "text-violet-600 dark:text-violet-400",
-    features: ["Không giới hạn bài viết", "Không giới hạn Brand Voice", "Không giới hạn KB", "Không giới hạn Landing Page", "Model AI Reasoner"],
+    features: ["Không giới hạn bài viết", "Không giới hạn Brand Voice", "Không giới hạn KB", "Tất cả + Landing Page", "Model AI Reasoner (R1)"],
   },
 };
 

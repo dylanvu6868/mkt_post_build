@@ -1,4 +1,4 @@
-export type PlanId = "lite" | "pro" | "max";
+export type PlanId = "free" | "lite" | "pro" | "max";
 
 export interface UsageItem {
   used: number;
@@ -30,12 +30,19 @@ export const PLAN_META: Record<
   PlanId,
   { name: string; color: string; bgColor: string; badgeBg: string; badgeColor: string }
 > = {
-  lite: {
-    name: "Lite",
+  free: {
+    name: "Free",
     color: "text-zinc-600 dark:text-zinc-400",
     bgColor: "bg-zinc-100 dark:bg-zinc-800",
     badgeBg: "bg-zinc-500/15",
     badgeColor: "text-zinc-400",
+  },
+  lite: {
+    name: "Lite",
+    color: "text-sky-600 dark:text-sky-400",
+    bgColor: "bg-sky-100 dark:bg-sky-900/30",
+    badgeBg: "bg-sky-500/15",
+    badgeColor: "text-sky-400",
   },
   pro: {
     name: "Pro",
@@ -72,8 +79,8 @@ export const ALL_CONTENT_TYPES = [
 ] as const;
 
 export function normalizePlan(plan?: string | null): PlanId {
-  if (plan === "pro" || plan === "max") return plan;
-  return "lite";
+  if (plan === "lite" || plan === "pro" || plan === "max") return plan;
+  return "free";
 }
 
 export function usagePercent(item: UsageItem): number {

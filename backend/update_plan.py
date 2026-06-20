@@ -15,7 +15,7 @@ from sqlalchemy.ext.asyncio import create_async_engine
 
 load_dotenv()
 
-VALID_PLANS = {"lite", "pro", "max"}
+VALID_PLANS = {"free", "lite", "pro", "max"}
 
 
 async def update_plan(email: str, plan: str) -> None:

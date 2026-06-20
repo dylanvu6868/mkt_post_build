@@ -74,7 +74,7 @@ async def toggle_ban(
     return {"id": user.id, "is_banned": user.is_banned}
 
 
-VALID_PLANS = {"lite", "pro", "max"}
+VALID_PLANS = {"free", "lite", "pro", "max"}
 
 
 @router.patch("/users/{user_id}/plan")
@@ -92,14 +92,14 @@ async def update_user_plan(
         raise HTTPException(status_code=404, detail="User not found")
 
     expires_at = None
-    if plan != "lite" and body.get("expires_at"):
+    if plan != "free" and body.get("expires_at"):
         try:
             expires_at = datetime.fromisoformat(body["expires_at"])
         except ValueError:
             raise HTTPException(status_code=400, detail="Invalid expires_at format")
 
     user.plan = plan
-    user.plan_expires_at = expires_at if plan != "lite" else None
+    user.plan_expires_at = expires_at if plan != "free" else None
     await session.commit()
     logger.info("Admin %s changed user_id=%s plan to %s", admin.email, user_id, plan)
     return {"id": user.id, "plan": user.plan, "plan_expires_at": user.plan_expires_at.isoformat() if user.plan_expires_at else None}

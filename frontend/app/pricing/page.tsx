@@ -10,8 +10,8 @@ import { useState } from "react";
 
 const PLANS = [
   {
-    id: "lite",
-    name: "Lite",
+    id: "free",
+    name: "Free",
     price: "Miễn phí",
     priceValue: 0,
     description: "Cá nhân trải nghiệm",
@@ -21,9 +21,9 @@ const PLANS = [
       { text: "1 Brand Voice", included: true },
       { text: "3 tài liệu KB", included: true },
       { text: "Facebook Post, Email", included: true },
-      { text: "1 dự án", included: true },
-      { text: "10 cuộc trò chuyện", included: true },
-      { text: "Landing Page", included: false },
+      { text: "1 dự án · 10 cuộc trò chuyện", included: true },
+      { text: "Lịch sử 7 ngày", included: true },
+      { text: "SEO Blog, TikTok, Landing Page", included: false },
     ],
     cta: "Gói hiện tại",
     gradient: "from-zinc-500/10 to-zinc-600/5",
@@ -31,20 +31,41 @@ const PLANS = [
     iconBg: "bg-zinc-100 dark:bg-zinc-800",
   },
   {
+    id: "lite",
+    name: "Lite",
+    price: "99.000đ",
+    priceValue: 99000,
+    description: "Cá nhân nghiêm túc",
+    badge: null,
+    features: [
+      { text: "15 lượt tạo / ngày", included: true },
+      { text: "3 Brand Voice", included: true },
+      { text: "15 tài liệu KB", included: true },
+      { text: "+ SEO Blog, TikTok Script", included: true },
+      { text: "3 dự án · 50 cuộc trò chuyện", included: true },
+      { text: "Lịch sử 30 ngày", included: true },
+      { text: "Marketing Plan, Landing Page", included: false },
+    ],
+    cta: "Nâng cấp Lite",
+    gradient: "from-sky-500/15 to-cyan-500/10",
+    borderColor: "border-sky-500/40",
+    iconBg: "bg-sky-100 dark:bg-sky-900/30",
+  },
+  {
     id: "pro",
     name: "Pro",
-    price: "89.000đ",
-    priceValue: 89000,
+    price: "219.000đ",
+    priceValue: 219000,
     description: "Freelancer & team nhỏ",
     badge: "Phổ biến nhất",
     features: [
-      { text: "30 lượt tạo / ngày", included: true },
-      { text: "3 Brand Voice", included: true },
-      { text: "30 tài liệu KB", included: true },
-      { text: "SEO Blog, TikTok Script", included: true },
+      { text: "50 lượt tạo / ngày", included: true },
+      { text: "10 Brand Voice", included: true },
+      { text: "50 tài liệu KB", included: true },
+      { text: "+ Marketing Plan", included: true },
+      { text: "10 dự án · 200 cuộc trò chuyện", included: true },
       { text: "Lịch sử 90 ngày", included: true },
-      { text: "5 dự án", included: true },
-      { text: "100 cuộc trò chuyện", included: true },
+      { text: "Landing Page", included: false },
     ],
     cta: "Nâng cấp Pro",
     gradient: "from-yellow-500/15 to-amber-500/10",
@@ -54,18 +75,18 @@ const PLANS = [
   {
     id: "max",
     name: "Max",
-    price: "219.000đ",
-    priceValue: 219000,
+    price: "469.000đ",
+    priceValue: 469000,
     description: "Doanh nghiệp & agency",
     badge: "Mạnh nhất",
     features: [
       { text: "Không giới hạn lượt tạo", included: true },
       { text: "Không giới hạn Brand Voice", included: true },
-      { text: "Không giới hạn KB", included: true },
-      { text: "Tất cả loại nội dung + Landing Page", included: true },
+      { text: "Không giới hạn KB & dự án", included: true },
+      { text: "Tất cả nội dung + Landing Page", included: true },
       { text: "Lịch sử vĩnh viễn", included: true },
-      { text: "Không giới hạn LP", included: true },
-      { text: "Model AI Reasoner", included: true },
+      { text: "Model AI Reasoner (R1)", included: true },
+      { text: "Ưu tiên xử lý", included: true },
     ],
     cta: "Nâng cấp Max",
     gradient: "from-violet-500/15 to-purple-500/10",
@@ -81,19 +102,21 @@ export default function PricingPage() {
   const currentPlan = normalizePlan(user?.plan);
   const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("monthly");
 
+  const order: Record<string, number> = { free: 0, lite: 1, pro: 2, max: 3 };
+
   const getPlanCta = (planId: string) => {
     if (planId === currentPlan) return "Gói hiện tại";
-    const order = { lite: 0, pro: 1, max: 2 };
-    if ((order[planId as keyof typeof order] ?? 0) > (order[currentPlan] ?? 0)) {
-      return planId === "pro" ? "Nâng cấp Pro" : "Nâng cấp Max";
+    const names: Record<string, string> = { lite: "Lite", pro: "Pro", max: "Max" };
+    if ((order[planId] ?? 0) > (order[currentPlan] ?? 0)) {
+      return `Nâng cấp ${names[planId] ?? ""}`.trim();
     }
     return "Chọn gói";
   };
 
-  const isPlanDisabled = (planId: string) => planId === currentPlan || planId === "lite";
+  const isPlanDisabled = (planId: string) => planId === currentPlan || planId === "free";
 
   const handleSelectPlan = (planId: string) => {
-    if (planId === "lite") return;
+    if (planId === "free") return;
     if (!token) {
       router.push("/login");
       return;
@@ -167,7 +190,7 @@ export default function PricingPage() {
         </div>
 
         {/* Pricing Cards */}
-        <div className="grid gap-5 md:grid-cols-3 w-full max-w-5xl">
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4 w-full max-w-6xl">
           {PLANS.map((plan, i) => {
             const yearlyPrice = Math.round(plan.priceValue * 12 * 0.8);
             const displayPrice = billingCycle === "yearly" && plan.priceValue > 0
@@ -201,8 +224,11 @@ export default function PricingPage() {
 
                 <div className="flex items-center gap-3 mb-3">
                   <div className={cn("flex h-9 w-9 items-center justify-center rounded-[12px]", plan.iconBg)}>
-                    {plan.id === "lite" && (
+                    {plan.id === "free" && (
                       <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-zinc-600 dark:text-zinc-400"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+                    )}
+                    {plan.id === "lite" && (
+                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-sky-600 dark:text-sky-400"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg>
                     )}
                     {plan.id === "pro" && (
                       <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-yellow-600 dark:text-yellow-400"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>

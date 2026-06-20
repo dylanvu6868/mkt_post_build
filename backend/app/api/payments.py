@@ -20,8 +20,9 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/payments", tags=["payments"])
 
 PLAN_PRICES = {
-    "pro": {"monthly": 89000, "yearly": 89000 * 12 * 0.8},
-    "max": {"monthly": 219000, "yearly": 219000 * 12 * 0.8},
+    "lite": {"monthly": 99000, "yearly": 99000 * 12 * 0.8},
+    "pro": {"monthly": 219000, "yearly": 219000 * 12 * 0.8},
+    "max": {"monthly": 469000, "yearly": 469000 * 12 * 0.8},
 }
 
 
