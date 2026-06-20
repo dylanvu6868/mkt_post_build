@@ -35,6 +35,14 @@ class Settings(BaseSettings):
 
     # SePay payment gateway
     sepay_api_key: str = ""
+    # Secret Key for HMAC-SHA256 webhook signature verification (preferred over api_key).
+    sepay_webhook_secret: str = ""
+    # Bank account that receives transfers (shown on checkout + used for the VietQR).
+    # bank_code uses SePay/VietQR short names, e.g. "Vietcombank", "MBBank", "BIDV", "ACB".
+    sepay_bank_code: str = ""
+    sepay_bank_account: str = ""
+    sepay_account_holder: str = ""
+    sepay_bank_name: str = ""  # human-readable, e.g. "Ngân hàng Vietcombank"
 
     # RAG (M3)
     qdrant_collection_name: str = "marketing_docs"

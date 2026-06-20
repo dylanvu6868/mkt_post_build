@@ -5,7 +5,17 @@ import { useAuthStore } from "@/store/auth";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { useState, Suspense } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
+import { api } from "@/services/api";
+import { toast } from "sonner";
+
+interface BankInfo {
+  bank_code: string;
+  bank_name: string;
+  account_number: string;
+  account_holder: string;
+  configured: boolean;
+}
 
 const PLAN_INFO: Record<string, { name: string; monthlyPrice: number; color: string; features: string[] }> = {
   pro: {
@@ -22,18 +32,12 @@ const PLAN_INFO: Record<string, { name: string; monthlyPrice: number; color: str
   },
 };
 
-const BANK_INFO = {
-  bankName: "Vietcombank",
-  accountNumber: "1234567890",
-  accountHolder: "CONG TY VITBA AI",
-  branch: "Chi nhánh TP.HCM",
-};
-
 function CheckoutContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = useAuthStore((s) => s.token);
   const user = useAuthStore((s) => s.user);
+  const refreshUser = useAuthStore((s) => s.refreshUser);
 
   const planId = searchParams.get("plan") || "pro";
   const cycle = searchParams.get("cycle") || "monthly";
@@ -41,6 +45,36 @@ function CheckoutContent() {
   const plan = PLAN_INFO[planId];
   const [step, setStep] = useState<"review" | "transfer" | "done">("review");
   const [transferCode] = useState(() => `VB${Date.now().toString(36).toUpperCase()}`);
+  const [bank, setBank] = useState<BankInfo | null>(null);
+  const [qrUrl, setQrUrl] = useState<string | null>(null);
+  const [creating, setCreating] = useState(false);
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Load bank account details for display
+  useEffect(() => {
+    if (!token) return;
+    api.get<BankInfo>("/payments/config").then(setBank).catch(() => {});
+  }, [token]);
+
+  // While on the transfer step, poll until the SePay webhook confirms the order
+  useEffect(() => {
+    if (step !== "transfer") return;
+    pollRef.current = setInterval(async () => {
+      try {
+        const res = await api.get<{ status: string }>(
+          `/payments/order-status?code=${encodeURIComponent(transferCode)}`
+        );
+        if (res.status === "confirmed") {
+          if (pollRef.current) clearInterval(pollRef.current);
+          await refreshUser();
+          setStep("done");
+        }
+      } catch {}
+    }, 4000);
+    return () => {
+      if (pollRef.current) clearInterval(pollRef.current);
+    };
+  }, [step, transferCode, refreshUser]);
 
   if (!plan) {
     router.push("/pricing");
@@ -55,6 +89,23 @@ function CheckoutContent() {
   const yearlyTotal = Math.round(plan.monthlyPrice * 12 * 0.8);
   const price = cycle === "yearly" ? yearlyTotal : plan.monthlyPrice;
   const periodLabel = cycle === "yearly" ? "/ năm" : "/ tháng";
+
+  const handleCreateOrder = async () => {
+    setCreating(true);
+    try {
+      const res = await api.post<{ qr_url: string | null }>("/payments/create-order", {
+        plan: planId,
+        cycle,
+        transfer_code: transferCode,
+      });
+      setQrUrl(res.qr_url);
+      setStep("transfer");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Không tạo được đơn hàng");
+    } finally {
+      setCreating(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -178,21 +229,16 @@ function CheckoutContent() {
                 </div>
 
                 <button
-                  onClick={async () => {
-                    try {
-                      const { api } = await import("@/services/api");
-                      await api.post("/payments/create-order", { plan: planId, cycle, transfer_code: transferCode });
-                    } catch {}
-                    setStep("transfer");
-                  }}
+                  onClick={handleCreateOrder}
+                  disabled={creating}
                   className={cn(
-                    "w-full mt-6 rounded-[14px] py-3 text-sm font-semibold transition-all",
+                    "w-full mt-6 rounded-[14px] py-3 text-sm font-semibold transition-all disabled:opacity-60",
                     planId === "max"
                       ? "bg-violet-600 text-white hover:bg-violet-700"
                       : "bg-primary text-primary-foreground hover:opacity-90"
                   )}
                 >
-                  Tiếp tục thanh toán
+                  {creating ? "Đang tạo đơn..." : "Tiếp tục thanh toán"}
                 </button>
 
                 <p className="mt-3 text-center text-[11px] text-muted-foreground">
@@ -210,17 +256,34 @@ function CheckoutContent() {
             className="mx-auto max-w-lg"
           >
             <div className="rounded-[20px] border border-border bg-card p-6">
-              <h2 className="text-lg font-bold text-foreground mb-2">Chuyển khoản ngân hàng</h2>
+              <h2 className="text-lg font-bold text-foreground mb-2">Quét mã QR để thanh toán</h2>
               <p className="text-sm text-muted-foreground mb-6">
-                Vui lòng chuyển khoản theo thông tin bên dưới. Gói sẽ được kích hoạt trong vòng 24h sau khi xác nhận.
+                Mở app ngân hàng, quét mã QR bên dưới. Số tiền và nội dung đã được điền sẵn — hệ thống tự xác nhận trong vài giây.
               </p>
+
+              {!bank?.configured && (
+                <div className="mb-5 rounded-[14px] border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-600 dark:text-red-400">
+                  Cổng thanh toán chưa được cấu hình. Vui lòng liên hệ quản trị viên.
+                </div>
+              )}
+
+              {qrUrl && (
+                <div className="mb-6 flex flex-col items-center">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={qrUrl}
+                    alt="VietQR thanh toán"
+                    className="h-60 w-60 rounded-[14px] border border-border bg-white p-2"
+                  />
+                  <p className="mt-2 text-xs text-muted-foreground">Quét bằng app ngân hàng bất kỳ</p>
+                </div>
+              )}
 
               <div className="space-y-4 rounded-[14px] bg-muted/50 p-5">
                 {[
-                  { label: "Ngân hàng", value: BANK_INFO.bankName },
-                  { label: "Số tài khoản", value: BANK_INFO.accountNumber },
-                  { label: "Chủ tài khoản", value: BANK_INFO.accountHolder },
-                  { label: "Chi nhánh", value: BANK_INFO.branch },
+                  { label: "Ngân hàng", value: bank?.bank_name || "—" },
+                  { label: "Số tài khoản", value: bank?.account_number || "—" },
+                  { label: "Chủ tài khoản", value: bank?.account_holder || "—" },
                   { label: "Số tiền", value: `${price.toLocaleString("vi-VN")}đ` },
                   { label: "Nội dung CK", value: transferCode },
                 ].map((item) => (
@@ -240,25 +303,16 @@ function CheckoutContent() {
                 ))}
               </div>
 
-              <div className="mt-6 rounded-[14px] border border-amber-500/30 bg-amber-500/10 p-4">
-                <div className="flex gap-2">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 mt-0.5 text-amber-600 dark:text-amber-400"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
-                  <p className="text-sm text-amber-700 dark:text-amber-300">
-                    Vui lòng ghi đúng nội dung chuyển khoản <strong>{transferCode}</strong> để hệ thống tự động xác nhận.
-                  </p>
-                </div>
+              <div className="mt-6 flex items-center justify-center gap-2 rounded-[14px] border border-amber-500/30 bg-amber-500/10 p-4">
+                <svg className="h-4 w-4 animate-spin text-amber-600 dark:text-amber-400" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 0 1 8-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                <p className="text-sm text-amber-700 dark:text-amber-300">
+                  Đang chờ xác nhận thanh toán tự động...
+                </p>
               </div>
 
               <button
-                onClick={() => setStep("done")}
-                className="w-full mt-6 rounded-[14px] bg-primary py-3 text-sm font-semibold text-primary-foreground hover:opacity-90 transition-all"
-              >
-                Tôi đã chuyển khoản
-              </button>
-
-              <button
                 onClick={() => setStep("review")}
-                className="w-full mt-2 rounded-[14px] py-3 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-all"
+                className="w-full mt-4 rounded-[14px] py-3 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-all"
               >
                 Quay lại
               </button>
@@ -277,10 +331,9 @@ function CheckoutContent() {
                 <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-500"><path d="M20 6 9 17l-5-5"/></svg>
               </div>
 
-              <h2 className="text-xl font-bold text-foreground mb-2">Đã ghi nhận!</h2>
+              <h2 className="text-xl font-bold text-foreground mb-2">Thanh toán thành công!</h2>
               <p className="text-sm text-muted-foreground mb-6">
-                Chúng tôi đã nhận được yêu cầu nâng gói <strong className={plan.color}>{plan.name}</strong> của bạn.
-                Gói sẽ được kích hoạt trong vòng 24h sau khi xác nhận chuyển khoản.
+                Gói <strong className={plan.color}>{plan.name}</strong> đã được kích hoạt cho tài khoản của bạn. Cảm ơn bạn!
               </p>
 
               <div className="rounded-[14px] bg-muted/50 p-4 mb-6 text-sm">
@@ -290,7 +343,7 @@ function CheckoutContent() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Trạng thái</span>
-                  <span className="font-semibold text-amber-600 dark:text-amber-400">Đang xử lý</span>
+                  <span className="font-semibold text-green-600 dark:text-green-400">Đã kích hoạt</span>
                 </div>
               </div>
 

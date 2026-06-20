@@ -2,9 +2,26 @@
 
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { usePlanLimits } from "@/hooks/use-plan-limits";
 import { normalizePlan, PLAN_META, usagePercent, CONTENT_TYPE_LABELS } from "@/lib/plan";
+import { api } from "@/services/api";
+
+interface PaymentOrder {
+  id: number;
+  plan: string;
+  cycle: string;
+  amount: number;
+  transfer_code: string;
+  status: string;
+  created_at: string | null;
+}
+
+const ORDER_STATUS_META: Record<string, { label: string; cls: string }> = {
+  confirmed: { label: "Đã thanh toán", cls: "text-green-600 dark:text-green-400" },
+  pending: { label: "Đang chờ", cls: "text-amber-600 dark:text-amber-400" },
+};
 
 const USAGE_LABELS = [
   { key: "daily_generations" as const, label: "Bài viết hôm nay" },
@@ -21,6 +38,11 @@ export default function SubscriptionPage() {
   const plan = PLAN_META[currentPlan];
 
   const contentTypes = data?.limits.content_types ?? [];
+
+  const [orders, setOrders] = useState<PaymentOrder[]>([]);
+  useEffect(() => {
+    api.get<PaymentOrder[]>("/payments/my-orders").then(setOrders).catch(() => {});
+  }, []);
 
   return (
     <div className="flex h-full items-center justify-center p-6">
@@ -135,9 +157,33 @@ export default function SubscriptionPage() {
 
         <div className="rounded-[20px] border border-border bg-card p-6">
           <h3 className="text-sm font-bold text-foreground mb-3">Lịch sử thanh toán</h3>
-          <p className="text-sm text-muted-foreground py-6 text-center">
-            Chưa có giao dịch nào
-          </p>
+          {orders.length === 0 ? (
+            <p className="text-sm text-muted-foreground py-6 text-center">
+              Chưa có giao dịch nào
+            </p>
+          ) : (
+            <div className="space-y-2">
+              {orders.map((o) => {
+                const meta = ORDER_STATUS_META[o.status] ?? { label: o.status, cls: "text-muted-foreground" };
+                return (
+                  <div key={o.id} className="flex items-center justify-between rounded-[12px] bg-muted/50 px-4 py-3">
+                    <div>
+                      <p className="text-sm font-semibold text-foreground capitalize">
+                        Gói {o.plan} · {o.cycle === "yearly" ? "năm" : "tháng"}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {o.created_at ? new Date(o.created_at).toLocaleDateString("vi-VN") : ""} · {o.transfer_code}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-semibold text-foreground">{o.amount.toLocaleString("vi-VN")}đ</p>
+                      <p className={cn("text-xs font-medium", meta.cls)}>{meta.label}</p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </motion.div>
     </div>

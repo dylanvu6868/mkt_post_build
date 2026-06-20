@@ -1,3 +1,6 @@
+import hashlib
+import hmac
+import json
 import logging
 from datetime import datetime, timedelta, timezone
 
@@ -20,6 +23,35 @@ PLAN_PRICES = {
     "pro": {"monthly": 89000, "yearly": 89000 * 12 * 0.8},
     "max": {"monthly": 219000, "yearly": 219000 * 12 * 0.8},
 }
+
+
+def _qr_url(amount: float, transfer_code: str) -> str | None:
+    """Build a SePay VietQR image URL the user can scan to auto-fill the transfer."""
+    if not (settings.sepay_bank_account and settings.sepay_bank_code):
+        return None
+    from urllib.parse import urlencode
+
+    query = urlencode(
+        {
+            "acc": settings.sepay_bank_account,
+            "bank": settings.sepay_bank_code,
+            "amount": int(amount),
+            "des": transfer_code,
+        }
+    )
+    return f"https://qr.sepay.vn/img?{query}"
+
+
+@router.get("/config")
+async def payment_config(user: User = Depends(get_current_user)):
+    """Bank account details shown on the checkout page (no secrets)."""
+    return {
+        "bank_code": settings.sepay_bank_code,
+        "bank_name": settings.sepay_bank_name or settings.sepay_bank_code,
+        "account_number": settings.sepay_bank_account,
+        "account_holder": settings.sepay_account_holder,
+        "configured": bool(settings.sepay_bank_account and settings.sepay_bank_code),
+    }
 
 
 class CreateOrderRequest(BaseModel):
@@ -69,7 +101,28 @@ async def create_order(
         "amount": order.amount,
         "transfer_code": order.transfer_code,
         "status": order.status,
+        "qr_url": _qr_url(order.amount, order.transfer_code),
     }
+
+
+@router.get("/order-status")
+async def order_status(
+    code: str,
+    session: AsyncSession = Depends(get_session),
+    user: User = Depends(get_current_user),
+):
+    """Polled by the checkout page to detect when the SePay webhook confirms payment."""
+    order = (
+        await session.execute(
+            select(PaymentOrder).where(
+                PaymentOrder.transfer_code == code,
+                PaymentOrder.user_id == user.id,
+            )
+        )
+    ).scalar_one_or_none()
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+    return {"transfer_code": order.transfer_code, "status": order.status}
 
 
 @router.post("/sepay-webhook")
@@ -79,18 +132,33 @@ async def sepay_webhook(
 ):
     """
     SePay sends POST with transaction data when a bank transfer is received.
-    Auth: Header `Authorization: Apikey <key>`
+    Auth (in order of preference):
+      - HMAC-SHA256: headers `X-SePay-Signature: sha256=<hex>` + `X-SePay-Timestamp`,
+        signed string is `{timestamp}.{raw_body}` with SEPAY_WEBHOOK_SECRET.
+      - API Key: header `Authorization: Apikey <key>`.
     Expected fields: transferAmount, content, id, transferType, gateway, accountNumber
     Docs: https://docs.sepay.vn
     """
-    if settings.sepay_api_key:
+    raw_body = await request.body()
+
+    if settings.sepay_webhook_secret:
+        signature = request.headers.get("X-SePay-Signature", "")
+        timestamp = request.headers.get("X-SePay-Timestamp", "")
+        signed = f"{timestamp}.".encode() + raw_body
+        expected = "sha256=" + hmac.new(
+            settings.sepay_webhook_secret.encode(), signed, hashlib.sha256
+        ).hexdigest()
+        if not hmac.compare_digest(expected, signature):
+            logger.warning("SePay webhook: invalid HMAC signature")
+            raise HTTPException(status_code=401, detail="Invalid signature")
+    elif settings.sepay_api_key:
         auth = request.headers.get("Authorization", "")
         parts = auth.split(" ", 1)
         if len(parts) != 2 or parts[0] != "Apikey" or parts[1] != settings.sepay_api_key:
             logger.warning("SePay webhook: invalid API key")
             raise HTTPException(status_code=401, detail="Invalid API Key")
 
-    body = await request.json()
+    body = json.loads(raw_body or b"{}")
     logger.info("SePay webhook received: gateway=%s account=%s amount=%s",
                 body.get("gateway"), body.get("accountNumber"), body.get("transferAmount"))
     content = (body.get("content") or body.get("code") or "").strip().upper()
