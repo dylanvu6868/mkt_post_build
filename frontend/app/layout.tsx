@@ -5,6 +5,9 @@ import { Providers } from "@/components/providers";
 export const metadata: Metadata = {
   title: "Vitba.ai - AI Marketing Platform",
   description: "Multi-agent marketing content generation",
+  icons: {
+    icon: "/logo.png",
+  },
 };
 
 export default function RootLayout({

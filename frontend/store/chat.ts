@@ -30,6 +30,9 @@ interface ChatState {
   streamContent: string;
   suggestions: string[];
   contentPanel: { visible: boolean; generating: boolean; result: Record<string, unknown> | null };
+  sidebarWidth: number;
+  contentPanelWidth: number;
+  leftSidebarCollapsed: boolean;
 
   loadConversations: () => Promise<void>;
   createConversation: (title?: string) => Promise<Conversation>;
@@ -42,6 +45,9 @@ interface ChatState {
   sendMessage: (content: string) => Promise<void>;
   setContentPanel: (panel: Partial<ChatState["contentPanel"]>) => void;
   startGeneration: (payload: any) => Promise<void>;
+  setSidebarWidth: (width: number) => void;
+  setContentPanelWidth: (width: number) => void;
+  toggleLeftSidebar: () => void;
 }
 
 export const useChatStore = create<ChatState>()(
@@ -54,6 +60,9 @@ export const useChatStore = create<ChatState>()(
   streamContent: "",
   suggestions: [],
   contentPanel: { visible: false, generating: false, result: null },
+  sidebarWidth: 280,
+  contentPanelWidth: 450,
+  leftSidebarCollapsed: false,
 
   loadConversations: async () => {
     const data = await api.get<Conversation[]>("/conversations");
@@ -346,14 +355,21 @@ export const useChatStore = create<ChatState>()(
           console.error(err);
         }
       },
+
+      setSidebarWidth: (width: number) => set({ sidebarWidth: width }),
+      setContentPanelWidth: (width: number) => set({ contentPanelWidth: width }),
+      toggleLeftSidebar: () => set((s) => ({ leftSidebarCollapsed: !s.leftSidebarCollapsed })),
     }),
     {
       name: "chat-storage",
-      partialize: (state) => ({ 
-        contentPanel: { 
-          ...state.contentPanel, 
+      partialize: (state) => ({
+        contentPanel: {
+          ...state.contentPanel,
           generating: false // Never persist generating state so it doesn't get stuck on refresh
-        } 
+        },
+        sidebarWidth: state.sidebarWidth,
+        contentPanelWidth: state.contentPanelWidth,
+        leftSidebarCollapsed: state.leftSidebarCollapsed,
       }),
     }
   )

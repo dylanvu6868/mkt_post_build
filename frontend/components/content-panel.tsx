@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { useCallback, useState, useRef } from "react";
 
 function cleanContent(content: string) {
   if (!content) return "";
@@ -51,8 +52,33 @@ function MarkdownContent({ content }: { content: string }) {
 }
 
 export function ContentPanel() {
-  const { contentPanel, setContentPanel, streamContent } = useChatStore();
+  const { contentPanel, setContentPanel, streamContent, contentPanelWidth, setContentPanelWidth } = useChatStore();
   const router = useRouter();
+  const [isResizing, setIsResizing] = useState(false);
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsResizing(true);
+    const startX = e.clientX;
+    const startWidth = contentPanelWidth;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const newWidth = startWidth - (e.clientX - startX);
+      if (newWidth >= 300 && newWidth <= 700) {
+        setContentPanelWidth(newWidth);
+      }
+    };
+
+    const handleMouseUp = () => {
+      setIsResizing(false);
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+    };
+
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp);
+  }, [contentPanelWidth, setContentPanelWidth]);
 
   if (!contentPanel.visible) return null;
 
@@ -82,7 +108,11 @@ export function ContentPanel() {
   };
 
   return (
-    <aside className="flex h-screen w-[450px] flex-col border-l border-border bg-card/95 backdrop-blur-3xl z-50 shadow-2xl">
+    <aside
+      ref={panelRef}
+      className="flex h-screen flex-col border-l border-border bg-card/95 backdrop-blur-3xl z-50 shadow-2xl"
+      style={{ width: contentPanelWidth }}
+    >
       <div className="flex items-center justify-between border-b border-border px-5 py-4 bg-background/80">
         <h2 className="text-[15px] font-semibold text-foreground tracking-tight">Kết quả Nội dung</h2>
         <button
@@ -153,6 +183,15 @@ export function ContentPanel() {
           </button>
         </div>
       )}
+
+      {/* Resize Handle */}
+      <div
+        onMouseDown={handleMouseDown}
+        className={cn(
+          "absolute left-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-primary/20 transition-colors z-10",
+          isResizing && "bg-primary/30"
+        )}
+      />
     </aside>
   );
 }
