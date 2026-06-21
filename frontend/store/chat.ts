@@ -79,7 +79,7 @@ export const useChatStore = create<ChatState>()(
   },
 
   selectConversation: async (id: number) => {
-    set({ activeConversationId: id, messages: [], streamContent: "" });
+    set({ activeConversationId: id, messages: [], streamContent: "", suggestions: [], contentPanel: { visible: false, generating: false, result: null } });
     const msgs = await api.get<ChatMessage[]>(`/conversations/${id}/messages`);
     set({ messages: msgs });
   },

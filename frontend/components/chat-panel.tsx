@@ -6,7 +6,7 @@ import { useAuthStore } from "@/store/auth";
 import { cn } from "@/lib/utils";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
@@ -100,9 +100,8 @@ function formatResultText(result: Record<string, unknown>): string {
   return JSON.stringify(result, null, 2);
 }
 
-function InlineResult({ result, onExpand, onRedo }: {
+function InlineResult({ result, onRedo }: {
   result: Record<string, unknown>;
-  onExpand: () => void;
   onRedo: () => void;
 }) {
   const router = useRouter();
@@ -175,10 +174,6 @@ function InlineResult({ result, onExpand, onRedo }: {
               <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
               Tải về
             </button>
-            <button onClick={onExpand} className="flex items-center gap-1.5 rounded-[10px] border border-primary/20 bg-primary/10 px-3 py-1.5 text-[12px] font-medium text-primary hover:bg-primary/20 transition-all">
-              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" x2="14" y1="3" y2="10"/><line x1="3" x2="10" y1="21" y2="14"/></svg>
-              Xem chi tiết
-            </button>
             <button onClick={onRedo} className="flex items-center gap-1.5 rounded-[10px] border border-border px-3 py-1.5 text-[12px] font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-all ml-auto">
               <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
               Làm lại
@@ -215,61 +210,9 @@ function GeneratingIndicator({ streamContent }: { streamContent: string }) {
   );
 }
 
-function InteractiveOptions({ suggestions, onSelect }: { suggestions: string[]; onSelect: (s: string) => void }) {
-  const [selected, setSelected] = useState<string | null>(null);
-
-  const handleSelect = (s: string) => {
-    setSelected(s);
-    setTimeout(() => {
-      onSelect(s);
-      setSelected(null);
-    }, 200);
-  };
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: 10 }}
-      className="flex justify-start w-full"
-    >
-      <div className="max-w-[90%] sm:max-w-[70%]">
-        <div className="rounded-[20px] border border-border bg-card/80 backdrop-blur-xl p-2 shadow-[0_4px_24px_-8px_rgba(0,0,0,0.3)] space-y-1">
-          {suggestions.map((s, i) => (
-            <motion.button
-              key={i}
-              whileHover={{ x: 4 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => handleSelect(s)}
-              className={cn(
-                "w-full flex items-center gap-3 rounded-[14px] px-4 py-3 text-left text-[14px] transition-all group",
-                selected === s
-                  ? "bg-primary/15 border border-primary/30 text-primary"
-                  : "hover:bg-muted/80 text-foreground border border-transparent"
-              )}
-            >
-              <span className={cn(
-                "flex-shrink-0 w-[18px] h-[18px] rounded-full border-2 transition-all flex items-center justify-center",
-                selected === s
-                  ? "border-primary bg-primary"
-                  : "border-muted-foreground/30 group-hover:border-primary/50"
-              )}>
-                {selected === s && (
-                  <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="text-primary-foreground"><polyline points="20 6 9 17 4 12"/></svg>
-                )}
-              </span>
-              <span className="font-medium">{s}</span>
-            </motion.button>
-          ))}
-        </div>
-      </div>
-    </motion.div>
-  );
-}
-
 export function ChatPanel() {
   const {
-    messages, activeConversationId, streaming, streamContent, suggestions,
+    messages, activeConversationId, streaming, streamContent,
     sendMessage, createConversation, contentPanel, setContentPanel
   } = useChatStore();
   const user = useAuthStore((s) => s.user);
@@ -424,17 +367,9 @@ export function ChatPanel() {
         {showInlineResult && contentPanel.result && (
           <InlineResult
             result={contentPanel.result}
-            onExpand={() => setContentPanel({ visible: true })}
             onRedo={() => setContentPanel({ generating: false, result: null })}
           />
         )}
-
-        {/* Interactive suggestion options */}
-        <AnimatePresence>
-          {suggestions.length > 0 && !streaming && !showGenerating && (
-            <InteractiveOptions suggestions={suggestions} onSelect={sendMessage} />
-          )}
-        </AnimatePresence>
 
         <div ref={bottomRef} className="h-4" />
       </div>
