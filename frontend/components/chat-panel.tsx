@@ -497,9 +497,19 @@ export function ChatPanel() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input.trim() || streaming) return;
-    const msg = input.trim();
+    if ((!input.trim() && attachedFiles.length === 0 && attachedImages.length === 0) || streaming) return;
+
+    let msg = input.trim();
+    const fileNames = [...attachedFiles, ...attachedImages].map(f => f.name);
+    if (fileNames.length > 0) {
+      const prefix = `[Đã đính kèm: ${fileNames.join(", ")}]`;
+      msg = msg ? `${prefix}\n${msg}` : prefix;
+    }
+
     setInput("");
+    setAttachedFiles([]);
+    setAttachedImages([]);
+
     if (!activeConversationId) {
       await createConversation();
     }
@@ -508,8 +518,15 @@ export function ChatPanel() {
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    if (!activeConversationId) {
-      toast.error("Vui lòng bắt đầu cuộc trò chuyện trước");
+    if (!files.length) return;
+
+    let convId = activeConversationId;
+    if (!convId) {
+      await createConversation();
+      convId = useChatStore.getState().activeConversationId;
+    }
+    if (!convId) {
+      toast.error("Không thể tạo cuộc trò chuyện");
       return;
     }
 
@@ -520,7 +537,7 @@ export function ChatPanel() {
       try {
         const formData = new FormData();
         formData.append('file', file);
-        await api.post(`/chat/${activeConversationId}/upload`, formData);
+        await api.post(`/chat/${convId}/upload`, formData);
         setAttachedFiles(prev => [...prev, file]);
       } catch {
         toast.error(`Không thể tải lên ${file.name}`);
@@ -531,7 +548,7 @@ export function ChatPanel() {
       try {
         const formData = new FormData();
         formData.append('file', img);
-        await api.post(`/chat/${activeConversationId}/upload`, formData);
+        await api.post(`/chat/${convId}/upload`, formData);
         setAttachedImages(prev => [...prev, img]);
       } catch {
         toast.error(`Không thể tải lên ${img.name}`);
