@@ -1,7 +1,7 @@
 """add image generation table
 
-Revision ID: add_image_generation
-Revises: 
+Revision ID: g8h9i0j1k2l3
+Revises: f6a7b8c9d0e1
 Create Date: 2026-06-21
 
 """
@@ -12,8 +12,8 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = 'add_image_generation'
-down_revision: Union[str, None] = None
+revision: str = 'g8h9i0j1k2l3'
+down_revision: Union[str, None] = 'f6a7b8c9d0e1'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
