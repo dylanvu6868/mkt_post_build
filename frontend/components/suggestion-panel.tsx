@@ -31,7 +31,7 @@ export function SuggestionPanel() {
   return (
     <aside className="hidden lg:flex h-screen w-[320px] flex-col border-l border-border bg-card/95 backdrop-blur-xl shrink-0">
       {/* Header */}
-      <div className="flex items-center gap-2.5 border-b border-border px-5 py-4 bg-background/80">
+      <div className="flex items-center gap-2.5 border-b border-border px-6 py-4 bg-background/80">
         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.27 1.27L3 12l5.8 1.9a2 2 0 0 1 1.27 1.27L12 21l1.9-5.8a2 2 0 0 1 1.27-1.27L21 12l-5.8-1.9a2 2 0 0 1-1.27-1.27L12 3Z"/></svg>
         <h2 className="text-[15px] font-semibold text-foreground tracking-tight">AI Suggest</h2>
       </div>
@@ -126,7 +126,7 @@ export function SuggestionPanel() {
       </div>
 
       {/* Footer hint */}
-      <div className="border-t border-border px-5 py-3 bg-background/50">
+      <div className="border-t border-border px-6 py-3 bg-background/50">
         <p className="text-[11px] text-muted-foreground/50 text-center">Chọn lựa chọn hoặc gõ câu trả lời riêng</p>
       </div>
     </aside>

@@ -120,7 +120,7 @@ export function ContentPanel() {
   return (
     <aside
       ref={panelRef}
-      className="flex h-screen flex-col border-l border-border bg-card/95 backdrop-blur-3xl z-50 shadow-2xl"
+      className="flex h-screen flex-col border-l border-border bg-card/95 backdrop-blur-3xl z-[100] shadow-2xl fixed right-0 top-0"
       style={{ width: contentPanelWidth }}
     >
       <div className="flex items-center justify-between border-b border-border px-5 py-4 bg-background/80">
