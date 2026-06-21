@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Script from "next/script";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/auth";
@@ -43,11 +43,14 @@ export default function LoginPage() {
   const [newPassword, setNewPassword] = useState("");
   const [resetLoading, setResetLoading] = useState(false);
 
+  const googleHiddenRef = useRef<HTMLDivElement>(null);
+
   const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ?? "";
   const facebookAppId = process.env.NEXT_PUBLIC_FACEBOOK_APP_ID ?? "";
 
   const initGoogle = useCallback(() => {
-    if (!googleClientId || !window.google) return;
+    if (!googleClientId || !window.google || !googleHiddenRef.current) return;
+    googleHiddenRef.current.innerHTML = "";
     window.google.accounts.id.initialize({
       client_id: googleClientId,
       callback: async (response: { credential: string }) => {
@@ -62,14 +65,20 @@ export default function LoginPage() {
         }
       },
     });
+    window.google.accounts.id.renderButton(googleHiddenRef.current, {
+      type: "icon",
+      size: "large",
+    });
   }, [googleClientId, socialLogin, router]);
 
   const handleGoogleLogin = () => {
-    if (!window.google) {
+    const btn = googleHiddenRef.current?.querySelector<HTMLElement>('[role="button"]') ??
+                googleHiddenRef.current?.querySelector<HTMLElement>("div[style]");
+    if (btn) {
+      btn.click();
+    } else {
       toast.error("Google SDK chưa tải xong, vui lòng thử lại");
-      return;
     }
-    window.google.accounts.id.prompt();
   };
 
   useEffect(() => {
@@ -78,7 +87,7 @@ export default function LoginPage() {
 
   const handleFacebookLogin = () => {
     if (!window.FB) {
-      toast.error("Facebook SDK not loaded");
+      toast.info("Đăng nhập Facebook sắp ra mắt!");
       return;
     }
     window.FB.login(
@@ -381,6 +390,9 @@ export default function LoginPage() {
                   hoặc tiếp tục với
                 </span>
               </div>
+
+              {/* Hidden Google button for programmatic click */}
+              <div ref={googleHiddenRef} className="absolute w-0 h-0 overflow-hidden opacity-0 pointer-events-none" />
 
               {/* Social login buttons */}
               <div className="w-full flex items-center justify-center gap-4">
