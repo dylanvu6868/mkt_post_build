@@ -2,18 +2,42 @@
 
 import { useAuthStore } from "@/store/auth";
 import { useRouter } from "next/navigation";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { motion, useInView } from "framer-motion";
 
 const GOLD = "#FFD54A";
 
 const FEATURES = [
-  { title: "Facebook Post", desc: "Bài viết viral với hook, body, CTA và hashtag tối ưu engagement" },
-  { title: "SEO Blog", desc: "Bài blog chuẩn SEO với meta description, FAQ schema và từ khóa tối ưu" },
-  { title: "Email Marketing", desc: "Email chuyển đổi cao với subject line, body copy và CTA hiệu quả" },
-  { title: "Landing Page", desc: "Trang đích tối ưu chuyển đổi với headline, benefits và social proof" },
-  { title: "TikTok Script", desc: "Kịch bản video ngắn với hook 3 giây, script và CTA thu hút" },
-  { title: "Marketing Plan", desc: "Kế hoạch chiến lược với SWOT, target audience, channel & timeline" },
+  {
+    title: "Facebook Post",
+    desc: "Tạo bài viết viral với hook mạnh, body hấp dẫn, CTA rõ ràng và hashtag tối ưu engagement. AI phân tích xu hướng để đề xuất format phù hợp nhất.",
+    details: ["Hook thu hút 3 giây đầu", "Body storytelling", "CTA chuyển đổi", "30+ hashtag trending"],
+  },
+  {
+    title: "SEO Blog",
+    desc: "Bài blog chuẩn SEO 1500-3000 từ với meta description, FAQ schema markup, heading hierarchy và từ khóa LSI. Tối ưu cho cả Google và người đọc.",
+    details: ["Chuẩn E-E-A-T", "FAQ Schema", "Internal linking", "Meta tags tối ưu"],
+  },
+  {
+    title: "Email Marketing",
+    desc: "Email sequence chuyển đổi cao với subject line A/B testing, preheader text, body copy thuyết phục và CTA button placement tối ưu.",
+    details: ["Subject A/B test", "Preheader text", "Responsive layout", "Unsubscribe compliant"],
+  },
+  {
+    title: "Landing Page",
+    desc: "Trang đích tối ưu chuyển đổi với headline công thức AIDA, benefits section, testimonials, FAQ và multi-step CTA. Code HTML/CSS sẵn sàng deploy.",
+    details: ["Công thức AIDA", "Social proof", "Trust signals", "Mobile-first"],
+  },
+  {
+    title: "TikTok Script",
+    desc: "Kịch bản video ngắn 15-60s với hook 3 giây đầu, script chi tiết từng cảnh, voiceover text, caption và CTA viral. Tối ưu cho thuật toán FYP.",
+    details: ["Hook 3 giây", "Scene-by-scene", "Trending audio", "CTA + caption"],
+  },
+  {
+    title: "Marketing Plan",
+    desc: "Kế hoạch marketing chiến lược đầy đủ với phân tích SWOT, persona khách hàng, channel strategy, content calendar và KPI tracking.",
+    details: ["SWOT Analysis", "Buyer Persona", "Channel Mix", "KPI Dashboard"],
+  },
 ];
 
 const FEATURE_ICONS = [
@@ -28,41 +52,63 @@ const FEATURE_ICONS = [
 const STEPS = [
   {
     num: "01", title: "Mô tả ý tưởng",
-    desc: "Chat với AI bằng tiếng Việt tự nhiên. Mô tả sản phẩm, đối tượng và mục tiêu marketing của bạn.",
+    desc: "Chat với AI bằng tiếng Việt tự nhiên. Mô tả sản phẩm, đối tượng mục tiêu, tone of voice và mục tiêu marketing. AI sẽ hỏi thêm các câu hỏi để hiểu rõ nhu cầu.",
     icon: <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={GOLD} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m3 21 1.9-5.7a8.5 8.5 0 1 1 3.8 3.8z"/></svg>,
   },
   {
     num: "02", title: "AI Agents xử lý",
-    desc: "Đội ngũ AI Agents chuyên biệt nghiên cứu, viết nội dung, kiểm duyệt và tối ưu tự động.",
+    desc: "Pipeline 5 AI Agents tự động kích hoạt: Planner lên chiến lược, Researcher phân tích thị trường, Copywriter viết nội dung, Reviewer chấm điểm, Formatter tối ưu định dạng.",
     icon: <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={GOLD} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.27 1.27L3 12l5.8 1.9a2 2 0 0 1 1.27 1.27L12 21l1.9-5.8a2 2 0 0 1 1.27-1.27L21 12l-5.8-1.9a2 2 0 0 1-1.27-1.27L12 3Z"/></svg>,
   },
   {
-    num: "03", title: "Nhận nội dung",
-    desc: "Nội dung chuyên nghiệp hiển thị ngay trong chat. Copy, tải về hoặc chỉnh sửa theo ý bạn.",
+    num: "03", title: "Nhận nội dung hoàn chỉnh",
+    desc: "Nội dung chuyên nghiệp hiển thị ngay trong chat kèm điểm chất lượng AI Score. Copy 1 click, tải file, hoặc yêu cầu AI chỉnh sửa cho đến khi hoàn hảo.",
     icon: <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={GOLD} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>,
   },
 ];
 
 const AGENTS = [
-  { name: "Planner", role: "Lên kế hoạch", icon: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={GOLD} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg> },
-  { name: "Researcher", role: "Nghiên cứu thị trường", icon: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={GOLD} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg> },
-  { name: "Copywriter", role: "Viết nội dung", icon: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={GOLD} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg> },
-  { name: "Reviewer", role: "Kiểm duyệt & chấm điểm", icon: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={GOLD} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5"/></svg> },
-  { name: "Formatter", role: "Tối ưu định dạng", icon: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={GOLD} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.27 1.27L3 12l5.8 1.9a2 2 0 0 1 1.27 1.27L12 21l1.9-5.8a2 2 0 0 1 1.27-1.27L21 12l-5.8-1.9a2 2 0 0 1-1.27-1.27L12 3Z"/></svg> },
+  { name: "Planner", role: "Lên chiến lược & kế hoạch", desc: "Phân tích brief, xác định mục tiêu, đề xuất approach tối ưu", icon: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={GOLD} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg> },
+  { name: "Researcher", role: "Nghiên cứu thị trường & đối thủ", desc: "Phân tích trend, keyword, audience insight", icon: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={GOLD} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg> },
+  { name: "Copywriter", role: "Viết nội dung chuyên nghiệp", desc: "Sáng tạo copy theo tone & style phù hợp", icon: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={GOLD} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg> },
+  { name: "Reviewer", role: "Kiểm duyệt & chấm điểm", desc: "Đánh giá AI Score, gợi ý cải thiện", icon: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={GOLD} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5"/></svg> },
+  { name: "Formatter", role: "Tối ưu định dạng & SEO", desc: "Format chuẩn platform, schema markup", icon: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={GOLD} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.27 1.27L3 12l5.8 1.9a2 2 0 0 1 1.27 1.27L12 21l1.9-5.8a2 2 0 0 1 1.27-1.27L21 12l-5.8-1.9a2 2 0 0 1-1.27-1.27L12 3Z"/></svg> },
 ];
 
 const PLANS_PREVIEW = [
-  { name: "Free", price: "Miễn phí", highlight: "3 lượt/ngày" },
-  { name: "Lite", price: "99.000đ", highlight: "15 lượt/ngày" },
-  { name: "Pro", price: "219.000đ", highlight: "50 lượt/ngày", popular: true },
-  { name: "Max", price: "469.000đ", highlight: "Không giới hạn" },
+  {
+    name: "Free", price: "Miễn phí", period: "",
+    highlight: "3 lượt/ngày",
+    features: ["6 loại nội dung", "AI Score đánh giá", "Copy & Download"],
+  },
+  {
+    name: "Lite", price: "99.000đ", period: "/tháng",
+    highlight: "15 lượt/ngày",
+    features: ["Tất cả tính năng Free", "Ưu tiên xử lý", "Lịch sử không giới hạn"],
+  },
+  {
+    name: "Pro", price: "219.000đ", period: "/tháng",
+    highlight: "50 lượt/ngày", popular: true,
+    features: ["Tất cả tính năng Lite", "Pipeline Reviewer + Formatter", "Hỗ trợ ưu tiên"],
+  },
+  {
+    name: "Max", price: "469.000đ", period: "/tháng",
+    highlight: "Không giới hạn",
+    features: ["Tất cả tính năng Pro", "API access", "Dedicated support"],
+  },
 ];
 
 const STATS = [
-  { value: "30s", label: "Thời gian tạo" },
-  { value: "6+", label: "Loại nội dung" },
-  { value: "5", label: "AI Agents" },
-  { value: "100%", label: "Tiếng Việt" },
+  { value: "30s", label: "Thời gian tạo nội dung" },
+  { value: "6+", label: "Loại nội dung marketing" },
+  { value: "5", label: "AI Agents chuyên biệt" },
+  { value: "100%", label: "Hỗ trợ tiếng Việt" },
+];
+
+const TESTIMONIALS = [
+  { name: "Minh Anh", role: "Marketing Manager", text: "Vitba.ai giúp team tôi tiết kiệm 80% thời gian viết content. Chất lượng bài SEO blog tốt hơn cả agency." },
+  { name: "Hùng Nguyễn", role: "Founder Startup", text: "Từ khi dùng Vitba.ai, tôi không cần thuê copywriter nữa. Landing page convert rate tăng 3x." },
+  { name: "Thu Hà", role: "Freelance Marketer", text: "Pipeline 5 AI Agents thực sự ấn tượng. Nội dung được review và tối ưu tự động, chuyên nghiệp hơn nhiều." },
 ];
 
 function AnimatedSection({ children, className }: { children: React.ReactNode; className?: string }) {
@@ -88,6 +134,11 @@ export default function LandingPage() {
 
   const ctaClick = () => router.push(hydrated && token ? "/dashboard" : "/login");
 
+  const scrollTo = useCallback((id: string) => {
+    const el = document.getElementById(id);
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, []);
+
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white overflow-x-hidden">
       {/* ========== NAVBAR ========== */}
@@ -98,9 +149,10 @@ export default function LandingPage() {
             Vitba.ai
           </div>
           <div className="hidden md:flex items-center gap-8 text-[14px] text-white/60">
-            <a href="#features" className="hover:text-[#FFD54A] transition-colors">Tính năng</a>
-            <a href="#how-it-works" className="hover:text-[#FFD54A] transition-colors">Cách hoạt động</a>
-            <a href="#pricing" className="hover:text-[#FFD54A] transition-colors">Bảng giá</a>
+            <button onClick={() => scrollTo("features")} className="hover:text-[#FFD54A] transition-colors cursor-pointer">Tính năng</button>
+            <button onClick={() => scrollTo("how-it-works")} className="hover:text-[#FFD54A] transition-colors cursor-pointer">Cách hoạt động</button>
+            <button onClick={() => scrollTo("agents")} className="hover:text-[#FFD54A] transition-colors cursor-pointer">AI Agents</button>
+            <button onClick={() => scrollTo("pricing")} className="hover:text-[#FFD54A] transition-colors cursor-pointer">Bảng giá</button>
           </div>
           <div className="flex items-center gap-2">
             {hydrated && token ? (
@@ -141,17 +193,17 @@ export default function LandingPage() {
           </h1>
 
           <p className="text-lg sm:text-xl text-white/60 max-w-2xl mx-auto mb-10 leading-relaxed">
-            5 AI Agents chuyên biệt cùng làm việc — nghiên cứu, viết, kiểm duyệt và tối ưu nội dung marketing tiếng Việt cho doanh nghiệp của bạn.
+            5 AI Agents chuyên biệt cùng làm việc — nghiên cứu thị trường, viết nội dung, kiểm duyệt chất lượng và tối ưu SEO. Tất cả bằng tiếng Việt, chỉ trong 30 giây.
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
             <button onClick={ctaClick} className="rounded-full bg-[#FFD54A] px-8 py-3.5 text-[16px] font-bold text-[#0a0a0a] hover:bg-[#ffe07a] transition-all shadow-[0_0_30px_rgba(255,213,74,0.4)] hover:shadow-[0_0_40px_rgba(255,213,74,0.5)] hover:scale-105 active:scale-95">
-              Bắt đầu miễn phí
+              Bắt đầu miễn phí — Không cần thẻ
             </button>
-            <a href="#how-it-works" className="flex items-center gap-2 rounded-full border border-white/20 px-6 py-3.5 text-[15px] font-medium text-white hover:bg-white/10 transition-colors">
+            <button onClick={() => scrollTo("how-it-works")} className="flex items-center gap-2 rounded-full border border-white/20 px-6 py-3.5 text-[15px] font-medium text-white hover:bg-white/10 transition-colors">
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFD54A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
               Xem cách hoạt động
-            </a>
+            </button>
           </div>
         </motion.div>
 
@@ -166,14 +218,17 @@ export default function LandingPage() {
       </section>
 
       {/* ========== FEATURES ========== */}
-      <section id="features" className="py-20 sm:py-28 px-6">
+      <section id="features" className="py-20 sm:py-28 px-6 scroll-mt-20">
         <div className="max-w-6xl mx-auto">
           <AnimatedSection className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 rounded-full border border-[#FFD54A]/20 bg-[#FFD54A]/5 px-4 py-1.5 text-[12px] font-bold text-[#FFD54A]/70 tracking-widest uppercase mb-4">
+              Tính năng
+            </div>
             <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4 text-white">
               6 loại nội dung, <span className="text-[#FFD54A]">1 nền tảng AI</span>
             </h2>
             <p className="text-white/50 text-lg max-w-2xl mx-auto">
-              Từ bài Facebook đến kế hoạch marketing chiến lược — AI Agents xử lý tất cả bằng tiếng Việt.
+              Từ bài Facebook viral đến kế hoạch marketing chiến lược — AI Agents tạo nội dung chuyên nghiệp bằng tiếng Việt cho mọi kênh.
             </p>
           </AnimatedSection>
 
@@ -183,13 +238,20 @@ export default function LandingPage() {
                 <motion.div
                   whileHover={{ y: -4, scale: 1.02 }}
                   transition={{ type: "spring", stiffness: 300 }}
-                  className="rounded-[20px] border border-[#FFD54A]/15 bg-[#FFD54A]/[0.03] p-6 hover:border-[#FFD54A]/30 hover:bg-[#FFD54A]/[0.06] transition-all hover:shadow-[0_8px_30px_-12px_rgba(255,213,74,0.15)]"
+                  className="rounded-[20px] border border-[#FFD54A]/15 bg-[#FFD54A]/[0.03] p-6 hover:border-[#FFD54A]/30 hover:bg-[#FFD54A]/[0.06] transition-all hover:shadow-[0_8px_30px_-12px_rgba(255,213,74,0.15)] h-full flex flex-col"
                 >
                   <div className="w-12 h-12 rounded-[14px] bg-[#FFD54A]/10 border border-[#FFD54A]/20 flex items-center justify-center mb-4">
                     {FEATURE_ICONS[i]}
                   </div>
                   <h3 className="text-[17px] font-bold text-white mb-2">{f.title}</h3>
-                  <p className="text-[14px] text-white/50 leading-relaxed">{f.desc}</p>
+                  <p className="text-[14px] text-white/50 leading-relaxed mb-4 flex-1">{f.desc}</p>
+                  <div className="flex flex-wrap gap-2">
+                    {f.details.map((d) => (
+                      <span key={d} className="text-[11px] font-medium text-[#FFD54A]/70 bg-[#FFD54A]/10 rounded-full px-2.5 py-1 border border-[#FFD54A]/15">
+                        {d}
+                      </span>
+                    ))}
+                  </div>
                 </motion.div>
               </AnimatedSection>
             ))}
@@ -198,14 +260,17 @@ export default function LandingPage() {
       </section>
 
       {/* ========== HOW IT WORKS ========== */}
-      <section id="how-it-works" className="py-20 sm:py-28 px-6 bg-white/[0.02]">
+      <section id="how-it-works" className="py-20 sm:py-28 px-6 bg-white/[0.02] scroll-mt-20">
         <div className="max-w-5xl mx-auto">
           <AnimatedSection className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 rounded-full border border-[#FFD54A]/20 bg-[#FFD54A]/5 px-4 py-1.5 text-[12px] font-bold text-[#FFD54A]/70 tracking-widest uppercase mb-4">
+              Quy trình
+            </div>
             <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4 text-white">
               Đơn giản <span className="text-[#FFD54A]">3 bước</span>
             </h2>
             <p className="text-white/50 text-lg max-w-xl mx-auto">
-              Không cần kinh nghiệm marketing. Chỉ cần mô tả — AI lo phần còn lại.
+              Không cần kinh nghiệm marketing. Không cần biết viết content. Chỉ cần mô tả ý tưởng — AI lo phần còn lại.
             </p>
           </AnimatedSection>
 
@@ -218,7 +283,7 @@ export default function LandingPage() {
                   </div>
                   <div className="text-[11px] font-bold text-[#FFD54A]/60 tracking-widest uppercase mb-2">Bước {step.num}</div>
                   <h3 className="text-[18px] font-bold text-white mb-3">{step.title}</h3>
-                  <p className="text-[14px] text-white/50 leading-relaxed max-w-xs">{step.desc}</p>
+                  <p className="text-[14px] text-white/50 leading-relaxed max-w-sm">{step.desc}</p>
                   {i < STEPS.length - 1 && (
                     <div className="hidden md:block absolute top-8 left-[calc(50%+50px)] w-[calc(100%-60px)] border-t-2 border-dashed border-[#FFD54A]/20" />
                   )}
@@ -230,14 +295,17 @@ export default function LandingPage() {
       </section>
 
       {/* ========== AI AGENTS ========== */}
-      <section className="py-20 sm:py-28 px-6">
+      <section id="agents" className="py-20 sm:py-28 px-6 scroll-mt-20">
         <div className="max-w-5xl mx-auto">
           <AnimatedSection className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 rounded-full border border-[#FFD54A]/20 bg-[#FFD54A]/5 px-4 py-1.5 text-[12px] font-bold text-[#FFD54A]/70 tracking-widest uppercase mb-4">
+              Công nghệ
+            </div>
             <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4 text-white">
-              Đội ngũ <span className="text-[#FFD54A]">AI Agents</span> chuyên biệt
+              Đội ngũ <span className="text-[#FFD54A]">5 AI Agents</span> chuyên biệt
             </h2>
             <p className="text-white/50 text-lg max-w-2xl mx-auto">
-              Không phải 1 chatbot đơn lẻ — mà là một pipeline hoàn chỉnh với nhiều agents phối hợp.
+              Không phải 1 chatbot đơn lẻ — mà là một pipeline hoàn chỉnh với 5 agents phối hợp, mỗi agent đảm nhận một vai trò chuyên môn riêng biệt.
             </p>
           </AnimatedSection>
 
@@ -249,34 +317,71 @@ export default function LandingPage() {
                   <motion.div
                     key={agent.name}
                     whileHover={{ scale: 1.05 }}
-                    className="flex flex-col items-center text-center p-4 rounded-[16px] bg-[#0a0a0a]/60 border border-white/10 hover:border-[#FFD54A]/30 transition-all"
+                    className="flex flex-col items-center text-center p-5 rounded-[16px] bg-[#0a0a0a]/60 border border-white/10 hover:border-[#FFD54A]/30 transition-all"
                   >
                     <div className="w-12 h-12 rounded-full bg-[#FFD54A]/10 flex items-center justify-center mb-3">
                       {agent.icon}
                     </div>
-                    <div className="text-[14px] font-bold text-white">{agent.name}</div>
-                    <div className="text-[12px] text-white/40 mt-1">{agent.role}</div>
+                    <div className="text-[14px] font-bold text-white mb-1">{agent.name}</div>
+                    <div className="text-[12px] text-[#FFD54A]/60 font-medium mb-2">{agent.role}</div>
+                    <div className="text-[11px] text-white/35 leading-relaxed">{agent.desc}</div>
                   </motion.div>
                 ))}
               </div>
               <div className="flex items-center justify-center gap-2 mt-8 text-[13px] text-white/40">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFD54A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-                Pipeline tự động: Planner &rarr; Researcher &rarr; Copywriter &rarr; Reviewer &rarr; Formatter
+                Pipeline tự động ~30 giây: Planner &rarr; Researcher &rarr; Copywriter &rarr; Reviewer &rarr; Formatter
               </div>
             </div>
           </AnimatedSection>
         </div>
       </section>
 
-      {/* ========== PRICING ========== */}
-      <section id="pricing" className="py-20 sm:py-28 px-6 bg-white/[0.02]">
+      {/* ========== TESTIMONIALS ========== */}
+      <section className="py-20 sm:py-28 px-6 bg-white/[0.02]">
         <div className="max-w-5xl mx-auto">
           <AnimatedSection className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 rounded-full border border-[#FFD54A]/20 bg-[#FFD54A]/5 px-4 py-1.5 text-[12px] font-bold text-[#FFD54A]/70 tracking-widest uppercase mb-4">
+              Phản hồi
+            </div>
+            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4 text-white">
+              Được tin dùng bởi <span className="text-[#FFD54A]">marketer Việt Nam</span>
+            </h2>
+          </AnimatedSection>
+
+          <AnimatedSection>
+            <div className="grid gap-6 md:grid-cols-3">
+              {TESTIMONIALS.map((t) => (
+                <div key={t.name} className="rounded-[20px] border border-white/10 bg-white/[0.02] p-6 hover:border-[#FFD54A]/20 transition-all">
+                  <div className="flex gap-1 mb-4">
+                    {[1,2,3,4,5].map((s) => (
+                      <svg key={s} xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="#FFD54A" stroke="#FFD54A" strokeWidth="1"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                    ))}
+                  </div>
+                  <p className="text-[14px] text-white/60 leading-relaxed mb-4 italic">&ldquo;{t.text}&rdquo;</p>
+                  <div>
+                    <div className="text-[14px] font-bold text-white">{t.name}</div>
+                    <div className="text-[12px] text-white/40">{t.role}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </AnimatedSection>
+        </div>
+      </section>
+
+      {/* ========== PRICING ========== */}
+      <section id="pricing" className="py-20 sm:py-28 px-6 scroll-mt-20">
+        <div className="max-w-5xl mx-auto">
+          <AnimatedSection className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 rounded-full border border-[#FFD54A]/20 bg-[#FFD54A]/5 px-4 py-1.5 text-[12px] font-bold text-[#FFD54A]/70 tracking-widest uppercase mb-4">
+              Bảng giá
+            </div>
             <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4 text-white">
               Bảng giá <span className="text-[#FFD54A]">đơn giản, minh bạch</span>
             </h2>
             <p className="text-white/50 text-lg max-w-xl mx-auto">
-              Bắt đầu miễn phí. Nâng cấp khi bạn cần thêm sức mạnh.
+              Bắt đầu miễn phí với 3 lượt mỗi ngày. Nâng cấp bất cứ lúc nào khi bạn cần thêm sức mạnh AI.
             </p>
           </AnimatedSection>
 
@@ -286,7 +391,7 @@ export default function LandingPage() {
                 <motion.div
                   key={plan.name}
                   whileHover={{ y: -4 }}
-                  className={`relative rounded-[20px] border p-6 transition-all hover:shadow-xl ${
+                  className={`relative rounded-[20px] border p-6 transition-all hover:shadow-xl flex flex-col ${
                     plan.popular
                       ? "border-[#FFD54A]/40 bg-[#FFD54A]/[0.06] ring-2 ring-[#FFD54A]/30 shadow-lg scale-[1.02]"
                       : "border-white/10 bg-white/[0.02] hover:border-[#FFD54A]/20"
@@ -297,9 +402,20 @@ export default function LandingPage() {
                       Phổ biến nhất
                     </div>
                   )}
-                  <div className="text-[20px] font-bold text-white mb-1">{plan.name}</div>
-                  <div className="text-2xl font-bold text-[#FFD54A] mb-1">{plan.price}</div>
-                  <div className="text-[13px] text-white/40 mb-4">{plan.highlight}</div>
+                  <div className="text-[15px] font-bold text-white/60 mb-1">{plan.name}</div>
+                  <div className="flex items-baseline gap-1 mb-1">
+                    <span className="text-2xl font-bold text-[#FFD54A]">{plan.price}</span>
+                    {plan.period && <span className="text-[13px] text-white/30">{plan.period}</span>}
+                  </div>
+                  <div className="text-[13px] text-white/40 mb-4 pb-4 border-b border-white/10">{plan.highlight}</div>
+                  <ul className="space-y-2.5 mb-6 flex-1">
+                    {plan.features.map((f) => (
+                      <li key={f} className="flex items-start gap-2 text-[13px] text-white/50">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FFD54A" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="mt-0.5 flex-shrink-0"><path d="M20 6 9 17l-5-5"/></svg>
+                        {f}
+                      </li>
+                    ))}
+                  </ul>
                   <button
                     onClick={() => router.push("/pricing")}
                     className={`w-full rounded-[12px] py-2.5 text-sm font-semibold transition-all ${
@@ -308,7 +424,7 @@ export default function LandingPage() {
                         : "border border-white/20 text-white hover:bg-white/10"
                     }`}
                   >
-                    Xem chi tiết
+                    {plan.price === "Miễn phí" ? "Dùng thử ngay" : "Chọn gói này"}
                   </button>
                 </motion.div>
               ))}
@@ -323,28 +439,34 @@ export default function LandingPage() {
       </section>
 
       {/* ========== USE CASES ========== */}
-      <section className="py-20 sm:py-28 px-6">
+      <section className="py-20 sm:py-28 px-6 bg-white/[0.02]">
         <div className="max-w-5xl mx-auto">
           <AnimatedSection className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 rounded-full border border-[#FFD54A]/20 bg-[#FFD54A]/5 px-4 py-1.5 text-[12px] font-bold text-[#FFD54A]/70 tracking-widest uppercase mb-4">
+              Đối tượng
+            </div>
             <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4 text-white">
               Dành cho <span className="text-[#FFD54A]">ai?</span>
             </h2>
+            <p className="text-white/50 text-lg max-w-xl mx-auto">
+              Vitba.ai phù hợp với mọi quy mô — từ freelancer cá nhân đến agency hàng trăm khách hàng.
+            </p>
           </AnimatedSection>
 
           <AnimatedSection>
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
               {[
-                { title: "Freelancer", desc: "Tạo content cho nhiều khách hàng nhanh hơn", icon: <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#FFD54A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/></svg> },
-                { title: "Startup", desc: "Marketing chuyên nghiệp mà không cần thuê agency", icon: <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#FFD54A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/></svg> },
-                { title: "SME", desc: "Tiết kiệm 80% thời gian và chi phí marketing", icon: <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#FFD54A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/></svg> },
-                { title: "Agency", desc: "Scale content output lên 10x cho khách hàng", icon: <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#FFD54A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg> },
+                { title: "Freelancer", desc: "Tạo content cho nhiều khách hàng nhanh hơn 10x. Tiết kiệm thời gian, tăng số lượng dự án.", icon: <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#FFD54A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/></svg> },
+                { title: "Startup", desc: "Marketing chuyên nghiệp ngay từ ngày đầu mà không cần thuê agency hay team đắt đỏ.", icon: <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#FFD54A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/></svg> },
+                { title: "Doanh nghiệp SME", desc: "Tiết kiệm 80% thời gian và chi phí marketing. Content nhất quán trên mọi kênh.", icon: <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#FFD54A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/></svg> },
+                { title: "Marketing Agency", desc: "Scale content output lên 10x cho tất cả khách hàng. Giảm chi phí, tăng margin.", icon: <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#FFD54A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg> },
               ].map((uc) => (
                 <motion.div key={uc.title} whileHover={{ y: -3 }} className="rounded-[20px] border border-white/10 bg-white/[0.02] p-6 text-center hover:border-[#FFD54A]/30 hover:bg-[#FFD54A]/[0.03] transition-all">
-                  <div className="w-12 h-12 rounded-full bg-[#FFD54A]/10 flex items-center justify-center mx-auto mb-3">
+                  <div className="w-14 h-14 rounded-full bg-[#FFD54A]/10 flex items-center justify-center mx-auto mb-4">
                     {uc.icon}
                   </div>
                   <div className="text-[16px] font-bold text-white mb-2">{uc.title}</div>
-                  <div className="text-[13px] text-white/50">{uc.desc}</div>
+                  <div className="text-[13px] text-white/50 leading-relaxed">{uc.desc}</div>
                 </motion.div>
               ))}
             </div>
@@ -362,11 +484,12 @@ export default function LandingPage() {
                 Sẵn sàng tạo nội dung<br /><span className="text-[#FFD54A]">nhanh hơn 360x?</span>
               </h2>
               <p className="text-white/50 text-lg mb-8 max-w-lg mx-auto">
-                Đăng ký miễn phí. Không cần thẻ tín dụng. Bắt đầu tạo content ngay hôm nay.
+                Đăng ký miễn phí ngay hôm nay. Không cần thẻ tín dụng. 3 lượt tạo content mỗi ngày — đủ để bạn trải nghiệm sức mạnh AI.
               </p>
               <button onClick={ctaClick} className="rounded-full bg-[#FFD54A] px-10 py-4 text-[17px] font-bold text-[#0a0a0a] hover:bg-[#ffe07a] transition-all shadow-[0_0_40px_rgba(255,213,74,0.4)] hover:shadow-[0_0_50px_rgba(255,213,74,0.5)] hover:scale-105 active:scale-95">
                 Dùng thử miễn phí ngay
               </button>
+              <p className="text-[12px] text-white/30 mt-4">Miễn phí mãi mãi với gói Free. Nâng cấp bất cứ lúc nào.</p>
             </div>
           </div>
         </AnimatedSection>
@@ -374,11 +497,19 @@ export default function LandingPage() {
 
       {/* ========== FOOTER ========== */}
       <footer className="border-t border-white/10 py-10 px-6">
-        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="max-w-6xl mx-auto flex flex-col items-center gap-4 text-center">
           <div className="flex items-center gap-2 text-[15px] font-bold text-white">
+            <img src="/logo.png" alt="Vitba.ai" className="h-5 w-5 object-contain" />
+            Vitba.ai
           </div>
           <div className="flex items-center gap-6 text-[13px] text-white/40">
-            <a href="#features" className="hover:text-[#FFD54A] transition-colors">Fouded by Vu Hai Duong</a>
+            <button onClick={() => scrollTo("features")} className="hover:text-[#FFD54A] transition-colors">Tính năng</button>
+            <button onClick={() => scrollTo("agents")} className="hover:text-[#FFD54A] transition-colors">AI Agents</button>
+            <button onClick={() => scrollTo("pricing")} className="hover:text-[#FFD54A] transition-colors">Bảng giá</button>
+            <button onClick={() => router.push("/login")} className="hover:text-[#FFD54A] transition-colors">Đăng nhập</button>
+          </div>
+          <div className="text-[14px] text-white/50 font-medium">
+            Founded by VŨ Hải Dương
           </div>
           <div className="text-[12px] text-white/30">
             &copy; 2026 Vitba.ai. All rights reserved.

@@ -1,33 +1,63 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { useChatStore } from "@/store/chat";
 import { useAuthStore } from "@/store/auth";
 import { cn } from "@/lib/utils";
+import { normalizePlan, type PlanId } from "@/lib/plan";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+
+const DASHBOARD_CARDS = [
+  { title: "Facebook Post", desc: "Bài đăng mạng xã hội", type: "facebook_post", minPlan: "free" as PlanId },
+  { title: "SEO Blog", desc: "Nội dung chuẩn SEO", type: "seo_blog", minPlan: "lite" as PlanId },
+  { title: "Email Marketing", desc: "Chuỗi email tự động", type: "email", minPlan: "free" as PlanId },
+  { title: "Landing Page", desc: "Trang đích chuyển đổi", type: "landing_page", minPlan: "max" as PlanId },
+  { title: "TikTok Script", desc: "Kịch bản video ngắn", type: "tiktok_script", minPlan: "lite" as PlanId },
+  { title: "Marketing Plan", desc: "Kế hoạch chiến lược", type: "marketing_plan", minPlan: "pro" as PlanId },
+];
+
+const PLAN_RANK: Record<PlanId, number> = { free: 0, lite: 1, pro: 2, max: 3 };
+
+const CARD_ICONS: Record<string, JSX.Element> = {
+  facebook_post: <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>,
+  seo_blog: <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>,
+  email: <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>,
+  landing_page: <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>,
+  tiktok_script: <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect width="15" height="14" x="1" y="5" rx="2" ry="2"/></svg>,
+  marketing_plan: <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" x2="18" y1="20" y2="10"/><line x1="12" x2="12" y1="20" y2="4"/><line x1="6" x2="6" y1="20" y2="14"/></svg>,
+};
+
+const GUIDE_STEPS = [
+  { title: "Chọn loại nội dung", desc: "Bấm vào một thẻ bên dưới để bắt đầu tạo nội dung marketing. Mỗi loại được thiết kế riêng cho từng nền tảng.", target: "cards" },
+  { title: "Trò chuyện với AI", desc: "Nhập yêu cầu vào ô chat. AI sẽ hỏi thêm thông tin qua gợi ý ở sidebar phải, sau đó tự động tạo nội dung.", target: "chat" },
+  { title: "Xem & tải kết quả", desc: "Kết quả hiển thị ngay trong chat. Bạn có thể sao chép, tải về (TXT/HTML), phóng to xem toàn bộ, hoặc yêu cầu AI làm lại.", target: "result" },
+  { title: "Nâng cấp gói", desc: "Các loại nội dung nâng cao cần gói Lite/Pro/Max. Bấm vào thẻ bị khóa hoặc nút 'Nâng cấp' ở header để xem bảng giá.", target: "upgrade" },
+  { title: "Cài đặt tài khoản", desc: "Vào Settings để cập nhật thông tin cá nhân, đổi mật khẩu, quản lý thương hiệu và tệp tài liệu.", target: "settings" },
+];
 
 function cleanContent(content: string) {
   if (!content) return "";
   let c = content
     .replace(/```generate\n[\s\S]*?\n```/g, "")
-    .replace(/```suggestions\n[\s\S]*?\n```/g, "");
-  c = c.replace(/```(generate|suggestions)\n[\s\S]*$/, "");
-  return c.trim();
+    .replace(/```suggestions\n[\s\S]*?\n```/g, "")
+    .replace(/```(generate|suggestions)\n[\s\S]*$/g, "")
+    .trim();
+  c = c.replace(/\n+(?:[-*•]\s+.+(?:\n|$))+\s*$/, "");
+  c = c.replace(/\n+(?:\d+[.)]\s+.+(?:\n|$))+\s*$/, "");
+  return c;
 }
 
 function MarkdownContent({ content }: { content: string }) {
   const cleaned = cleanContent(content);
-  if (!cleaned) return null;
-
   return (
     <ReactMarkdown
       remarkPlugins={[remarkGfm]}
       components={{
-        p: ({ children }) => <p className="mb-3 last:mb-0 leading-relaxed text-[15px] text-muted-foreground">{children}</p>,
+        p: ({ children }) => <p className="mb-3 last:mb-0 leading-relaxed text-[15px]">{children}</p>,
         ul: ({ children }) => <ul className="mb-4 ml-6 list-disc last:mb-0 space-y-1">{children}</ul>,
         ol: ({ children }) => <ol className="mb-4 ml-6 list-decimal last:mb-0 space-y-1">{children}</ol>,
         li: ({ children }) => <li className="mb-1 text-[15px] text-muted-foreground">{children}</li>,
@@ -74,12 +104,12 @@ function MarkdownContent({ content }: { content: string }) {
 }
 
 const CONTENT_TYPE_LABELS: Record<string, { label: string; icon: string }> = {
-  facebook_post: { label: "Facebook Post", icon: "\u{1F4F1}" },
-  seo_blog: { label: "SEO Blog", icon: "\u{1F4DD}" },
-  email: { label: "Email Marketing", icon: "\u{1F4E7}" },
-  landing_page: { label: "Landing Page", icon: "\u{1F3AF}" },
-  tiktok_script: { label: "TikTok Script", icon: "\u{1F3AC}" },
-  marketing_plan: { label: "Marketing Plan", icon: "\u{1F4CA}" },
+  facebook_post: { label: "Facebook Post", icon: "📱" },
+  seo_blog: { label: "SEO Blog", icon: "📝" },
+  email: { label: "Email Marketing", icon: "📧" },
+  landing_page: { label: "Landing Page", icon: "🎯" },
+  tiktok_script: { label: "TikTok Script", icon: "🎬" },
+  marketing_plan: { label: "Marketing Plan", icon: "📊" },
 };
 
 function formatResultText(result: Record<string, unknown>): string {
@@ -100,6 +130,228 @@ function formatResultText(result: Record<string, unknown>): string {
   return JSON.stringify(result, null, 2);
 }
 
+function ExpandModal({ result, onClose }: { result: Record<string, unknown>; onClose: () => void }) {
+  useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", handleEsc);
+    return () => window.removeEventListener("keydown", handleEsc);
+  }, [onClose]);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.9, opacity: 0 }}
+        className="relative w-full max-w-4xl max-h-[90vh] rounded-[20px] border border-primary/20 bg-background overflow-hidden shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between px-6 py-4 border-b border-primary/10 bg-primary/5">
+          <span className="text-[15px] font-semibold text-foreground">Xem toàn bộ nội dung</span>
+          <button onClick={onClose} className="rounded-full p-1.5 hover:bg-muted transition-colors text-muted-foreground hover:text-foreground">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+        <div className="overflow-y-auto p-6 max-h-[calc(90vh-60px)] no-scrollbar">
+          <MarkdownContent content={formatResultText(result)} />
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+}
+
+function DownloadMenu({ result, onClose }: { result: Record<string, unknown>; onClose: () => void }) {
+  const text = formatResultText(result);
+
+  const downloadTxt = () => {
+    const blob = new Blob([text], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = "content.txt"; a.click();
+    URL.revokeObjectURL(url);
+    onClose();
+  };
+
+  const downloadHtml = () => {
+    const html = `<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Marketing Content - Vitba.ai</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0a0a0a; color: #f5f5f5; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+  .slide { max-width: 800px; width: 90%; margin: 40px auto; padding: 48px; background: #111; border: 1px solid #222; border-radius: 24px; box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
+  .slide h1, .slide h2, .slide h3 { color: #FFD54A; margin-bottom: 16px; }
+  .slide p { line-height: 1.8; margin-bottom: 16px; font-size: 16px; }
+  .slide ul, .slide ol { margin-left: 24px; margin-bottom: 16px; }
+  .slide li { margin-bottom: 8px; line-height: 1.6; }
+  .slide strong { color: #FFD54A; }
+  .badge { display: inline-block; background: #FFD54A; color: #0a0a0a; padding: 4px 16px; border-radius: 20px; font-size: 12px; font-weight: 700; margin-bottom: 24px; }
+  .footer { text-align: center; margin-top: 32px; padding-top: 24px; border-top: 1px solid #222; font-size: 12px; color: #666; }
+</style>
+</head>
+<body>
+<div class="slide">
+  <span class="badge">Vitba.ai</span>
+  ${text.split("\n").map(line => {
+    if (line.startsWith("# ")) return `<h1>${line.slice(2)}</h1>`;
+    if (line.startsWith("## ")) return `<h2>${line.slice(3)}</h2>`;
+    if (line.startsWith("### ")) return `<h3>${line.slice(4)}</h3>`;
+    if (line.startsWith("- ") || line.startsWith("• ")) return `<ul><li>${line.slice(2)}</li></ul>`;
+    if (line.trim() === "") return "";
+    return `<p>${line}</p>`;
+  }).join("\n")}
+  <div class="footer">Được tạo bởi Vitba.ai &mdash; AI Marketing Assistant</div>
+</div>
+</body>
+</html>`;
+    const blob = new Blob([html], { type: "text/html" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = "content-slide.html"; a.click();
+    URL.revokeObjectURL(url);
+    onClose();
+  };
+
+  const downloadPdf = () => {
+    const printWindow = window.open("", "_blank");
+    if (!printWindow) { toast.error("Trình duyệt đã chặn popup"); return; }
+    printWindow.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"/><title>Content</title>
+<style>body{font-family:'Segoe UI',sans-serif;max-width:700px;margin:40px auto;padding:20px;line-height:1.8;color:#222}
+h1,h2,h3{color:#b8860b;margin-top:24px}p{margin-bottom:12px}ul,ol{margin-left:20px}li{margin-bottom:6px}
+.footer{text-align:center;margin-top:40px;padding-top:20px;border-top:1px solid #ddd;font-size:11px;color:#999}</style>
+</head><body>${text.split("\n").map(l => {
+      if (l.startsWith("# ")) return `<h1>${l.slice(2)}</h1>`;
+      if (l.startsWith("## ")) return `<h2>${l.slice(3)}</h2>`;
+      if (l.startsWith("### ")) return `<h3>${l.slice(4)}</h3>`;
+      if (l.trim() === "") return "";
+      return `<p>${l}</p>`;
+    }).join("")}<div class="footer">Vitba.ai — AI Marketing Assistant</div></body></html>`);
+    printWindow.document.close();
+    setTimeout(() => { printWindow.print(); }, 500);
+    onClose();
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 4 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 4 }}
+      className="absolute bottom-full left-0 mb-2 rounded-[12px] border border-border bg-card shadow-xl overflow-hidden z-50 min-w-[160px]"
+    >
+      <button onClick={downloadTxt} className="flex items-center gap-2 w-full px-4 py-2.5 text-[13px] text-foreground hover:bg-muted transition-colors">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+        Tải TXT
+      </button>
+      <button onClick={downloadHtml} className="flex items-center gap-2 w-full px-4 py-2.5 text-[13px] text-foreground hover:bg-muted transition-colors">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+        Tải HTML Slide
+      </button>
+      <button onClick={downloadPdf} className="flex items-center gap-2 w-full px-4 py-2.5 text-[13px] text-foreground hover:bg-muted transition-colors">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+        Tải PDF
+      </button>
+    </motion.div>
+  );
+}
+
+function GuideModal({ onClose }: { onClose: () => void }) {
+  const [step, setStep] = useState(0);
+  const current = GUIDE_STEPS[step];
+
+  useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", handleEsc);
+    return () => window.removeEventListener("keydown", handleEsc);
+  }, [onClose]);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.9, opacity: 0 }}
+        className="relative w-full max-w-md rounded-[20px] border border-primary/20 bg-background overflow-hidden shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="px-6 py-4 border-b border-primary/10 bg-primary/5 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            <span className="text-[15px] font-semibold text-foreground">Hướng dẫn sử dụng</span>
+          </div>
+          <button onClick={onClose} className="rounded-full p-1.5 hover:bg-muted transition-colors text-muted-foreground hover:text-foreground">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+
+        <div className="p-6">
+          <div className="flex items-center gap-2 mb-4">
+            {GUIDE_STEPS.map((_, i) => (
+              <div key={i} className={cn("h-1.5 rounded-full flex-1 transition-colors", i <= step ? "bg-primary" : "bg-muted")} />
+            ))}
+          </div>
+
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={step}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="space-y-3"
+            >
+              <div className="flex items-center gap-2">
+                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-primary-foreground text-[14px] font-bold">{step + 1}</span>
+                <h3 className="text-[17px] font-bold text-foreground">{current.title}</h3>
+              </div>
+              <p className="text-[14px] text-muted-foreground leading-relaxed pl-10">{current.desc}</p>
+            </motion.div>
+          </AnimatePresence>
+        </div>
+
+        <div className="flex items-center justify-between px-6 py-4 border-t border-border bg-background/50">
+          <button
+            onClick={() => setStep(Math.max(0, step - 1))}
+            disabled={step === 0}
+            className="rounded-[10px] px-4 py-2 text-[13px] font-medium text-muted-foreground hover:text-foreground disabled:opacity-30 transition-all"
+          >
+            ← Trước
+          </button>
+          <span className="text-[12px] text-muted-foreground">{step + 1}/{GUIDE_STEPS.length}</span>
+          {step < GUIDE_STEPS.length - 1 ? (
+            <button
+              onClick={() => setStep(step + 1)}
+              className="rounded-[10px] bg-primary px-4 py-2 text-[13px] font-bold text-primary-foreground hover:bg-primary/90 transition-all"
+            >
+              Tiếp →
+            </button>
+          ) : (
+            <button
+              onClick={onClose}
+              className="rounded-[10px] bg-primary px-4 py-2 text-[13px] font-bold text-primary-foreground hover:bg-primary/90 transition-all"
+            >
+              Hoàn tất ✓
+            </button>
+          )}
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+}
+
 function InlineResult({ result, onRedo }: {
   result: Record<string, unknown>;
   onRedo: () => void;
@@ -109,22 +361,12 @@ function InlineResult({ result, onRedo }: {
   const meta = CONTENT_TYPE_LABELS[contentType] || { label: "Nội dung", icon: "✨" };
   const review = result.review as Record<string, unknown> | undefined;
   const score = review?.score as number | undefined;
+  const [expanded, setExpanded] = useState(false);
+  const [showDownload, setShowDownload] = useState(false);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(formatResultText(result));
     toast.success("Đã sao chép!");
-  };
-
-  const handleDownload = () => {
-    const text = formatResultText(result);
-    const isHtml = text.trim().toLowerCase().startsWith("<!doctype html>") || text.trim().toLowerCase().startsWith("<html");
-    const blob = new Blob([text], { type: isHtml ? "text/html" : "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = isHtml ? "landing-page.html" : "content.txt";
-    a.click();
-    URL.revokeObjectURL(url);
   };
 
   if (result.error) {
@@ -143,45 +385,60 @@ function InlineResult({ result, onRedo }: {
   }
 
   return (
-    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex justify-start w-full">
-      <div className="max-w-[90%] sm:max-w-[85%] w-full">
-        <div className="rounded-[20px] border border-primary/20 bg-gradient-to-br from-primary/5 to-primary/[0.02] overflow-hidden shadow-[0_4px_24px_-8px_rgba(0,0,0,0.3)]">
-          {/* Header */}
-          <div className="flex items-center justify-between px-5 py-3 border-b border-primary/10 bg-primary/5">
-            <div className="flex items-center gap-2.5">
-              <span className="text-lg">{meta.icon}</span>
-              <span className="text-[14px] font-semibold text-foreground">{meta.label}</span>
+    <>
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex justify-start w-full">
+        <div className="max-w-[90%] sm:max-w-[85%] w-full">
+          <div className="rounded-[20px] border border-primary/20 bg-gradient-to-br from-primary/5 to-primary/[0.02] overflow-hidden shadow-[0_4px_24px_-8px_rgba(0,0,0,0.3)]">
+            {/* Header */}
+            <div className="flex items-center justify-between px-5 py-3 border-b border-primary/10 bg-primary/5">
+              <div className="flex items-center gap-2.5">
+                <span className="text-primary">{CARD_ICONS[contentType] || <span className="text-lg">{meta.icon}</span>}</span>
+                <span className="text-[14px] font-semibold text-foreground">{meta.label}</span>
+              </div>
+              {score !== undefined && (
+                <span className="rounded-full bg-primary px-3 py-1 text-[12px] font-bold text-primary-foreground shadow-[0_0_12px_rgba(255,213,74,0.3)]">
+                  {score}/100
+                </span>
+              )}
             </div>
-            {score !== undefined && (
-              <span className="rounded-full bg-primary px-3 py-1 text-[12px] font-bold text-primary-foreground shadow-[0_0_12px_rgba(255,213,74,0.3)]">
-                {score}/100
-              </span>
-            )}
-          </div>
 
-          {/* Content */}
-          <div className="px-5 py-4 max-h-[400px] overflow-y-auto no-scrollbar">
-            <MarkdownContent content={formatResultText(result)} />
-          </div>
+            {/* Content */}
+            <div className="px-5 py-4 max-h-[400px] overflow-y-auto no-scrollbar">
+              <MarkdownContent content={formatResultText(result)} />
+            </div>
 
-          {/* Actions */}
-          <div className="flex items-center gap-2 px-5 py-3 border-t border-primary/10 bg-background/50">
-            <button onClick={handleCopy} className="flex items-center gap-1.5 rounded-[10px] border border-border px-3 py-1.5 text-[12px] font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-all">
-              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
-              Copy
-            </button>
-            <button onClick={handleDownload} className="flex items-center gap-1.5 rounded-[10px] border border-border px-3 py-1.5 text-[12px] font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-all">
-              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
-              Tải về
-            </button>
-            <button onClick={onRedo} className="flex items-center gap-1.5 rounded-[10px] border border-border px-3 py-1.5 text-[12px] font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-all ml-auto">
-              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
-              Làm lại
-            </button>
+            {/* Actions */}
+            <div className="flex items-center gap-2 px-5 py-3 border-t border-primary/10 bg-background/50">
+              <button onClick={handleCopy} className="flex items-center gap-1.5 rounded-[10px] border border-border px-3 py-1.5 text-[12px] font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-all">
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+                Copy
+              </button>
+              <div className="relative">
+                <button onClick={() => setShowDownload(!showDownload)} className="flex items-center gap-1.5 rounded-[10px] border border-border px-3 py-1.5 text-[12px] font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-all">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+                  Tải về
+                  <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                <AnimatePresence>
+                  {showDownload && <DownloadMenu result={result} onClose={() => setShowDownload(false)} />}
+                </AnimatePresence>
+              </div>
+              <button onClick={() => setExpanded(true)} className="flex items-center gap-1.5 rounded-[10px] border border-border px-3 py-1.5 text-[12px] font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-all">
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+                Phóng to
+              </button>
+              <button onClick={onRedo} className="flex items-center gap-1.5 rounded-[10px] border border-border px-3 py-1.5 text-[12px] font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-all ml-auto">
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                Làm lại
+              </button>
+            </div>
           </div>
         </div>
-      </div>
-    </motion.div>
+      </motion.div>
+      <AnimatePresence>
+        {expanded && <ExpandModal result={result} onClose={() => setExpanded(false)} />}
+      </AnimatePresence>
+    </>
   );
 }
 
@@ -213,11 +470,17 @@ function GeneratingIndicator({ streamContent }: { streamContent: string }) {
 export function ChatPanel() {
   const {
     messages, activeConversationId, streaming, streamContent,
-    sendMessage, createConversation, contentPanel, setContentPanel
+    sendMessage, createConversation, contentPanel, setContentPanel,
+    suggestions
   } = useChatStore();
   const user = useAuthStore((s) => s.user);
+  const router = useRouter();
   const [input, setInput] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
+  const [showGuide, setShowGuide] = useState(false);
+
+  const userPlan = normalizePlan(user?.plan);
+  const canUse = useCallback((minPlan: PlanId) => PLAN_RANK[userPlan] >= PLAN_RANK[minPlan], [userPlan]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -237,7 +500,7 @@ export function ChatPanel() {
   const showInlineResult = !contentPanel.generating && contentPanel.result && !contentPanel.visible;
   const showGenerating = contentPanel.generating;
 
-  if (!activeConversationId) {
+  if (!activeConversationId || messages.length === 0) {
     return (
       <div className="flex flex-1 flex-col relative items-center justify-center p-4 sm:p-8 min-h-screen overflow-hidden bg-background">
         <button
@@ -246,6 +509,16 @@ export function ChatPanel() {
           aria-label="Toggle sidebar"
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+
+        {/* Guide button - top right */}
+        <button
+          onClick={() => setShowGuide(true)}
+          className="absolute right-4 top-4 rounded-full p-2.5 text-primary hover:bg-primary/10 transition-colors z-10"
+          aria-label="Hướng dẫn"
+          title="Hướng dẫn sử dụng"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
         </button>
 
         <div className="absolute inset-0 overflow-hidden pointer-events-none z-0 flex items-center justify-center opacity-60">
@@ -271,35 +544,53 @@ export function ChatPanel() {
           </motion.div>
 
           <motion.div initial="hidden" animate="visible" variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.1, delayChildren: 0.5 } } }} className="grid grid-cols-2 md:grid-cols-3 gap-4 w-full">
-            {[
-              { title: "Facebook Post", desc: "Bài đăng mạng xã hội", icon: "\u{1F4F1}" },
-              { title: "SEO Blog", desc: "Nội dung chuẩn SEO", icon: "\u{1F4DD}" },
-              { title: "Email Marketing", desc: "Chuỗi email tự động", icon: "\u{1F4E7}" },
-              { title: "Landing Page", desc: "Trang đích chuyển đổi", icon: "\u{1F3AF}" },
-              { title: "TikTok Script", desc: "Kịch bản video ngắn", icon: "\u{1F3AC}" },
-              { title: "Marketing Plan", desc: "Kế hoạch chiến lược", icon: "\u{1F4CA}" },
-            ].map((item) => (
-              <motion.button
-                variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 100 } } }}
-                whileHover={{ scale: 1.02, y: -2 }}
-                whileTap={{ scale: 0.98 }}
-                key={item.title}
-                onClick={async () => { await createConversation(); await sendMessage(`Tôi muốn viết ${item.title}`); }}
-                className="flex flex-col items-start gap-3 rounded-[20px] border border-border bg-card/60 p-5 text-left hover:bg-muted/80 hover:border-primary/40 hover:shadow-[inset_0_0_20px_rgba(255,213,74,0.05),0_8px_20px_-8px_rgba(0,0,0,0.5)] transition-all duration-300 group"
-              >
-                <div className="flex items-center justify-center w-10 h-10 rounded-full bg-muted text-xl group-hover:bg-primary/10 transition-colors">
-                  {item.icon}
-                </div>
-                <div>
-                  <span className="block font-semibold text-[15px] text-foreground group-hover:text-primary transition-colors">{item.title}</span>
-                  <span className="block text-[13px] text-muted-foreground mt-1">{item.desc}</span>
-                </div>
-              </motion.button>
-            ))}
+            {DASHBOARD_CARDS.map((item) => {
+              const locked = !canUse(item.minPlan);
+              return (
+                <motion.button
+                  variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 100 } } }}
+                  whileHover={locked ? {} : { scale: 1.02, y: -2 }}
+                  whileTap={locked ? {} : { scale: 0.98 }}
+                  key={item.title}
+                  onClick={async () => {
+                    if (locked) { router.push("/pricing"); return; }
+                    if (!activeConversationId) await createConversation();
+                    await sendMessage(`Tôi muốn viết ${item.title}`);
+                  }}
+                  className={cn(
+                    "relative flex flex-col items-start gap-3 rounded-[20px] border p-5 text-left transition-all duration-300 group",
+                    locked
+                      ? "border-border/50 bg-card/30 opacity-60 cursor-not-allowed"
+                      : "border-border bg-card/60 hover:bg-muted/80 hover:border-primary/40 hover:shadow-[inset_0_0_20px_rgba(255,213,74,0.05),0_8px_20px_-8px_rgba(0,0,0,0.5)]"
+                  )}
+                >
+                  {locked && (
+                    <div className="absolute top-3 right-3 flex items-center gap-1 rounded-full bg-muted/80 px-2 py-0.5 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                      {item.minPlan}
+                    </div>
+                  )}
+                  <div className={cn(
+                    "flex items-center justify-center w-10 h-10 rounded-full transition-colors text-primary",
+                    locked ? "bg-muted/50" : "bg-primary/10 group-hover:bg-primary/20"
+                  )}>
+                    {CARD_ICONS[item.type]}
+                  </div>
+                  <div>
+                    <span className={cn("block font-semibold text-[15px] transition-colors", locked ? "text-muted-foreground" : "text-white group-hover:text-primary")}>{item.title}</span>
+                    <span className="block text-[13px] text-muted-foreground mt-1">{item.desc}</span>
+                  </div>
+                </motion.button>
+              );
+            })}
           </motion.div>
         </div>
 
         <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(128,128,128,0.1)_1px,transparent_1px),linear-gradient(to_bottom,rgba(128,128,128,0.1)_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none mix-blend-overlay" />
+
+        <AnimatePresence>
+          {showGuide && <GuideModal onClose={() => setShowGuide(false)} />}
+        </AnimatePresence>
       </div>
     );
   }
@@ -318,6 +609,22 @@ export function ChatPanel() {
               {messages.length > 0 ? messages[0]?.content?.slice(0, 50) : "Cuộc trò chuyện mới"}
             </h2>
           </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowGuide(true)}
+            className="rounded-full p-2 text-primary hover:bg-primary/10 transition-colors"
+            aria-label="Hướng dẫn"
+            title="Hướng dẫn sử dụng"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          </button>
+          <button
+            onClick={() => router.push("/pricing")}
+            className="rounded-[10px] bg-primary/10 border border-primary/20 px-3 py-1.5 text-[12px] font-bold text-primary hover:bg-primary/20 transition-all"
+          >
+            Nâng cấp
+          </button>
         </div>
       </div>
 
@@ -371,6 +678,16 @@ export function ChatPanel() {
           />
         )}
 
+        {/* Suggestion sidebar pointer */}
+        {suggestions.length > 0 && !streaming && (
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="flex justify-start">
+            <div className="flex items-center gap-2 rounded-full bg-primary/10 border border-primary/20 px-4 py-2 text-[13px] text-primary font-medium">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.27 1.27L3 12l5.8 1.9a2 2 0 0 1 1.27 1.27L12 21l1.9-5.8a2 2 0 0 1 1.27-1.27L21 12l-5.8-1.9a2 2 0 0 1-1.27-1.27L12 3Z"/></svg>
+              Chọn gợi ý ở sidebar bên phải →
+            </div>
+          </motion.div>
+        )}
+
         <div ref={bottomRef} className="h-4" />
       </div>
 
@@ -390,6 +707,10 @@ export function ChatPanel() {
       </div>
 
       <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(128,128,128,0.1)_1px,transparent_1px),linear-gradient(to_bottom,rgba(128,128,128,0.1)_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none -z-10 mix-blend-overlay" />
+
+      <AnimatePresence>
+        {showGuide && <GuideModal onClose={() => setShowGuide(false)} />}
+      </AnimatePresence>
     </div>
   );
 }
