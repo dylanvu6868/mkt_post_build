@@ -34,6 +34,15 @@ export default function LoginPage() {
   const [regLoading, setRegLoading] = useState(false);
   const [socialLoading, setSocialLoading] = useState(false);
 
+  // Forgot password state
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [forgotLoading, setForgotLoading] = useState(false);
+  const [codeSent, setCodeSent] = useState(false);
+  const [resetCode, setResetCode] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [resetLoading, setResetLoading] = useState(false);
+
   const googleBtnRef = useRef<HTMLDivElement>(null);
 
   const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ?? "";
@@ -117,6 +126,58 @@ export default function LoginPage() {
       toast.error(err instanceof ApiError ? err.message : "Registration failed");
     } finally {
       setRegLoading(false);
+    }
+  };
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setForgotLoading(true);
+    try {
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+      const res = await fetch(`${baseUrl}/auth/forgot-password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: forgotEmail }),
+      });
+      if (!res.ok) {
+        throw new Error("Failed to send reset code");
+      }
+      toast.success("Mã reset đã được gửi đến email của bạn");
+      setCodeSent(true); // Move to the code-entry step
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to send reset code");
+    } finally {
+      setForgotLoading(false);
+    }
+  };
+
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setResetLoading(true);
+    try {
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+      const res = await fetch(`${baseUrl}/auth/reset-password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: forgotEmail,
+          code: resetCode,
+          new_password: newPassword,
+        }),
+      });
+      if (!res.ok) {
+        throw new Error("Failed to reset password");
+      }
+      toast.success("Mật khẩu đã được reset thành công");
+      setShowForgotPassword(false);
+      setCodeSent(false);
+      setForgotEmail("");
+      setResetCode("");
+      setNewPassword("");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to reset password");
+    } finally {
+      setResetLoading(false);
     }
   };
 
@@ -294,9 +355,13 @@ export default function LoginPage() {
                       </div>
                       <span className="text-[11px] text-neutral-400 select-none hover:text-neutral-300 transition-colors">Ghi nhớ đăng nhập</span>
                     </label>
-                    <a href="#" className="text-[11px] text-yellow-500/80 hover:text-yellow-400 transition-colors">
+                    <button
+                      type="button"
+                      onClick={() => setShowForgotPassword(true)}
+                      className="text-[11px] text-yellow-500/80 hover:text-yellow-400 transition-colors"
+                    >
                       Quên mật khẩu?
-                    </a>
+                    </button>
                   </div>
                 )}
 
@@ -368,6 +433,97 @@ export default function LoginPage() {
             </div>
           </div>
         </div>
+
+        {/* Forgot Password Modal */}
+        {showForgotPassword && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+            <div className="w-full max-w-md bg-[#0a0804]/95 backdrop-blur-3xl border border-border rounded-3xl p-8 shadow-[0_8px_32px_rgba(0,0,0,0.8)] relative">
+              <button
+                onClick={() => { setShowForgotPassword(false); setCodeSent(false); setResetCode(""); setNewPassword(""); }}
+                className="absolute top-4 right-4 text-neutral-500 hover:text-neutral-300 transition-colors"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
+
+              <h3 className="text-[20px] font-bold mb-2">Quên mật khẩu</h3>
+              <p className="text-neutral-400 text-[13px] mb-6">
+                {!codeSent ? "Nhập email của bạn để nhận mã reset" : "Nhập mã reset và mật khẩu mới"}
+              </p>
+
+              {!codeSent ? (
+                <form onSubmit={handleForgotPassword} className="space-y-4">
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <Mail className="w-4 h-4 text-neutral-500" />
+                    </div>
+                    <Input
+                      type="email"
+                      placeholder="Email của bạn"
+                      value={forgotEmail}
+                      onChange={(e) => setForgotEmail(e.target.value)}
+                      required
+                      className="pl-10 h-12 bg-muted border-border focus-visible:ring-yellow-500/50 focus-visible:border-yellow-500/50 text-foreground rounded-xl text-sm placeholder:text-neutral-500 transition-all hover:bg-accent"
+                    />
+                  </div>
+                  <Button
+                    type="submit"
+                    disabled={forgotLoading}
+                    className="w-full h-12 bg-gradient-to-r from-yellow-500 to-amber-500 hover:from-yellow-400 hover:to-amber-400 text-primary-foreground font-bold rounded-xl shadow-[0_4px_20px_rgba(234,179,8,0.3)] hover:shadow-[0_8px_30px_rgba(234,179,8,0.4)] transition-all duration-300 border-0 text-[15px] tracking-wide"
+                  >
+                    {forgotLoading ? "Đang gửi..." : "Gửi mã reset"}
+                  </Button>
+                </form>
+              ) : (
+                <form onSubmit={handleResetPassword} className="space-y-4">
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-neutral-500">
+                        <rect width="20" height="16" x="2" y="4" rx="2"/><path d="m6 8-2 6 2 6"/><path d="m18 8 2 6-2 6"/>
+                      </svg>
+                    </div>
+                    <Input
+                      type="text"
+                      placeholder="Mã reset (6 chữ số)"
+                      value={resetCode}
+                      onChange={(e) => setResetCode(e.target.value)}
+                      required
+                      maxLength={6}
+                      className="pl-10 h-12 bg-muted border-border focus-visible:ring-yellow-500/50 focus-visible:border-yellow-500/50 text-foreground rounded-xl text-sm placeholder:text-neutral-500 transition-all hover:bg-accent"
+                    />
+                  </div>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <Lock className="w-4 h-4 text-neutral-500" />
+                    </div>
+                    <Input
+                      type="password"
+                      placeholder="Mật khẩu mới"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      required
+                      minLength={8}
+                      className="pl-10 h-12 bg-muted border-border focus-visible:ring-yellow-500/50 focus-visible:border-yellow-500/50 text-foreground rounded-xl text-sm placeholder:text-neutral-500 transition-all hover:bg-accent"
+                    />
+                  </div>
+                  <Button
+                    type="submit"
+                    disabled={resetLoading}
+                    className="w-full h-12 bg-gradient-to-r from-yellow-500 to-amber-500 hover:from-yellow-400 hover:to-amber-400 text-primary-foreground font-bold rounded-xl shadow-[0_4px_20px_rgba(234,179,8,0.3)] hover:shadow-[0_8px_30px_rgba(234,179,8,0.4)] transition-all duration-300 border-0 text-[15px] tracking-wide"
+                  >
+                    {resetLoading ? "Đang xử lý..." : "Reset mật khẩu"}
+                  </Button>
+                  <button
+                    type="button"
+                    onClick={() => { setCodeSent(false); setResetCode(""); }}
+                    className="w-full text-[11px] text-neutral-500 hover:text-neutral-300 transition-colors"
+                  >
+                    Quay lại gửi lại mã
+                  </button>
+                </form>
+              )}
+            </div>
+          </div>
+        )}
       </main>
     </>
   );

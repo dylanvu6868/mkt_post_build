@@ -44,6 +44,13 @@ class Settings(BaseSettings):
     sepay_account_holder: str = ""
     sepay_bank_name: str = ""  # human-readable, e.g. "Ngân hàng Vietcombank"
 
+    # Email Service (SMTP) — used for password-reset codes
+    smtp_host: str = "smtp.gmail.com"
+    smtp_port: int = 587
+    smtp_username: str = ""
+    smtp_password: str = ""
+    smtp_from: str = ""
+
     # RAG (M3)
     qdrant_collection_name: str = "marketing_docs"
     embedding_model: str = "BAAI/bge-small-en-v1.5"

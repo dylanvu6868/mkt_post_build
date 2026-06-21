@@ -1,0 +1,124 @@
+import logging
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+import smtplib
+from typing import Optional
+
+from app.core.config import settings
+
+logger = logging.getLogger(__name__)
+
+
+class EmailService:
+    def __init__(self):
+        self.smtp_host = settings.smtp_host
+        self.smtp_port = settings.smtp_port
+        self.smtp_username = settings.smtp_username
+        self.smtp_password = settings.smtp_password
+        self.smtp_from = settings.smtp_from or settings.smtp_username
+        self.enabled = bool(self.smtp_username and self.smtp_password)
+
+    async def send_password_reset_code(self, email: str, code: str) -> bool:
+        """Send password reset code to user's email"""
+        if not self.enabled:
+            logger.warning("Email service not configured, skipping email send")
+            return False
+
+        try:
+            # Create message
+            msg = MIMEMultipart("alternative")
+            msg["Subject"] = "Mã đặt lại mật khẩu - Vitba.ai"
+            msg["From"] = self.smtp_from
+            msg["To"] = email
+
+            # Create HTML content
+            html_content = f"""
+            <html>
+            <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+                <div style="max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9; border-radius: 10px;">
+                    <div style="text-align: center; margin-bottom: 30px;">
+                        <h2 style="color: #FFD700; margin: 0;">Vitba.ai</h2>
+                        <p style="color: #666; margin: 5px 0 0;">AI Marketing Platform</p>
+                    </div>
+                    
+                    <div style="background-color: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                        <h3 style="color: #333; margin-top: 0;">Mã đặt lại mật khẩu của bạn</h3>
+                        <p style="color: #666;">Chào bạn,</p>
+                        <p style="color: #666;">Bạn đã yêu cầu đặt lại mật khẩu cho tài khoản Vitba.ai của mình. Mã đặt lại mật khẩu của bạn là:</p>
+                        
+                        <div style="background-color: #FFD700; color: #000; font-size: 32px; font-weight: bold; text-align: center; padding: 20px; border-radius: 8px; margin: 20px 0; letter-spacing: 5px;">
+                            {code}
+                        </div>
+                        
+                        <p style="color: #666;">Mã này sẽ hết hạn sau <strong>15 phút</strong>.</p>
+                        <p style="color: #666;">Nếu bạn không yêu cầu đặt lại mật khẩu, vui lòng bỏ qua email này.</p>
+                        
+                        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
+                            <p style="color: #999; font-size: 12px; margin: 0;">Đây là email tự động, vui lòng không trả lời.</p>
+                        </div>
+                    </div>
+                </div>
+            </body>
+            </html>
+            """
+
+            # Attach HTML content
+            html_part = MIMEText(html_content, "html")
+            msg.attach(html_part)
+
+            # Send email
+            with smtplib.SMTP(self.smtp_host, self.smtp_port) as server:
+                server.starttls()
+                server.login(self.smtp_username, self.smtp_password)
+                server.send_message(msg)
+
+            logger.info("Password reset email sent successfully to %s", email)
+            return True
+
+        except Exception as e:
+            logger.error("Failed to send password reset email to %s: %s", email, e)
+            return False
+
+    async def send_email(
+        self,
+        to: str,
+        subject: str,
+        html_content: str,
+        text_content: Optional[str] = None,
+    ) -> bool:
+        """Send generic email"""
+        if not self.enabled:
+            logger.warning("Email service not configured, skipping email send")
+            return False
+
+        try:
+            msg = MIMEMultipart("alternative")
+            msg["Subject"] = subject
+            msg["From"] = self.smtp_from
+            msg["To"] = to
+
+            # Attach text content if provided
+            if text_content:
+                text_part = MIMEText(text_content, "plain")
+                msg.attach(text_part)
+
+            # Attach HTML content
+            html_part = MIMEText(html_content, "html")
+            msg.attach(html_part)
+
+            # Send email
+            with smtplib.SMTP(self.smtp_host, self.smtp_port) as server:
+                server.starttls()
+                server.login(self.smtp_username, self.smtp_password)
+                server.send_message(msg)
+
+            logger.info("Email sent successfully to %s", to)
+            return True
+
+        except Exception as e:
+            logger.error("Failed to send email to %s: %s", to, e)
+            return False
+
+
+# Singleton instance
+email_service = EmailService()
