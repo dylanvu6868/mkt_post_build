@@ -43,6 +43,7 @@ interface ChatState {
   searchConversations: (q: string) => Promise<Conversation[]>;
 
   sendMessage: (content: string) => Promise<void>;
+  stopStreaming: () => void;
   setContentPanel: (panel: Partial<ChatState["contentPanel"]>) => void;
   startGeneration: (payload: any) => Promise<void>;
   setSidebarWidth: (width: number) => void;
@@ -51,6 +52,7 @@ interface ChatState {
 }
 
 let _typingInterval: ReturnType<typeof setInterval> | null = null;
+let _abortController: AbortController | null = null;
 
 function clearTypingInterval() {
   if (_typingInterval) {
@@ -127,6 +129,32 @@ export const useChatStore = create<ChatState>()(
     return api.get<Conversation[]>(`/conversations/search?q=${encodeURIComponent(q)}`);
   },
 
+  stopStreaming: () => {
+    if (_abortController) {
+      _abortController.abort();
+      _abortController = null;
+    }
+    clearTypingInterval();
+    const { streamContent, activeConversationId } = get();
+    if (streamContent) {
+      const aiMsg: ChatMessage = {
+        id: Date.now() + 1,
+        conversation_id: activeConversationId!,
+        role: "assistant",
+        content: streamContent,
+        metadata_json: null,
+        created_at: new Date().toISOString(),
+      };
+      set((s) => ({
+        messages: [...s.messages, aiMsg],
+        streaming: false,
+        streamContent: "",
+      }));
+    } else {
+      set({ streaming: false, streamContent: "" });
+    }
+  },
+
   sendMessage: async (content: string) => {
     const { activeConversationId } = get();
     if (!activeConversationId) return;
@@ -158,15 +186,23 @@ export const useChatStore = create<ChatState>()(
       }
     })();
 
+    _abortController = new AbortController();
     const baseUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
-    const res = await fetch(`${baseUrl}/chat/${activeConversationId}/send`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
-      body: JSON.stringify({ content }),
-    });
+    let res: Response;
+    try {
+      res = await fetch(`${baseUrl}/chat/${activeConversationId}/send`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ content }),
+        signal: _abortController.signal,
+      });
+    } catch {
+      set({ streaming: false });
+      return;
+    }
 
     if (!res.ok || !res.body) {
       set({ streaming: false });
@@ -178,7 +214,12 @@ export const useChatStore = create<ChatState>()(
     let fullContent = "";
 
     while (true) {
-      const { done, value } = await reader.read();
+      let done: boolean, value: Uint8Array | undefined;
+      try {
+        ({ done, value } = await reader.read());
+      } catch {
+        break;
+      }
       if (done) break;
 
       const text = decoder.decode(value, { stream: true });
@@ -222,6 +263,9 @@ export const useChatStore = create<ChatState>()(
         } catch {}
       }
     }
+
+    if (!get().streaming) return;
+    _abortController = null;
 
     const aiMsg: ChatMessage = {
       id: Date.now() + 1,

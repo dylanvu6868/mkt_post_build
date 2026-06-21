@@ -1,4 +1,5 @@
 import asyncio
+import base64
 import json
 import logging
 
@@ -91,16 +92,26 @@ async def _build_messages(session: AsyncSession, conversation_id: int, limit: in
     return [{"role": m.role, "content": m.content} for m in messages]
 
 
-async def _stream_llm(chat_messages: list[dict]):
+async def _stream_llm(chat_messages: list[dict], image_data: list[dict] | None = None):
     from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 
     model = get_chat_model("fast")
     lc_messages = []
-    for m in chat_messages:
+    for i, m in enumerate(chat_messages):
         if m["role"] == "system":
             lc_messages.append(SystemMessage(content=m["content"]))
         elif m["role"] == "user":
-            lc_messages.append(HumanMessage(content=m["content"]))
+            is_last_user = i == max(j for j, msg in enumerate(chat_messages) if msg["role"] == "user")
+            if is_last_user and image_data:
+                content_parts: list[dict] = [{"type": "text", "text": m["content"]}]
+                for img in image_data:
+                    content_parts.append({
+                        "type": "image_url",
+                        "image_url": {"url": f"data:{img['mime']};base64,{img['b64']}"},
+                    })
+                lc_messages.append(HumanMessage(content=content_parts))
+            else:
+                lc_messages.append(HumanMessage(content=m["content"]))
         else:
             lc_messages.append(AIMessage(content=m["content"]))
 
@@ -301,6 +312,40 @@ async def upload_chat_file(
     return {"document_id": doc.id, "status": "processing"}
 
 
+_pending_images: dict[int, list[dict]] = {}
+
+ALLOWED_IMAGE_TYPES = {"image/jpeg", "image/png", "image/webp", "image/gif"}
+MAX_IMAGE_SIZE = 5 * 1024 * 1024  # 5MB
+
+
+@router.post("/{conversation_id}/upload-image")
+async def upload_image(
+    conversation_id: int,
+    file: UploadFile,
+    current_user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+):
+    conv = await session.get(Conversation, conversation_id)
+    if conv is None or conv.user_id != current_user.id:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+
+    mime = file.content_type or "image/jpeg"
+    if mime not in ALLOWED_IMAGE_TYPES:
+        raise HTTPException(status_code=400, detail="Chỉ hỗ trợ ảnh JPG, PNG, WebP, GIF")
+
+    file_bytes = await file.read()
+    if len(file_bytes) > MAX_IMAGE_SIZE:
+        raise HTTPException(status_code=400, detail="Ảnh quá lớn (tối đa 5MB)")
+
+    b64 = base64.b64encode(file_bytes).decode("utf-8")
+
+    if conversation_id not in _pending_images:
+        _pending_images[conversation_id] = []
+    _pending_images[conversation_id].append({"b64": b64, "mime": mime, "name": file.filename or "image"})
+
+    return {"status": "ok", "filename": file.filename}
+
+
 @router.post("/{conversation_id}/send")
 async def send_message(
     conversation_id: int,
@@ -325,6 +370,8 @@ async def send_message(
 
     await session.commit()
 
+    image_data = _pending_images.pop(conversation_id, None)
+
     doc_context = ""
     try:
         from app.rag.embeddings import embed_query
@@ -337,11 +384,24 @@ async def send_message(
         logger.warning(f"RAG retrieval failed: {e}")
 
     history = await _build_messages(session, conversation_id)
-    chat_messages = [{"role": "system", "content": _build_system_prompt(current_user, doc_context)}] + history
+
+    system_prompt = _build_system_prompt(current_user, doc_context)
+    if image_data:
+        system_prompt += (
+            "\n\n## Ảnh đính kèm:\n"
+            "Người dùng đã gửi kèm ảnh. Hãy mô tả chi tiết nội dung ảnh và sử dụng thông tin đó "
+            "để trả lời hoặc tạo nội dung marketing phù hợp. Nếu ảnh chứa text, hãy đọc và trích xuất text đó."
+        )
+
+    chat_messages = [{"role": "system", "content": system_prompt}] + history
 
     async def event_stream():
         full_response = ""
-        stream = _stream_llm(chat_messages) if provider_available() else _mock_stream(chat_messages)
+        stream = (
+            _stream_llm(chat_messages, image_data=image_data)
+            if provider_available()
+            else _mock_stream(chat_messages)
+        )
         async for event in stream:
             if '"type": "done"' in event or '"type":"done"' in event:
                 data = json.loads(event.replace("data: ", "").strip())

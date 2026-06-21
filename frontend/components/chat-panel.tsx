@@ -623,7 +623,7 @@ function GeneratingIndicator({ streamContent }: { streamContent: string }) {
 export function ChatPanel() {
   const {
     messages, activeConversationId, streaming, streamContent,
-    sendMessage, createConversation, contentPanel, setContentPanel,
+    sendMessage, stopStreaming, createConversation, contentPanel, setContentPanel,
   } = useChatStore();
   const user = useAuthStore((s) => s.user);
   const router = useRouter();
@@ -632,12 +632,9 @@ export function ChatPanel() {
   const [showGuide, setShowGuide] = useState(false);
   const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
   const [attachedImages, setAttachedImages] = useState<File[]>([]);
-  const [showImageGen, setShowImageGen] = useState(false);
-  const [imagePrompt, setImagePrompt] = useState("");
-  const [imageModel, setImageModel] = useState("dalle3");
-  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
-  const [generatedImages, setGeneratedImages] = useState<{url: string; prompt: string}[]>([]);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const imageInputRef = useRef<HTMLInputElement>(null);
 
   const userPlan = normalizePlan(user?.plan);
   const canUse = useCallback((minPlan: PlanId) => PLAN_RANK[userPlan] >= PLAN_RANK[minPlan], [userPlan]);
@@ -654,12 +651,13 @@ export function ChatPanel() {
     const fileNames = [...attachedFiles, ...attachedImages].map(f => f.name);
     if (fileNames.length > 0) {
       const prefix = `[Đã đính kèm: ${fileNames.join(", ")}]`;
-      msg = msg ? `${prefix}\n${msg}` : prefix;
+      msg = msg ? `${prefix}\n${msg}` : `${prefix}\nHãy phân tích nội dung ảnh này và cho tôi biết bạn thấy gì.`;
     }
 
     setInput("");
     setAttachedFiles([]);
     setAttachedImages([]);
+    setImagePreviews([]);
 
     if (!activeConversationId) {
       await createConversation();
@@ -681,10 +679,7 @@ export function ChatPanel() {
       return;
     }
 
-    const newFiles = files.filter(f => !f.type.startsWith('image/'));
-    const newImages = files.filter(f => f.type.startsWith('image/'));
-
-    for (const file of newFiles) {
+    for (const file of files) {
       try {
         const formData = new FormData();
         formData.append('file', file);
@@ -695,53 +690,57 @@ export function ChatPanel() {
       }
     }
 
-    for (const img of newImages) {
+    if (fileInputRef.current) fileInputRef.current.value = "";
+    if (files.length > 0) toast.success(`Đã tải lên ${files.length} tài liệu`);
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+
+    let convId = activeConversationId;
+    if (!convId) {
+      await createConversation();
+      convId = useChatStore.getState().activeConversationId;
+    }
+    if (!convId) {
+      toast.error("Không thể tạo cuộc trò chuyện");
+      return;
+    }
+
+    for (const img of files) {
+      if (img.size > 5 * 1024 * 1024) {
+        toast.error(`${img.name} quá lớn (tối đa 5MB)`);
+        continue;
+      }
       try {
         const formData = new FormData();
         formData.append('file', img);
-        await api.post(`/chat/${convId}/upload`, formData);
+        await api.post(`/chat/${convId}/upload-image`, formData);
         setAttachedImages(prev => [...prev, img]);
+        const previewUrl = URL.createObjectURL(img);
+        setImagePreviews(prev => [...prev, previewUrl]);
+        toast.success(`Đã tải lên ${img.name}`);
       } catch {
         toast.error(`Không thể tải lên ${img.name}`);
       }
     }
-
-    if (fileInputRef.current) fileInputRef.current.value = "";
-    if (newFiles.length > 0) toast.success(`Đã tải lên ${newFiles.length} tài liệu`);
+    if (imageInputRef.current) imageInputRef.current.value = "";
   };
 
   const removeFile = (index: number, isImage: boolean) => {
     if (isImage) {
       setAttachedImages(prev => prev.filter((_, i) => i !== index));
+      setImagePreviews(prev => {
+        const removed = prev[index];
+        if (removed) URL.revokeObjectURL(removed);
+        return prev.filter((_, i) => i !== index);
+      });
     } else {
       setAttachedFiles(prev => prev.filter((_, i) => i !== index));
     }
   };
 
-  const handleGenerateImage = async () => {
-    if (!imagePrompt.trim()) return;
-    if (!canUse("pro")) {
-      toast.error("Tính năng gen ảnh chỉ có sẵn cho gói Pro và Max");
-      router.push("/pricing");
-      return;
-    }
-
-    setIsGeneratingImage(true);
-    try {
-      const data = await api.post<{ image_url: string; revised_prompt?: string }>("/images/generate", {
-        prompt: imagePrompt,
-        model: imageModel,
-      });
-      setGeneratedImages(prev => [...prev, { url: data.image_url, prompt: imagePrompt }]);
-      toast.success("Đã tạo ảnh thành công!");
-      setImagePrompt("");
-      setShowImageGen(false);
-    } catch (err: any) {
-      toast.error(err.message || "Không thể tạo ảnh");
-    } finally {
-      setIsGeneratingImage(false);
-    }
-  };
 
   const showInlineResult = !contentPanel.generating && contentPanel.result && !contentPanel.visible;
   const showGenerating = contentPanel.generating;
@@ -924,27 +923,6 @@ export function ChatPanel() {
           />
         )}
 
-        {/* Generated images */}
-        {generatedImages.map((img, i) => (
-          <motion.div key={i} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex justify-start w-full">
-            <div className="max-w-[90%] sm:max-w-[80%] rounded-[20px] border border-primary/20 bg-gradient-to-br from-primary/5 to-primary/[0.02] overflow-hidden shadow-[0_4px_24px_-8px_rgba(0,0,0,0.3)]">
-              <div className="flex items-center gap-2.5 px-5 py-3 border-b border-primary/10 bg-primary/5">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
-                <span className="text-[14px] font-semibold text-foreground">Ảnh AI</span>
-              </div>
-              <div className="p-4">
-                <img src={img.url} alt={img.prompt} className="rounded-[12px] max-w-full max-h-[400px] object-contain" />
-                <p className="mt-2 text-[12px] text-muted-foreground italic">{img.prompt}</p>
-              </div>
-              <div className="flex items-center gap-2 px-5 py-3 border-t border-primary/10 bg-background/50">
-                <a href={img.url} target="_blank" rel="noopener noreferrer" download className="flex items-center gap-1.5 rounded-[10px] border border-border px-3 py-1.5 text-[12px] font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-all">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
-                  Tải ảnh
-                </a>
-              </div>
-            </div>
-          </motion.div>
-        ))}
 
 
         <div ref={bottomRef} className="h-4" />
@@ -965,11 +943,17 @@ export function ChatPanel() {
               </div>
             ))}
             {attachedImages.map((file, i) => (
-              <div key={i} className="flex items-center gap-2 bg-muted rounded-lg px-3 py-1.5 text-[12px] text-foreground border border-border">
-                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
-                <span className="max-w-[150px] truncate">{file.name}</span>
-                <button onClick={() => removeFile(i, true)} className="text-muted-foreground hover:text-foreground">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              <div key={i} className="relative group">
+                {imagePreviews[i] ? (
+                  <img src={imagePreviews[i]} alt={file.name} className="h-14 w-14 rounded-lg object-cover border border-border" />
+                ) : (
+                  <div className="flex items-center gap-2 bg-muted rounded-lg px-3 py-1.5 text-[12px] text-foreground border border-border">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+                    <span className="max-w-[150px] truncate">{file.name}</span>
+                  </div>
+                )}
+                <button onClick={() => removeFile(i, true)} className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                 </button>
               </div>
             ))}
@@ -981,81 +965,59 @@ export function ChatPanel() {
             <input
               ref={fileInputRef}
               type="file"
-              accept=".pdf,.docx,.txt,.jpg,.jpeg,.png,.webp"
+              accept=".pdf,.docx,.txt"
               multiple
               className="hidden"
               onChange={handleFileUpload}
+            />
+            <input
+              ref={imageInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp,image/gif"
+              multiple
+              className="hidden"
+              onChange={handleImageUpload}
             />
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
               disabled={streaming}
               className="rounded-[16px] bg-muted hover:bg-accent text-muted-foreground hover:text-foreground h-[46px] w-[46px] flex items-center justify-center self-center disabled:opacity-50 transition-all duration-300"
-              title="Upload file"
+              title="Upload tài liệu"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             </button>
             <button
               type="button"
-              onClick={() => setShowImageGen(!showImageGen)}
+              onClick={() => imageInputRef.current?.click()}
               disabled={streaming}
               className="rounded-[16px] bg-muted hover:bg-accent text-muted-foreground hover:text-foreground h-[46px] w-[46px] flex items-center justify-center self-center disabled:opacity-50 transition-all duration-300"
-              title="Generate image"
+              title="Upload ảnh để AI phân tích"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
             </button>
             <input value={input} onChange={(e) => setInput(e.target.value)} placeholder="Gửi tin nhắn cho Vitba Agents..." disabled={streaming} className="flex-1 bg-transparent border-none px-5 py-3.5 text-[15px] text-foreground placeholder:text-foreground/30 focus:outline-none focus:ring-0 disabled:opacity-50" />
-            <button type="submit" disabled={!input.trim() || streaming} className="rounded-[16px] bg-primary text-primary-foreground hover:bg-primary/90 hover:scale-105 active:scale-95 h-[46px] w-[46px] flex items-center justify-center mr-0.5 self-center disabled:opacity-50 disabled:hover:scale-100 transition-all duration-300 shadow-[0_0_15px_rgba(255,213,74,0.3)]">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-            </button>
+            {streaming ? (
+              <button
+                type="button"
+                onClick={stopStreaming}
+                className="rounded-[16px] bg-destructive text-destructive-foreground hover:bg-destructive/90 hover:scale-105 active:scale-95 h-[46px] w-[46px] flex items-center justify-center mr-0.5 self-center transition-all duration-300 shadow-[0_0_15px_rgba(239,68,68,0.3)]"
+                title="Dừng trả lời"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2" /></svg>
+              </button>
+            ) : (
+              <button
+                type="submit"
+                disabled={!input.trim() && attachedImages.length === 0}
+                className="rounded-[16px] bg-primary text-primary-foreground hover:bg-primary/90 hover:scale-105 active:scale-95 h-[46px] w-[46px] flex items-center justify-center mr-0.5 self-center disabled:opacity-50 disabled:hover:scale-100 transition-all duration-300 shadow-[0_0_15px_rgba(255,213,74,0.3)]"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              </button>
+            )}
           </form>
         </div>
 
-        {/* Image Generation Panel */}
-        {showImageGen && (
-          <div className="max-w-4xl mx-auto mt-3 bg-card/80 backdrop-blur-xl rounded-[16px] p-4 border border-border shadow-lg">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-semibold text-foreground">Tạo ảnh với AI</h3>
-              <button onClick={() => setShowImageGen(false)} className="text-muted-foreground hover:text-foreground">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-              </button>
-            </div>
-            <div className="space-y-3">
-              <div className="flex gap-2">
-                <select
-                  value={imageModel}
-                  onChange={(e) => setImageModel(e.target.value)}
-                  disabled={isGeneratingImage}
-                  className="bg-muted border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 disabled:opacity-50"
-                >
-                  <option value="dalle3">DALL-E 3 (OpenAI)</option>
-                  <option value="sdxl">Stable Diffusion XL</option>
-                  <option value="flux">Flux</option>
-                </select>
-                <input
-                  value={imagePrompt}
-                  onChange={(e) => setImagePrompt(e.target.value)}
-                  placeholder="Mô tả ảnh bạn muốn tạo..."
-                  disabled={isGeneratingImage}
-                  className="flex-1 bg-muted border border-border rounded-lg px-4 py-2 text-sm text-foreground placeholder:text-foreground/30 focus:outline-none focus:ring-2 focus:ring-primary/50 disabled:opacity-50"
-                />
-                <button
-                  onClick={handleGenerateImage}
-                  disabled={!imagePrompt.trim() || isGeneratingImage}
-                  className="rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2 text-sm font-medium disabled:opacity-50 transition-all"
-                >
-                  {isGeneratingImage ? "Đang tạo..." : "Tạo"}
-                </button>
-              </div>
-              <p className="text-[11px] text-muted-foreground">
-                {canUse("pro") ? "Gói Pro/Max: 10-50 ảnh/ngày" : "Cần gói Pro để dùng tính năng này"}
-              </p>
-              <p className="text-[10px] text-muted-foreground">
-                DALL-E 3: Prompt hiểu tốt nhất | SDXL: Rẻ hơn, nhanh hơn | Flux: Chất lượng cao, mới
-              </p>
-            </div>
-          </div>
-        )}
 
         <div className="text-center mt-2">
           <span className="text-[11px] text-foreground/30">Vitba.ai &mdash; AI Marketing Assistant</span>

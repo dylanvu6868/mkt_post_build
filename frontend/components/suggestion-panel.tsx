@@ -3,13 +3,17 @@
 import { useChatStore } from "@/store/chat";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 
 export function SuggestionPanel() {
   const { suggestions, streaming, sendMessage, activeConversationId, messages } = useChatStore();
   const [selected, setSelected] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
+
+  const [pos, setPos] = useState({ x: 0, y: 0 });
+  const [dragging, setDragging] = useState(false);
+  const dragRef = useRef({ startX: 0, startY: 0, startPosX: 0, startPosY: 0, moved: false });
 
   const hasSuggestions = suggestions.length > 0 && !streaming;
 
@@ -26,6 +30,27 @@ export function SuggestionPanel() {
     if (open) document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [open]);
+
+  const handlePointerDown = useCallback((e: React.PointerEvent) => {
+    dragRef.current = { startX: e.clientX, startY: e.clientY, startPosX: pos.x, startPosY: pos.y, moved: false };
+    setDragging(true);
+    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+  }, [pos]);
+
+  const handlePointerMove = useCallback((e: React.PointerEvent) => {
+    if (!dragging) return;
+    const dx = e.clientX - dragRef.current.startX;
+    const dy = e.clientY - dragRef.current.startY;
+    if (Math.abs(dx) > 3 || Math.abs(dy) > 3) dragRef.current.moved = true;
+    setPos({ x: dragRef.current.startPosX + dx, y: dragRef.current.startPosY + dy });
+  }, [dragging]);
+
+  const handlePointerUp = useCallback(() => {
+    setDragging(false);
+    if (!dragRef.current.moved) {
+      setOpen(prev => !prev);
+    }
+  }, []);
 
   if (!activeConversationId) return null;
 
@@ -48,7 +73,11 @@ export function SuggestionPanel() {
   const showBadge = hasSuggestions || streaming;
 
   return (
-    <div ref={panelRef} className="fixed bottom-24 right-6 z-50">
+    <div
+      ref={panelRef}
+      className="fixed bottom-24 right-6 z-50"
+      style={{ transform: `translate(${pos.x}px, ${pos.y}px)` }}
+    >
       {/* Popup */}
       <AnimatePresence>
         {open && (hasSuggestions || streaming) && (
@@ -129,23 +158,24 @@ export function SuggestionPanel() {
         )}
       </AnimatePresence>
 
-      {/* Floating Button */}
-      <motion.button
-        whileHover={{ scale: 1.08 }}
-        whileTap={{ scale: 0.92 }}
-        onClick={() => setOpen(!open)}
+      {/* Floating Draggable Button */}
+      <div
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
         className={cn(
-          "relative w-[52px] h-[52px] rounded-full flex items-center justify-center transition-all duration-300 shadow-lg",
+          "relative w-[52px] h-[52px] rounded-full flex items-center justify-center transition-shadow duration-300 shadow-lg select-none touch-none",
+          dragging ? "cursor-grabbing" : "cursor-grab",
           open
             ? "bg-primary shadow-[0_0_24px_rgba(255,213,74,0.4)]"
             : "bg-card border border-border hover:border-primary/40 hover:shadow-[0_0_20px_rgba(255,213,74,0.2)]"
         )}
       >
-        <img src="/logo.png" alt="Vitba Agents" className="h-7 w-7 object-contain" />
+        <img src="/logo.png" alt="Vitba Agents" className="h-7 w-7 object-contain pointer-events-none" draggable={false} />
 
         {/* Badge */}
         {showBadge && !open && (
-          <span className="absolute -top-1 -right-1 flex h-5 w-5">
+          <span className="absolute -top-1 -right-1 flex h-5 w-5 pointer-events-none">
             {streaming ? (
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-60" />
             ) : null}
@@ -154,7 +184,7 @@ export function SuggestionPanel() {
             </span>
           </span>
         )}
-      </motion.button>
+      </div>
     </div>
   );
 }
