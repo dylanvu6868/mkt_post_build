@@ -105,16 +105,6 @@ export function ChatSidebar() {
               Vitba.ai
             </h1>
             <ThemeToggle />
-            {userPlan !== "max" && (
-            <button
-              onClick={() => router.push("/pricing")}
-              title="Nâng gói"
-              className="relative flex h-8 items-center gap-1 rounded-full bg-gradient-to-r from-yellow-400 to-amber-500 px-2.5 text-[11px] font-bold text-amber-950 hover:from-yellow-300 hover:to-amber-400 transition-all duration-200 shadow-sm hover:shadow-md hover:shadow-yellow-500/25"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
-              Nâng gói
-            </button>
-            )}
           </div>
           <div className="flex items-center gap-1">
             <button
