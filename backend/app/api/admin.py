@@ -383,6 +383,98 @@ async def list_content(
     ]
 
 
+@router.get("/plan-stats")
+async def plan_stats(session: AsyncSession = Depends(get_session)):
+    rows = (
+        await session.execute(
+            select(User.plan, func.count(User.id)).group_by(User.plan)
+        )
+    ).all()
+    dist = {r[0] or "free": r[1] for r in rows}
+    expired = (
+        await session.execute(
+            select(func.count(User.id)).where(
+                User.plan != "free",
+                User.plan_expires_at.isnot(None),
+                User.plan_expires_at < datetime.now(timezone.utc),
+            )
+        )
+    ).scalar() or 0
+    return {"distribution": dist, "expired_subscriptions": expired}
+
+
+@router.post("/bulk-plan")
+async def bulk_set_plan(
+    body: dict,
+    session: AsyncSession = Depends(get_session),
+    admin: User = Depends(require_admin),
+):
+    plan = body.get("plan", "").lower()
+    if plan not in VALID_PLANS:
+        raise HTTPException(status_code=400, detail=f"Invalid plan. Must be one of: {', '.join(VALID_PLANS)}")
+
+    trial_days = body.get("trial_days")
+    user_ids: list[int] | None = body.get("user_ids")
+    exclude_admins = body.get("exclude_admins", True)
+
+    expires_at = None
+    if plan != "free" and trial_days:
+        try:
+            expires_at = datetime.now(timezone.utc) + timedelta(days=int(trial_days))
+        except (ValueError, TypeError):
+            raise HTTPException(status_code=400, detail="trial_days must be an integer")
+
+    query = select(User)
+    if user_ids:
+        query = query.where(User.id.in_(user_ids))
+    if exclude_admins:
+        query = query.where(User.is_admin == False)  # noqa: E712
+
+    result = await session.execute(query)
+    users = result.scalars().all()
+
+    count = 0
+    for u in users:
+        u.plan = plan
+        u.plan_expires_at = expires_at if plan != "free" else None
+        count += 1
+
+    await session.commit()
+    logger.info(
+        "Admin %s bulk-set %d users to plan=%s trial_days=%s",
+        admin.email, count, plan, trial_days,
+    )
+    return {
+        "updated": count,
+        "plan": plan,
+        "expires_at": expires_at.isoformat() if expires_at else None,
+    }
+
+
+@router.post("/bulk-reset-expired")
+async def bulk_reset_expired(
+    session: AsyncSession = Depends(get_session),
+    admin: User = Depends(require_admin),
+):
+    now = datetime.now(timezone.utc)
+    result = await session.execute(
+        select(User).where(
+            User.plan != "free",
+            User.plan_expires_at.isnot(None),
+            User.plan_expires_at < now,
+        )
+    )
+    users = result.scalars().all()
+    count = 0
+    for u in users:
+        u.plan = "free"
+        u.plan_expires_at = None
+        count += 1
+    await session.commit()
+    logger.info("Admin %s reset %d expired users to free", admin.email, count)
+    return {"reset": count}
+
+
 @router.delete("/content/{content_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_content(
     content_id: int,
