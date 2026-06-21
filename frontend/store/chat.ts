@@ -50,6 +50,15 @@ interface ChatState {
   toggleLeftSidebar: () => void;
 }
 
+let _typingInterval: ReturnType<typeof setInterval> | null = null;
+
+function clearTypingInterval() {
+  if (_typingInterval) {
+    clearInterval(_typingInterval);
+    _typingInterval = null;
+  }
+}
+
 export const useChatStore = create<ChatState>()(
   persist(
     (set, get) => ({
@@ -121,6 +130,8 @@ export const useChatStore = create<ChatState>()(
   sendMessage: async (content: string) => {
     const { activeConversationId } = get();
     if (!activeConversationId) return;
+
+    clearTypingInterval();
 
     const userMsg: ChatMessage = {
       id: Date.now(),
@@ -320,14 +331,15 @@ export const useChatStore = create<ChatState>()(
               }
 
               set({ streamContent: "" });
-              
+              clearTypingInterval();
+
               let i = 0;
-              const typeInterval = setInterval(() => {
+              _typingInterval = setInterval(() => {
                 if (i < draftText.length) {
                   set((s) => ({ streamContent: s.streamContent + draftText.charAt(i) }));
                   i++;
                 } else {
-                  clearInterval(typeInterval);
+                  clearTypingInterval();
                   set({
                     contentPanel: { visible: false, generating: false, result: { ...statusData.result, _contentType: payload.content_type } },
                     streamContent: "",
