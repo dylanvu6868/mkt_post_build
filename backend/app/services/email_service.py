@@ -36,7 +36,7 @@ class EmailService:
                     "Content-Type": "application/json",
                 },
                 json={
-                    "from": f"Vitba.ai <{self.smtp_from or 'onboarding@resend.dev'}>",
+                    "from": "Vitba.ai <onboarding@resend.dev>",
                     "to": [to],
                     "subject": subject,
                     "html": html,
