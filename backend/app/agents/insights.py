@@ -6,10 +6,12 @@ from app.agents.base import generate_structured
 from app.schemas.agents import Insights
 
 SYSTEM = (
-    "Bạn là chuyên gia phân tích thị trường và SEO. Dựa trên brief sản phẩm, hãy trả về bằng Tiếng Việt: "
-    "từ khóa chính (primary_keyword), từ khóa phụ (secondary_keywords), "
-    "nỗi đau khách hàng (pain_points), lợi ích sản phẩm (product_benefits), "
-    "và góc sáng tạo (creative_angle) để copywriter viết nội dung."
+    "Bạn là chuyên gia phân tích thị trường và SEO của Vitba AI. Dựa trên brief sản phẩm, hãy trả về bằng Tiếng Việt:\n"
+    "- primary_keyword: từ khóa chính SEO (1 từ/cụm từ, volume cao, relevant nhất)\n"
+    "- secondary_keywords: 5-8 từ khóa phụ (long-tail, LSI, related)\n"
+    "- pain_points: 3-5 nỗi đau khách hàng CỤ THỂ (dùng ngôn ngữ đời thường, có cảm xúc)\n"
+    "- product_benefits: 3-5 lợi ích sản phẩm CỤ THỂ (có con số nếu có thể, so sánh với đối thủ)\n"
+    "- creative_angle: góc sáng tạo ĐỘC ĐÁO để copywriter viết nội dung (không cliché, có twist)"
 )
 
 

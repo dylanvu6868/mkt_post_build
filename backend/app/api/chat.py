@@ -1,5 +1,6 @@
 import asyncio
 import base64
+import io
 import json
 import logging
 
@@ -9,6 +10,7 @@ from sqlalchemy import select, desc
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from app.api.deps import get_current_user
+from app.core.config import settings
 from app.core.db import get_session, get_session_maker
 from app.core.plan_limits import get_limits, get_user_plan
 from app.llm.factory import get_chat_model, provider_available
@@ -21,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/chat", tags=["chat"])
 
-SYSTEM_PROMPT = """Bạn là một trợ lý AI Marketing chuyên nghiệp. Nhiệm vụ của bạn là giúp người dùng tạo nội dung marketing chất lượng cao thông qua trò chuyện.
+SYSTEM_PROMPT = """Bạn là trợ lý AI Marketing chuyên nghiệp của Vitba AI. Nhiệm vụ: giúp người dùng tạo nội dung marketing chất lượng cao qua trò chuyện.
 
 ## Nguyên tắc TỐC ĐỘ LÀ TRÊN HẾT:
 - Nếu người dùng đã cung cấp đủ: loại nội dung + sản phẩm/dịch vụ → GENERATE NGAY LẬP TỨC, không hỏi thêm.
@@ -29,10 +31,25 @@ SYSTEM_PROMPT = """Bạn là một trợ lý AI Marketing chuyên nghiệp. Nhi�
 - Nếu người dùng nói "viết luôn", "viết ngay", "generate", "tạo ngay" → generate NGAY, không hỏi gì thêm.
 
 ## Cách kích hoạt hệ thống sinh nội dung:
-Trả về khối JSON đặc biệt:
+Trả về khối JSON đặc biệt với ĐẦY ĐỦ thông tin thu thập được:
 ```generate
-{"content_type": "facebook_post", "brief": "mô tả ngắn gọn yêu cầu", "marketing_goal": "mục tiêu marketing"}
+{"content_type": "facebook_post", "brief": "mô tả CHI TIẾT yêu cầu, bao gồm thông tin sản phẩm, USP, đặc điểm nổi bật", "marketing_goal": "mục tiêu marketing cụ thể", "industry": "ngành nghề nếu biết", "target_audience": "đối tượng khách hàng nếu biết", "tone": "giọng văn nếu biết", "cta_text": "CTA mong muốn nếu biết", "custom_structure": null}
 ```
+
+### Các trường trong khối generate:
+- content_type (BẮT BUỘC): loại nội dung
+- brief (BẮT BUỘC): mô tả CHI TIẾT, CÀNG DÀI CÀNG TỐT — gộp tất cả thông tin người dùng cung cấp về sản phẩm, tính năng, USP, giá, ưu đãi vào đây
+- marketing_goal: mục tiêu cụ thể (vd: "Tăng reach và engagement", "Chốt sale", "Thu lead")
+- industry: ngành nghề (vd: "F&B", "Công nghệ", "Giáo dục", "Bất động sản")
+- target_audience: đối tượng KH (vd: "Gen Z 18-25", "Chủ doanh nghiệp SME", "Mẹ bỉm sữa")
+- tone: giọng văn (vd: "Chuyên nghiệp", "Thân thiện", "Hài hước", "Truyền cảm hứng")
+- cta_text: CTA cụ thể nếu người dùng yêu cầu
+- custom_structure: cấu trúc tùy chỉnh nếu người dùng yêu cầu dạng khác framework mặc định (để null nếu không có)
+
+### QUAN TRỌNG về brief:
+Brief phải CHỨA ĐẦY ĐỦ thông tin: tên sản phẩm, đặc điểm, USP, giá (nếu có), ưu đãi (nếu có), bối cảnh. Ví dụ ĐÚNG:
+- brief: "Khóa học Digital Marketing online 3 tháng của Vitba Academy, giá 2.990.000đ (giảm 40% từ 4.990.000đ), dành cho người mới bắt đầu, cam kết việc làm, mentor 1-1, có chứng chỉ"
+- KHÔNG: brief: "khóa học marketing"
 
 Các content_type hợp lệ: facebook_post, seo_blog, email, landing_page, tiktok_script, marketing_plan
 
@@ -45,8 +62,9 @@ Các content_type hợp lệ: facebook_post, seo_blog, email, landing_page, tikt
 - "kế hoạch", "chiến dịch", "campaign", "marketing plan" → marketing_plan
 
 ## Sau khi generate:
-- Hỏi người dùng có muốn chỉnh sửa gì không (giọng điệu, CTA, hashtag, v.v.)
+- Hỏi người dùng có muốn chỉnh sửa gì không (giọng điệu, CTA, hashtag, framework khác, v.v.)
 - Nếu muốn chỉnh → generate lại với brief cập nhật
+- Nếu người dùng muốn dùng framework khác hoặc cấu trúc riêng → generate lại với custom_structure
 
 ## Quy tắc:
 - KHÔNG BAO GIỜ tự viết bài trong chat. LUÔN dùng khối ```generate``` để hệ thống Vitba Agents làm việc đó.
@@ -92,26 +110,74 @@ async def _build_messages(session: AsyncSession, conversation_id: int, limit: in
     return [{"role": m.role, "content": m.content} for m in messages]
 
 
-async def _stream_llm(chat_messages: list[dict], image_data: list[dict] | None = None):
+async def _analyze_images(image_data: list[dict]) -> str:
+    """Use a vision-capable model to describe images, fallback to metadata."""
+    from PIL import Image
+
+    if settings.openai_api_key:
+        try:
+            from langchain_openai import ChatOpenAI
+            from langchain_core.messages import HumanMessage as HMsg
+
+            vision_model = ChatOpenAI(
+                model="gpt-4o-mini",
+                api_key=settings.openai_api_key,
+                max_tokens=1024,
+                timeout=30,
+            )
+            content_parts: list[dict] = [
+                {"type": "text", "text": "Mô tả chi tiết nội dung từng ảnh bằng tiếng Việt. Nếu có chữ trong ảnh, trích xuất toàn bộ text."}
+            ]
+            for img in image_data:
+                content_parts.append({
+                    "type": "image_url",
+                    "image_url": {"url": f"data:{img['mime']};base64,{img['b64']}"},
+                })
+            resp = await vision_model.ainvoke([HMsg(content=content_parts)])
+            return resp.content
+        except Exception as e:
+            logger.warning(f"Vision analysis failed, falling back to metadata: {e}")
+
+    descriptions = []
+    for img in image_data:
+        try:
+            raw = base64.b64decode(img["b64"])
+            pil_img = Image.open(io.BytesIO(raw))
+            w, h = pil_img.size
+            descriptions.append(f"Ảnh \"{img['name']}\": {w}x{h}px, định dạng {pil_img.format or img['mime']}")
+        except Exception:
+            descriptions.append(f"Ảnh \"{img['name']}\" (không đọc được metadata)")
+    return "Người dùng gửi ảnh nhưng hệ thống không có vision model để phân tích. Thông tin ảnh:\n" + "\n".join(descriptions)
+
+
+def _resize_for_upload(file_bytes: bytes, mime: str, max_side: int = 1024) -> tuple[bytes, str]:
+    """Resize image if too large, return (bytes, mime)."""
+    try:
+        from PIL import Image
+
+        img = Image.open(io.BytesIO(file_bytes))
+        if max(img.size) <= max_side:
+            return file_bytes, mime
+        img.thumbnail((max_side, max_side), Image.LANCZOS)
+        buf = io.BytesIO()
+        fmt = "JPEG" if mime in ("image/jpeg", "image/gif") else "PNG"
+        out_mime = "image/jpeg" if fmt == "JPEG" else "image/png"
+        img.save(buf, format=fmt, quality=85)
+        return buf.getvalue(), out_mime
+    except Exception:
+        return file_bytes, mime
+
+
+async def _stream_llm(chat_messages: list[dict]):
     from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 
     model = get_chat_model("fast")
     lc_messages = []
-    for i, m in enumerate(chat_messages):
+    for m in chat_messages:
         if m["role"] == "system":
             lc_messages.append(SystemMessage(content=m["content"]))
         elif m["role"] == "user":
-            is_last_user = i == max(j for j, msg in enumerate(chat_messages) if msg["role"] == "user")
-            if is_last_user and image_data:
-                content_parts: list[dict] = [{"type": "text", "text": m["content"]}]
-                for img in image_data:
-                    content_parts.append({
-                        "type": "image_url",
-                        "image_url": {"url": f"data:{img['mime']};base64,{img['b64']}"},
-                    })
-                lc_messages.append(HumanMessage(content=content_parts))
-            else:
-                lc_messages.append(HumanMessage(content=m["content"]))
+            lc_messages.append(HumanMessage(content=m["content"]))
         else:
             lc_messages.append(AIMessage(content=m["content"]))
 
@@ -236,7 +302,7 @@ async def _process_chat_upload(
     from pathlib import Path
     from app.rag.extract import extract_text
     from app.rag.chunk import chunk_text
-    from app.rag.embeddings import embed_texts
+    from app.rag.embeddings import embed_texts, sparse_embed_texts
     from app.rag.qdrant_store import upsert_chunks_with_conv
     from app.core.config import settings
 
@@ -253,8 +319,10 @@ async def _process_chat_upload(
                 chunks = chunk_text(text, chunk_size=settings.rag_chunk_size, overlap=settings.rag_chunk_overlap)
                 if chunks:
                     vectors = await asyncio.to_thread(embed_texts, chunks)
+                    sparse_vecs = await asyncio.to_thread(sparse_embed_texts, chunks)
                     await asyncio.to_thread(
-                        upsert_chunks_with_conv, project_id, document_id, conversation_id, chunks, vectors
+                        upsert_chunks_with_conv, project_id, document_id, conversation_id,
+                        chunks, vectors, sparse_vecs,
                     )
         finally:
             tmp_path.unlink(missing_ok=True)
@@ -309,7 +377,25 @@ async def upload_chat_file(
         file_bytes, filename, project.id, doc.id, conversation_id, session_maker,
     )
 
-    return {"document_id": doc.id, "status": "processing"}
+    return {"document_id": doc.id, "status": "processing", "conversation_id": conversation_id}
+
+
+@router.get("/{conversation_id}/upload/{document_id}/status")
+async def check_upload_status(
+    conversation_id: int,
+    document_id: int,
+    current_user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+):
+    from app.models.document import Document
+
+    conv = await session.get(Conversation, conversation_id)
+    if conv is None or conv.user_id != current_user.id:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+    doc = await session.get(Document, document_id)
+    if doc is None:
+        raise HTTPException(status_code=404, detail="Document not found")
+    return {"document_id": doc.id, "status": doc.status}
 
 
 _pending_images: dict[int, list[dict]] = {}
@@ -337,6 +423,7 @@ async def upload_image(
     if len(file_bytes) > MAX_IMAGE_SIZE:
         raise HTTPException(status_code=400, detail="Ảnh quá lớn (tối đa 5MB)")
 
+    file_bytes, mime = await asyncio.to_thread(_resize_for_upload, file_bytes, mime)
     b64 = base64.b64encode(file_bytes).decode("utf-8")
 
     if conversation_id not in _pending_images:
@@ -372,12 +459,34 @@ async def send_message(
 
     image_data = _pending_images.pop(conversation_id, None)
 
+    image_description = ""
+    if image_data:
+        try:
+            image_description = await _analyze_images(image_data)
+        except Exception as e:
+            logger.warning(f"Image analysis failed: {e}")
+            image_description = "Không thể phân tích ảnh."
+
     doc_context = ""
     try:
-        from app.rag.embeddings import embed_query
-        from app.rag.qdrant_store import retrieve_by_conversation
+        from app.rag.embeddings import embed_query, sparse_embed_query
+        from app.rag.qdrant_store import retrieve_by_conversation, retrieve
         query_vec = await asyncio.to_thread(embed_query, payload.content)
-        chunks = await asyncio.to_thread(retrieve_by_conversation, conversation_id, query_vec)
+        query_sparse = await asyncio.to_thread(sparse_embed_query, payload.content)
+        chunks = await asyncio.to_thread(
+            retrieve_by_conversation, conversation_id, query_vec,
+            query_sparse=query_sparse, query_text=payload.content,
+        )
+        proj_result = await session.execute(select(Project).where(Project.user_id == current_user.id).limit(1))
+        proj = proj_result.scalar_one_or_none()
+        if proj:
+            project_chunks = await asyncio.to_thread(
+                retrieve, proj.id, query_vec,
+                query_sparse=query_sparse, query_text=payload.content,
+            )
+            for c in project_chunks:
+                if c not in chunks:
+                    chunks.append(c)
         if chunks:
             doc_context = "\n---\n".join(chunks)
     except Exception as e:
@@ -386,11 +495,11 @@ async def send_message(
     history = await _build_messages(session, conversation_id)
 
     system_prompt = _build_system_prompt(current_user, doc_context)
-    if image_data:
+    if image_description:
         system_prompt += (
-            "\n\n## Ảnh đính kèm:\n"
-            "Người dùng đã gửi kèm ảnh. Hãy mô tả chi tiết nội dung ảnh và sử dụng thông tin đó "
-            "để trả lời hoặc tạo nội dung marketing phù hợp. Nếu ảnh chứa text, hãy đọc và trích xuất text đó."
+            "\n\n## Nội dung ảnh đính kèm (đã được phân tích):\n"
+            f"{image_description}\n\n"
+            "Hãy sử dụng thông tin ảnh ở trên để trả lời hoặc tạo nội dung marketing phù hợp."
         )
 
     chat_messages = [{"role": "system", "content": system_prompt}] + history
@@ -398,7 +507,7 @@ async def send_message(
     async def event_stream():
         full_response = ""
         stream = (
-            _stream_llm(chat_messages, image_data=image_data)
+            _stream_llm(chat_messages)
             if provider_available()
             else _mock_stream(chat_messages)
         )

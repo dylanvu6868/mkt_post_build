@@ -10,6 +10,12 @@ class GraphState(TypedDict, total=False):
     marketing_goal: str
     brand_profile: dict[str, Any]
     user_plan: str
+    # extra context from chat
+    industry: str
+    target_audience: str
+    tone: str
+    cta_text: str
+    custom_structure: str | None
     # agent outputs (stored as JSON-serializable dicts)
     insights: dict[str, Any]
     draft: dict[str, Any]

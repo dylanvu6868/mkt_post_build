@@ -56,8 +56,11 @@ class Settings(BaseSettings):
     # RAG (M3)
     qdrant_collection_name: str = "marketing_docs"
     embedding_model: str = "BAAI/bge-small-en-v1.5"
-    rag_chunk_size: int = 800
-    rag_chunk_overlap: int = 100
+    sparse_embedding_model: str = "Qdrant/bm25"
+    reranker_model: str = "Xenova/ms-marco-MiniLM-L-6-v2"
+    rag_chunk_size: int = 500
+    rag_chunk_overlap: int = 50
+    rag_retrieve_k: int = 20
     rag_top_k: int = 5
 
 

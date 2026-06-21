@@ -6,6 +6,11 @@ class GenerateRequest(BaseModel):
     content_type: str = Field(default="facebook_post", max_length=50)
     brief: str = Field(min_length=3, max_length=2000)
     marketing_goal: str = Field(default="", max_length=500)
+    industry: str = Field(default="", max_length=200)
+    target_audience: str = Field(default="", max_length=500)
+    tone: str = Field(default="", max_length=200)
+    cta_text: str = Field(default="", max_length=500)
+    custom_structure: str | None = Field(default=None, max_length=2000)
 
 
 class JobResponse(BaseModel):

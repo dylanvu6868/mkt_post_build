@@ -3,7 +3,7 @@ from pathlib import Path
 
 from app.core.config import settings
 from app.rag.chunk import chunk_text
-from app.rag.embeddings import embed_texts
+from app.rag.embeddings import embed_texts, sparse_embed_texts
 from app.rag.extract import extract_text
 from app.rag.qdrant_store import upsert_chunks
 
@@ -38,7 +38,8 @@ async def ingest_document(
             return 0
 
         vectors = embed_texts(chunks)
-        upsert_chunks(project_id, document_id, chunks, vectors)
+        sparse_vecs = sparse_embed_texts(chunks)
+        upsert_chunks(project_id, document_id, chunks, vectors, sparse_vectors=sparse_vecs)
         return len(chunks)
     finally:
         tmp_path.unlink(missing_ok=True)

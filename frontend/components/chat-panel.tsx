@@ -683,15 +683,30 @@ export function ChatPanel() {
       try {
         const formData = new FormData();
         formData.append('file', file);
-        await api.post(`/chat/${convId}/upload`, formData);
-        setAttachedFiles(prev => [...prev, file]);
+        const res = await api.post<{ document_id: number; status: string; conversation_id: number }>(`/chat/${convId}/upload`, formData);
+        toast.info(`Đang xử lý ${file.name}...`);
+        const docId = res.document_id;
+        let ready = false;
+        for (let i = 0; i < 30; i++) {
+          await new Promise(r => setTimeout(r, 1000));
+          try {
+            const s = await api.get<{ status: string }>(`/chat/${convId}/upload/${docId}/status`);
+            if (s.status === "ready") { ready = true; break; }
+            if (s.status === "failed") break;
+          } catch { break; }
+        }
+        if (ready) {
+          setAttachedFiles(prev => [...prev, file]);
+          toast.success(`${file.name} đã sẵn sàng`);
+        } else {
+          toast.error(`Không thể xử lý ${file.name}`);
+        }
       } catch {
         toast.error(`Không thể tải lên ${file.name}`);
       }
     }
 
     if (fileInputRef.current) fileInputRef.current.value = "";
-    if (files.length > 0) toast.success(`Đã tải lên ${files.length} tài liệu`);
   };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
