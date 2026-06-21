@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useChatStore } from "@/store/chat";
 import { useAuthStore } from "@/store/auth";
@@ -12,7 +12,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { SettingsModal } from "./settings-modal";
 
 export function ChatSidebar() {
-  const { conversations, activeConversationId, loadConversations, createConversation, selectConversation, deleteConversation, renameConversation, pinConversation, sidebarWidth, setSidebarWidth, leftSidebarCollapsed, toggleLeftSidebar } = useChatStore();
+  const { conversations, activeConversationId, loadConversations, createConversation, selectConversation, deleteConversation, renameConversation, pinConversation, sidebarWidth, leftSidebarCollapsed, toggleLeftSidebar } = useChatStore();
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
   const router = useRouter();
@@ -24,8 +24,6 @@ export function ChatSidebar() {
   const [editTitle, setEditTitle] = useState("");
   const [menuId, setMenuId] = useState<number | null>(null);
   const [open, setOpen] = useState(false);
-  const [isResizing, setIsResizing] = useState(false);
-  const sidebarRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     loadConversations();
@@ -37,29 +35,6 @@ export function ChatSidebar() {
     window.addEventListener("toggle-sidebar", toggle);
     return () => window.removeEventListener("toggle-sidebar", toggle);
   }, [toggle]);
-
-  const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    setIsResizing(true);
-    const startX = e.clientX;
-    const startWidth = sidebarWidth;
-
-    const handleMouseMove = (e: MouseEvent) => {
-      const newWidth = startWidth + (e.clientX - startX);
-      if (newWidth >= 200 && newWidth <= 500) {
-        setSidebarWidth(newWidth);
-      }
-    };
-
-    const handleMouseUp = () => {
-      setIsResizing(false);
-      document.removeEventListener("mousemove", handleMouseMove);
-      document.removeEventListener("mouseup", handleMouseUp);
-    };
-
-    document.addEventListener("mousemove", handleMouseMove);
-    document.addEventListener("mouseup", handleMouseUp);
-  }, [sidebarWidth, setSidebarWidth]);
 
   const filtered = search
     ? conversations.filter((c) => c.title.toLowerCase().includes(search.toLowerCase()))
@@ -103,13 +78,22 @@ export function ChatSidebar() {
         )}
       </AnimatePresence>
 
+      {/* Floating toggle to re-open the sidebar once it's collapsed (desktop only) */}
+      {leftSidebarCollapsed && (
+        <button
+          onClick={toggleLeftSidebar}
+          title="Mở sidebar"
+          className="hidden md:flex fixed left-3 top-3 z-50 h-9 w-9 items-center justify-center rounded-full border border-border bg-card/95 backdrop-blur-xl text-muted-foreground hover:bg-accent hover:text-foreground transition-colors shadow-lg"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/><path d="m14 9 3 3-3 3"/></svg>
+        </button>
+      )}
+
       <aside
-        ref={sidebarRef}
         className={cn(
-          "flex h-screen flex-col border-r border-border bg-background/95 backdrop-blur-2xl transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]",
+          "flex h-screen flex-col border-r border-border bg-background/95 backdrop-blur-2xl transition-[transform,width] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]",
           "fixed z-50 md:relative md:z-auto",
-          leftSidebarCollapsed ? "w-0 overflow-hidden" : "",
-          !leftSidebarCollapsed && `w-[${sidebarWidth}px]`,
+          leftSidebarCollapsed ? "overflow-hidden border-r-0" : "",
           open ? "translate-x-0 shadow-2xl" : "-translate-x-full md:translate-x-0"
         )}
         style={{ width: leftSidebarCollapsed ? 0 : sidebarWidth }}
@@ -136,15 +120,9 @@ export function ChatSidebar() {
             <button
               onClick={toggleLeftSidebar}
               className="hidden md:flex rounded-full p-2 hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
-              title={leftSidebarCollapsed ? "Mở sidebar" : "Đóng sidebar"}
+              title="Đóng sidebar"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                {leftSidebarCollapsed ? (
-                  <><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/><path d="m14 9 3 3-3 3"/></>
-                ) : (
-                  <><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/><path d="m15 15-3-3 3-3"/></>
-                )}
-              </svg>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/><path d="m15 15-3-3 3-3"/></svg>
             </button>
             <button onClick={() => setOpen(false)} className="rounded-full p-2 hover:bg-accent md:hidden text-muted-foreground hover:text-foreground transition-colors">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -239,17 +217,6 @@ export function ChatSidebar() {
             </div>
           </div>
         </div>
-
-        {/* Resize Handle */}
-        {!leftSidebarCollapsed && (
-          <div
-            onMouseDown={handleMouseDown}
-            className={cn(
-              "absolute right-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-primary/20 transition-colors z-10",
-              isResizing && "bg-primary/30"
-            )}
-          />
-        )}
       </aside>
     </>
   );

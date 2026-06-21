@@ -12,14 +12,17 @@ from app.core.rate_limit import limiter
 from app.core.security import create_access_token
 from app.models.user import User
 from app.schemas.auth import (
+    ForgotPasswordRequest,
     LoginRequest,
     OAuthRequest,
     RegisterRequest,
+    ResetPasswordRequest,
     TokenResponse,
     UserResponse,
     user_to_response,
 )
 from app.services import auth_service
+from app.services.email_service import email_service
 from app.services.oauth_service import find_or_create_oauth_user, verify_facebook_token, verify_google_token
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -142,3 +145,58 @@ async def get_my_limits(
         },
         "usage": usage,
     }
+
+
+@router.post("/forgot-password")
+@limiter.limit("3/minute")
+async def forgot_password(
+    request: Request,
+    payload: ForgotPasswordRequest,
+    session: AsyncSession = Depends(get_session),
+):
+    user = await auth_service.get_user_by_email(session, payload.email)
+    if user is None:
+        # Don't reveal if email exists or not for security
+        logger.info("Forgot password requested for non-existent email=%s", payload.email)
+        return {"message": "If the email exists, a reset code has been sent"}
+
+    # Generate and store reset code
+    reset_code = await auth_service.create_password_reset_code(session, user.id)
+    logger.info("Password reset code generated for user_id=%s email=%s", user.id, user.email)
+
+    # Send email with reset code
+    email_sent = await email_service.send_password_reset_code(user.email, reset_code)
+
+    if not email_sent:
+        logger.warning("Failed to send password reset email to %s", user.email)
+        # Still return success message for security (don't reveal email service issues)
+        logger.info("Reset code for %s: %s (email not sent, logged for development)", user.email, reset_code)
+
+    return {"message": "If the email exists, a reset code has been sent"}
+
+
+@router.post("/reset-password")
+@limiter.limit("5/minute")
+async def reset_password(
+    request: Request,
+    payload: ResetPasswordRequest,
+    session: AsyncSession = Depends(get_session),
+):
+    user = await auth_service.get_user_by_email(session, payload.email)
+    if user is None:
+        logger.warning("Reset password failed: email not found email=%s", payload.email)
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Email not found"
+        )
+
+    success = await auth_service.verify_password_reset_code(
+        session, user.id, payload.code, payload.new_password
+    )
+    if not success:
+        logger.warning("Reset password failed: invalid or expired code email=%s", payload.email)
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid or expired reset code"
+        )
+
+    logger.info("Password reset successful for user_id=%s email=%s", user.id, user.email)
+    return {"message": "Password reset successfully"}
