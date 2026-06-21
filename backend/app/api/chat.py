@@ -168,6 +168,27 @@ def _resize_for_upload(file_bytes: bytes, mime: str, max_side: int = 1024) -> tu
         return file_bytes, mime
 
 
+async def _summarize_title(content: str) -> str:
+    """Use LLM to generate a short 4-6 word title, fallback to truncation."""
+    if not provider_available():
+        words = content.split()
+        return " ".join(words[:6]) if len(words) > 6 else content[:30]
+    try:
+        from langchain_core.messages import HumanMessage as HMsg, SystemMessage as SMsg
+        model = get_chat_model("fast")
+        resp = await model.ainvoke([
+            SMsg(content="Tóm tắt tin nhắn sau thành tiêu đề ngắn gọn 4-6 từ bằng tiếng Việt. CHỈ trả về tiêu đề, không giải thích."),
+            HMsg(content=content[:200]),
+        ])
+        title = resp.content.strip().strip('"').strip("'")
+        if len(title) > 50:
+            title = title[:50]
+        return title or content[:30]
+    except Exception:
+        words = content.split()
+        return " ".join(words[:6]) if len(words) > 6 else content[:30]
+
+
 async def _stream_llm(chat_messages: list[dict]):
     from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 
@@ -452,8 +473,9 @@ async def send_message(
     )
     session.add(user_msg)
 
-    if conv.title == "New conversation":
-        conv.title = payload.content[:50]
+    needs_title = conv.title == "New conversation"
+    if needs_title:
+        conv.title = " ".join(payload.content.split()[:6])[:30]
 
     await session.commit()
 
@@ -524,6 +546,14 @@ async def send_message(
                 content=full_response,
             )
             save_session.add(ai_msg)
+            if needs_title:
+                try:
+                    smart_title = await _summarize_title(payload.content)
+                    c = await save_session.get(Conversation, conversation_id)
+                    if c:
+                        c.title = smart_title
+                except Exception:
+                    pass
             await save_session.commit()
 
     return StreamingResponse(

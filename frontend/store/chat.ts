@@ -276,16 +276,22 @@ export const useChatStore = create<ChatState>()(
       created_at: new Date().toISOString(),
     };
 
+    const wasNew = get().conversations.find((c) => c.id === activeConversationId)?.title === "New conversation";
+
     set((s) => ({
       messages: [...s.messages, aiMsg],
       streaming: false,
       streamContent: "",
       conversations: s.conversations.map((c) =>
         c.id === activeConversationId
-          ? { ...c, title: c.title === "New conversation" ? content.slice(0, 50) : c.title, last_message: fullContent.slice(0, 100) }
+          ? { ...c, title: c.title === "New conversation" ? content.split(/\s+/).slice(0, 6).join(" ").slice(0, 30) : c.title }
           : c
       ),
     }));
+
+    if (wasNew) {
+      setTimeout(() => get().loadConversations(), 3000);
+    }
   },
 
       setContentPanel: (panel) => {

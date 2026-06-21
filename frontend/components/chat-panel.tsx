@@ -595,21 +595,84 @@ function InlineResult({ result, onRedo }: {
   );
 }
 
+const AGENT_STEPS = [
+  { key: "planner", label: "Lên kế hoạch" },
+  { key: "research", label: "Nghiên cứu thị trường" },
+  { key: "seo", label: "Tối ưu SEO" },
+  { key: "brand", label: "Phân tích thương hiệu" },
+  { key: "fusion", label: "Tổng hợp dữ liệu" },
+  { key: "copywriter", label: "Viết nội dung" },
+  { key: "reviewer", label: "Kiểm duyệt & Đánh giá" },
+];
+
 function GeneratingIndicator({ streamContent }: { streamContent: string }) {
+  const contentRef = useRef<HTMLDivElement>(null);
+  const isProcessing = streamContent.startsWith("Đang xử lý:");
+  const isStreaming = !!streamContent && !isProcessing;
+
+  const currentStep = isProcessing
+    ? AGENT_STEPS.find((s) => streamContent.includes(s.label))?.key || ""
+    : "";
+  const currentIdx = AGENT_STEPS.findIndex((s) => s.key === currentStep);
+
+  useEffect(() => {
+    if (contentRef.current) {
+      contentRef.current.scrollTop = contentRef.current.scrollHeight;
+    }
+  }, [streamContent]);
+
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex justify-start w-full">
       <div className="max-w-[90%] sm:max-w-[85%] w-full">
         <div className="rounded-[20px] border border-primary/20 bg-gradient-to-br from-primary/5 to-transparent overflow-hidden">
+          {/* Header */}
           <div className="flex items-center gap-3 px-5 py-3 border-b border-primary/10">
-            <div className="flex gap-1">
-              <span className="w-2 h-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: "0ms" }} />
-              <span className="w-2 h-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: "150ms" }} />
-              <span className="w-2 h-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: "300ms" }} />
-            </div>
-            <span className="text-[13px] font-medium text-primary">Vitba Agents đang làm việc...</span>
+            {isStreaming ? (
+              <>
+                <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+                <span className="text-[13px] font-medium text-green-400">Kết quả đang được tạo...</span>
+              </>
+            ) : (
+              <>
+                <div className="flex gap-1">
+                  <span className="w-2 h-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: "0ms" }} />
+                  <span className="w-2 h-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: "150ms" }} />
+                  <span className="w-2 h-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: "300ms" }} />
+                </div>
+                <span className="text-[13px] font-medium text-primary">Vitba Agents đang làm việc...</span>
+              </>
+            )}
           </div>
-          {streamContent && (
-            <div className="px-5 py-4 max-h-[300px] overflow-y-auto no-scrollbar">
+
+          {/* Processing steps */}
+          {isProcessing && (
+            <div className="px-5 py-3 flex flex-wrap gap-2">
+              {AGENT_STEPS.map((step, i) => (
+                <span
+                  key={step.key}
+                  className={cn(
+                    "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium transition-all",
+                    i < currentIdx
+                      ? "bg-green-500/15 text-green-400"
+                      : i === currentIdx
+                        ? "bg-primary/15 text-primary ring-1 ring-primary/30 animate-pulse"
+                        : "bg-muted/50 text-muted-foreground/50"
+                  )}
+                >
+                  {i < currentIdx ? (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                  ) : i === currentIdx ? (
+                    <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                  ) : null}
+                  {step.label}
+                </span>
+              ))}
+            </div>
+          )}
+
+          {/* Streaming content */}
+          {isStreaming && (
+            <div ref={contentRef} className="px-5 py-4 max-h-[60vh] overflow-y-auto no-scrollbar">
               <MarkdownContent content={streamContent} />
               <span className="animate-pulse inline-block ml-1 text-primary">|</span>
             </div>
@@ -622,7 +685,7 @@ function GeneratingIndicator({ streamContent }: { streamContent: string }) {
 
 export function ChatPanel() {
   const {
-    messages, activeConversationId, streaming, streamContent,
+    messages, activeConversationId, streaming, streamContent, conversations,
     sendMessage, stopStreaming, createConversation, contentPanel, setContentPanel,
   } = useChatStore();
   const user = useAuthStore((s) => s.user);
@@ -762,7 +825,7 @@ export function ChatPanel() {
 
   if (!activeConversationId || messages.length === 0) {
     return (
-      <div className="flex flex-1 flex-col relative items-center justify-center p-4 sm:p-8 min-h-screen overflow-hidden bg-background">
+      <div className="flex flex-1 flex-col relative items-center justify-center p-3 sm:p-8 min-h-screen overflow-hidden bg-background">
         <button
           onClick={() => { window.dispatchEvent(new CustomEvent("toggle-sidebar")); }}
           className="absolute left-4 top-4 rounded-full p-2 hover:bg-accent md:hidden z-10 text-muted-foreground"
@@ -787,23 +850,23 @@ export function ChatPanel() {
         </div>
 
         <div className="flex flex-col items-center max-w-3xl w-full z-10 mt-[-5vh]">
-          <motion.h2 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.2 }} className="text-4xl sm:text-[44px] font-bold mb-3 tracking-tight text-foreground text-center">
+          <motion.h2 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.2 }} className="text-2xl sm:text-4xl md:text-[44px] font-bold mb-2 sm:mb-3 tracking-tight text-foreground text-center px-2">
             Chào mừng trở lại, <span className="text-foreground">{user?.name || "bạn"}</span>
           </motion.h2>
-          <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.3 }} className="text-muted-foreground text-[17px] mb-8 font-medium text-center">
+          <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.3 }} className="text-muted-foreground text-[15px] sm:text-[17px] mb-6 sm:mb-8 font-medium text-center">
             Hôm nay bạn muốn thiết kế nội dung gì?
           </motion.p>
 
-          <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.4 }} className="w-full max-w-2xl bg-card/80 backdrop-blur-2xl rounded-[24px] p-2 mb-10 relative shadow-[0_8px_32px_-12px_rgba(255,213,74,0.15)] border border-border focus-within:border-primary/50 focus-within:shadow-[0_8px_40px_-12px_rgba(255,213,74,0.3)] transition-all duration-500">
-            <form onSubmit={handleSubmit} className="flex gap-2 w-full">
-              <input value={input} onChange={(e) => setInput(e.target.value)} placeholder="Khởi tạo chiến dịch marketing của bạn..." className="flex-1 bg-transparent border-none px-6 py-4 text-[16px] text-foreground placeholder:text-foreground/30 focus:outline-none focus:ring-0" />
-              <button type="submit" disabled={!input.trim()} className="rounded-[16px] bg-primary text-primary-foreground hover:bg-primary/90 hover:scale-105 active:scale-95 h-[52px] w-[52px] flex items-center justify-center disabled:opacity-50 disabled:hover:scale-100 transition-all duration-300 mr-1 self-center shadow-[0_0_20px_rgba(255,213,74,0.4)]">
-                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.4 }} className="w-full max-w-2xl bg-card/80 backdrop-blur-2xl rounded-[18px] sm:rounded-[24px] p-1.5 sm:p-2 mb-6 sm:mb-10 relative shadow-[0_8px_32px_-12px_rgba(255,213,74,0.15)] border border-border focus-within:border-primary/50 focus-within:shadow-[0_8px_40px_-12px_rgba(255,213,74,0.3)] transition-all duration-500">
+            <form onSubmit={handleSubmit} className="flex gap-1.5 sm:gap-2 w-full">
+              <input value={input} onChange={(e) => setInput(e.target.value)} placeholder="Khởi tạo chiến dịch marketing..." className="flex-1 bg-transparent border-none px-4 sm:px-6 py-3 sm:py-4 text-[15px] sm:text-[16px] text-foreground placeholder:text-foreground/30 focus:outline-none focus:ring-0 min-w-0" />
+              <button type="submit" disabled={!input.trim()} className="rounded-[14px] sm:rounded-[16px] bg-primary text-primary-foreground hover:bg-primary/90 hover:scale-105 active:scale-95 h-[44px] w-[44px] sm:h-[52px] sm:w-[52px] flex items-center justify-center disabled:opacity-50 disabled:hover:scale-100 transition-all duration-300 mr-0.5 self-center shadow-[0_0_20px_rgba(255,213,74,0.4)] shrink-0">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
               </button>
             </form>
           </motion.div>
 
-          <motion.div initial="hidden" animate="visible" variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.1, delayChildren: 0.5 } } }} className="grid grid-cols-2 md:grid-cols-3 gap-4 w-full">
+          <motion.div initial="hidden" animate="visible" variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.1, delayChildren: 0.5 } } }} className="grid grid-cols-2 md:grid-cols-3 gap-2.5 sm:gap-4 w-full">
             {DASHBOARD_CARDS.map((item) => {
               const locked = !canUse(item.minPlan);
               return (
@@ -818,7 +881,7 @@ export function ChatPanel() {
                     await sendMessage(`Tôi muốn viết ${item.title}`);
                   }}
                   className={cn(
-                    "relative flex flex-col items-start gap-3 rounded-[20px] border p-5 text-left transition-all duration-300 group",
+                    "relative flex flex-col items-start gap-2 sm:gap-3 rounded-[16px] sm:rounded-[20px] border p-3.5 sm:p-5 text-left transition-all duration-300 group",
                     locked
                       ? "border-border/50 bg-card/30 opacity-60 cursor-not-allowed"
                       : "border-border bg-card/60 hover:bg-muted/80 hover:border-primary/40 hover:shadow-[inset_0_0_20px_rgba(255,213,74,0.05),0_8px_20px_-8px_rgba(0,0,0,0.5)]"
@@ -858,30 +921,28 @@ export function ChatPanel() {
   return (
     <div className="flex flex-1 flex-col min-w-0 bg-background">
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-border px-5 py-4 bg-background/80 backdrop-blur-md z-20">
-        <div className="flex items-center gap-3">
-          <button onClick={() => { window.dispatchEvent(new CustomEvent("toggle-sidebar")); }} className="rounded-full p-2 hover:bg-accent md:hidden text-muted-foreground" aria-label="Toggle sidebar">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-          </button>
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary"><path d="m3 21 1.9-5.7a8.5 8.5 0 1 1 3.8 3.8z"/></svg>
-            <h2 className="truncate text-[15px] font-semibold text-foreground">
-              {messages.length > 0 ? messages[0]?.content?.slice(0, 50) : "Cuộc trò chuyện mới"}
-            </h2>
-          </div>
+      <div className="relative flex items-center justify-between border-b border-border px-3 sm:px-5 py-3 sm:py-4 bg-background/80 backdrop-blur-md z-20">
+        <button onClick={() => { window.dispatchEvent(new CustomEvent("toggle-sidebar")); }} className="rounded-full p-2 hover:bg-accent md:hidden text-muted-foreground shrink-0" aria-label="Toggle sidebar">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-2 max-w-[55%] sm:max-w-[60%]">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary shrink-0"><path d="m3 21 1.9-5.7a8.5 8.5 0 1 1 3.8 3.8z"/></svg>
+          <h2 className="truncate text-[14px] sm:text-[15px] font-semibold text-foreground">
+            {conversations.find((c) => c.id === activeConversationId)?.title || "Cuộc trò chuyện mới"}
+          </h2>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2 ml-auto shrink-0">
           <button
             onClick={() => setShowGuide(true)}
-            className="rounded-full p-2 text-primary hover:bg-primary/10 transition-colors"
+            className="rounded-full p-1.5 sm:p-2 text-primary hover:bg-primary/10 transition-colors"
             aria-label="Hướng dẫn"
             title="Hướng dẫn sử dụng"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
           </button>
           <button
             onClick={() => router.push("/pricing")}
-            className="rounded-[10px] bg-primary/10 border border-primary/20 px-3 py-1.5 text-[12px] font-bold text-primary hover:bg-primary/20 transition-all"
+            className="hidden sm:block rounded-[10px] bg-primary/10 border border-primary/20 px-3 py-1.5 text-[12px] font-bold text-primary hover:bg-primary/20 transition-all"
           >
             Nâng cấp
           </button>
@@ -889,14 +950,14 @@ export function ChatPanel() {
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 scroll-smooth relative no-scrollbar">
+      <div className="flex-1 overflow-y-auto p-3 sm:p-6 space-y-4 sm:space-y-6 scroll-smooth relative no-scrollbar">
         {messages.map((msg) => (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} key={msg.id} className={cn("flex w-full", msg.role === "user" ? "justify-end" : "justify-start")}>
             <div className={cn(
-              "max-w-[90%] sm:max-w-[80%] px-6 py-4 text-[15px] shadow-sm",
+              "max-w-[90%] sm:max-w-[80%] px-4 py-3 sm:px-6 sm:py-4 text-[14px] sm:text-[15px] shadow-sm",
               msg.role === "user"
-                ? "bg-primary/10 text-foreground border border-primary/20 rounded-[24px] rounded-tr-sm shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]"
-                : "bg-card text-foreground rounded-[24px] rounded-tl-sm border border-border shadow-[0_4px_24px_-8px_rgba(0,0,0,0.5)]"
+                ? "bg-primary/10 text-foreground border border-primary/20 rounded-[20px] sm:rounded-[24px] rounded-tr-sm shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]"
+                : "bg-card text-foreground rounded-[20px] sm:rounded-[24px] rounded-tl-sm border border-border shadow-[0_4px_24px_-8px_rgba(0,0,0,0.5)]"
             )}>
               {msg.role === "assistant" ? <MarkdownContent content={msg.content} /> : <span className="whitespace-pre-wrap">{msg.content}</span>}
             </div>
@@ -944,7 +1005,7 @@ export function ChatPanel() {
       </div>
 
       {/* Input */}
-      <div className="border-t border-border bg-background/90 backdrop-blur-xl p-4 sm:p-6 relative z-20">
+      <div className="border-t border-border bg-background/90 backdrop-blur-xl p-3 sm:p-6 relative z-20">
         {/* Attached files preview */}
         {(attachedFiles.length > 0 || attachedImages.length > 0) && (
           <div className="max-w-4xl mx-auto mb-3 flex flex-wrap gap-2">
@@ -975,8 +1036,8 @@ export function ChatPanel() {
           </div>
         )}
 
-        <div className="bg-card/80 backdrop-blur-xl rounded-[24px] p-1.5 shadow-[0_8px_32px_-12px_rgba(0,0,0,0.5)] max-w-4xl mx-auto border border-border relative focus-within:border-primary/40 focus-within:shadow-[0_8px_40px_-12px_rgba(255,213,74,0.15)] transition-all duration-300">
-          <form onSubmit={handleSubmit} className="flex gap-2 w-full">
+        <div className="bg-card/80 backdrop-blur-xl rounded-[18px] sm:rounded-[24px] p-1 sm:p-1.5 shadow-[0_8px_32px_-12px_rgba(0,0,0,0.5)] max-w-4xl mx-auto border border-border relative focus-within:border-primary/40 focus-within:shadow-[0_8px_40px_-12px_rgba(255,213,74,0.15)] transition-all duration-300">
+          <form onSubmit={handleSubmit} className="flex gap-1 sm:gap-2 w-full">
             <input
               ref={fileInputRef}
               type="file"
@@ -997,7 +1058,7 @@ export function ChatPanel() {
               type="button"
               onClick={() => fileInputRef.current?.click()}
               disabled={streaming}
-              className="rounded-[16px] bg-muted hover:bg-accent text-muted-foreground hover:text-foreground h-[46px] w-[46px] flex items-center justify-center self-center disabled:opacity-50 transition-all duration-300"
+              className="rounded-[12px] sm:rounded-[16px] bg-muted hover:bg-accent text-muted-foreground hover:text-foreground h-[38px] w-[38px] sm:h-[46px] sm:w-[46px] flex items-center justify-center self-center disabled:opacity-50 transition-all duration-300 shrink-0"
               title="Upload tài liệu"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -1006,17 +1067,17 @@ export function ChatPanel() {
               type="button"
               onClick={() => imageInputRef.current?.click()}
               disabled={streaming}
-              className="rounded-[16px] bg-muted hover:bg-accent text-muted-foreground hover:text-foreground h-[46px] w-[46px] flex items-center justify-center self-center disabled:opacity-50 transition-all duration-300"
+              className="rounded-[12px] sm:rounded-[16px] bg-muted hover:bg-accent text-muted-foreground hover:text-foreground h-[38px] w-[38px] sm:h-[46px] sm:w-[46px] flex items-center justify-center self-center disabled:opacity-50 transition-all duration-300 shrink-0"
               title="Upload ảnh để AI phân tích"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
             </button>
-            <input value={input} onChange={(e) => setInput(e.target.value)} placeholder="Gửi tin nhắn cho Vitba Agents..." disabled={streaming} className="flex-1 bg-transparent border-none px-5 py-3.5 text-[15px] text-foreground placeholder:text-foreground/30 focus:outline-none focus:ring-0 disabled:opacity-50" />
+            <input value={input} onChange={(e) => setInput(e.target.value)} placeholder="Gửi tin nhắn..." disabled={streaming} className="flex-1 bg-transparent border-none px-3 sm:px-5 py-3 sm:py-3.5 text-[14px] sm:text-[15px] text-foreground placeholder:text-foreground/30 focus:outline-none focus:ring-0 disabled:opacity-50 min-w-0" />
             {streaming ? (
               <button
                 type="button"
                 onClick={stopStreaming}
-                className="rounded-[16px] bg-destructive text-destructive-foreground hover:bg-destructive/90 hover:scale-105 active:scale-95 h-[46px] w-[46px] flex items-center justify-center mr-0.5 self-center transition-all duration-300 shadow-[0_0_15px_rgba(239,68,68,0.3)]"
+                className="rounded-[12px] sm:rounded-[16px] bg-destructive text-destructive-foreground hover:bg-destructive/90 hover:scale-105 active:scale-95 h-[38px] w-[38px] sm:h-[46px] sm:w-[46px] flex items-center justify-center mr-0.5 self-center transition-all duration-300 shadow-[0_0_15px_rgba(239,68,68,0.3)] shrink-0"
                 title="Dừng trả lời"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2" /></svg>
@@ -1025,7 +1086,7 @@ export function ChatPanel() {
               <button
                 type="submit"
                 disabled={!input.trim() && attachedImages.length === 0}
-                className="rounded-[16px] bg-primary text-primary-foreground hover:bg-primary/90 hover:scale-105 active:scale-95 h-[46px] w-[46px] flex items-center justify-center mr-0.5 self-center disabled:opacity-50 disabled:hover:scale-100 transition-all duration-300 shadow-[0_0_15px_rgba(255,213,74,0.3)]"
+                className="rounded-[12px] sm:rounded-[16px] bg-primary text-primary-foreground hover:bg-primary/90 hover:scale-105 active:scale-95 h-[38px] w-[38px] sm:h-[46px] sm:w-[46px] flex items-center justify-center mr-0.5 self-center disabled:opacity-50 disabled:hover:scale-100 transition-all duration-300 shadow-[0_0_15px_rgba(255,213,74,0.3)] shrink-0"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
               </button>

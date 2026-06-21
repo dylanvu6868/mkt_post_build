@@ -242,9 +242,8 @@ function ConvItem({ conv, active, editing, editTitle, menuOpen, onSelect, onMenu
           <input autoFocus value={editTitle} onChange={(e) => onEditTitleChange(e.target.value)} onBlur={onRename} className="w-full rounded-[8px] border border-border bg-background px-2 py-1.5 text-[13px] text-foreground focus:outline-none focus:ring-1 focus:ring-primary/50" />
         </form>
       ) : (
-        <button onClick={onSelect} className="w-full px-3 py-2.5 text-left flex flex-col justify-center">
+        <button onClick={onSelect} className="w-full px-3 py-2.5 text-left flex items-center">
           <p className={cn("truncate text-[13px] font-medium", active ? "text-primary" : "text-muted-foreground group-hover:text-foreground")}>{conv.title}</p>
-          {conv.last_message && <p className="mt-0.5 truncate text-[11px] text-foreground/30">{conv.last_message}</p>}
         </button>
       )}
       {!editing && (
