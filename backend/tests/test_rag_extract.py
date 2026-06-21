@@ -19,11 +19,9 @@ def test_extract_txt():
     assert "Hello world" in text
 
 
-def test_extract_unsupported_raises():
-    import pytest
-
+def test_extract_unsupported_returns_empty():
     with tempfile.NamedTemporaryFile(suffix=".csv", delete=False) as f:
         f.write(b"a,b")
         f.flush()
-        with pytest.raises(ValueError, match="Unsupported"):
-            extract_text(Path(f.name))
+        result = extract_text(Path(f.name))
+    assert result == ""
