@@ -1,7 +1,7 @@
 import json
 import logging
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, UploadFile
 from fastapi.responses import StreamingResponse
 from sqlalchemy import select, desc
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
@@ -13,6 +13,7 @@ from app.llm.factory import get_chat_model, provider_available
 from app.models.conversation import Conversation, Message
 from app.models.user import User
 from app.schemas.conversation import MessageCreate
+from app.models.project import Project
 
 logger = logging.getLogger(__name__)
 
@@ -200,6 +201,77 @@ async def _mock_stream(chat_messages: list[dict]):
         yield f"data: {json.dumps({'type': 'token', 'content': char})}\n\n"
     yield f"data: {json.dumps({'type': 'suggestions', 'suggestions': flow['suggestions']})}\n\n"
     yield f"data: {json.dumps({'type': 'done', 'content': mock_response})}\n\n"
+
+
+@router.post("/{conversation_id}/upload")
+async def upload_chat_file(
+    conversation_id: int,
+    file: UploadFile,
+    current_user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+):
+    """Upload file to be used in chat context."""
+    conv = await session.get(Conversation, conversation_id)
+    if conv is None or conv.user_id != current_user.id:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+
+    # Get or create project for this conversation
+    # For now, we'll use a default project or create one
+    result = await session.execute(select(Project).where(Project.user_id == current_user.id).limit(1))
+    project = result.scalar_one_or_none()
+
+    if not project:
+        # Create default project if none exists
+        project = Project(name="Default Chat Project", user_id=current_user.id)
+        session.add(project)
+        await session.commit()
+        await session.refresh(project)
+
+    # Import document service
+    from app.services import document_service
+    from app.rag.ingest import ingest_document
+
+    # Process file
+    file_bytes = await file.read()
+    filename = file.filename or "unknown"
+
+    # Create document record
+    doc = await document_service.create_document(session, project.id, filename)
+
+    # Process in background (simplified for now)
+    try:
+        from app.rag.extract import extract_text
+        from app.rag.chunk import chunk_text
+        from app.rag.embeddings import embed_texts
+        from app.rag.qdrant_store import upsert_chunks
+        from app.core.config import settings
+        import tempfile
+        from pathlib import Path
+
+        suffix = Path(filename).suffix.lower()
+        with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
+            tmp.write(file_bytes)
+            tmp.flush()
+            tmp_path = Path(tmp.name)
+
+        try:
+            text = extract_text(tmp_path)
+            if text.strip():
+                chunks = chunk_text(text, chunk_size=settings.rag_chunk_size, overlap=settings.rag_chunk_overlap)
+                if chunks:
+                    vectors = embed_texts(chunks)
+                    upsert_chunks(project.id, doc.id, chunks, vectors)
+        finally:
+            tmp_path.unlink(missing_ok=True)
+
+        doc.status = "ready"
+        await session.commit()
+    except Exception as e:
+        logger.error(f"Failed to process chat file: {e}")
+        doc.status = "failed"
+        await session.commit()
+
+    return {"document_id": doc.id, "status": doc.status}
 
 
 @router.post("/{conversation_id}/send")

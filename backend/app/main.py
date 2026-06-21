@@ -6,7 +6,7 @@ from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from app.api import admin, auth, brand, chat, conversations, documents, generate, history, payments, projects, templates
+from app.api import admin, auth, brand, chat, conversations, documents, generate, history, images, payments, projects, templates
 from app.core.config import settings
 from app.core.rate_limit import limiter
 
@@ -93,6 +93,7 @@ app.include_router(brand.router)
 app.include_router(generate.router)
 app.include_router(history.router)
 app.include_router(templates.router)
+app.include_router(images.router)
 
 
 @app.get("/health")
