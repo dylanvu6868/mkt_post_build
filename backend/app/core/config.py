@@ -44,7 +44,9 @@ class Settings(BaseSettings):
     sepay_account_holder: str = ""
     sepay_bank_name: str = ""  # human-readable, e.g. "Ngân hàng Vietcombank"
 
-    # Email Service (SMTP) — used for password-reset codes
+    # Email — Resend API (preferred on Railway where SMTP is blocked)
+    resend_api_key: str = ""
+    # SMTP fallback (local dev)
     smtp_host: str = "smtp.gmail.com"
     smtp_port: int = 587
     smtp_username: str = ""
