@@ -33,7 +33,7 @@ class ImageGenerationResponse(BaseModel):
 # Daily limits per plan
 IMAGE_LIMITS = {
     "free": 0,
-    "basic": 0,
+    "lite": 0,
     "pro": 10,
     "max": 50,
 }
@@ -132,13 +132,12 @@ async def generate_image(
             # Stable Diffusion XL via Replicate
             async with httpx.AsyncClient(timeout=120) as client:
                 response = await client.post(
-                    "https://api.replicate.com/v1/predictions",
+                    "https://api.replicate.com/v1/models/stability-ai/sdxl/predictions",
                     headers={
                         "Authorization": f"Bearer {os.getenv('REPLICATE_API_TOKEN')}",
                         "Content-Type": "application/json",
                     },
                     json={
-                        "version": "stability-ai/sdxl:39ed52f2a78e934b3ba6e2a89f5b1c712de7dfea535525255b1aa35c5565e08",
                         "input": {
                             "prompt": request.prompt,
                             "width": int(request.size.split("x")[0]),
@@ -172,13 +171,12 @@ async def generate_image(
             # Flux via Replicate
             async with httpx.AsyncClient(timeout=120) as client:
                 response = await client.post(
-                    "https://api.replicate.com/v1/predictions",
+                    "https://api.replicate.com/v1/models/black-forest-labs/flux-schnell/predictions",
                     headers={
                         "Authorization": f"Bearer {os.getenv('REPLICATE_API_TOKEN')}",
                         "Content-Type": "application/json",
                     },
                     json={
-                        "version": "black-forest-labs/flux-schnell",
                         "input": {
                             "prompt": request.prompt,
                             "width": int(request.size.split("x")[0]),

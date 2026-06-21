@@ -1,7 +1,8 @@
+import asyncio
 import json
 import logging
 
-from fastapi import APIRouter, Depends, HTTPException, UploadFile
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, UploadFile
 from fastapi.responses import StreamingResponse
 from sqlalchemy import select, desc
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
@@ -57,10 +58,10 @@ Các content_type hợp lệ: facebook_post, seo_blog, email, landing_page, tikt
 """
 
 
-def _build_system_prompt(user: User) -> str:
+def _build_system_prompt(user: User, doc_context: str = "") -> str:
     plan = get_user_plan(user)
     allowed = ", ".join(sorted(get_limits(user)["content_types"]))
-    return (
+    prompt = (
         f"{SYSTEM_PROMPT}\n\n"
         f"## Giới hạn gói {plan.upper()} của người dùng hiện tại:\n"
         f"- Chỉ được dùng khối ```generate``` với content_type thuộc: {allowed}\n"
@@ -69,6 +70,14 @@ def _build_system_prompt(user: User) -> str:
         '"Tính năng này cần gói Pro hoặc Max. Bạn vui lòng nâng cấp gói tại trang Pricing để sử dụng."\n'
         "- Nếu người dùng hết lượt tạo trong ngày, thông báo nâng cấp gói thay vì generate."
     )
+    if doc_context:
+        prompt += (
+            "\n\n## Tài liệu người dùng đã tải lên:\n"
+            "Dưới đây là nội dung từ tài liệu người dùng đã upload. "
+            "Hãy sử dụng thông tin này để trả lời câu hỏi hoặc tạo nội dung phù hợp.\n\n"
+            f"{doc_context}"
+        )
+    return prompt
 
 
 async def _build_messages(session: AsyncSession, conversation_id: int, limit: int = 12):
@@ -203,51 +212,24 @@ async def _mock_stream(chat_messages: list[dict]):
     yield f"data: {json.dumps({'type': 'done', 'content': mock_response})}\n\n"
 
 
-@router.post("/{conversation_id}/upload")
-async def upload_chat_file(
+async def _process_chat_upload(
+    file_bytes: bytes,
+    filename: str,
+    project_id: int,
+    document_id: int,
     conversation_id: int,
-    file: UploadFile,
-    current_user: User = Depends(get_current_user),
-    session: AsyncSession = Depends(get_session),
-):
-    """Upload file to be used in chat context."""
-    conv = await session.get(Conversation, conversation_id)
-    if conv is None or conv.user_id != current_user.id:
-        raise HTTPException(status_code=404, detail="Conversation not found")
+    session_maker: async_sessionmaker[AsyncSession],
+) -> None:
+    """Background task: ingest file into Qdrant with conversation_id metadata."""
+    import tempfile
+    from pathlib import Path
+    from app.rag.extract import extract_text
+    from app.rag.chunk import chunk_text
+    from app.rag.embeddings import embed_texts
+    from app.rag.qdrant_store import upsert_chunks_with_conv
+    from app.core.config import settings
 
-    # Get or create project for this conversation
-    # For now, we'll use a default project or create one
-    result = await session.execute(select(Project).where(Project.user_id == current_user.id).limit(1))
-    project = result.scalar_one_or_none()
-
-    if not project:
-        # Create default project if none exists
-        project = Project(name="Default Chat Project", user_id=current_user.id)
-        session.add(project)
-        await session.commit()
-        await session.refresh(project)
-
-    # Import document service
-    from app.services import document_service
-    from app.rag.ingest import ingest_document
-
-    # Process file
-    file_bytes = await file.read()
-    filename = file.filename or "unknown"
-
-    # Create document record
-    doc = await document_service.create_document(session, project.id, filename)
-
-    # Process in background (simplified for now)
     try:
-        from app.rag.extract import extract_text
-        from app.rag.chunk import chunk_text
-        from app.rag.embeddings import embed_texts
-        from app.rag.qdrant_store import upsert_chunks
-        from app.core.config import settings
-        import tempfile
-        from pathlib import Path
-
         suffix = Path(filename).suffix.lower()
         with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
             tmp.write(file_bytes)
@@ -255,23 +237,68 @@ async def upload_chat_file(
             tmp_path = Path(tmp.name)
 
         try:
-            text = extract_text(tmp_path)
+            text = await asyncio.to_thread(extract_text, tmp_path)
             if text.strip():
                 chunks = chunk_text(text, chunk_size=settings.rag_chunk_size, overlap=settings.rag_chunk_overlap)
                 if chunks:
-                    vectors = embed_texts(chunks)
-                    upsert_chunks(project.id, doc.id, chunks, vectors)
+                    vectors = await asyncio.to_thread(embed_texts, chunks)
+                    await asyncio.to_thread(
+                        upsert_chunks_with_conv, project_id, document_id, conversation_id, chunks, vectors
+                    )
         finally:
             tmp_path.unlink(missing_ok=True)
 
-        doc.status = "ready"
-        await session.commit()
+        status = "ready"
     except Exception as e:
         logger.error(f"Failed to process chat file: {e}")
-        doc.status = "failed"
-        await session.commit()
+        status = "failed"
 
-    return {"document_id": doc.id, "status": doc.status}
+    async with session_maker() as s:
+        from app.models.document import Document
+        doc = await s.get(Document, document_id)
+        if doc:
+            doc.status = status
+            await s.commit()
+
+
+@router.post("/{conversation_id}/upload")
+async def upload_chat_file(
+    conversation_id: int,
+    file: UploadFile,
+    background_tasks: BackgroundTasks,
+    current_user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+    session_maker: async_sessionmaker[AsyncSession] = Depends(get_session_maker),
+):
+    """Upload file to be used in chat context."""
+    conv = await session.get(Conversation, conversation_id)
+    if conv is None or conv.user_id != current_user.id:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+
+    result = await session.execute(select(Project).where(Project.user_id == current_user.id).limit(1))
+    project = result.scalar_one_or_none()
+
+    if not project:
+        project = Project(name="Default Chat Project", user_id=current_user.id)
+        session.add(project)
+        await session.commit()
+        await session.refresh(project)
+
+    from app.services import document_service
+
+    file_bytes = await file.read()
+    filename = file.filename or "unknown"
+
+    doc = await document_service.create_document(session, project.id, filename)
+    doc.status = "processing"
+    await session.commit()
+
+    background_tasks.add_task(
+        _process_chat_upload,
+        file_bytes, filename, project.id, doc.id, conversation_id, session_maker,
+    )
+
+    return {"document_id": doc.id, "status": "processing"}
 
 
 @router.post("/{conversation_id}/send")
@@ -298,8 +325,19 @@ async def send_message(
 
     await session.commit()
 
+    doc_context = ""
+    try:
+        from app.rag.embeddings import embed_query
+        from app.rag.qdrant_store import retrieve_by_conversation
+        query_vec = await asyncio.to_thread(embed_query, payload.content)
+        chunks = await asyncio.to_thread(retrieve_by_conversation, conversation_id, query_vec)
+        if chunks:
+            doc_context = "\n---\n".join(chunks)
+    except Exception as e:
+        logger.warning(f"RAG retrieval failed: {e}")
+
     history = await _build_messages(session, conversation_id)
-    chat_messages = [{"role": "system", "content": _build_system_prompt(current_user)}] + history
+    chat_messages = [{"role": "system", "content": _build_system_prompt(current_user, doc_context)}] + history
 
     async def event_stream():
         full_response = ""

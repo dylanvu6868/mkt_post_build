@@ -15,7 +15,7 @@ def extract_text(file_path: Path) -> str:
     if suffix == ".txt":
         return _extract_txt(file_path)
 
-    raise ValueError(f"Unsupported file type: {suffix}")
+    return ""
 
 
 def _extract_pdf(file_path: Path) -> str:

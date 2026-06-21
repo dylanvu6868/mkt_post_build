@@ -10,6 +10,7 @@ import remarkGfm from "remark-gfm";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { api } from "@/services/api";
 
 const DASHBOARD_CARDS = [
   { title: "Facebook Post", desc: "Bài đăng mạng xã hội", type: "facebook_post", minPlan: "free" as PlanId },
@@ -484,8 +485,8 @@ export function ChatPanel() {
   const [imagePrompt, setImagePrompt] = useState("");
   const [imageModel, setImageModel] = useState("dalle3");
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
+  const [generatedImages, setGeneratedImages] = useState<{url: string; prompt: string}[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const imageInputRef = useRef<HTMLInputElement>(null);
 
   const userPlan = normalizePlan(user?.plan);
   const canUse = useCallback((minPlan: PlanId) => PLAN_RANK[userPlan] >= PLAN_RANK[minPlan], [userPlan]);
@@ -515,37 +516,30 @@ export function ChatPanel() {
     const newFiles = files.filter(f => !f.type.startsWith('image/'));
     const newImages = files.filter(f => f.type.startsWith('image/'));
 
-    // Upload documents
     for (const file of newFiles) {
       try {
         const formData = new FormData();
         formData.append('file', file);
-        const baseUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
-        const res = await fetch(`${baseUrl}/chat/${activeConversationId}/upload`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          },
-          body: formData,
-        });
-        if (!res.ok) throw new Error('Upload failed');
+        await api.post(`/chat/${activeConversationId}/upload`, formData);
         setAttachedFiles(prev => [...prev, file]);
-      } catch (err) {
-        toast.error(`Failed to upload ${file.name}`);
+      } catch {
+        toast.error(`Không thể tải lên ${file.name}`);
       }
     }
 
-    // Attach images locally for now (will implement image analysis later)
-    setAttachedImages(prev => [...prev, ...newImages]);
+    for (const img of newImages) {
+      try {
+        const formData = new FormData();
+        formData.append('file', img);
+        await api.post(`/chat/${activeConversationId}/upload`, formData);
+        setAttachedImages(prev => [...prev, img]);
+      } catch {
+        toast.error(`Không thể tải lên ${img.name}`);
+      }
+    }
 
     if (fileInputRef.current) fileInputRef.current.value = "";
     if (newFiles.length > 0) toast.success(`Đã tải lên ${newFiles.length} tài liệu`);
-  };
-
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
-    setAttachedImages(prev => [...prev, ...files]);
-    if (imageInputRef.current) imageInputRef.current.value = "";
   };
 
   const removeFile = (index: number, isImage: boolean) => {
@@ -566,24 +560,14 @@ export function ChatPanel() {
 
     setIsGeneratingImage(true);
     try {
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
-      const res = await fetch(`${baseUrl}/images/generate`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ prompt: imagePrompt, model: imageModel }),
+      const data = await api.post<{ image_url: string; revised_prompt?: string }>("/images/generate", {
+        prompt: imagePrompt,
+        model: imageModel,
       });
-      if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.detail || 'Generation failed');
-      }
-      const data = await res.json();
+      setGeneratedImages(prev => [...prev, { url: data.image_url, prompt: imagePrompt }]);
       toast.success("Đã tạo ảnh thành công!");
       setImagePrompt("");
       setShowImageGen(false);
-      // Could add the image to attached images or display in chat
     } catch (err: any) {
       toast.error(err.message || "Không thể tạo ảnh");
     } finally {
@@ -771,6 +755,28 @@ export function ChatPanel() {
             onRedo={() => setContentPanel({ generating: false, result: null })}
           />
         )}
+
+        {/* Generated images */}
+        {generatedImages.map((img, i) => (
+          <motion.div key={i} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex justify-start w-full">
+            <div className="max-w-[90%] sm:max-w-[80%] rounded-[20px] border border-primary/20 bg-gradient-to-br from-primary/5 to-primary/[0.02] overflow-hidden shadow-[0_4px_24px_-8px_rgba(0,0,0,0.3)]">
+              <div className="flex items-center gap-2.5 px-5 py-3 border-b border-primary/10 bg-primary/5">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+                <span className="text-[14px] font-semibold text-foreground">Ảnh AI</span>
+              </div>
+              <div className="p-4">
+                <img src={img.url} alt={img.prompt} className="rounded-[12px] max-w-full max-h-[400px] object-contain" />
+                <p className="mt-2 text-[12px] text-muted-foreground italic">{img.prompt}</p>
+              </div>
+              <div className="flex items-center gap-2 px-5 py-3 border-t border-primary/10 bg-background/50">
+                <a href={img.url} target="_blank" rel="noopener noreferrer" download className="flex items-center gap-1.5 rounded-[10px] border border-border px-3 py-1.5 text-[12px] font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-all">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+                  Tải ảnh
+                </a>
+              </div>
+            </div>
+          </motion.div>
+        ))}
 
         {/* Suggestion sidebar pointer */}
         {suggestions.length > 0 && !streaming && (
