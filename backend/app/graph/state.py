@@ -9,6 +9,7 @@ class GraphState(TypedDict, total=False):
     brief: str
     marketing_goal: str
     brand_profile: dict[str, Any]
+    user_plan: str
     # agent outputs (stored as JSON-serializable dicts)
     insights: dict[str, Any]
     draft: dict[str, Any]

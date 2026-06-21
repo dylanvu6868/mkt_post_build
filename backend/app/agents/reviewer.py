@@ -48,16 +48,18 @@ async def reviewer(state: dict[str, Any]) -> dict[str, Any]:
         return {
             "review": review.model_dump(),
             "final": final,
+            "formatted_final": final,
         }
 
     system = SYSTEM_TEMPLATES.get(content_type, SYSTEM_TEMPLATES["facebook_post"])
     user = f"Content type: {content_type}\nBrief: {state.get('brief')}\nDraft to review: {draft}"
-    
+
     try:
         result = await generate_structured("smart", system, user, Review)
         return {
             "review": result.model_dump(),
             "final": result.final_content,
+            "formatted_final": result.final_content,
         }
     except Exception as e:
         import logging
@@ -70,4 +72,5 @@ async def reviewer(state: dict[str, Any]) -> dict[str, Any]:
                 "final_content": draft
             },
             "final": draft,
+            "formatted_final": draft,
         }

@@ -186,7 +186,7 @@ export const useChatStore = create<ChatState>()(
             fullContent = data.content;
             const generateMatch = fullContent.match(/```generate\n([\s\S]*?)\n```/);
             if (generateMatch) {
-              set({ contentPanel: { visible: true, generating: true, result: null } });
+              set({ contentPanel: { visible: false, generating: true, result: null } });
               try {
                 const payload = JSON.parse(generateMatch[1]);
                 let projectId = useProjectStore.getState().activeProject?.id;
@@ -263,7 +263,7 @@ export const useChatStore = create<ChatState>()(
             const message = typeof body.detail === "string" ? body.detail : "Không thể tạo nội dung";
             set({
               contentPanel: {
-                visible: true,
+                visible: false,
                 generating: false,
                 result: {
                   error: message,
@@ -288,7 +288,7 @@ export const useChatStore = create<ChatState>()(
 
             if (statusData.status === "error") {
               set({
-                contentPanel: { visible: true, generating: false, result: { error: statusData.error } },
+                contentPanel: { visible: false, generating: false, result: { error: statusData.error } },
                 streamContent: "",
               });
               isPolling = false;
@@ -329,7 +329,7 @@ export const useChatStore = create<ChatState>()(
                 } else {
                   clearInterval(typeInterval);
                   set({
-                    contentPanel: { visible: true, generating: false, result: statusData.result },
+                    contentPanel: { visible: false, generating: false, result: { ...statusData.result, _contentType: payload.content_type } },
                     streamContent: "",
                   });
                 }

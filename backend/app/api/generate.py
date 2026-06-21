@@ -1,5 +1,7 @@
+from datetime import datetime, timedelta, timezone
+
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request, status
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from app.api.deps import get_current_user
@@ -13,6 +15,7 @@ from app.models.user_template import UserTemplate
 from app.core.plan_limits import (
     check_content_type_allowed,
     check_daily_generation_limit,
+    get_user_plan,
     upgrade_message,
 )
 from app.schemas.generation import GenerateRequest, JobResponse, JobStatusResponse
@@ -22,9 +25,11 @@ router = APIRouter(prefix="/generate", tags=["generate"])
 
 SUPPORTED_CONTENT_TYPES = {"facebook_post", "seo_blog", "email", "landing_page", "tiktok_script", "marketing_plan"}
 
+PLAN_RATE_LIMITS: dict[str, int] = {"free": 5, "lite": 10, "pro": 15, "max": 30}
+
 
 @router.post("", response_model=JobResponse, status_code=status.HTTP_202_ACCEPTED)
-@limiter.limit("10/minute")
+@limiter.limit("30/minute")
 async def start_generation(
     request: Request,
     payload: GenerateRequest,
@@ -43,6 +48,24 @@ async def start_generation(
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail=upgrade_message(f"loại nội dung '{payload.content_type}'"),
+        )
+
+    user_plan = get_user_plan(current_user)
+
+    from app.models.generation_job import GenerationJob
+    from app.models.project import Project as ProjectModel
+    minute_ago = datetime.now(timezone.utc) - timedelta(minutes=1)
+    minute_count_result = await session.execute(
+        select(func.count(GenerationJob.id))
+        .join(ProjectModel, GenerationJob.project_id == ProjectModel.id)
+        .where(ProjectModel.user_id == current_user.id, GenerationJob.created_at >= minute_ago)
+    )
+    minute_used = minute_count_result.scalar() or 0
+    plan_rpm = PLAN_RATE_LIMITS.get(user_plan, 10)
+    if minute_used >= plan_rpm:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail=f"Vượt quá {plan_rpm} lượt/phút cho gói {user_plan.upper()}. Vui lòng chờ giây lát.",
         )
 
     allowed, used, limit = await check_daily_generation_limit(session, current_user)
@@ -100,6 +123,7 @@ async def start_generation(
         "marketing_goal": payload.marketing_goal,
         "brand_profile": brand_profile_data,
         "custom_template": custom_template,
+        "user_plan": user_plan,
         "formatted_final": {},
         "provider_available": provider_available(),
         "errors": [],

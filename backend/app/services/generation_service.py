@@ -93,7 +93,8 @@ async def run_generation_job(
                 job.result_json = result
                 await session.commit()
 
-            score = None
+            review = state.get("review") or {}
+            score = review.get("score")
             await history_service.save_to_history(
                 session,
                 initial_state["project_id"],

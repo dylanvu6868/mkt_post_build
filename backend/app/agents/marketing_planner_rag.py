@@ -16,12 +16,13 @@ YÊU CẦU:
 1. Phân tích ngữ cảnh và yêu cầu của người dùng để đưa ra bản kế hoạch chi tiết.
 2. Bản kế hoạch cần bao gồm các phần chính:
    - Tóm tắt Dự án (Executive Summary)
-   - Phân tích SWOT hoặc Thị trường
-   - Chân dung Khách hàng Mục tiêu (Target Audience)
+   - Phân tích SWOT (BẮT BUỘC dùng bảng Markdown 2x2: Strengths | Weaknesses / Opportunities | Threats)
+   - Chân dung Khách hàng Mục tiêu (Target Audience) — dùng bảng với các cột: Nhóm | Độ tuổi | Hành vi | Kênh tiếp cận
    - Thông điệp truyền thông chính (Key Message)
-   - Phân bổ Kênh truyền thông (Channel Strategy)
-   - Ngân sách và KPIs dự kiến
-3. Định dạng bài viết bằng Markdown chuẩn, trình bày rõ ràng, dễ đọc.
+   - Phân bổ Kênh truyền thông (Channel Strategy) — BẮT BUỘC dùng bảng với các cột: Kênh | Mục tiêu | Ngân sách (%) | KPI
+   - Ngân sách và KPIs dự kiến — BẮT BUỘC dùng bảng với các cột: Hạng mục | Chi phí | KPI | Deadline
+   - Timeline triển khai — dùng bảng với các cột: Tuần/Tháng | Hoạt động | Người phụ trách | Output
+3. Định dạng bằng Markdown chuẩn. Dùng BẢNG MARKDOWN (| --- | --- |) cho mọi dữ liệu có cấu trúc. Dùng heading (#, ##, ###) cho phân mục.
 4. Trả về kết quả dưới dạng JSON với cấu trúc:
 {{
     "body": "<Nội dung bản kế hoạch bằng Markdown>"

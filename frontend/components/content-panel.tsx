@@ -44,6 +44,16 @@ function MarkdownContent({ content }: { content: string }) {
         h2: ({ children }) => <h2 className="mb-3 mt-6 text-xl font-bold text-foreground">{children}</h2>,
         h3: ({ children }) => <h3 className="mb-2 mt-5 text-lg font-semibold text-foreground">{children}</h3>,
         h4: ({ children }) => <h4 className="mb-2 mt-4 text-base font-medium text-foreground">{children}</h4>,
+        table: ({ children }) => (
+          <div className="my-4 overflow-x-auto rounded-xl border border-border shadow-sm">
+            <table className="w-full text-[13px]">{children}</table>
+          </div>
+        ),
+        thead: ({ children }) => <thead className="bg-muted/80 border-b border-border">{children}</thead>,
+        tbody: ({ children }) => <tbody className="divide-y divide-border">{children}</tbody>,
+        tr: ({ children }) => <tr className="hover:bg-muted/40 transition-colors">{children}</tr>,
+        th: ({ children }) => <th className="px-4 py-2.5 text-left font-semibold text-foreground whitespace-nowrap">{children}</th>,
+        td: ({ children }) => <td className="px-4 py-2.5 text-muted-foreground">{children}</td>,
       }}
     >
       {cleaned}
@@ -198,13 +208,17 @@ export function ContentPanel() {
 
 function formatResult(result: Record<string, unknown>): string {
   if (result.error) return String(result.error);
-  if (result.final && typeof result.final === "object") {
-    const final = result.final as Record<string, string>;
+  const content = (result.formatted_final && typeof result.formatted_final === "object")
+    ? result.formatted_final as Record<string, string>
+    : (result.final && typeof result.final === "object")
+      ? result.final as Record<string, string>
+      : null;
+  if (content) {
     const parts: string[] = [];
-    if (final.hook) parts.push(final.hook);
-    if (final.body) parts.push(final.body);
-    if (final.cta) parts.push(final.cta);
-    if (final.hashtags) parts.push(final.hashtags);
+    if (content.hook) parts.push(content.hook);
+    if (content.body) parts.push(content.body);
+    if (content.cta) parts.push(content.cta);
+    if (content.hashtags) parts.push(content.hashtags);
     return parts.join("\n\n");
   }
   return JSON.stringify(result, null, 2);
