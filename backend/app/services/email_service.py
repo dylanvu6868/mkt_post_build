@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import socket
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import smtplib
@@ -22,15 +23,25 @@ class EmailService:
         self.enabled = bool(self.smtp_username and self.smtp_password)
 
     def _send_smtp(self, msg: MIMEMultipart) -> None:
-        if self.smtp_port == 465:
-            with smtplib.SMTP_SSL(self.smtp_host, self.smtp_port, timeout=SMTP_TIMEOUT) as server:
-                server.login(self.smtp_username, self.smtp_password)
-                server.send_message(msg)
-        else:
-            with smtplib.SMTP(self.smtp_host, self.smtp_port, timeout=SMTP_TIMEOUT) as server:
-                server.starttls()
-                server.login(self.smtp_username, self.smtp_password)
-                server.send_message(msg)
+        # Force IPv4 to work around Railway IPv6 routing issues
+        _original_getaddrinfo = socket.getaddrinfo
+
+        def _ipv4_only(host, port, family=0, type=0, proto=0, flags=0):
+            return _original_getaddrinfo(host, port, socket.AF_INET, type, proto, flags)
+
+        socket.getaddrinfo = _ipv4_only
+        try:
+            if self.smtp_port == 465:
+                with smtplib.SMTP_SSL(self.smtp_host, self.smtp_port, timeout=SMTP_TIMEOUT) as server:
+                    server.login(self.smtp_username, self.smtp_password)
+                    server.send_message(msg)
+            else:
+                with smtplib.SMTP(self.smtp_host, self.smtp_port, timeout=SMTP_TIMEOUT) as server:
+                    server.starttls()
+                    server.login(self.smtp_username, self.smtp_password)
+                    server.send_message(msg)
+        finally:
+            socket.getaddrinfo = _original_getaddrinfo
 
     async def send_password_reset_code(self, email: str, code: str) -> bool:
         if not self.enabled:
