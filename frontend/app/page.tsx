@@ -498,18 +498,10 @@ export default function LandingPage() {
       {/* ========== FOOTER ========== */}
       <footer className="border-t border-white/10 py-10 px-6">
         <div className="max-w-6xl mx-auto flex flex-col items-center gap-4 text-center">
-          <div className="flex items-center gap-2 text-[15px] font-bold text-white">
-            <img src="/logo.png" alt="Vitba.ai" className="h-5 w-5 object-contain" />
-            Vitba.ai
-          </div>
           <div className="flex items-center gap-6 text-[13px] text-white/40">
-            <button onClick={() => scrollTo("features")} className="hover:text-[#FFD54A] transition-colors">Tính năng</button>
-            <button onClick={() => scrollTo("agents")} className="hover:text-[#FFD54A] transition-colors">AI Agents</button>
-            <button onClick={() => scrollTo("pricing")} className="hover:text-[#FFD54A] transition-colors">Bảng giá</button>
-            <button onClick={() => router.push("/login")} className="hover:text-[#FFD54A] transition-colors">Đăng nhập</button>
           </div>
           <div className="text-[14px] text-white/50 font-medium">
-            Founded by VŨ Hải Dương
+            Founded by Vũ Hải Dương
           </div>
           <div className="text-[12px] text-white/30">
             &copy; 2026 Vitba.ai. All rights reserved.

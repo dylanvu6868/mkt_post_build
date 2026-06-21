@@ -131,6 +131,143 @@ function formatResultText(result: Record<string, unknown>): string {
   return JSON.stringify(result, null, 2);
 }
 
+function getHtmlBody(result: Record<string, unknown>): string | null {
+  const content = (result.formatted_final as Record<string, string>) ?? (result.final as Record<string, string>);
+  const body = content?.body;
+  if (typeof body === "string" && body.trimStart().startsWith("<!DOCTYPE") || typeof body === "string" && body.trimStart().startsWith("<html")) {
+    return body;
+  }
+  return null;
+}
+
+function LandingPagePreview({ html, onFullscreen }: { html: string; onFullscreen: () => void }) {
+  const [device, setDevice] = useState<"desktop" | "mobile">("desktop");
+
+  const handleCopyCode = () => {
+    navigator.clipboard.writeText(html);
+    toast.success("Đã sao chép mã nguồn!");
+  };
+
+  const handleDownloadHtml = () => {
+    const blob = new Blob([html], { type: "text/html" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = "landing-page.html"; a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-1 rounded-[10px] border border-border p-0.5">
+          <button
+            onClick={() => setDevice("desktop")}
+            className={cn("rounded-[8px] px-2.5 py-1 text-[11px] font-medium transition-all", device === "desktop" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground")}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline mr-1"><rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/></svg>
+            Desktop
+          </button>
+          <button
+            onClick={() => setDevice("mobile")}
+            className={cn("rounded-[8px] px-2.5 py-1 text-[11px] font-medium transition-all", device === "mobile" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground")}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline mr-1"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg>
+            Mobile
+          </button>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <button onClick={handleCopyCode} className="flex items-center gap-1 rounded-[8px] border border-border px-2.5 py-1 text-[11px] font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-all">
+            <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+            Code
+          </button>
+          <button onClick={handleDownloadHtml} className="flex items-center gap-1 rounded-[8px] border border-border px-2.5 py-1 text-[11px] font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-all">
+            <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+            Tải
+          </button>
+          <button onClick={onFullscreen} className="flex items-center gap-1 rounded-[8px] border border-border px-2.5 py-1 text-[11px] font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-all">
+            <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+            Toàn màn hình
+          </button>
+        </div>
+      </div>
+      <div className={cn(
+        "mx-auto rounded-[12px] border border-border overflow-hidden bg-white transition-all duration-300",
+        device === "mobile" ? "w-[375px]" : "w-full"
+      )}>
+        <iframe
+          srcDoc={html}
+          sandbox="allow-scripts"
+          className="w-full border-0"
+          style={{ height: device === "mobile" ? "600px" : "450px" }}
+          title="Landing Page Preview"
+        />
+      </div>
+    </div>
+  );
+}
+
+function LandingPageFullscreen({ html, onClose }: { html: string; onClose: () => void }) {
+  const [device, setDevice] = useState<"desktop" | "mobile">("desktop");
+  const [showCode, setShowCode] = useState(false);
+
+  useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", handleEsc);
+    return () => window.removeEventListener("keydown", handleEsc);
+  }, [onClose]);
+
+  const handleCopyCode = () => {
+    navigator.clipboard.writeText(html);
+    toast.success("Đã sao chép mã nguồn!");
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 flex flex-col bg-black/80 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <div className="flex items-center justify-between px-6 py-3 bg-background/95 border-b border-border" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center gap-3">
+          <span className="text-primary">{CARD_ICONS.landing_page}</span>
+          <span className="text-[14px] font-semibold text-foreground">Landing Page Preview</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-0.5 rounded-[10px] border border-border p-0.5">
+            <button onClick={() => setDevice("desktop")} className={cn("rounded-[8px] px-3 py-1.5 text-[12px] font-medium transition-all", device === "desktop" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground")}>Desktop</button>
+            <button onClick={() => setDevice("mobile")} className={cn("rounded-[8px] px-3 py-1.5 text-[12px] font-medium transition-all", device === "mobile" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground")}>Mobile</button>
+          </div>
+          <button onClick={() => setShowCode(!showCode)} className={cn("rounded-[10px] border px-3 py-1.5 text-[12px] font-medium transition-all", showCode ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground hover:text-foreground hover:bg-accent")}>
+            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline mr-1"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+            Code
+          </button>
+          <button onClick={handleCopyCode} className="rounded-[10px] border border-border px-3 py-1.5 text-[12px] font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-all">Copy</button>
+          <button onClick={onClose} className="rounded-full p-1.5 hover:bg-muted transition-colors text-muted-foreground hover:text-foreground">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+      </div>
+      <div className="flex-1 flex overflow-hidden" onClick={(e) => e.stopPropagation()}>
+        <div className={cn("flex-1 flex items-start justify-center overflow-auto p-4", showCode && "w-1/2")}>
+          <div className={cn(
+            "rounded-[12px] border border-border overflow-hidden bg-white transition-all duration-300 h-full",
+            device === "mobile" ? "w-[375px]" : "w-full"
+          )}>
+            <iframe srcDoc={html} sandbox="allow-scripts" className="w-full h-full border-0" title="Landing Page Preview" />
+          </div>
+        </div>
+        {showCode && (
+          <div className="w-1/2 border-l border-border overflow-auto bg-[#0d1117]">
+            <pre className="p-4 text-[13px] text-green-400 font-mono whitespace-pre-wrap break-all">{html}</pre>
+          </div>
+        )}
+      </div>
+    </motion.div>
+  );
+}
+
 function ExpandModal({ result, onClose }: { result: Record<string, unknown>; onClose: () => void }) {
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
@@ -364,10 +501,12 @@ function InlineResult({ result, onRedo }: {
   const score = review?.score as number | undefined;
   const [expanded, setExpanded] = useState(false);
   const [showDownload, setShowDownload] = useState(false);
+  const htmlBody = getHtmlBody(result);
+  const isLandingPage = contentType === "landing_page" && htmlBody;
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(formatResultText(result));
-    toast.success("Đã sao chép!");
+    navigator.clipboard.writeText(isLandingPage ? htmlBody! : formatResultText(result));
+    toast.success(isLandingPage ? "Đã sao chép mã nguồn!" : "Đã sao chép!");
   };
 
   if (result.error) {
@@ -404,31 +543,41 @@ function InlineResult({ result, onRedo }: {
             </div>
 
             {/* Content */}
-            <div className="px-5 py-4 max-h-[400px] overflow-y-auto no-scrollbar">
-              <MarkdownContent content={formatResultText(result)} />
-            </div>
+            {isLandingPage ? (
+              <div className="px-4 py-4">
+                <LandingPagePreview html={htmlBody!} onFullscreen={() => setExpanded(true)} />
+              </div>
+            ) : (
+              <div className="px-5 py-4 max-h-[400px] overflow-y-auto no-scrollbar">
+                <MarkdownContent content={formatResultText(result)} />
+              </div>
+            )}
 
             {/* Actions */}
             <div className="flex items-center gap-2 px-5 py-3 border-t border-primary/10 bg-background/50">
-              <button onClick={handleCopy} className="flex items-center gap-1.5 rounded-[10px] border border-border px-3 py-1.5 text-[12px] font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-all">
-                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
-                Copy
-              </button>
-              <div className="relative">
-                <button onClick={() => setShowDownload(!showDownload)} className="flex items-center gap-1.5 rounded-[10px] border border-border px-3 py-1.5 text-[12px] font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-all">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
-                  Tải về
-                  <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-                </button>
-                <AnimatePresence>
-                  {showDownload && <DownloadMenu result={result} onClose={() => setShowDownload(false)} />}
-                </AnimatePresence>
-              </div>
-              <button onClick={() => setExpanded(true)} className="flex items-center gap-1.5 rounded-[10px] border border-border px-3 py-1.5 text-[12px] font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-all">
-                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
-                Phóng to
-              </button>
-              <button onClick={onRedo} className="flex items-center gap-1.5 rounded-[10px] border border-border px-3 py-1.5 text-[12px] font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-all ml-auto">
+              {!isLandingPage && (
+                <>
+                  <button onClick={handleCopy} className="flex items-center gap-1.5 rounded-[10px] border border-border px-3 py-1.5 text-[12px] font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-all">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+                    Copy
+                  </button>
+                  <div className="relative">
+                    <button onClick={() => setShowDownload(!showDownload)} className="flex items-center gap-1.5 rounded-[10px] border border-border px-3 py-1.5 text-[12px] font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-all">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+                      Tải về
+                      <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                    </button>
+                    <AnimatePresence>
+                      {showDownload && <DownloadMenu result={result} onClose={() => setShowDownload(false)} />}
+                    </AnimatePresence>
+                  </div>
+                  <button onClick={() => setExpanded(true)} className="flex items-center gap-1.5 rounded-[10px] border border-border px-3 py-1.5 text-[12px] font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-all">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+                    Phóng to
+                  </button>
+                </>
+              )}
+              <button onClick={onRedo} className={cn("flex items-center gap-1.5 rounded-[10px] border border-border px-3 py-1.5 text-[12px] font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-all", !isLandingPage && "ml-auto")}>
                 <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
                 Làm lại
               </button>
@@ -437,7 +586,10 @@ function InlineResult({ result, onRedo }: {
         </div>
       </motion.div>
       <AnimatePresence>
-        {expanded && <ExpandModal result={result} onClose={() => setExpanded(false)} />}
+        {expanded && (isLandingPage
+          ? <LandingPageFullscreen html={htmlBody!} onClose={() => setExpanded(false)} />
+          : <ExpandModal result={result} onClose={() => setExpanded(false)} />
+        )}
       </AnimatePresence>
     </>
   );
