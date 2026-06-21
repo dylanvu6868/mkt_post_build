@@ -52,12 +52,12 @@ const FEATURE_ICONS = [
 const STEPS = [
   {
     num: "01", title: "Mô tả ý tưởng",
-    desc: "Chat với AI bằng tiếng Việt tự nhiên. Mô tả sản phẩm, đối tượng mục tiêu, tone of voice và mục tiêu marketing. AI sẽ hỏi thêm các câu hỏi để hiểu rõ nhu cầu.",
+    desc: "Chat với Vitba Agents bằng tiếng Việt tự nhiên. Mô tả sản phẩm, đối tượng mục tiêu, tone of voice và mục tiêu marketing. Vitba Agents sẽ hỏi thêm các câu hỏi để hiểu rõ nhu cầu.",
     icon: <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={GOLD} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m3 21 1.9-5.7a8.5 8.5 0 1 1 3.8 3.8z"/></svg>,
   },
   {
-    num: "02", title: "AI Agents xử lý",
-    desc: "Pipeline 5 AI Agents tự động kích hoạt: Planner lên chiến lược, Researcher phân tích thị trường, Copywriter viết nội dung, Reviewer chấm điểm, Formatter tối ưu định dạng.",
+    num: "02", title: "Vitba Agents xử lý",
+    desc: "Pipeline 5 Vitba Agents tự động kích hoạt: Planner lên chiến lược, Researcher phân tích thị trường, Copywriter viết nội dung, Reviewer chấm điểm, Formatter tối ưu định dạng.",
     icon: <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={GOLD} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.27 1.27L3 12l5.8 1.9a2 2 0 0 1 1.27 1.27L12 21l1.9-5.8a2 2 0 0 1 1.27-1.27L21 12l-5.8-1.9a2 2 0 0 1-1.27-1.27L12 3Z"/></svg>,
   },
   {
@@ -101,14 +101,14 @@ const PLANS_PREVIEW = [
 const STATS = [
   { value: "30s", label: "Thời gian tạo nội dung" },
   { value: "6+", label: "Loại nội dung marketing" },
-  { value: "5", label: "AI Agents chuyên biệt" },
+  { value: "5", label: "Vitba Agents chuyên biệt" },
   { value: "100%", label: "Hỗ trợ tiếng Việt" },
 ];
 
 const TESTIMONIALS = [
   { name: "Minh Anh", role: "Marketing Manager", text: "Vitba.ai giúp team tôi tiết kiệm 80% thời gian viết content. Chất lượng bài SEO blog tốt hơn cả agency." },
   { name: "Hùng Nguyễn", role: "Founder Startup", text: "Từ khi dùng Vitba.ai, tôi không cần thuê copywriter nữa. Landing page convert rate tăng 3x." },
-  { name: "Thu Hà", role: "Freelance Marketer", text: "Pipeline 5 AI Agents thực sự ấn tượng. Nội dung được review và tối ưu tự động, chuyên nghiệp hơn nhiều." },
+  { name: "Thu Hà", role: "Freelance Marketer", text: "Pipeline 5 Vitba Agents thực sự ấn tượng. Nội dung được review và tối ưu tự động, chuyên nghiệp hơn nhiều." },
 ];
 
 function AnimatedSection({ children, className }: { children: React.ReactNode; className?: string }) {
@@ -151,7 +151,7 @@ export default function LandingPage() {
           <div className="hidden md:flex items-center gap-8 text-[14px] text-white/60">
             <button onClick={() => scrollTo("features")} className="hover:text-[#FFD54A] transition-colors cursor-pointer">Tính năng</button>
             <button onClick={() => scrollTo("how-it-works")} className="hover:text-[#FFD54A] transition-colors cursor-pointer">Cách hoạt động</button>
-            <button onClick={() => scrollTo("agents")} className="hover:text-[#FFD54A] transition-colors cursor-pointer">AI Agents</button>
+            <button onClick={() => scrollTo("agents")} className="hover:text-[#FFD54A] transition-colors cursor-pointer">Vitba Agents</button>
             <button onClick={() => scrollTo("pricing")} className="hover:text-[#FFD54A] transition-colors cursor-pointer">Bảng giá</button>
           </div>
           <div className="flex items-center gap-2">
@@ -193,7 +193,7 @@ export default function LandingPage() {
           </h1>
 
           <p className="text-lg sm:text-xl text-white/60 max-w-2xl mx-auto mb-10 leading-relaxed">
-            5 AI Agents chuyên biệt cùng làm việc — nghiên cứu thị trường, viết nội dung, kiểm duyệt chất lượng và tối ưu SEO. Tất cả bằng tiếng Việt, chỉ trong 30 giây.
+            5 Vitba Agents chuyên biệt cùng làm việc — nghiên cứu thị trường, viết nội dung, kiểm duyệt chất lượng và tối ưu SEO. Tất cả bằng tiếng Việt, chỉ trong 30 giây.
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
@@ -228,7 +228,7 @@ export default function LandingPage() {
               6 loại nội dung, <span className="text-[#FFD54A]">1 nền tảng AI</span>
             </h2>
             <p className="text-white/50 text-lg max-w-2xl mx-auto">
-              Từ bài Facebook viral đến kế hoạch marketing chiến lược — AI Agents tạo nội dung chuyên nghiệp bằng tiếng Việt cho mọi kênh.
+              Từ bài Facebook viral đến kế hoạch marketing chiến lược — Vitba Agents tạo nội dung chuyên nghiệp bằng tiếng Việt cho mọi kênh.
             </p>
           </AnimatedSection>
 
@@ -294,7 +294,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ========== AI AGENTS ========== */}
+      {/* ========== VITBA AGENTS ========== */}
       <section id="agents" className="py-20 sm:py-28 px-6 scroll-mt-20">
         <div className="max-w-5xl mx-auto">
           <AnimatedSection className="text-center mb-16">
@@ -302,7 +302,7 @@ export default function LandingPage() {
               Công nghệ
             </div>
             <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4 text-white">
-              Đội ngũ <span className="text-[#FFD54A]">5 AI Agents</span> chuyên biệt
+              Đội ngũ <span className="text-[#FFD54A]">5 Vitba Agents</span> chuyên biệt
             </h2>
             <p className="text-white/50 text-lg max-w-2xl mx-auto">
               Không phải 1 chatbot đơn lẻ — mà là một pipeline hoàn chỉnh với 5 agents phối hợp, mỗi agent đảm nhận một vai trò chuyên môn riêng biệt.

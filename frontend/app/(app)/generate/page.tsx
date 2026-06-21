@@ -333,7 +333,7 @@ export default function GeneratePage() {
                 <div className="bg-black/40 border border-border rounded-2xl p-5 shadow-lg backdrop-blur-sm">
                   <h3 className="text-sm font-bold mb-4 flex items-center gap-2 text-foreground">
                     <Sparkles className="w-4 h-4 text-yellow-500" /> 
-                    {polling ? "AI đang xử lý..." : jobStatus.status === "error" ? "Đã xảy ra lỗi" : "Quá trình sáng tạo hoàn tất"}
+                    {polling ? "Vitba Agents đang xử lý..." : jobStatus.status === "error" ? "Đã xảy ra lỗi" : "Quá trình sáng tạo hoàn tất"}
                     {polling && (
                       <span className="flex h-2 w-2 ml-2">
                         <span className="animate-ping absolute inline-flex h-2 w-2 rounded-full bg-yellow-400 opacity-75"></span>
@@ -461,7 +461,7 @@ export default function GeneratePage() {
             <Textarea
               value={brief}
               onChange={e => setBrief(e.target.value)}
-              placeholder={loading || polling ? "AI đang miệt mài sáng tạo..." : "Mô tả ý tưởng nội dung của bạn..."}
+              placeholder={loading || polling ? "Vitba Agents đang miệt mài sáng tạo..." : "Mô tả ý tưởng nội dung của bạn..."}
               className="w-full min-h-[44px] max-h-[200px] bg-transparent border-0 resize-none focus-visible:ring-0 py-2.5 px-4 text-sm placeholder:text-neutral-500 scrollbar-hide"
               disabled={loading || polling}
               onKeyDown={(e) => {

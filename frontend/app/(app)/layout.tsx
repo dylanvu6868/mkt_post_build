@@ -11,8 +11,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <div className="flex h-screen">
         <ChatSidebar />
         <ChatPanel />
-        <SuggestionPanel />
       </div>
+      <SuggestionPanel />
     </AuthGuard>
   );
 }

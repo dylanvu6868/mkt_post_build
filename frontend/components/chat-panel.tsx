@@ -34,7 +34,7 @@ const CARD_ICONS: Record<string, JSX.Element> = {
 
 const GUIDE_STEPS = [
   { title: "Chọn loại nội dung", desc: "Bấm vào một thẻ bên dưới để bắt đầu tạo nội dung marketing. Mỗi loại được thiết kế riêng cho từng nền tảng.", target: "cards" },
-  { title: "Trò chuyện với AI", desc: "Nhập yêu cầu vào ô chat. AI sẽ hỏi thêm thông tin qua gợi ý ở sidebar phải, sau đó tự động tạo nội dung.", target: "chat" },
+  { title: "Trò chuyện với Vitba Agents", desc: "Nhập yêu cầu vào ô chat. Vitba Agents sẽ hỏi thêm thông tin qua gợi ý ở sidebar phải, sau đó tự động tạo nội dung.", target: "chat" },
   { title: "Xem & tải kết quả", desc: "Kết quả hiển thị ngay trong chat. Bạn có thể sao chép, tải về (TXT/HTML), phóng to xem toàn bộ, hoặc yêu cầu AI làm lại.", target: "result" },
   { title: "Nâng cấp gói", desc: "Các loại nội dung nâng cao cần gói Lite/Pro/Max. Bấm vào thẻ bị khóa hoặc nút 'Nâng cấp' ở header để xem bảng giá.", target: "upgrade" },
   { title: "Cài đặt tài khoản", desc: "Vào Settings để cập nhật thông tin cá nhân, đổi mật khẩu, quản lý thương hiệu và tệp tài liệu.", target: "settings" },
@@ -606,7 +606,7 @@ function GeneratingIndicator({ streamContent }: { streamContent: string }) {
               <span className="w-2 h-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: "150ms" }} />
               <span className="w-2 h-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: "300ms" }} />
             </div>
-            <span className="text-[13px] font-medium text-primary">AI Agents đang làm việc...</span>
+            <span className="text-[13px] font-medium text-primary">Vitba Agents đang làm việc...</span>
           </div>
           {streamContent && (
             <div className="px-5 py-4 max-h-[300px] overflow-y-auto no-scrollbar">
@@ -624,7 +624,6 @@ export function ChatPanel() {
   const {
     messages, activeConversationId, streaming, streamContent,
     sendMessage, createConversation, contentPanel, setContentPanel,
-    suggestions
   } = useChatStore();
   const user = useAuthStore((s) => s.user);
   const router = useRouter();
@@ -876,7 +875,7 @@ export function ChatPanel() {
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 scroll-smooth z-10 relative no-scrollbar">
+      <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 scroll-smooth relative no-scrollbar">
         {messages.map((msg) => (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} key={msg.id} className={cn("flex w-full", msg.role === "user" ? "justify-end" : "justify-start")}>
             <div className={cn(
@@ -947,15 +946,6 @@ export function ChatPanel() {
           </motion.div>
         ))}
 
-        {/* Suggestion sidebar pointer */}
-        {suggestions.length > 0 && !streaming && (
-          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="flex justify-start">
-            <div className="flex items-center gap-2 rounded-full bg-primary/10 border border-primary/20 px-4 py-2 text-[13px] text-primary font-medium">
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.27 1.27L3 12l5.8 1.9a2 2 0 0 1 1.27 1.27L12 21l1.9-5.8a2 2 0 0 1 1.27-1.27L21 12l-5.8-1.9a2 2 0 0 1-1.27-1.27L12 3Z"/></svg>
-              Chọn gợi ý ở sidebar bên phải →
-            </div>
-          </motion.div>
-        )}
 
         <div ref={bottomRef} className="h-4" />
       </div>
@@ -1014,7 +1004,7 @@ export function ChatPanel() {
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
             </button>
-            <input value={input} onChange={(e) => setInput(e.target.value)} placeholder="Gửi tin nhắn cho AI..." disabled={streaming} className="flex-1 bg-transparent border-none px-5 py-3.5 text-[15px] text-foreground placeholder:text-foreground/30 focus:outline-none focus:ring-0 disabled:opacity-50" />
+            <input value={input} onChange={(e) => setInput(e.target.value)} placeholder="Gửi tin nhắn cho Vitba Agents..." disabled={streaming} className="flex-1 bg-transparent border-none px-5 py-3.5 text-[15px] text-foreground placeholder:text-foreground/30 focus:outline-none focus:ring-0 disabled:opacity-50" />
             <button type="submit" disabled={!input.trim() || streaming} className="rounded-[16px] bg-primary text-primary-foreground hover:bg-primary/90 hover:scale-105 active:scale-95 h-[46px] w-[46px] flex items-center justify-center mr-0.5 self-center disabled:opacity-50 disabled:hover:scale-100 transition-all duration-300 shadow-[0_0_15px_rgba(255,213,74,0.3)]">
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
             </button>

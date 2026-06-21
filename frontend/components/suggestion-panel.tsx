@@ -3,11 +3,29 @@
 import { useChatStore } from "@/store/chat";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 
 export function SuggestionPanel() {
   const { suggestions, streaming, sendMessage, activeConversationId, messages } = useChatStore();
   const [selected, setSelected] = useState<string | null>(null);
+  const [open, setOpen] = useState(false);
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  const hasSuggestions = suggestions.length > 0 && !streaming;
+
+  useEffect(() => {
+    if (hasSuggestions) setOpen(true);
+  }, [hasSuggestions, suggestions]);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    if (open) document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [open]);
 
   if (!activeConversationId) return null;
 
@@ -18,117 +36,125 @@ export function SuggestionPanel() {
     ?.replace(/```(generate|suggestions)\n[\s\S]*$/, "")
     ?.trim() || "";
 
-  const hasSuggestions = suggestions.length > 0 && !streaming;
-
   const handleSelect = (s: string) => {
     setSelected(s);
     setTimeout(() => {
       sendMessage(s);
       setSelected(null);
+      setOpen(false);
     }, 250);
   };
 
+  const showBadge = hasSuggestions || streaming;
+
   return (
-    <aside className="hidden lg:flex h-screen w-[320px] flex-col border-l border-border bg-card/95 backdrop-blur-xl shrink-0">
-      {/* Header */}
-      <div className="flex items-center gap-2.5 border-b border-border px-6 py-4 bg-background/80">
-        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.27 1.27L3 12l5.8 1.9a2 2 0 0 1 1.27 1.27L12 21l1.9-5.8a2 2 0 0 1 1.27-1.27L21 12l-5.8-1.9a2 2 0 0 1-1.27-1.27L12 3Z"/></svg>
-        <h2 className="text-[15px] font-semibold text-foreground tracking-tight">AI Suggest</h2>
-      </div>
+    <div ref={panelRef} className="fixed bottom-24 right-6 z-50">
+      {/* Popup */}
+      <AnimatePresence>
+        {open && (hasSuggestions || streaming) && (
+          <motion.div
+            initial={{ opacity: 0, y: 10, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 10, scale: 0.95 }}
+            transition={{ type: "spring", stiffness: 400, damping: 30 }}
+            className="absolute bottom-16 right-0 w-[320px] max-h-[70vh] rounded-[20px] border border-primary/20 bg-card/98 backdrop-blur-2xl shadow-[0_8px_40px_-12px_rgba(0,0,0,0.6),0_0_20px_rgba(255,213,74,0.08)] overflow-hidden"
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between px-5 py-3.5 border-b border-primary/10 bg-primary/5">
+              <div className="flex items-center gap-2">
+                <img src="/logo.png" alt="Vitba" className="h-5 w-5 object-contain" />
+                <span className="text-[14px] font-semibold text-foreground">Vitba Agents</span>
+              </div>
+              <button
+                onClick={() => setOpen(false)}
+                className="rounded-full p-1 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
+            </div>
 
-      {/* Content */}
-      <div className="flex-1 overflow-y-auto p-4 no-scrollbar">
-        <AnimatePresence mode="wait">
-          {hasSuggestions ? (
-            <motion.div
-              key="suggestions"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              className="space-y-4"
-            >
-              {/* Question from AI */}
-              {question && (
-                <div className="rounded-[16px] bg-primary/5 border border-primary/10 p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                    <span className="text-[11px] font-bold text-primary/70 tracking-wider uppercase">Câu hỏi từ AI</span>
+            {/* Content */}
+            <div className="overflow-y-auto max-h-[calc(70vh-56px)] p-4 no-scrollbar">
+              {hasSuggestions ? (
+                <div className="space-y-3">
+                  {question && (
+                    <div className="rounded-[14px] bg-primary/5 border border-primary/10 p-3.5">
+                      <p className="text-[13px] text-foreground leading-relaxed font-medium">{question}</p>
+                    </div>
+                  )}
+
+                  <div className="space-y-1.5">
+                    {suggestions.map((s, i) => (
+                      <motion.button
+                        key={`${s}-${i}`}
+                        initial={{ opacity: 0, x: 12 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: i * 0.04 }}
+                        whileTap={{ scale: 0.97 }}
+                        onClick={() => handleSelect(s)}
+                        className={cn(
+                          "w-full flex items-center gap-2.5 rounded-[12px] px-3.5 py-3 text-left text-[13px] transition-all group border",
+                          selected === s
+                            ? "bg-primary/15 border-primary/30 text-primary"
+                            : "border-border hover:border-primary/20 hover:bg-muted/60 text-foreground"
+                        )}
+                      >
+                        <span className={cn(
+                          "flex-shrink-0 w-[18px] h-[18px] rounded-full border-2 transition-all flex items-center justify-center",
+                          selected === s
+                            ? "border-primary bg-primary"
+                            : "border-muted-foreground/30 group-hover:border-primary/50"
+                        )}>
+                          {selected === s && (
+                            <svg xmlns="http://www.w3.org/2000/svg" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="text-primary-foreground"><polyline points="20 6 9 17 4 12"/></svg>
+                          )}
+                        </span>
+                        <span className="font-medium leading-snug">{s}</span>
+                      </motion.button>
+                    ))}
                   </div>
-                  <p className="text-[14px] text-foreground leading-relaxed font-medium">{question}</p>
                 </div>
-              )}
+              ) : streaming ? (
+                <div className="flex items-center justify-center gap-2 py-6">
+                  <div className="flex gap-1">
+                    <span className="w-2 h-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: "0ms" }} />
+                    <span className="w-2 h-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: "150ms" }} />
+                    <span className="w-2 h-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: "300ms" }} />
+                  </div>
+                  <p className="text-[13px] text-muted-foreground">Đang phân tích...</p>
+                </div>
+              ) : null}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-              {/* Options */}
-              <div className="space-y-2">
-                <span className="text-[11px] font-bold text-muted-foreground/60 tracking-wider uppercase px-1">Chọn một lựa chọn</span>
-                {suggestions.map((s, i) => (
-                  <motion.button
-                    key={`${s}-${i}`}
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: i * 0.05 }}
-                    whileHover={{ x: 4 }}
-                    whileTap={{ scale: 0.97 }}
-                    onClick={() => handleSelect(s)}
-                    className={cn(
-                      "w-full flex items-center gap-3 rounded-[14px] px-4 py-3.5 text-left text-[14px] transition-all group border",
-                      selected === s
-                        ? "bg-primary/15 border-primary/30 text-primary shadow-[0_0_15px_rgba(255,213,74,0.1)]"
-                        : "border-border hover:border-primary/20 hover:bg-muted/60 text-foreground"
-                    )}
-                  >
-                    <span className={cn(
-                      "flex-shrink-0 w-[20px] h-[20px] rounded-full border-2 transition-all flex items-center justify-center",
-                      selected === s
-                        ? "border-primary bg-primary"
-                        : "border-muted-foreground/30 group-hover:border-primary/50"
-                    )}>
-                      {selected === s && (
-                        <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="text-primary-foreground"><polyline points="20 6 9 17 4 12"/></svg>
-                      )}
-                    </span>
-                    <span className="font-medium leading-snug">{s}</span>
-                  </motion.button>
-                ))}
-              </div>
-            </motion.div>
-          ) : streaming ? (
-            <motion.div
-              key="thinking"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="flex flex-col items-center justify-center h-full text-center px-4"
-            >
-              <div className="flex gap-1.5 mb-4">
-                <span className="w-2.5 h-2.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: "0ms" }} />
-                <span className="w-2.5 h-2.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: "150ms" }} />
-                <span className="w-2.5 h-2.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: "300ms" }} />
-              </div>
-              <p className="text-[13px] text-muted-foreground">AI đang phân tích...</p>
-            </motion.div>
-          ) : (
-            <motion.div
-              key="empty"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="flex flex-col items-center justify-center h-full text-center px-6"
-            >
-              <div className="w-14 h-14 rounded-full bg-muted/60 flex items-center justify-center mb-4">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-muted-foreground/40"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.27 1.27L3 12l5.8 1.9a2 2 0 0 1 1.27 1.27L12 21l1.9-5.8a2 2 0 0 1 1.27-1.27L21 12l-5.8-1.9a2 2 0 0 1-1.27-1.27L12 3Z"/></svg>
-              </div>
-              <p className="text-[14px] font-medium text-muted-foreground/60 mb-2">Chưa có gợi ý</p>
-              <p className="text-[12px] text-muted-foreground/40 leading-relaxed">Gửi tin nhắn để AI đưa ra các lựa chọn phù hợp với nội dung của bạn</p>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
+      {/* Floating Button */}
+      <motion.button
+        whileHover={{ scale: 1.08 }}
+        whileTap={{ scale: 0.92 }}
+        onClick={() => setOpen(!open)}
+        className={cn(
+          "relative w-[52px] h-[52px] rounded-full flex items-center justify-center transition-all duration-300 shadow-lg",
+          open
+            ? "bg-primary shadow-[0_0_24px_rgba(255,213,74,0.4)]"
+            : "bg-card border border-border hover:border-primary/40 hover:shadow-[0_0_20px_rgba(255,213,74,0.2)]"
+        )}
+      >
+        <img src="/logo.png" alt="Vitba Agents" className="h-7 w-7 object-contain" />
 
-      {/* Footer hint */}
-      <div className="border-t border-border px-6 py-3 bg-background/50">
-        <p className="text-[11px] text-muted-foreground/50 text-center">Chọn lựa chọn hoặc gõ câu trả lời riêng</p>
-      </div>
-    </aside>
+        {/* Badge */}
+        {showBadge && !open && (
+          <span className="absolute -top-1 -right-1 flex h-5 w-5">
+            {streaming ? (
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-60" />
+            ) : null}
+            <span className="relative inline-flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
+              {streaming ? "..." : suggestions.length}
+            </span>
+          </span>
+        )}
+      </motion.button>
+    </div>
   );
 }

@@ -137,7 +137,7 @@ export function ContentPanel() {
         {contentPanel.generating && !contentPanel.result && (
           <div className="flex flex-col items-start justify-start h-full">
             <div className="w-full">
-              <MarkdownContent content={streamContent || "Đang kết nối AI Agents..."} />
+              <MarkdownContent content={streamContent || "Đang kết nối Vitba Agents..."} />
               <span className="animate-pulse inline-block ml-1 text-primary">|</span>
             </div>
           </div>
