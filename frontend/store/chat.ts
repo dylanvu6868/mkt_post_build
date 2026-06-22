@@ -238,7 +238,7 @@ export const useChatStore = create<ChatState>()(
             fullContent = data.content;
             const generateMatch = fullContent.match(/```generate\n([\s\S]*?)\n```/);
             if (generateMatch) {
-              set({ contentPanel: { visible: false, generating: true, result: null } });
+              set({ contentPanel: { visible: false, generating: true, result: null }, streamContent: "" });
               try {
                 const payload = JSON.parse(generateMatch[1]);
                 let projectId = useProjectStore.getState().activeProject?.id;

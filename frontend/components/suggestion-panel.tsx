@@ -86,7 +86,7 @@ export function SuggestionPanel() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.95 }}
             transition={{ type: "spring", stiffness: 400, damping: 30 }}
-            className="absolute bottom-16 right-0 w-[320px] max-h-[70vh] rounded-[20px] border border-primary/20 bg-card/98 backdrop-blur-2xl shadow-[0_8px_40px_-12px_rgba(0,0,0,0.6),0_0_20px_rgba(255,213,74,0.08)] overflow-hidden"
+            className="absolute bottom-16 right-0 w-[320px] max-h-[70vh] rounded-[20px] border border-primary/20 bg-card/98 backdrop-blur-2xl shadow-[0_8px_40px_-12px_rgba(0,0,0,0.15),0_0_20px_rgba(255,213,74,0.05)] dark:shadow-[0_8px_40px_-12px_rgba(0,0,0,0.6),0_0_20px_rgba(255,213,74,0.08)] overflow-hidden"
           >
             {/* Header */}
             <div className="flex items-center justify-between px-5 py-3.5 border-b border-primary/10 bg-primary/5">

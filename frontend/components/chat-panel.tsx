@@ -528,7 +528,7 @@ function InlineResult({ result, onRedo }: {
     <>
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex justify-start w-full">
         <div className="max-w-[90%] sm:max-w-[85%] w-full">
-          <div className="rounded-[20px] border border-primary/20 bg-gradient-to-br from-primary/5 to-primary/[0.02] overflow-hidden shadow-[0_4px_24px_-8px_rgba(0,0,0,0.3)]">
+          <div className="rounded-[20px] border border-primary/20 bg-gradient-to-br from-primary/5 to-primary/[0.02] overflow-hidden shadow-[0_4px_24px_-8px_rgba(0,0,0,0.08)] dark:shadow-[0_4px_24px_-8px_rgba(0,0,0,0.3)]">
             {/* Header */}
             <div className="flex items-center justify-between px-5 py-3 border-b border-primary/10 bg-primary/5">
               <div className="flex items-center gap-2.5">
@@ -629,8 +629,8 @@ function GeneratingIndicator({ streamContent }: { streamContent: string }) {
           <div className="flex items-center gap-3 px-5 py-3 border-b border-primary/10">
             {isStreaming ? (
               <>
-                <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-                <span className="text-[13px] font-medium text-green-400">Kết quả đang được tạo...</span>
+                <div className="w-2 h-2 rounded-full bg-green-600 dark:bg-green-400 animate-pulse" />
+                <span className="text-[13px] font-medium text-green-600 dark:text-green-400">Kết quả đang được tạo...</span>
               </>
             ) : (
               <>
@@ -653,7 +653,7 @@ function GeneratingIndicator({ streamContent }: { streamContent: string }) {
                   className={cn(
                     "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium transition-all",
                     i < currentIdx
-                      ? "bg-green-500/15 text-green-400"
+                      ? "bg-green-500/15 text-green-600 dark:text-green-400"
                       : i === currentIdx
                         ? "bg-primary/15 text-primary ring-1 ring-primary/30 animate-pulse"
                         : "bg-muted/50 text-muted-foreground/50"
@@ -884,7 +884,7 @@ export function ChatPanel() {
                     "relative flex flex-col items-start gap-2 sm:gap-3 rounded-[16px] sm:rounded-[20px] border p-3.5 sm:p-5 text-left transition-all duration-300 group",
                     locked
                       ? "border-border/50 bg-card/30 opacity-60 cursor-not-allowed"
-                      : "border-border bg-card/60 hover:bg-muted/80 hover:border-primary/40 hover:shadow-[inset_0_0_20px_rgba(255,213,74,0.05),0_8px_20px_-8px_rgba(0,0,0,0.5)]"
+                      : "border-border bg-card/60 hover:bg-muted/80 hover:border-primary/40 hover:shadow-[inset_0_0_20px_rgba(255,213,74,0.05),0_8px_20px_-8px_rgba(0,0,0,0.1)] dark:hover:shadow-[inset_0_0_20px_rgba(255,213,74,0.05),0_8px_20px_-8px_rgba(0,0,0,0.5)]"
                   )}
                 >
                   {locked && (
@@ -900,7 +900,7 @@ export function ChatPanel() {
                     {CARD_ICONS[item.type]}
                   </div>
                   <div>
-                    <span className={cn("block font-semibold text-[15px] transition-colors", locked ? "text-muted-foreground" : "text-white group-hover:text-primary")}>{item.title}</span>
+                    <span className={cn("block font-semibold text-[15px] transition-colors", locked ? "text-muted-foreground" : "text-foreground group-hover:text-primary")}>{item.title}</span>
                     <span className="block text-[13px] text-muted-foreground mt-1">{item.desc}</span>
                   </div>
                 </motion.button>
@@ -951,23 +951,29 @@ export function ChatPanel() {
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-3 sm:p-6 space-y-4 sm:space-y-6 scroll-smooth relative no-scrollbar">
-        {messages.map((msg) => (
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} key={msg.id} className={cn("flex w-full", msg.role === "user" ? "justify-end" : "justify-start")}>
-            <div className={cn(
-              "max-w-[90%] sm:max-w-[80%] px-4 py-3 sm:px-6 sm:py-4 text-[14px] sm:text-[15px] shadow-sm",
-              msg.role === "user"
-                ? "bg-primary/10 text-foreground border border-primary/20 rounded-[20px] sm:rounded-[24px] rounded-tr-sm shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]"
-                : "bg-card text-foreground rounded-[20px] sm:rounded-[24px] rounded-tl-sm border border-border shadow-[0_4px_24px_-8px_rgba(0,0,0,0.5)]"
-            )}>
-              {msg.role === "assistant" ? <MarkdownContent content={msg.content} /> : <span className="whitespace-pre-wrap">{msg.content}</span>}
-            </div>
-          </motion.div>
-        ))}
+        {messages.map((msg) => {
+          if (msg.role === "assistant") {
+            const cleaned = cleanContent(msg.content);
+            if (!cleaned) return null;
+          }
+          return (
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} key={msg.id} className={cn("flex w-full", msg.role === "user" ? "justify-end" : "justify-start")}>
+              <div className={cn(
+                "max-w-[90%] sm:max-w-[80%] px-4 py-3 sm:px-6 sm:py-4 text-[14px] sm:text-[15px] shadow-sm overflow-hidden",
+                msg.role === "user"
+                  ? "bg-primary/10 text-foreground border border-primary/20 rounded-[20px] sm:rounded-[24px] rounded-tr-sm shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]"
+                  : "bg-card text-foreground rounded-[20px] sm:rounded-[24px] rounded-tl-sm border border-border shadow-[0_4px_24px_-8px_rgba(0,0,0,0.08)] dark:shadow-[0_4px_24px_-8px_rgba(0,0,0,0.5)]"
+              )}>
+                {msg.role === "assistant" ? <MarkdownContent content={msg.content} /> : <span className="whitespace-pre-wrap break-words">{msg.content}</span>}
+              </div>
+            </motion.div>
+          );
+        })}
 
-        {/* Chat streaming */}
+        {/* Chat streaming — only when NOT in generation mode */}
         {streaming && streamContent && !contentPanel.generating && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex justify-start">
-            <div className="max-w-[90%] sm:max-w-[80%] rounded-[24px] rounded-tl-sm bg-card border border-border px-6 py-4 text-[15px] shadow-[0_4px_24px_-8px_rgba(0,0,0,0.5)]">
+            <div className="max-w-[90%] sm:max-w-[80%] rounded-[24px] rounded-tl-sm bg-card border border-border px-6 py-4 text-[15px] shadow-[0_4px_24px_-8px_rgba(0,0,0,0.08)] dark:shadow-[0_4px_24px_-8px_rgba(0,0,0,0.5)] overflow-hidden">
               <MarkdownContent content={streamContent} />
               <span className="animate-pulse inline-block ml-1 text-primary">|</span>
             </div>
@@ -976,7 +982,7 @@ export function ChatPanel() {
 
         {streaming && !streamContent && !contentPanel.generating && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex justify-start">
-            <div className="rounded-[24px] rounded-tl-sm bg-card border border-border px-6 py-4 text-[15px] shadow-[0_4px_24px_-8px_rgba(0,0,0,0.5)]">
+            <div className="rounded-[24px] rounded-tl-sm bg-card border border-border px-6 py-4 text-[15px] shadow-[0_4px_24px_-8px_rgba(0,0,0,0.08)] dark:shadow-[0_4px_24px_-8px_rgba(0,0,0,0.5)]">
               <span className="flex items-center gap-1.5 text-primary">
                 <span className="animate-bounce" style={{ animationDelay: "0ms" }}>&#9679;</span>
                 <span className="animate-bounce" style={{ animationDelay: "150ms" }}>&#9679;</span>
@@ -986,20 +992,18 @@ export function ChatPanel() {
           </motion.div>
         )}
 
-        {/* Inline generating indicator */}
-        {showGenerating && (
+        {/* Inline generating indicator — mutually exclusive with streaming */}
+        {showGenerating && !streaming && (
           <GeneratingIndicator streamContent={contentPanel.generating ? streamContent : ""} />
         )}
 
-        {/* Inline result */}
-        {showInlineResult && contentPanel.result && (
+        {/* Inline result — only when not generating and not streaming */}
+        {showInlineResult && !streaming && contentPanel.result && (
           <InlineResult
             result={contentPanel.result}
             onRedo={() => setContentPanel({ generating: false, result: null })}
           />
         )}
-
-
 
         <div ref={bottomRef} className="h-4" />
       </div>
@@ -1036,7 +1040,7 @@ export function ChatPanel() {
           </div>
         )}
 
-        <div className="bg-card/80 backdrop-blur-xl rounded-[18px] sm:rounded-[24px] p-1 sm:p-1.5 shadow-[0_8px_32px_-12px_rgba(0,0,0,0.5)] max-w-4xl mx-auto border border-border relative focus-within:border-primary/40 focus-within:shadow-[0_8px_40px_-12px_rgba(255,213,74,0.15)] transition-all duration-300">
+        <div className="bg-card/80 backdrop-blur-xl rounded-[18px] sm:rounded-[24px] p-1 sm:p-1.5 shadow-[0_8px_32px_-12px_rgba(0,0,0,0.1)] dark:shadow-[0_8px_32px_-12px_rgba(0,0,0,0.5)] max-w-4xl mx-auto border border-border relative focus-within:border-primary/40 focus-within:shadow-[0_8px_40px_-12px_rgba(255,213,74,0.15)] transition-all duration-300">
           <form onSubmit={handleSubmit} className="flex gap-1 sm:gap-2 w-full">
             <input
               ref={fileInputRef}

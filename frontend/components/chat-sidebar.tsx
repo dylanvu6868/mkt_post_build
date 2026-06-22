@@ -210,7 +210,7 @@ export function ChatSidebar() {
                   <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
                 </button>
               </SettingsModal>
-              <button onClick={logout} className="flex h-8 w-8 items-center justify-center rounded-full bg-transparent text-muted-foreground hover:bg-red-500/10 hover:text-red-400 transition-colors" title="Đăng xuất">
+              <button onClick={logout} className="flex h-8 w-8 items-center justify-center rounded-full bg-transparent text-muted-foreground hover:bg-red-500/10 hover:text-red-600 dark:hover:text-red-400 transition-colors" title="Đăng xuất">
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
               </button>
             </div>
@@ -261,7 +261,7 @@ function ConvItem({ conv, active, editing, editTitle, menuOpen, onSelect, onMenu
           >
             <button onClick={onStartRename} className="flex w-full items-center px-4 py-2 text-[13px] text-muted-foreground hover:text-foreground hover:bg-accent transition-colors">Đổi tên</button>
             <button onClick={onPin} className="flex w-full items-center px-4 py-2 text-[13px] text-muted-foreground hover:text-foreground hover:bg-accent transition-colors">{conv.is_pinned ? "Bỏ ghim" : "Ghim"}</button>
-            <button onClick={onDelete} className="flex w-full items-center px-4 py-2 text-[13px] text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors">Xoá cuộc trò chuyện</button>
+            <button onClick={onDelete} className="flex w-full items-center px-4 py-2 text-[13px] text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-500/10 transition-colors">Xoá cuộc trò chuyện</button>
           </motion.div>
         )}
       </AnimatePresence>
