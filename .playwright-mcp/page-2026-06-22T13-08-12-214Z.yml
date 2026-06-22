@@ -1,0 +1,304 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - navigation [ref=e3]:
+      - generic [ref=e4]:
+        - generic [ref=e5]:
+          - img "Vitba.ai" [ref=e6]
+          - text: Vitba.ai
+        - generic [ref=e7]:
+          - button "Tính năng" [ref=e8] [cursor=pointer]
+          - button "Cách hoạt động" [ref=e9] [cursor=pointer]
+          - button "Vitba Agents" [ref=e10] [cursor=pointer]
+          - button "Bảng giá" [ref=e11] [cursor=pointer]
+        - generic [ref=e12]:
+          - button "Đăng nhập" [ref=e13] [cursor=pointer]
+          - button "Dùng thử miễn phí" [ref=e14] [cursor=pointer]
+    - generic [ref=e15]:
+      - generic [ref=e16]:
+        - generic [ref=e17]: AI-Powered Marketing Platform
+        - heading "Tạo nội dung marketing chuyên nghiệp trong 30 giây" [level=1] [ref=e19]:
+          - text: Tạo nội dung marketing
+          - text: chuyên nghiệp trong 30 giây
+        - paragraph [ref=e20]: 5 Vitba Agents chuyên biệt cùng làm việc — nghiên cứu thị trường, viết nội dung, kiểm duyệt chất lượng và tối ưu SEO. Tất cả bằng tiếng Việt, chỉ trong 30 giây.
+        - generic [ref=e21]:
+          - button "Bắt đầu miễn phí — Không cần thẻ" [ref=e22] [cursor=pointer]
+          - button "Xem cách hoạt động" [ref=e23] [cursor=pointer]:
+            - img [ref=e24]
+            - text: Xem cách hoạt động
+      - generic [ref=e27]:
+        - generic [ref=e28]:
+          - generic [ref=e29]: 30s
+          - generic [ref=e30]: Thời gian tạo nội dung
+        - generic [ref=e31]:
+          - generic [ref=e32]: 6+
+          - generic [ref=e33]: Loại nội dung marketing
+        - generic [ref=e34]:
+          - generic [ref=e35]: "5"
+          - generic [ref=e36]: Vitba Agents chuyên biệt
+        - generic [ref=e37]:
+          - generic [ref=e38]: 100%
+          - generic [ref=e39]: Hỗ trợ tiếng Việt
+    - generic [ref=e41]:
+      - generic [ref=e42]:
+        - generic [ref=e43]: Tính năng
+        - heading "6 loại nội dung, 1 nền tảng AI" [level=2] [ref=e44]
+        - paragraph [ref=e45]: Từ bài Facebook viral đến kế hoạch marketing chiến lược — Vitba Agents tạo nội dung chuyên nghiệp bằng tiếng Việt cho mọi kênh.
+      - generic [ref=e46]:
+        - generic [ref=e48]:
+          - img [ref=e50]
+          - heading "Facebook Post" [level=3] [ref=e53]
+          - paragraph [ref=e54]: Tạo bài viết viral với hook mạnh, body hấp dẫn, CTA rõ ràng và hashtag tối ưu engagement. AI phân tích xu hướng để đề xuất format phù hợp nhất.
+          - generic [ref=e55]:
+            - generic [ref=e56]: Hook thu hút 3 giây đầu
+            - generic [ref=e57]: Body storytelling
+            - generic [ref=e58]: CTA chuyển đổi
+            - generic [ref=e59]: 30+ hashtag trending
+        - generic [ref=e61]:
+          - img [ref=e63]
+          - heading "SEO Blog" [level=3] [ref=e66]
+          - paragraph [ref=e67]: Bài blog chuẩn SEO 1500-3000 từ với meta description, FAQ schema markup, heading hierarchy và từ khóa LSI. Tối ưu cho cả Google và người đọc.
+          - generic [ref=e68]:
+            - generic [ref=e69]: Chuẩn E-E-A-T
+            - generic [ref=e70]: FAQ Schema
+            - generic [ref=e71]: Internal linking
+            - generic [ref=e72]: Meta tags tối ưu
+        - generic [ref=e74]:
+          - img [ref=e76]
+          - heading "Email Marketing" [level=3] [ref=e79]
+          - paragraph [ref=e80]: Email sequence chuyển đổi cao với subject line A/B testing, preheader text, body copy thuyết phục và CTA button placement tối ưu.
+          - generic [ref=e81]:
+            - generic [ref=e82]: Subject A/B test
+            - generic [ref=e83]: Preheader text
+            - generic [ref=e84]: Responsive layout
+            - generic [ref=e85]: Unsubscribe compliant
+        - generic [ref=e87]:
+          - img [ref=e89]
+          - heading "Landing Page" [level=3] [ref=e93]
+          - paragraph [ref=e94]: Trang đích tối ưu chuyển đổi với headline công thức AIDA, benefits section, testimonials, FAQ và multi-step CTA. Code HTML/CSS sẵn sàng deploy.
+          - generic [ref=e95]:
+            - generic [ref=e96]: Công thức AIDA
+            - generic [ref=e97]: Social proof
+            - generic [ref=e98]: Trust signals
+            - generic [ref=e99]: Mobile-first
+        - generic [ref=e101]:
+          - img [ref=e103]
+          - heading "TikTok Script" [level=3] [ref=e106]
+          - paragraph [ref=e107]: Kịch bản video ngắn 15-60s với hook 3 giây đầu, script chi tiết từng cảnh, voiceover text, caption và CTA viral. Tối ưu cho thuật toán FYP.
+          - generic [ref=e108]:
+            - generic [ref=e109]: Hook 3 giây
+            - generic [ref=e110]: Scene-by-scene
+            - generic [ref=e111]: Trending audio
+            - generic [ref=e112]: CTA + caption
+        - generic [ref=e114]:
+          - img [ref=e116]
+          - heading "Marketing Plan" [level=3] [ref=e117]
+          - paragraph [ref=e118]: Kế hoạch marketing chiến lược đầy đủ với phân tích SWOT, persona khách hàng, channel strategy, content calendar và KPI tracking.
+          - generic [ref=e119]:
+            - generic [ref=e120]: SWOT Analysis
+            - generic [ref=e121]: Buyer Persona
+            - generic [ref=e122]: Channel Mix
+            - generic [ref=e123]: KPI Dashboard
+    - generic [ref=e125]:
+      - generic [ref=e126]:
+        - generic [ref=e127]: Quy trình
+        - heading "Đơn giản 3 bước" [level=2] [ref=e128]
+        - paragraph [ref=e129]: Không cần kinh nghiệm marketing. Không cần biết viết content. Chỉ cần mô tả ý tưởng — AI lo phần còn lại.
+      - generic [ref=e130]:
+        - generic [ref=e132]:
+          - img [ref=e134]
+          - generic [ref=e136]: Bước 01
+          - heading "Mô tả ý tưởng" [level=3] [ref=e137]
+          - paragraph [ref=e138]: Chat với Vitba Agents bằng tiếng Việt tự nhiên. Mô tả sản phẩm, đối tượng mục tiêu, tone of voice và mục tiêu marketing. Vitba Agents sẽ hỏi thêm các câu hỏi để hiểu rõ nhu cầu.
+        - generic [ref=e141]:
+          - img [ref=e143]
+          - generic [ref=e145]: Bước 02
+          - heading "Vitba Agents xử lý" [level=3] [ref=e146]
+          - paragraph [ref=e147]: "Pipeline 5 Vitba Agents tự động kích hoạt: Planner lên chiến lược, Researcher phân tích thị trường, Copywriter viết nội dung, Reviewer chấm điểm, Formatter tối ưu định dạng."
+        - generic [ref=e150]:
+          - img [ref=e152]
+          - generic [ref=e155]: Bước 03
+          - heading "Nhận nội dung hoàn chỉnh" [level=3] [ref=e156]
+          - paragraph [ref=e157]: Nội dung chuyên nghiệp hiển thị ngay trong chat kèm điểm chất lượng AI Score. Copy 1 click, tải file, hoặc yêu cầu AI chỉnh sửa cho đến khi hoàn hảo.
+    - generic [ref=e159]:
+      - generic [ref=e160]:
+        - generic [ref=e161]: Công nghệ
+        - heading "Đội ngũ 5 Vitba Agents chuyên biệt" [level=2] [ref=e162]
+        - paragraph [ref=e163]: Không phải 1 chatbot đơn lẻ — mà là một pipeline hoàn chỉnh với 5 agents phối hợp, mỗi agent đảm nhận một vai trò chuyên môn riêng biệt.
+      - generic [ref=e165]:
+        - generic [ref=e166]:
+          - generic [ref=e167]:
+            - img [ref=e169]
+            - generic [ref=e172]: Planner
+            - generic [ref=e173]: Lên chiến lược & kế hoạch
+            - generic [ref=e174]: Phân tích brief, xác định mục tiêu, đề xuất approach tối ưu
+          - generic [ref=e175]:
+            - img [ref=e177]
+            - generic [ref=e180]: Researcher
+            - generic [ref=e181]: Nghiên cứu thị trường & đối thủ
+            - generic [ref=e182]: Phân tích trend, keyword, audience insight
+          - generic [ref=e183]:
+            - img [ref=e185]
+            - generic [ref=e187]: Copywriter
+            - generic [ref=e188]: Viết nội dung chuyên nghiệp
+            - generic [ref=e189]: Sáng tạo copy theo tone & style phù hợp
+          - generic [ref=e190]:
+            - img [ref=e192]
+            - generic [ref=e194]: Reviewer
+            - generic [ref=e195]: Kiểm duyệt & chấm điểm
+            - generic [ref=e196]: Đánh giá AI Score, gợi ý cải thiện
+          - generic [ref=e197]:
+            - img [ref=e199]
+            - generic [ref=e201]: Formatter
+            - generic [ref=e202]: Tối ưu định dạng & SEO
+            - generic [ref=e203]: Format chuẩn platform, schema markup
+        - generic [ref=e204]:
+          - img [ref=e205]
+          - text: "Pipeline tự động ~30 giây: Planner → Researcher → Copywriter → Reviewer → Formatter"
+    - generic [ref=e208]:
+      - generic [ref=e209]:
+        - generic [ref=e210]: Phản hồi
+        - heading "Được tin dùng bởi marketer Việt Nam" [level=2] [ref=e211]
+      - generic [ref=e213]:
+        - generic [ref=e214]:
+          - generic [ref=e215]:
+            - img [ref=e216]
+            - img [ref=e218]
+            - img [ref=e220]
+            - img [ref=e222]
+            - img [ref=e224]
+          - paragraph [ref=e226]: “Vitba.ai giúp team tôi tiết kiệm 80% thời gian viết content. Chất lượng bài SEO blog tốt hơn cả agency.”
+          - generic [ref=e227]:
+            - generic [ref=e228]: Minh Anh
+            - generic [ref=e229]: Marketing Manager
+        - generic [ref=e230]:
+          - generic [ref=e231]:
+            - img [ref=e232]
+            - img [ref=e234]
+            - img [ref=e236]
+            - img [ref=e238]
+            - img [ref=e240]
+          - paragraph [ref=e242]: “Từ khi dùng Vitba.ai, tôi không cần thuê copywriter nữa. Landing page convert rate tăng 3x.”
+          - generic [ref=e243]:
+            - generic [ref=e244]: Hùng Nguyễn
+            - generic [ref=e245]: Founder Startup
+        - generic [ref=e246]:
+          - generic [ref=e247]:
+            - img [ref=e248]
+            - img [ref=e250]
+            - img [ref=e252]
+            - img [ref=e254]
+            - img [ref=e256]
+          - paragraph [ref=e258]: “Pipeline 5 Vitba Agents thực sự ấn tượng. Nội dung được review và tối ưu tự động, chuyên nghiệp hơn nhiều.”
+          - generic [ref=e259]:
+            - generic [ref=e260]: Thu Hà
+            - generic [ref=e261]: Freelance Marketer
+    - generic [ref=e263]:
+      - generic [ref=e264]:
+        - generic [ref=e265]: Bảng giá
+        - heading "Bảng giá đơn giản, minh bạch" [level=2] [ref=e266]
+        - paragraph [ref=e267]: Bắt đầu miễn phí với 3 lượt mỗi ngày. Nâng cấp bất cứ lúc nào khi bạn cần thêm sức mạnh AI.
+      - generic [ref=e268]:
+        - generic [ref=e269]:
+          - generic [ref=e270]:
+            - generic [ref=e271]: Free
+            - generic [ref=e273]: Miễn phí
+            - generic [ref=e274]: 3 lượt/ngày
+            - list [ref=e275]:
+              - listitem [ref=e276]:
+                - img [ref=e277]
+                - text: 6 loại nội dung
+              - listitem [ref=e279]:
+                - img [ref=e280]
+                - text: AI Score đánh giá
+              - listitem [ref=e282]:
+                - img [ref=e283]
+                - text: Copy & Download
+            - button "Dùng thử ngay" [ref=e285] [cursor=pointer]
+          - generic [ref=e286]:
+            - generic [ref=e287]: Lite
+            - generic [ref=e288]:
+              - generic [ref=e289]: 99.000đ
+              - generic [ref=e290]: /tháng
+            - generic [ref=e291]: 15 lượt/ngày
+            - list [ref=e292]:
+              - listitem [ref=e293]:
+                - img [ref=e294]
+                - text: Tất cả tính năng Free
+              - listitem [ref=e296]:
+                - img [ref=e297]
+                - text: Ưu tiên xử lý
+              - listitem [ref=e299]:
+                - img [ref=e300]
+                - text: Lịch sử không giới hạn
+            - button "Chọn gói này" [ref=e302] [cursor=pointer]
+          - generic [ref=e303]:
+            - generic [ref=e304]: Phổ biến nhất
+            - generic [ref=e305]: Pro
+            - generic [ref=e306]:
+              - generic [ref=e307]: 219.000đ
+              - generic [ref=e308]: /tháng
+            - generic [ref=e309]: 50 lượt/ngày
+            - list [ref=e310]:
+              - listitem [ref=e311]:
+                - img [ref=e312]
+                - text: Tất cả tính năng Lite
+              - listitem [ref=e314]:
+                - img [ref=e315]
+                - text: Pipeline Reviewer + Formatter
+              - listitem [ref=e317]:
+                - img [ref=e318]
+                - text: Hỗ trợ ưu tiên
+            - button "Chọn gói này" [ref=e320] [cursor=pointer]
+          - generic [ref=e321]:
+            - generic [ref=e322]: Max
+            - generic [ref=e323]:
+              - generic [ref=e324]: 469.000đ
+              - generic [ref=e325]: /tháng
+            - generic [ref=e326]: Không giới hạn
+            - list [ref=e327]:
+              - listitem [ref=e328]:
+                - img [ref=e329]
+                - text: Tất cả tính năng Pro
+              - listitem [ref=e331]:
+                - img [ref=e332]
+                - text: API access
+              - listitem [ref=e334]:
+                - img [ref=e335]
+                - text: Dedicated support
+            - button "Chọn gói này" [ref=e337] [cursor=pointer]
+        - button "So sánh chi tiết tất cả các gói →" [ref=e339] [cursor=pointer]
+    - generic [ref=e341]:
+      - generic [ref=e342]:
+        - generic [ref=e343]: Đối tượng
+        - heading "Dành cho ai?" [level=2] [ref=e344]
+        - paragraph [ref=e345]: Vitba.ai phù hợp với mọi quy mô — từ freelancer cá nhân đến agency hàng trăm khách hàng.
+      - generic [ref=e347]:
+        - generic [ref=e348]:
+          - img [ref=e350]
+          - generic [ref=e352]: Freelancer
+          - generic [ref=e353]: Tạo content cho nhiều khách hàng nhanh hơn 10x. Tiết kiệm thời gian, tăng số lượng dự án.
+        - generic [ref=e354]:
+          - img [ref=e356]
+          - generic [ref=e359]: Startup
+          - generic [ref=e360]: Marketing chuyên nghiệp ngay từ ngày đầu mà không cần thuê agency hay team đắt đỏ.
+        - generic [ref=e361]:
+          - img [ref=e363]
+          - generic [ref=e367]: Doanh nghiệp SME
+          - generic [ref=e368]: Tiết kiệm 80% thời gian và chi phí marketing. Content nhất quán trên mọi kênh.
+        - generic [ref=e369]:
+          - img [ref=e371]
+          - generic [ref=e374]: Marketing Agency
+          - generic [ref=e375]: Scale content output lên 10x cho tất cả khách hàng. Giảm chi phí, tăng margin.
+    - generic [ref=e379]:
+      - heading "Sẵn sàng tạo nội dung nhanh hơn 360x?" [level=2] [ref=e380]:
+        - text: Sẵn sàng tạo nội dung
+        - text: nhanh hơn 360x?
+      - paragraph [ref=e381]: Đăng ký miễn phí ngay hôm nay. Không cần thẻ tín dụng. 3 lượt tạo content mỗi ngày — đủ để bạn trải nghiệm sức mạnh AI.
+      - button "Dùng thử miễn phí ngay" [ref=e382] [cursor=pointer]
+      - paragraph [ref=e383]: Miễn phí mãi mãi với gói Free. Nâng cấp bất cứ lúc nào.
+    - contentinfo [ref=e384]:
+      - generic [ref=e385]:
+        - generic [ref=e386]: Founded by Vũ Hải Dương
+        - generic [ref=e387]: © 2026 Vitba.ai. All rights reserved.
+  - region "Notifications alt+T"
+  - alert [ref=e388]

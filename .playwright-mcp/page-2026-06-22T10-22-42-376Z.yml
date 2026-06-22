@@ -1,0 +1,10 @@
+- generic [active] [ref=e1]:
+  - main [ref=e2]:
+    - generic [ref=e3]:
+      - generic [ref=e4]:
+        - img [ref=e5]
+        - heading "Checking your browser" [level=1] [ref=e8]
+      - paragraph [ref=e10]: This site is experiencing heavy traffic. Please complete the check below to continue.
+      - generic [ref=e11]:
+        - status
+  - contentinfo [ref=e14]: railway-hikari/hkg1.aebn

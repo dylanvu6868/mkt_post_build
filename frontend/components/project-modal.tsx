@@ -188,23 +188,38 @@ function BrandVoiceTab({ onUpgrade }: { onUpgrade: () => void }) {
       <form onSubmit={handleSubmit} className="space-y-4 max-h-[400px] overflow-y-auto custom-scrollbar pr-2">
         <div className="space-y-2">
           <Label className="text-muted-foreground">Tên thương hiệu</Label>
-          <Input value={brandName} onChange={(e) => setBrandName(e.target.value)} placeholder="VD: Vitba AI" className="bg-muted border-border text-foreground focus-visible:ring-primary/50" />
+          <div className="relative">
+            <Input value={brandName} onChange={(e) => setBrandName(e.target.value)} placeholder="VD: Vitba AI" className="bg-muted border-border text-foreground focus-visible:ring-primary/50 pr-8" />
+            {brandName && <button type="button" onClick={() => setBrandName("")} className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>}
+          </div>
         </div>
         <div className="space-y-2">
           <Label className="text-muted-foreground">Giọng điệu (Tone)</Label>
-          <Input value={tone} onChange={(e) => setTone(e.target.value)} placeholder="VD: thân thiện, chuyên nghiệp" className="bg-muted border-border text-foreground focus-visible:ring-primary/50" />
+          <div className="relative">
+            <Input value={tone} onChange={(e) => setTone(e.target.value)} placeholder="VD: thân thiện, chuyên nghiệp" className="bg-muted border-border text-foreground focus-visible:ring-primary/50 pr-8" />
+            {tone && <button type="button" onClick={() => setTone("")} className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>}
+          </div>
         </div>
         <div className="space-y-2">
           <Label className="text-muted-foreground">Phong cách viết (Style)</Label>
-          <Input value={writingStyle} onChange={(e) => setWritingStyle(e.target.value)} placeholder="VD: trang trọng, ngắn gọn" className="bg-muted border-border text-foreground focus-visible:ring-primary/50" />
+          <div className="relative">
+            <Input value={writingStyle} onChange={(e) => setWritingStyle(e.target.value)} placeholder="VD: trang trọng, ngắn gọn" className="bg-muted border-border text-foreground focus-visible:ring-primary/50 pr-8" />
+            {writingStyle && <button type="button" onClick={() => setWritingStyle("")} className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>}
+          </div>
         </div>
         <div className="space-y-2">
           <Label className="text-muted-foreground">Từ vựng ưu tiên (cách nhau bằng dấu phẩy)</Label>
-          <Input value={preferredWords} onChange={(e) => setPreferredWords(e.target.value)} placeholder="VD: cao cấp, đột phá" className="bg-muted border-border text-foreground focus-visible:ring-primary/50" />
+          <div className="relative">
+            <Input value={preferredWords} onChange={(e) => setPreferredWords(e.target.value)} placeholder="VD: cao cấp, đột phá" className="bg-muted border-border text-foreground focus-visible:ring-primary/50 pr-8" />
+            {preferredWords && <button type="button" onClick={() => setPreferredWords("")} className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>}
+          </div>
         </div>
         <div className="space-y-2">
           <Label className="text-muted-foreground">Từ vựng cấm dùng (cách nhau bằng dấu phẩy)</Label>
-          <Input value={forbiddenWords} onChange={(e) => setForbiddenWords(e.target.value)} placeholder="VD: giá rẻ, bình dân" className="bg-muted border-border text-foreground focus-visible:ring-primary/50" />
+          <div className="relative">
+            <Input value={forbiddenWords} onChange={(e) => setForbiddenWords(e.target.value)} placeholder="VD: giá rẻ, bình dân" className="bg-muted border-border text-foreground focus-visible:ring-primary/50 pr-8" />
+            {forbiddenWords && <button type="button" onClick={() => setForbiddenWords("")} className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>}
+          </div>
         </div>
         <button type="submit" disabled={upsert.isPending || atBrandLimit} className="w-full py-3 rounded-xl bg-primary text-primary-foreground font-semibold hover:bg-primary/90 disabled:opacity-50 mt-4 transition-all hover:scale-[1.02] active:scale-[0.98]">
           {upsert.isPending ? "Đang lưu..." : "Lưu giọng điệu"}

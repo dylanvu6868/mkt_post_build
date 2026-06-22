@@ -1,0 +1,80 @@
+- generic [active] [ref=e1]:
+  - main [ref=e2]:
+    - generic [ref=e5]:
+      - img "Vitba.ai" [ref=e7]
+      - generic [ref=e8]:
+        - img [ref=e9]
+        - generic [ref=e12]: Nền tảng Content Marketing đột phá
+      - heading "Tạo nội dung ấn tượng. Thu hút đúng khách hàng." [level=1] [ref=e13]:
+        - text: Tạo nội dung ấn tượng.
+        - generic [ref=e14]: Thu hút đúng khách hàng.
+      - paragraph [ref=e15]: Vitba.ai giúp bạn nghiên cứu, viết, tối ưu và quản lý nội dung hiệu quả – tất cả trong một nền tảng thông minh.
+      - generic [ref=e16]:
+        - generic [ref=e17]:
+          - img [ref=e19]
+          - generic [ref=e22]:
+            - generic [ref=e23]: Viết nội dung
+            - generic [ref=e24]: AI thông minh
+        - generic [ref=e25]:
+          - img [ref=e27]
+          - generic [ref=e30]:
+            - generic [ref=e31]: Nghiên cứu
+            - generic [ref=e32]: thị trường
+        - generic [ref=e33]:
+          - img [ref=e35]
+          - generic [ref=e38]:
+            - generic [ref=e39]: Tối ưu SEO
+            - generic [ref=e40]: toàn diện
+        - generic [ref=e41]:
+          - img [ref=e43]
+          - generic [ref=e45]:
+            - generic [ref=e46]: Lập kế hoạch
+            - generic [ref=e47]: nội dung
+    - generic [ref=e49]:
+      - generic [ref=e50]:
+        - heading "Chào mừng bạn đến với Vitba.ai👋" [level=2] [ref=e52]
+        - paragraph [ref=e53]: Đăng nhập để tiếp tục hành trình sáng tạo
+        - generic [ref=e54]:
+          - generic [ref=e55]:
+            - generic:
+              - img
+            - textbox "Email của bạn" [ref=e56]
+          - generic [ref=e57]:
+            - generic:
+              - img
+            - textbox "Mật khẩu" [ref=e58]
+          - generic [ref=e59]:
+            - generic [ref=e62] [cursor=pointer]: Ghi nhớ đăng nhập
+            - button "Quên mật khẩu?" [ref=e63] [cursor=pointer]
+          - button "Đăng nhập" [ref=e64] [cursor=pointer]
+        - generic [ref=e67]: hoặc tiếp tục với
+        - generic [ref=e68]:
+          - generic [ref=e69]:
+            - generic:
+              - img
+            - iframe [ref=e107] [cursor=pointer]:
+              - button "Đăng nhập bằng GoogleMở trong thẻ mới" [ref=f2e3] [cursor=pointer]:
+                - img [ref=f2e7]
+          - button "Đăng nhập bằng Facebook" [ref=e83] [cursor=pointer]:
+            - img [ref=e84]
+        - generic [ref=e86]:
+          - text: Chưa có tài khoản?
+          - button "Đăng ký ngay" [ref=e87] [cursor=pointer]
+      - generic [ref=e88]:
+        - generic [ref=e89]:
+          - generic [ref=e90]:
+            - img [ref=e91]
+            - text: Bảo mật
+          - paragraph [ref=e94]: Mã hóa end-to-end
+        - generic [ref=e95]:
+          - generic [ref=e96]:
+            - img [ref=e97]
+            - text: Nhanh 10x
+          - paragraph [ref=e99]: So với viết tay
+        - generic [ref=e100]:
+          - generic [ref=e101]:
+            - img [ref=e102]
+            - text: Chất lượng
+          - paragraph [ref=e105]: Chuẩn SEO Google
+  - region "Notifications alt+T"
+  - alert [ref=e106]

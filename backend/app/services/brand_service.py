@@ -2,6 +2,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.brand_profile import BrandProfile
+from app.models.brand_profile_history import BrandProfileHistory
 from app.models.project import Project
 
 
@@ -30,6 +31,15 @@ async def upsert_brand_profile(
         )
         session.add(profile)
     else:
+        session.add(BrandProfileHistory(
+            profile_id=profile.id,
+            project_id=profile.project_id,
+            brand_name=profile.brand_name,
+            tone=profile.tone,
+            writing_style=profile.writing_style,
+            preferred_words=profile.preferred_words,
+            forbidden_words=profile.forbidden_words,
+        ))
         profile.brand_name = brand_name
         profile.tone = tone
         profile.writing_style = writing_style

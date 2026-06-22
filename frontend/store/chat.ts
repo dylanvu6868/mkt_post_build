@@ -87,6 +87,17 @@ function getBaseUrl(): string {
   return process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 }
 
+// Sleep that wakes immediately when tab becomes visible (avoids browser throttle)
+function sleepUntilVisible(ms: number): Promise<void> {
+  return new Promise((resolve) => {
+    let resolved = false;
+    const done = () => { if (!resolved) { resolved = true; document.removeEventListener("visibilitychange", onVisible); resolve(); } };
+    const timer = setTimeout(done, ms);
+    const onVisible = () => { if (document.visibilityState === "visible") { clearTimeout(timer); done(); } };
+    document.addEventListener("visibilitychange", onVisible);
+  });
+}
+
 export const useChatStore = create<ChatState>()(
   persist(
     (set, get) => ({
@@ -433,7 +444,7 @@ export const useChatStore = create<ChatState>()(
 
           let isPolling = true;
           while (isPolling) {
-            await new Promise((resolve) => setTimeout(resolve, 800));
+            await sleepUntilVisible(800);
             const statusRes = await fetch(`${baseUrl}/generate/${jobId}`, {
               headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
             });
@@ -476,25 +487,11 @@ export const useChatStore = create<ChatState>()(
               }
 
               if (isFg()) {
-                // Foreground: typing animation
-                set({ streamContent: "" });
-                clearTypingForConv(convId);
-
-                let i = 0;
-                const interval = setInterval(() => {
-                  if (i < draftText.length) {
-                    set((s) => ({ streamContent: s.streamContent + draftText.charAt(i) }));
-                    i++;
-                  } else {
-                    clearTypingForConv(convId);
-                    set({
-                      contentPanel: { visible: false, generating: false, result: { ...statusData.result, _contentType: payload.content_type } },
-                      streamContent: "",
-                    });
-                    _saveGenerationResult(baseUrl, token, convId, draftText, set, get);
-                  }
-                }, 15);
-                _typingIntervals.set(convId, interval);
+                set({
+                  contentPanel: { visible: false, generating: false, result: { ...statusData.result, _contentType: payload.content_type } },
+                  streamContent: "",
+                });
+                _saveGenerationResult(baseUrl, token, convId, draftText, set, get);
               } else {
                 // Background: skip animation, save directly
                 _saveGenerationResult(baseUrl, token, convId, draftText, set, get);
@@ -573,25 +570,13 @@ function _saveGenerationResult(
   token: string | null,
   convId: number,
   draftText: string,
-  set: (fn: any) => void,
-  get: () => ChatState,
+  _set: (fn: any) => void,
+  _get: () => ChatState,
 ) {
   if (!token || !draftText) return;
   fetch(`${baseUrl}/conversations/${convId}/messages`, {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
     body: JSON.stringify({ content: draftText }),
-  })
-    .then((r) => r.json())
-    .then((saved) => {
-      if (get().activeConversationId === convId) {
-        set((s: ChatState) => ({
-          messages: [
-            ...s.messages,
-            { id: saved.id, conversation_id: convId, role: "assistant" as const, content: draftText, metadata_json: null, created_at: saved.created_at },
-          ],
-        }));
-      }
-    })
-    .catch(() => {});
+  }).catch(() => {});
 }

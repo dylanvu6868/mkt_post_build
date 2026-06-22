@@ -58,6 +58,13 @@ app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 @app.on_event("startup")
+async def ensure_tables():
+    from app.core.db import Base, engine
+    import app.models  # noqa: F401 — register all models
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+
+@app.on_event("startup")
 async def seed_admin():
     from sqlalchemy import select
     from app.core.db import async_session_maker

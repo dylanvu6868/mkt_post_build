@@ -1,0 +1,3 @@
+[     535ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ https://vitbaai.xyz/login:0
+[   37697ms] [ERROR] Failed to load resource: the server responded with a status of 401 () @ https://vitbaai.up.railway.app/auth/login:0
+[   90468ms] [ERROR] Failed to load resource: the server responded with a status of 401 () @ https://vitbaai.up.railway.app/auth/login:0
