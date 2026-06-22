@@ -68,7 +68,7 @@ function CheckoutContent() {
 
     const startedAt = Date.now();
     const MAX_POLL_MS = 15 * 60 * 1000;
-    const POLL_INTERVAL = 10_000;
+    const POLL_INTERVAL = 5_000;
 
     const poll = async () => {
       if (Date.now() - startedAt > MAX_POLL_MS) {
