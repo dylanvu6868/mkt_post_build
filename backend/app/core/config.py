@@ -44,6 +44,15 @@ class Settings(BaseSettings):
     sepay_account_holder: str = ""
     sepay_bank_name: str = ""  # human-readable, e.g. "Ngân hàng Vietcombank"
 
+    # MCP Hub (Phase 2)
+    mcp_encryption_key: str = ""
+    redis_url: str = "redis://localhost:6379"
+    meta_app_id: str = ""
+    meta_app_secret: str = ""
+    meta_redirect_uri: str = "http://localhost:3000/oauth/callback/meta"
+    vercel_token: str = ""
+    github_token: str = ""
+
     # Email — Resend API (preferred on Railway where SMTP is blocked)
     resend_api_key: str = ""
     # SMTP fallback (local dev)

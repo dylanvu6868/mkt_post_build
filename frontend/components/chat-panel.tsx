@@ -513,14 +513,55 @@ function SpotlightTour({ onClose }: { onClose: () => void }) {
   } : null;
 
   const getTooltipStyle = (): React.CSSProperties => {
-    if (!rect || current.placement === "center") return { top: "50%", left: "50%", transform: "translate(-50%, -50%)" };
-    const gap = 16;
-    switch (current.placement) {
-      case "bottom": return { top: rect.bottom + gap + pad, left: rect.left + rect.width / 2, transform: "translateX(-50%)" };
-      case "top": return { bottom: window.innerHeight - rect.top + gap + pad, left: rect.left + rect.width / 2, transform: "translateX(-50%)" };
-      case "right": return { top: rect.top + rect.height / 2, left: rect.right + gap + pad, transform: "translateY(-50%)" };
-      case "left": return { top: rect.top + rect.height / 2, right: window.innerWidth - rect.left + gap + pad, transform: "translateY(-50%)" };
+    const tooltipWidth = 340;
+    const actualWidth = typeof window !== "undefined" ? Math.min(tooltipWidth, window.innerWidth * 0.9) : tooltipWidth;
+    
+    if (!rect || current.placement === "center") {
+      return { 
+        top: "calc(50% - 100px)", 
+        left: `calc(50% - ${actualWidth / 2}px)`
+      };
     }
+    
+    const gap = 16;
+
+    const clampLeft = (idealLeft: number) => {
+      if (typeof window === "undefined") return idealLeft;
+      const minLeft = 16;
+      const maxLeft = window.innerWidth - actualWidth - 16;
+      return Math.max(minLeft, Math.min(idealLeft, maxLeft));
+    };
+
+    const clampTop = (idealTop: number) => {
+      if (typeof window === "undefined") return idealTop;
+      const minTop = 16;
+      const maxTop = window.innerHeight - 200 - 16;
+      return Math.max(minTop, Math.min(idealTop, maxTop));
+    };
+
+    switch (current.placement) {
+      case "bottom": 
+        return { 
+          top: rect.bottom + gap + pad, 
+          left: clampLeft(rect.left + rect.width / 2 - actualWidth / 2) 
+        };
+      case "top": 
+        return { 
+          bottom: (typeof window !== "undefined" ? window.innerHeight : 0) - rect.top + gap + pad, 
+          left: clampLeft(rect.left + rect.width / 2 - actualWidth / 2) 
+        };
+      case "right": 
+        return { 
+          top: clampTop(rect.top + rect.height / 2 - 100), 
+          left: rect.right + gap + pad 
+        };
+      case "left": 
+        return { 
+          top: clampTop(rect.top + rect.height / 2 - 100), 
+          right: (typeof window !== "undefined" ? window.innerWidth : 0) - rect.left + gap + pad 
+        };
+    }
+    return {};
   };
 
   return (

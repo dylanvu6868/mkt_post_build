@@ -132,6 +132,13 @@ export function ChatSidebar() {
             </button>
           </ProjectModal>
           <button
+            onClick={() => router.push("/hub")}
+            className="flex w-full items-center gap-2 rounded-[16px] border border-blue-500/30 bg-blue-500/5 px-4 py-3 text-[14px] font-medium text-blue-500 hover:bg-blue-500/10 hover:border-blue-500/50 transition-all duration-300 shadow-[0_2px_10px_rgba(0,0,0,0.2)] group"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="group-hover:scale-110 transition-transform"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+            Trung tâm Marketing
+          </button>
+          <button
             data-tour="new-conv-btn"
             onClick={handleCreate}
             className="flex w-full items-center gap-2 rounded-[16px] border border-border bg-card px-4 py-3 text-[14px] font-medium text-foreground hover:bg-accent hover:border-primary/50 transition-all duration-300 shadow-[0_2px_10px_rgba(0,0,0,0.2)] group"
