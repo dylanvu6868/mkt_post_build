@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useLabTool } from "@/hooks/use-lab-tool";
 
 interface TrendResult { trend_analysis: string; injected_content: string; trend_keywords: string[]; timing_advice: string; }
 
@@ -8,25 +9,12 @@ export default function TrendJackPage() {
   const router = useRouter();
   const [content, setContent] = useState("");
   const [trends, setTrends] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<TrendResult | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const { run, result, loading, error } = useLabTool<TrendResult>("/trendjack");
 
   async function handleRun() {
     if (!content.trim()) return;
-    setLoading(true); setError(null); setResult(null);
-    try {
-      const token = localStorage.getItem("auth_token") || sessionStorage.getItem("auth_token");
-      const res = await fetch("/api/lab/trendjack", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ content, current_trends: trends }),
-      });
-      if (!res.ok) throw new Error("Yêu cầu thất bại. Vui lòng thử lại.");
-      setResult(await res.json());
-    } catch (e: unknown) { setError(e instanceof Error ? e.message : "Có lỗi xảy ra."); }
-    finally { setLoading(false); }
+    await run({ content, current_trends: trends });
   }
 
   return (

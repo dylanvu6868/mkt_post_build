@@ -21,9 +21,10 @@ async def test_history_requires_auth(client):
     assert resp.status_code in (401, 403)
 
 
+@patch("app.api.generate.provider_available", return_value=False)
 @patch("app.agents.brand.retrieve", return_value=[])
 @patch("app.agents.brand.embed_query", return_value=[0.1] * 384)
-async def test_history_populated_after_generate(mock_embed, mock_retrieve, client):
+async def test_history_populated_after_generate(mock_embed, mock_retrieve, mock_prov, client):
     token = await _register(client)
     headers = {"Authorization": f"Bearer {token}"}
     project_id = await _project(client, headers)
@@ -57,9 +58,10 @@ async def test_history_populated_after_generate(mock_embed, mock_retrieve, clien
     assert items[0]["project_id"] == project_id
 
 
+@patch("app.api.generate.provider_available", return_value=False)
 @patch("app.agents.brand.retrieve", return_value=[])
 @patch("app.agents.brand.embed_query", return_value=[0.1] * 384)
-async def test_delete_history_item(mock_embed, mock_retrieve, client):
+async def test_delete_history_item(mock_embed, mock_retrieve, mock_prov, client):
     token = await _register(client, "del@example.com")
     headers = {"Authorization": f"Bearer {token}"}
     project_id = await _project(client, headers)

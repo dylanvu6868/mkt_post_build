@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useLabTool } from "@/hooks/use-lab-tool";
 
 interface DNAResult {
   dna_analysis: { hook: string; body_rhythm: string; cta: string };
@@ -25,25 +26,12 @@ function LabBreadcrumb({ tool }: { tool: string }) {
 export default function DNAPage() {
   const [viralContent, setViralContent] = useState("");
   const [userTopic, setUserTopic] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<DNAResult | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const { run, result, loading, error } = useLabTool<DNAResult>("/dna");
 
   async function handleRun() {
     if (!viralContent.trim() || !userTopic.trim()) return;
-    setLoading(true); setError(null); setResult(null);
-    try {
-      const token = localStorage.getItem("auth_token") || sessionStorage.getItem("auth_token");
-      const res = await fetch("/api/lab/dna", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ viral_content: viralContent, user_topic: userTopic }),
-      });
-      if (!res.ok) throw new Error("Yêu cầu thất bại. Vui lòng thử lại.");
-      setResult(await res.json());
-    } catch (e: unknown) { setError(e instanceof Error ? e.message : "Có lỗi xảy ra."); }
-    finally { setLoading(false); }
+    await run({ viral_content: viralContent, user_topic: userTopic });
   }
 
   return (

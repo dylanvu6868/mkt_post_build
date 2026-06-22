@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useLabTool } from "@/hooks/use-lab-tool";
 
 interface Comment { type: string; content: string; }
 interface SimResult { overall_sentiment: string; positive_pct: number; negative_pct: number; comments: Comment[]; crisis_advice: string; }
@@ -15,25 +16,12 @@ const TYPE_MAP: Record<string, { label: string; dot: string }> = {
 export default function SimulatorPage() {
   const router = useRouter();
   const [content, setContent] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<SimResult | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<string>("all");
+  const { run, result, loading, error } = useLabTool<SimResult>("/simulator");
 
   async function handleRun() {
     if (!content.trim()) return;
-    setLoading(true); setError(null); setResult(null);
-    try {
-      const token = localStorage.getItem("auth_token") || sessionStorage.getItem("auth_token");
-      const res = await fetch("/api/lab/simulator", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ content }),
-      });
-      if (!res.ok) throw new Error("Yêu cầu thất bại. Vui lòng thử lại.");
-      setResult(await res.json());
-    } catch (e: unknown) { setError(e instanceof Error ? e.message : "Có lỗi xảy ra."); }
-    finally { setLoading(false); }
+    await run({ content });
   }
 
   const filtered = result?.comments.filter(c => filter === "all" || c.type === filter) ?? [];

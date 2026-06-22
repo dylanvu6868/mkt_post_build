@@ -1,8 +1,13 @@
-from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
+import logging
+
+from fastapi import APIRouter, Depends, HTTPException, Request
+from pydantic import BaseModel, Field
 
 from app.api.deps import get_current_user
+from app.core.db import async_session_maker
+from app.core.rate_limit import limiter
 from app.models.user import User
+from app.services.audit import log_action
 from app.agents.lab import (
     run_shield_agent, run_psycho_agent, run_persona_agent,
     run_dna_agent, run_simulator_agent, run_cinematic_agent,
@@ -10,129 +15,139 @@ from app.agents.lab import (
     run_blindspot_agent, run_evergreen_agent, run_audiohook_agent,
 )
 
+logger = logging.getLogger(__name__)
+
 router = APIRouter(prefix="/api/lab", tags=["lab"])
+
+MAX_CONTENT = 5000
 
 
 # --- Request schemas ---
 
 class ShieldRequest(BaseModel):
-    content: str
+    content: str = Field(..., max_length=MAX_CONTENT)
 
 class PsychoRequest(BaseModel):
-    content: str
-    target_emotion: str
+    content: str = Field(..., max_length=MAX_CONTENT)
+    target_emotion: str = Field(..., max_length=100)
 
 class PersonaRequest(BaseModel):
-    content: str
-    persona: str
+    content: str = Field(..., max_length=MAX_CONTENT)
+    persona: str = Field(..., max_length=100)
 
 class DNARequest(BaseModel):
-    viral_content: str
-    user_topic: str
+    viral_content: str = Field(..., max_length=MAX_CONTENT)
+    user_topic: str = Field(..., max_length=MAX_CONTENT)
 
 class SimulatorRequest(BaseModel):
-    content: str
+    content: str = Field(..., max_length=MAX_CONTENT)
 
 class CinematicRequest(BaseModel):
-    content: str
-    style: str = "Cinematic, dark aesthetic, Instagram editorial"
+    content: str = Field(..., max_length=MAX_CONTENT)
+    style: str = Field("Cinematic, dark aesthetic, Instagram editorial", max_length=200)
 
 class ReverseRequest(BaseModel):
-    content: str
+    content: str = Field(..., max_length=MAX_CONTENT)
 
 class HexBreakerRequest(BaseModel):
-    content: str
-    platform: str = "Facebook"
+    content: str = Field(..., max_length=MAX_CONTENT)
+    platform: str = Field("Facebook", max_length=50)
 
 class TrendJackRequest(BaseModel):
-    content: str
-    current_trends: str
+    content: str = Field(..., max_length=MAX_CONTENT)
+    current_trends: str = Field(..., max_length=MAX_CONTENT)
 
 class BlindspotRequest(BaseModel):
-    content: str
-    target_region: str = "Toàn quốc Việt Nam"
+    content: str = Field(..., max_length=MAX_CONTENT)
+    target_region: str = Field("Toàn quốc Việt Nam", max_length=100)
 
 class EvergreenRequest(BaseModel):
-    old_content: str
-    target_year_context: str = "2025"
+    old_content: str = Field(..., max_length=MAX_CONTENT)
+    target_year_context: str = Field("2025", max_length=200)
 
 class AudioHookRequest(BaseModel):
-    content: str
-    music_bpm: int = 120
+    content: str = Field(..., max_length=MAX_CONTENT)
+    music_bpm: int = Field(120, ge=60, le=200)
+
+
+# --- Helpers ---
+
+async def _audit(user_id: int, tool: str, ip: str | None = None):
+    async with async_session_maker() as session:
+        await log_action(session, user_id, f"lab.{tool}", resource_type="lab_tool", ip_address=ip)
+
+
+async def _run_tool(tool_name: str, agent_fn, user: User, request: Request):
+    await _audit(user.id, tool_name, request.client.host if request.client else None)
+    try:
+        result = await agent_fn()
+        return result.model_dump()
+    except ValueError as e:
+        logger.warning("Lab tool %s failed for user %s: %s", tool_name, user.id, e)
+        raise HTTPException(status_code=502, detail="AI đang quá tải, vui lòng thử lại sau.")
+    except Exception:
+        logger.exception("Lab tool %s unexpected error for user %s", tool_name, user.id)
+        raise HTTPException(status_code=500, detail="Có lỗi xảy ra khi xử lý yêu cầu.")
 
 
 # --- Endpoints ---
 
 @router.post("/shield")
-async def shield_endpoint(req: ShieldRequest, current_user: User = Depends(get_current_user)):
-    if not req.content.strip():
-        raise HTTPException(status_code=400, detail="Content cannot be empty")
-    return (await run_shield_agent(req.content)).model_dump()
+@limiter.limit("5/minute")
+async def shield_endpoint(request: Request, req: ShieldRequest, current_user: User = Depends(get_current_user)):
+    return await _run_tool("shield", lambda: run_shield_agent(req.content), current_user, request)
 
 @router.post("/psycho")
-async def psycho_endpoint(req: PsychoRequest, current_user: User = Depends(get_current_user)):
-    if not req.content.strip():
-        raise HTTPException(status_code=400, detail="Content cannot be empty")
-    return (await run_psycho_agent(req.content, req.target_emotion)).model_dump()
+@limiter.limit("5/minute")
+async def psycho_endpoint(request: Request, req: PsychoRequest, current_user: User = Depends(get_current_user)):
+    return await _run_tool("psycho", lambda: run_psycho_agent(req.content, req.target_emotion), current_user, request)
 
 @router.post("/persona")
-async def persona_endpoint(req: PersonaRequest, current_user: User = Depends(get_current_user)):
-    if not req.content.strip():
-        raise HTTPException(status_code=400, detail="Content cannot be empty")
-    return (await run_persona_agent(req.content, req.persona)).model_dump()
+@limiter.limit("5/minute")
+async def persona_endpoint(request: Request, req: PersonaRequest, current_user: User = Depends(get_current_user)):
+    return await _run_tool("persona", lambda: run_persona_agent(req.content, req.persona), current_user, request)
 
 @router.post("/dna")
-async def dna_endpoint(req: DNARequest, current_user: User = Depends(get_current_user)):
-    if not req.viral_content.strip() or not req.user_topic.strip():
-        raise HTTPException(status_code=400, detail="Both viral_content and user_topic are required")
-    return (await run_dna_agent(req.viral_content, req.user_topic)).model_dump()
+@limiter.limit("5/minute")
+async def dna_endpoint(request: Request, req: DNARequest, current_user: User = Depends(get_current_user)):
+    return await _run_tool("dna", lambda: run_dna_agent(req.viral_content, req.user_topic), current_user, request)
 
 @router.post("/simulator")
-async def simulator_endpoint(req: SimulatorRequest, current_user: User = Depends(get_current_user)):
-    if not req.content.strip():
-        raise HTTPException(status_code=400, detail="Content cannot be empty")
-    return (await run_simulator_agent(req.content)).model_dump()
+@limiter.limit("5/minute")
+async def simulator_endpoint(request: Request, req: SimulatorRequest, current_user: User = Depends(get_current_user)):
+    return await _run_tool("simulator", lambda: run_simulator_agent(req.content), current_user, request)
 
 @router.post("/cinematic")
-async def cinematic_endpoint(req: CinematicRequest, current_user: User = Depends(get_current_user)):
-    if not req.content.strip():
-        raise HTTPException(status_code=400, detail="Content cannot be empty")
-    return (await run_cinematic_agent(req.content, req.style)).model_dump()
+@limiter.limit("5/minute")
+async def cinematic_endpoint(request: Request, req: CinematicRequest, current_user: User = Depends(get_current_user)):
+    return await _run_tool("cinematic", lambda: run_cinematic_agent(req.content, req.style), current_user, request)
 
 @router.post("/reverse")
-async def reverse_endpoint(req: ReverseRequest, current_user: User = Depends(get_current_user)):
-    if not req.content.strip():
-        raise HTTPException(status_code=400, detail="Content cannot be empty")
-    return (await run_reverse_agent(req.content)).model_dump()
+@limiter.limit("5/minute")
+async def reverse_endpoint(request: Request, req: ReverseRequest, current_user: User = Depends(get_current_user)):
+    return await _run_tool("reverse", lambda: run_reverse_agent(req.content), current_user, request)
 
 @router.post("/hexbreaker")
-async def hexbreaker_endpoint(req: HexBreakerRequest, current_user: User = Depends(get_current_user)):
-    if not req.content.strip():
-        raise HTTPException(status_code=400, detail="Content cannot be empty")
-    return (await run_hexbreaker_agent(req.content, req.platform)).model_dump()
+@limiter.limit("5/minute")
+async def hexbreaker_endpoint(request: Request, req: HexBreakerRequest, current_user: User = Depends(get_current_user)):
+    return await _run_tool("hexbreaker", lambda: run_hexbreaker_agent(req.content, req.platform), current_user, request)
 
 @router.post("/trendjack")
-async def trendjack_endpoint(req: TrendJackRequest, current_user: User = Depends(get_current_user)):
-    if not req.content.strip():
-        raise HTTPException(status_code=400, detail="Content cannot be empty")
-    return (await run_trendjack_agent(req.content, req.current_trends)).model_dump()
+@limiter.limit("5/minute")
+async def trendjack_endpoint(request: Request, req: TrendJackRequest, current_user: User = Depends(get_current_user)):
+    return await _run_tool("trendjack", lambda: run_trendjack_agent(req.content, req.current_trends), current_user, request)
 
 @router.post("/blindspot")
-async def blindspot_endpoint(req: BlindspotRequest, current_user: User = Depends(get_current_user)):
-    if not req.content.strip():
-        raise HTTPException(status_code=400, detail="Content cannot be empty")
-    return (await run_blindspot_agent(req.content, req.target_region)).model_dump()
+@limiter.limit("5/minute")
+async def blindspot_endpoint(request: Request, req: BlindspotRequest, current_user: User = Depends(get_current_user)):
+    return await _run_tool("blindspot", lambda: run_blindspot_agent(req.content, req.target_region), current_user, request)
 
 @router.post("/evergreen")
-async def evergreen_endpoint(req: EvergreenRequest, current_user: User = Depends(get_current_user)):
-    if not req.old_content.strip():
-        raise HTTPException(status_code=400, detail="old_content cannot be empty")
-    return (await run_evergreen_agent(req.old_content, req.target_year_context)).model_dump()
+@limiter.limit("5/minute")
+async def evergreen_endpoint(request: Request, req: EvergreenRequest, current_user: User = Depends(get_current_user)):
+    return await _run_tool("evergreen", lambda: run_evergreen_agent(req.old_content, req.target_year_context), current_user, request)
 
 @router.post("/audiohook")
-async def audiohook_endpoint(req: AudioHookRequest, current_user: User = Depends(get_current_user)):
-    if not req.content.strip():
-        raise HTTPException(status_code=400, detail="Content cannot be empty")
-    if not (60 <= req.music_bpm <= 200):
-        raise HTTPException(status_code=400, detail="music_bpm must be between 60 and 200")
-    return (await run_audiohook_agent(req.content, req.music_bpm)).model_dump()
+@limiter.limit("5/minute")
+async def audiohook_endpoint(request: Request, req: AudioHookRequest, current_user: User = Depends(get_current_user)):
+    return await _run_tool("audiohook", lambda: run_audiohook_agent(req.content, req.music_bpm), current_user, request)

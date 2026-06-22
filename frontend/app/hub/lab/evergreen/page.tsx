@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useLabTool } from "@/hooks/use-lab-tool";
 
 interface EvergreenResult { original_core: string; refreshed_content: string; updated_elements: string[]; repost_tips: string; }
 
@@ -8,25 +9,12 @@ export default function EvergreenPage() {
   const router = useRouter();
   const [oldContent, setOldContent] = useState("");
   const [yearCtx, setYearCtx] = useState("Giữa năm 2025 — thế hệ Alpha, AI bùng nổ, xu hướng slow living");
-  const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<EvergreenResult | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const { run, result, loading, error } = useLabTool<EvergreenResult>("/evergreen");
 
   async function handleRun() {
     if (!oldContent.trim()) return;
-    setLoading(true); setError(null); setResult(null);
-    try {
-      const token = localStorage.getItem("auth_token") || sessionStorage.getItem("auth_token");
-      const res = await fetch("/api/lab/evergreen", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ old_content: oldContent, target_year_context: yearCtx }),
-      });
-      if (!res.ok) throw new Error("Yêu cầu thất bại. Vui lòng thử lại.");
-      setResult(await res.json());
-    } catch (e: unknown) { setError(e instanceof Error ? e.message : "Có lỗi xảy ra."); }
-    finally { setLoading(false); }
+    await run({ old_content: oldContent, target_year_context: yearCtx });
   }
 
   return (

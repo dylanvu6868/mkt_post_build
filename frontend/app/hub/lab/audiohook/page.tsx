@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useLabTool } from "@/hooks/use-lab-tool";
 
 const BPM_PRESETS = [{ label: "Slow · 80", val: 80 }, { label: "Chill · 100", val: 100 }, { label: "Pop · 120", val: 120 }, { label: "Upbeat · 140", val: 140 }, { label: "Fast · 160", val: 160 }];
 interface Segment { segment: string; syllable_count: number; ssml_tags: string; delivery_tip: string; }
@@ -10,25 +11,12 @@ export default function AudioHookPage() {
   const router = useRouter();
   const [content, setContent] = useState("");
   const [bpm, setBpm] = useState(120);
-  const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<AudioResult | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const { run, result, loading, error } = useLabTool<AudioResult>("/audiohook");
 
   async function handleRun() {
     if (!content.trim()) return;
-    setLoading(true); setError(null); setResult(null);
-    try {
-      const token = localStorage.getItem("auth_token") || sessionStorage.getItem("auth_token");
-      const res = await fetch("/api/lab/audiohook", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ content, music_bpm: bpm }),
-      });
-      if (!res.ok) throw new Error("Yêu cầu thất bại. Vui lòng thử lại.");
-      setResult(await res.json());
-    } catch (e: unknown) { setError(e instanceof Error ? e.message : "Có lỗi xảy ra."); }
-    finally { setLoading(false); }
+    await run({ content, music_bpm: bpm });
   }
 
   return (

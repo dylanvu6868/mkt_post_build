@@ -1,31 +1,19 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useLabTool } from "@/hooks/use-lab-tool";
 
 interface ReverseResult { analysis: string; reversed_hook: string; reversed_content: string; psychology_used: string; }
 
 export default function ReversePage() {
   const router = useRouter();
   const [content, setContent] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<ReverseResult | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const { run, result, loading, error } = useLabTool<ReverseResult>("/reverse");
 
   async function handleRun() {
     if (!content.trim()) return;
-    setLoading(true); setError(null); setResult(null);
-    try {
-      const token = localStorage.getItem("auth_token") || sessionStorage.getItem("auth_token");
-      const res = await fetch("/api/lab/reverse", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ content }),
-      });
-      if (!res.ok) throw new Error("Yêu cầu thất bại. Vui lòng thử lại.");
-      setResult(await res.json());
-    } catch (e: unknown) { setError(e instanceof Error ? e.message : "Có lỗi xảy ra."); }
-    finally { setLoading(false); }
+    await run({ content });
   }
 
   return (

@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useLabTool } from "@/hooks/use-lab-tool";
 
 interface ShieldResult {
   risk_score: number;
@@ -11,25 +12,12 @@ interface ShieldResult {
 export default function ShieldPage() {
   const router = useRouter();
   const [content, setContent] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<ShieldResult | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
+  const { run, result, loading, error } = useLabTool<ShieldResult>("/shield");
 
   async function handleRun() {
     if (!content.trim()) return;
-    setLoading(true); setError(null); setResult(null);
-    try {
-      const token = localStorage.getItem("auth_token") || sessionStorage.getItem("auth_token");
-      const res = await fetch("/api/lab/shield", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ content }),
-      });
-      if (!res.ok) throw new Error("Yêu cầu thất bại. Vui lòng thử lại.");
-      setResult(await res.json());
-    } catch (e: unknown) { setError(e instanceof Error ? e.message : "Có lỗi xảy ra."); }
-    finally { setLoading(false); }
+    await run({ content });
   }
 
   const scoreLevel = result

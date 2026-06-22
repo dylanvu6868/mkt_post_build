@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useLabTool } from "@/hooks/use-lab-tool";
 
 const PLATFORMS = ["Facebook", "TikTok", "Instagram", "LinkedIn", "Twitter/X"];
 interface Issue { issue: string; fix: string; }
@@ -10,25 +11,12 @@ export default function HexBreakerPage() {
   const router = useRouter();
   const [content, setContent] = useState("");
   const [platform, setPlatform] = useState("Facebook");
-  const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<HexResult | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const { run, result, loading, error } = useLabTool<HexResult>("/hexbreaker");
 
   async function handleRun() {
     if (!content.trim()) return;
-    setLoading(true); setError(null); setResult(null);
-    try {
-      const token = localStorage.getItem("auth_token") || sessionStorage.getItem("auth_token");
-      const res = await fetch("/api/lab/hexbreaker", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ content, platform }),
-      });
-      if (!res.ok) throw new Error("Yêu cầu thất bại. Vui lòng thử lại.");
-      setResult(await res.json());
-    } catch (e: unknown) { setError(e instanceof Error ? e.message : "Có lỗi xảy ra."); }
-    finally { setLoading(false); }
+    await run({ content, platform });
   }
 
   const scoreColor = result ? (result.reach_score >= 70 ? "text-emerald-500" : result.reach_score >= 40 ? "text-amber-500" : "text-red-500") : "";
