@@ -65,6 +65,7 @@ class CreateOrderRequest(BaseModel):
 @router.post("/create-order")
 @limiter.limit("5/minute")
 async def create_order(
+    request: Request,
     body: CreateOrderRequest,
     session: AsyncSession = Depends(get_session),
     user: User = Depends(get_current_user),
@@ -111,6 +112,7 @@ async def create_order(
 @router.get("/order-status")
 @limiter.limit("6/minute")
 async def order_status(
+    request: Request,
     code: str,
     session: AsyncSession = Depends(get_session),
     user: User = Depends(get_current_user),
