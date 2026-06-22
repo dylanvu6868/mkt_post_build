@@ -195,7 +195,7 @@ export default function LoginPage() {
       )}
 
       <main
-        className="h-screen w-full text-foreground flex flex-col lg:flex-row relative overflow-hidden font-sans"
+        className="h-screen w-full text-neutral-100 flex flex-col lg:flex-row relative overflow-hidden font-sans"
         style={{ background: "linear-gradient(135deg, #080600 0%, #150f00 35%, #221800 65%, #302200 100%)" }}
       >
         {/* Ambient glows */}
@@ -251,7 +251,7 @@ export default function LoginPage() {
                 ].map((item, i) => (
                   <div
                     key={i}
-                    className="flex items-center gap-4 bg-muted border border-border rounded-2xl p-4 hover:bg-accent hover:border-yellow-500/30 transition-all duration-300 hover:shadow-[0_0_20px_rgba(234,179,8,0.1)] group"
+                    className="flex items-center gap-4 bg-white/[0.06] border border-white/10 rounded-2xl p-4 hover:bg-white/[0.1] hover:border-yellow-500/30 transition-all duration-300 hover:shadow-[0_0_20px_rgba(234,179,8,0.1)] group"
                   >
                     <div className="p-3 rounded-xl bg-yellow-500/10 border border-yellow-500/20 shrink-0 group-hover:scale-110 group-hover:bg-yellow-500/20 group-hover:shadow-[0_0_15px_rgba(234,179,8,0.2)] transition-all duration-300">
                       {item.icon}
@@ -284,7 +284,7 @@ export default function LoginPage() {
             </div>
 
             {/* Glass card */}
-            <div className="w-full bg-[#0a0804]/60 backdrop-blur-3xl border border-border rounded-3xl p-8 lg:p-10 shadow-[0_8px_32px_rgba(0,0,0,0.8)] relative overflow-hidden">
+            <div className="w-full bg-[#0a0804]/60 backdrop-blur-3xl border border-white/10 rounded-3xl p-8 lg:p-10 shadow-[0_8px_32px_rgba(0,0,0,0.8)] relative overflow-hidden">
               {/* Accent top line */}
               <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-yellow-500/80 to-transparent" />
 
@@ -312,7 +312,7 @@ export default function LoginPage() {
                       value={regName}
                       onChange={(e) => setRegName(e.target.value)}
                       required
-                      className="pl-10 h-12 bg-muted border-border focus-visible:ring-yellow-500/50 focus-visible:border-yellow-500/50 text-foreground rounded-xl text-sm placeholder:text-neutral-500 transition-all hover:bg-accent"
+                      className="pl-10 h-12 bg-white/[0.06] border-white/10 focus-visible:ring-yellow-500/50 focus-visible:border-yellow-500/50 text-neutral-100 rounded-xl text-sm placeholder:text-neutral-500 transition-all hover:bg-white/[0.1]"
                     />
                   </div>
                 )}
@@ -327,7 +327,7 @@ export default function LoginPage() {
                     value={isRegister ? regEmail : loginEmail}
                     onChange={(e) => isRegister ? setRegEmail(e.target.value) : setLoginEmail(e.target.value)}
                     required
-                    className="pl-10 h-12 bg-muted border-border focus-visible:ring-yellow-500/50 focus-visible:border-yellow-500/50 text-foreground rounded-xl text-sm placeholder:text-neutral-500 transition-all hover:bg-accent"
+                    className="pl-10 h-12 bg-white/[0.06] border-white/10 focus-visible:ring-yellow-500/50 focus-visible:border-yellow-500/50 text-neutral-100 rounded-xl text-sm placeholder:text-neutral-500 transition-all hover:bg-white/[0.1]"
                   />
                 </div>
 
@@ -341,7 +341,7 @@ export default function LoginPage() {
                     value={isRegister ? regPassword : loginPassword}
                     onChange={(e) => isRegister ? setRegPassword(e.target.value) : setLoginPassword(e.target.value)}
                     required
-                    className="pl-10 h-12 bg-muted border-border focus-visible:ring-yellow-500/50 focus-visible:border-yellow-500/50 text-foreground rounded-xl text-sm placeholder:text-neutral-500 transition-all hover:bg-accent"
+                    className="pl-10 h-12 bg-white/[0.06] border-white/10 focus-visible:ring-yellow-500/50 focus-visible:border-yellow-500/50 text-neutral-100 rounded-xl text-sm placeholder:text-neutral-500 transition-all hover:bg-white/[0.1]"
                   />
                 </div>
 
@@ -376,7 +376,7 @@ export default function LoginPage() {
 
               {/* Divider */}
               <div className="my-7 relative flex items-center justify-center">
-                <div className="absolute w-full h-px bg-muted" />
+                <div className="absolute w-full h-px bg-white/10" />
                 <span className="relative bg-[#0a0804] px-4 text-[11px] text-neutral-500 font-semibold uppercase tracking-widest">
                   hoặc tiếp tục với
                 </span>
@@ -386,7 +386,7 @@ export default function LoginPage() {
               <div className="w-full flex items-center justify-center gap-4">
                 {googleClientId && (
                   <div className="relative w-12 h-12 rounded-full overflow-hidden">
-                    <div className="absolute inset-0 flex items-center justify-center bg-muted border border-border rounded-full pointer-events-none z-0">
+                    <div className="absolute inset-0 flex items-center justify-center bg-white/[0.06] border border-white/10 rounded-full pointer-events-none z-0">
                       <svg width="20" height="20" viewBox="0 0 24 24">
                         <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
                         <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
@@ -401,7 +401,7 @@ export default function LoginPage() {
                   type="button"
                   onClick={handleFacebookLogin}
                   disabled={socialLoading}
-                  className="w-12 h-12 rounded-full bg-muted border border-border hover:bg-accent hover:border-[#1877F2]/40 hover:shadow-[0_0_15px_rgba(24,119,242,0.15)] transition-all duration-300 flex items-center justify-center disabled:opacity-50 group"
+                  className="w-12 h-12 rounded-full bg-white/[0.06] border border-white/10 hover:bg-white/[0.1] hover:border-[#1877F2]/40 hover:shadow-[0_0_15px_rgba(24,119,242,0.15)] transition-all duration-300 flex items-center justify-center disabled:opacity-50 group"
                   title="Đăng nhập bằng Facebook"
                 >
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="#1877F2">
@@ -452,7 +452,7 @@ export default function LoginPage() {
         {/* Forgot Password Modal */}
         {showForgotPassword && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-            <div className="w-full max-w-md bg-[#0a0804]/95 backdrop-blur-3xl border border-border rounded-3xl p-8 shadow-[0_8px_32px_rgba(0,0,0,0.8)] relative">
+            <div className="w-full max-w-md bg-[#0a0804]/95 backdrop-blur-3xl border border-white/10 rounded-3xl p-8 shadow-[0_8px_32px_rgba(0,0,0,0.8)] relative">
               <button
                 onClick={() => { setShowForgotPassword(false); setCodeSent(false); setResetCode(""); setNewPassword(""); }}
                 className="absolute top-4 right-4 text-neutral-500 hover:text-neutral-300 transition-colors"
@@ -477,7 +477,7 @@ export default function LoginPage() {
                       value={forgotEmail}
                       onChange={(e) => setForgotEmail(e.target.value)}
                       required
-                      className="pl-10 h-12 bg-muted border-border focus-visible:ring-yellow-500/50 focus-visible:border-yellow-500/50 text-foreground rounded-xl text-sm placeholder:text-neutral-500 transition-all hover:bg-accent"
+                      className="pl-10 h-12 bg-white/[0.06] border-white/10 focus-visible:ring-yellow-500/50 focus-visible:border-yellow-500/50 text-neutral-100 rounded-xl text-sm placeholder:text-neutral-500 transition-all hover:bg-white/[0.1]"
                     />
                   </div>
                   <Button
@@ -503,7 +503,7 @@ export default function LoginPage() {
                       onChange={(e) => setResetCode(e.target.value)}
                       required
                       maxLength={6}
-                      className="pl-10 h-12 bg-muted border-border focus-visible:ring-yellow-500/50 focus-visible:border-yellow-500/50 text-foreground rounded-xl text-sm placeholder:text-neutral-500 transition-all hover:bg-accent"
+                      className="pl-10 h-12 bg-white/[0.06] border-white/10 focus-visible:ring-yellow-500/50 focus-visible:border-yellow-500/50 text-neutral-100 rounded-xl text-sm placeholder:text-neutral-500 transition-all hover:bg-white/[0.1]"
                     />
                   </div>
                   <div className="relative">
@@ -517,7 +517,7 @@ export default function LoginPage() {
                       onChange={(e) => setNewPassword(e.target.value)}
                       required
                       minLength={8}
-                      className="pl-10 h-12 bg-muted border-border focus-visible:ring-yellow-500/50 focus-visible:border-yellow-500/50 text-foreground rounded-xl text-sm placeholder:text-neutral-500 transition-all hover:bg-accent"
+                      className="pl-10 h-12 bg-white/[0.06] border-white/10 focus-visible:ring-yellow-500/50 focus-visible:border-yellow-500/50 text-neutral-100 rounded-xl text-sm placeholder:text-neutral-500 transition-all hover:bg-white/[0.1]"
                     />
                   </div>
                   <Button
