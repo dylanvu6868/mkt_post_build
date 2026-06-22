@@ -63,7 +63,9 @@ class CreateOrderRequest(BaseModel):
 
 
 @router.post("/create-order")
-@limiter.limit("5/minute")
+# Higher limit: authenticated endpoint; generous allowance prevents SePay retry
+# cascades from triggering 429s on legitimate payment flows.
+@limiter.limit("30/minute")
 async def create_order(
     request: Request,
     body: CreateOrderRequest,
@@ -110,7 +112,10 @@ async def create_order(
 
 
 @router.get("/order-status")
-@limiter.limit("6/minute")
+# Higher limit: polled by the checkout page while the user waits for SePay to
+# confirm payment; 60/minute gives ~1 req/sec headroom without risk of abuse
+# since the endpoint is authenticated and scoped to the requesting user's orders.
+@limiter.limit("60/minute")
 async def order_status(
     request: Request,
     code: str,
