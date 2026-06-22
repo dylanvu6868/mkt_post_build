@@ -33,11 +33,66 @@ const CARD_ICONS: Record<string, JSX.Element> = {
 };
 
 const GUIDE_STEPS = [
-  { title: "Chọn loại nội dung", desc: "Bấm vào một thẻ bên dưới để bắt đầu tạo nội dung marketing. Mỗi loại được thiết kế riêng cho từng nền tảng.", target: "cards" },
-  { title: "Trò chuyện với Vitba Agents", desc: "Nhập yêu cầu vào ô chat. Vitba Agents sẽ hỏi thêm thông tin qua gợi ý ở sidebar phải, sau đó tự động tạo nội dung.", target: "chat" },
-  { title: "Xem & tải kết quả", desc: "Kết quả hiển thị ngay trong chat. Bạn có thể sao chép, tải về (TXT/HTML), phóng to xem toàn bộ, hoặc yêu cầu AI làm lại.", target: "result" },
-  { title: "Nâng cấp gói", desc: "Các loại nội dung nâng cao cần gói Lite/Pro/Max. Bấm vào thẻ bị khóa hoặc nút 'Nâng cấp' ở header để xem bảng giá.", target: "upgrade" },
-  { title: "Cài đặt tài khoản", desc: "Vào Settings để cập nhật thông tin cá nhân, đổi mật khẩu, quản lý thương hiệu và tệp tài liệu.", target: "settings" },
+  {
+    title: "Chào mừng đến Vitba.ai!",
+    icon: "👋",
+    desc: "Đây là trợ lý AI Marketing giúp bạn tạo nội dung chuyên nghiệp. Hướng dẫn này sẽ đưa bạn qua từng bước để bắt đầu.",
+    tip: null,
+  },
+  {
+    title: "Bước 1: Tạo Dự án",
+    icon: "📁",
+    desc: 'Nhấn nút "Dự án hóa" ở thanh bên trái (sidebar). Trong tab "Dự án", nhập tên chiến dịch/sản phẩm rồi nhấn "Tạo". Mỗi dự án là một không gian riêng chứa giọng điệu, tài liệu và mẫu cấu trúc.',
+    tip: 'VD: "Chiến dịch Ra mắt Sản phẩm X" hoặc "Fanpage ABC tháng 7"',
+  },
+  {
+    title: "Bước 2: Thiết lập Giọng điệu",
+    icon: "🎤",
+    desc: 'Trong "Dự án hóa" → tab "Giọng điệu", điền: tên thương hiệu, giọng điệu (thân thiện/chuyên nghiệp), phong cách viết, từ vựng ưu tiên và từ cấm. AI sẽ viết đúng theo phong cách này.',
+    tip: "Nhấn nút X bên phải mỗi trường để xóa nhanh khi cần thay đổi.",
+  },
+  {
+    title: "Bước 3: Tải tài liệu nền (Tùy chọn)",
+    icon: "📚",
+    desc: 'Tab "Cơ sở kiến thức" cho phép tải lên PDF, DOCX, TXT về sản phẩm/dịch vụ. AI sẽ đọc hiểu tài liệu này để viết nội dung chính xác hơn, bám sát thông tin thật.',
+    tip: "Tải lên: brochure sản phẩm, bảng giá, FAQ nội bộ, guideline thương hiệu...",
+  },
+  {
+    title: "Bước 4: Tạo Mẫu cấu trúc (Tùy chọn)",
+    icon: "📝",
+    desc: 'Tab "Mẫu Cấu trúc" để bạn định nghĩa khung sườn cho AI. Chọn loại nội dung (Facebook Post, SEO Blog...) rồi viết template dùng [Tiêu đề], [Nội dung]... AI sẽ điền vào.',
+    tip: "VD template Facebook:\n[Hook gây tò mò]\n[3 lợi ích chính]\n[Call to action]\n[Hashtags]",
+  },
+  {
+    title: "Bước 5: Bắt đầu tạo nội dung",
+    icon: "💬",
+    desc: "Quay lại màn hình chat chính. Bạn có thể: (1) Nhấn vào thẻ loại nội dung bên dưới, hoặc (2) Gõ trực tiếp yêu cầu vào ô chat. AI sẽ hỏi thêm thông tin nếu cần, sau đó tự động chạy pipeline tạo nội dung.",
+    tip: 'VD: "Viết bài SEO Blog về cách chọn laptop cho sinh viên" hoặc nhấn thẻ "Facebook Post".',
+  },
+  {
+    title: "Bước 6: Vitba Agents hoạt động",
+    icon: "🤖",
+    desc: "Khi AI bắt đầu tạo nội dung, bạn sẽ thấy thanh tiến trình: Lên kế hoạch → Nghiên cứu thị trường → Tối ưu SEO → Phân tích thương hiệu → Tổng hợp → Viết → Kiểm duyệt. Toàn bộ chạy tự động!",
+    tip: "Bạn có thể chuyển sang tab trình duyệt khác hoặc mở cuộc trò chuyện mới — AI vẫn chạy nền và thông báo khi xong.",
+  },
+  {
+    title: "Bước 7: Xem & sử dụng kết quả",
+    icon: "✨",
+    desc: "Khi hoàn tất, kết quả hiện trong hộp đặc biệt có điểm chất lượng (/100). Bạn có 4 hành động:",
+    tip: "📋 Copy — sao chép nội dung\n📥 Tải về — xuất file TXT hoặc HTML\n🔍 Phóng to — xem toàn màn hình\n🔄 Làm lại — yêu cầu AI viết lại",
+  },
+  {
+    title: "Bước 8: Quản lý cuộc trò chuyện",
+    icon: "💡",
+    desc: 'Thanh bên trái hiển thị tất cả cuộc trò chuyện. Nhấn "+" để tạo mới. Nhấn chuột phải hoặc dấu "..." để ghim, đổi tên, xóa. Cuộc trò chuyện đang chạy nền sẽ có biểu tượng xoay.',
+    tip: "Bạn có thể chạy song song 4-6 cuộc trò chuyện cùng lúc!",
+  },
+  {
+    title: "Sẵn sàng rồi!",
+    icon: "🚀",
+    desc: "Bạn đã nắm hết các bước cơ bản. Hãy bắt đầu tạo nội dung marketing đầu tiên! Nhấn nút (?) bất kỳ lúc nào để xem lại hướng dẫn này.",
+    tip: null,
+  },
 ];
 
 function cleanContent(content: string) {
@@ -423,7 +478,7 @@ function GuideModal({ onClose }: { onClose: () => void }) {
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.9, opacity: 0 }}
-        className="relative w-full max-w-md rounded-[20px] border border-primary/20 bg-background overflow-hidden shadow-2xl"
+        className="relative w-full max-w-lg rounded-[20px] border border-primary/20 bg-background overflow-hidden shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="px-6 py-4 border-b border-primary/10 bg-primary/5 flex items-center justify-between">
@@ -431,31 +486,40 @@ function GuideModal({ onClose }: { onClose: () => void }) {
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
             <span className="text-[15px] font-semibold text-foreground">Hướng dẫn sử dụng</span>
           </div>
-          <button onClick={onClose} className="rounded-full p-1.5 hover:bg-muted transition-colors text-muted-foreground hover:text-foreground">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-          </button>
+          <div className="flex items-center gap-3">
+            <button onClick={onClose} className="text-[12px] text-muted-foreground hover:text-foreground transition-colors">Bỏ qua</button>
+            <button onClick={onClose} className="rounded-full p-1.5 hover:bg-muted transition-colors text-muted-foreground hover:text-foreground">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>
         </div>
 
         <div className="p-6">
-          <div className="flex items-center gap-2 mb-4">
+          <div className="flex items-center gap-1 mb-5">
             {GUIDE_STEPS.map((_, i) => (
-              <div key={i} className={cn("h-1.5 rounded-full flex-1 transition-colors", i <= step ? "bg-primary" : "bg-muted")} />
+              <div key={i} className={cn("h-1 rounded-full flex-1 transition-all duration-300", i <= step ? "bg-primary" : "bg-muted")} />
             ))}
           </div>
 
           <AnimatePresence mode="wait">
             <motion.div
               key={step}
-              initial={{ opacity: 0, x: 20 }}
+              initial={{ opacity: 0, x: 30 }}
               animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              className="space-y-3"
+              exit={{ opacity: 0, x: -30 }}
+              transition={{ duration: 0.25 }}
+              className="space-y-4"
             >
-              <div className="flex items-center gap-2">
-                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-primary-foreground text-[14px] font-bold">{step + 1}</span>
-                <h3 className="text-[17px] font-bold text-foreground">{current.title}</h3>
+              <div className="flex items-center gap-3">
+                <span className="flex items-center justify-center w-10 h-10 rounded-2xl bg-primary/10 text-[22px] shrink-0">{current.icon}</span>
+                <h3 className="text-[17px] font-bold text-foreground leading-tight">{current.title}</h3>
               </div>
-              <p className="text-[14px] text-muted-foreground leading-relaxed pl-10">{current.desc}</p>
+              <p className="text-[14px] text-muted-foreground leading-relaxed">{current.desc}</p>
+              {current.tip && (
+                <div className="rounded-xl bg-primary/5 border border-primary/10 px-4 py-3">
+                  <p className="text-[13px] text-foreground/80 leading-relaxed whitespace-pre-line">{current.tip}</p>
+                </div>
+              )}
             </motion.div>
           </AnimatePresence>
         </div>
@@ -468,20 +532,20 @@ function GuideModal({ onClose }: { onClose: () => void }) {
           >
             ← Trước
           </button>
-          <span className="text-[12px] text-muted-foreground">{step + 1}/{GUIDE_STEPS.length}</span>
+          <span className="text-[12px] text-muted-foreground font-medium">{step + 1} / {GUIDE_STEPS.length}</span>
           {step < GUIDE_STEPS.length - 1 ? (
             <button
               onClick={() => setStep(step + 1)}
-              className="rounded-[10px] bg-primary px-4 py-2 text-[13px] font-bold text-primary-foreground hover:bg-primary/90 transition-all"
+              className="rounded-[10px] bg-primary px-5 py-2 text-[13px] font-bold text-primary-foreground hover:bg-primary/90 transition-all shadow-[0_0_12px_rgba(255,213,74,0.2)]"
             >
-              Tiếp →
+              Tiếp theo →
             </button>
           ) : (
             <button
               onClick={onClose}
-              className="rounded-[10px] bg-primary px-4 py-2 text-[13px] font-bold text-primary-foreground hover:bg-primary/90 transition-all"
+              className="rounded-[10px] bg-primary px-5 py-2 text-[13px] font-bold text-primary-foreground hover:bg-primary/90 transition-all shadow-[0_0_12px_rgba(255,213,74,0.2)]"
             >
-              Hoàn tất ✓
+              Bắt đầu ngay!
             </button>
           )}
         </div>
@@ -692,7 +756,11 @@ export function ChatPanel() {
   const router = useRouter();
   const [input, setInput] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
-  const [showGuide, setShowGuide] = useState(false);
+  const [showGuide, setShowGuide] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return !localStorage.getItem("vitba-tutorial-done");
+  });
+  const closeGuide = () => { setShowGuide(false); localStorage.setItem("vitba-tutorial-done", "1"); };
   const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
   const [attachedImages, setAttachedImages] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
@@ -912,7 +980,7 @@ export function ChatPanel() {
         <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(128,128,128,0.1)_1px,transparent_1px),linear-gradient(to_bottom,rgba(128,128,128,0.1)_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none mix-blend-overlay" />
 
         <AnimatePresence>
-          {showGuide && <GuideModal onClose={() => setShowGuide(false)} />}
+          {showGuide && <GuideModal onClose={closeGuide} />}
         </AnimatePresence>
       </div>
     );
@@ -1107,7 +1175,7 @@ export function ChatPanel() {
       <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(128,128,128,0.1)_1px,transparent_1px),linear-gradient(to_bottom,rgba(128,128,128,0.1)_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none -z-10 mix-blend-overlay" />
 
       <AnimatePresence>
-        {showGuide && <GuideModal onClose={() => setShowGuide(false)} />}
+        {showGuide && <GuideModal onClose={closeGuide} />}
       </AnimatePresence>
     </div>
   );
