@@ -13,7 +13,7 @@ import { SettingsModal } from "./settings-modal";
 import { ProjectModal } from "./project-modal";
 
 export function ChatSidebar() {
-  const { conversations, activeConversationId, loadConversations, createConversation, selectConversation, deleteConversation, renameConversation, pinConversation, sidebarWidth, leftSidebarCollapsed, toggleLeftSidebar } = useChatStore();
+  const { conversations, activeConversationId, loadConversations, createConversation, selectConversation, deleteConversation, renameConversation, pinConversation, sidebarWidth, leftSidebarCollapsed, toggleLeftSidebar, backgroundTasks } = useChatStore();
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
   const router = useRouter();
@@ -159,7 +159,7 @@ export function ChatSidebar() {
                 <p className="px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-foreground/30 mb-1">Đã ghim</p>
                 <div className="space-y-0.5">
                   {pinned.map((conv) => (
-                    <ConvItem key={conv.id} conv={conv} active={conv.id === activeConversationId} editing={editingId === conv.id} editTitle={editTitle} menuOpen={menuId === conv.id} onSelect={() => handleSelect(conv.id)} onMenuToggle={() => setMenuId(menuId === conv.id ? null : conv.id)} onStartRename={() => { setEditingId(conv.id); setEditTitle(conv.title); setMenuId(null); }} onRename={() => handleRename(conv.id)} onEditTitleChange={setEditTitle} onPin={() => { pinConversation(conv.id, !conv.is_pinned); setMenuId(null); }} onDelete={() => { deleteConversation(conv.id); setMenuId(null); }} />
+                    <ConvItem key={conv.id} conv={conv} active={conv.id === activeConversationId} isRunning={!!backgroundTasks[conv.id] && backgroundTasks[conv.id].status === "running"} editing={editingId === conv.id} editTitle={editTitle} menuOpen={menuId === conv.id} onSelect={() => handleSelect(conv.id)} onMenuToggle={() => setMenuId(menuId === conv.id ? null : conv.id)} onStartRename={() => { setEditingId(conv.id); setEditTitle(conv.title); setMenuId(null); }} onRename={() => handleRename(conv.id)} onEditTitleChange={setEditTitle} onPin={() => { pinConversation(conv.id, !conv.is_pinned); setMenuId(null); }} onDelete={() => { deleteConversation(conv.id); setMenuId(null); }} />
                   ))}
                 </div>
               </motion.div>
@@ -169,7 +169,7 @@ export function ChatSidebar() {
                 <p className="px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-foreground/30 mb-1">Gần đây</p>
                 <div className="space-y-0.5">
                   {unpinned.map((conv) => (
-                    <ConvItem key={conv.id} conv={conv} active={conv.id === activeConversationId} editing={editingId === conv.id} editTitle={editTitle} menuOpen={menuId === conv.id} onSelect={() => handleSelect(conv.id)} onMenuToggle={() => setMenuId(menuId === conv.id ? null : conv.id)} onStartRename={() => { setEditingId(conv.id); setEditTitle(conv.title); setMenuId(null); }} onRename={() => handleRename(conv.id)} onEditTitleChange={setEditTitle} onPin={() => { pinConversation(conv.id, !conv.is_pinned); setMenuId(null); }} onDelete={() => { deleteConversation(conv.id); setMenuId(null); }} />
+                    <ConvItem key={conv.id} conv={conv} active={conv.id === activeConversationId} isRunning={!!backgroundTasks[conv.id] && backgroundTasks[conv.id].status === "running"} editing={editingId === conv.id} editTitle={editTitle} menuOpen={menuId === conv.id} onSelect={() => handleSelect(conv.id)} onMenuToggle={() => setMenuId(menuId === conv.id ? null : conv.id)} onStartRename={() => { setEditingId(conv.id); setEditTitle(conv.title); setMenuId(null); }} onRename={() => handleRename(conv.id)} onEditTitleChange={setEditTitle} onPin={() => { pinConversation(conv.id, !conv.is_pinned); setMenuId(null); }} onDelete={() => { deleteConversation(conv.id); setMenuId(null); }} />
                   ))}
                 </div>
               </motion.div>
@@ -221,14 +221,14 @@ export function ChatSidebar() {
   );
 }
 
-function ConvItem({ conv, active, editing, editTitle, menuOpen, onSelect, onMenuToggle, onStartRename, onRename, onEditTitleChange, onPin, onDelete }: {
+function ConvItem({ conv, active, isRunning, editing, editTitle, menuOpen, onSelect, onMenuToggle, onStartRename, onRename, onEditTitleChange, onPin, onDelete }: {
   conv: { id: number; title: string; is_pinned: boolean; last_message: string | null };
-  active: boolean; editing: boolean; editTitle: string; menuOpen: boolean;
+  active: boolean; isRunning: boolean; editing: boolean; editTitle: string; menuOpen: boolean;
   onSelect: () => void; onMenuToggle: () => void; onStartRename: () => void;
   onRename: () => void; onEditTitleChange: (v: string) => void; onPin: () => void; onDelete: () => void;
 }) {
   return (
-    <motion.div 
+    <motion.div
       layout
       initial={{ opacity: 0, y: 5 }}
       animate={{ opacity: 1, y: 0 }}
@@ -241,7 +241,10 @@ function ConvItem({ conv, active, editing, editTitle, menuOpen, onSelect, onMenu
           <input autoFocus value={editTitle} onChange={(e) => onEditTitleChange(e.target.value)} onBlur={onRename} className="w-full rounded-[8px] border border-border bg-background px-2 py-1.5 text-[13px] text-foreground focus:outline-none focus:ring-1 focus:ring-primary/50" />
         </form>
       ) : (
-        <button onClick={onSelect} className="w-full px-3 py-2.5 text-left flex items-center">
+        <button onClick={onSelect} className="w-full px-3 py-2.5 text-left flex items-center gap-2">
+          {isRunning && (
+            <span className="shrink-0 h-3.5 w-3.5 rounded-full border-[1.5px] border-primary border-t-transparent animate-spin" />
+          )}
           <p className={cn("truncate text-[13px] font-medium", active ? "text-primary" : "text-muted-foreground group-hover:text-foreground")}>{conv.title}</p>
         </button>
       )}
