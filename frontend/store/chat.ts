@@ -340,32 +340,33 @@ export const useChatStore = create<ChatState>()(
         _controllers.delete(targetConvId);
         if (controller.signal.aborted) return;
 
-        const aiMsg: ChatMessage = {
-          id: Date.now() + 1,
-          conversation_id: targetConvId,
-          role: "assistant",
-          content: fullContent,
-          metadata_json: null,
-          created_at: new Date().toISOString(),
-        };
-
+        const hasGenerate = fullContent.includes("```generate\n");
         const wasNew = get().conversations.find((c) => c.id === targetConvId)?.title === "New conversation";
 
-        if (isFg()) {
-          set((s) => ({
-            messages: [...s.messages, aiMsg],
-            streaming: false,
-            streamContent: "",
-            conversations: s.conversations.map((c) =>
-              c.id === targetConvId
-                ? { ...c, title: c.title === "New conversation" ? content.split(/\s+/).slice(0, 6).join(" ").slice(0, 30) : c.title }
-                : c
-            ),
-          }));
-        } else {
-          // Background: mark chat phase done (generation may still be running)
-          const hasGenerate = fullContent.includes("```generate\n");
-          if (!hasGenerate) {
+        // Only add assistant message if there's no generate block
+        // (generation result will be saved separately by _saveGenerationResult)
+        if (!hasGenerate) {
+          const aiMsg: ChatMessage = {
+            id: Date.now() + 1,
+            conversation_id: targetConvId,
+            role: "assistant",
+            content: fullContent,
+            metadata_json: null,
+            created_at: new Date().toISOString(),
+          };
+
+          if (isFg()) {
+            set((s) => ({
+              messages: [...s.messages, aiMsg],
+              streaming: false,
+              streamContent: "",
+              conversations: s.conversations.map((c) =>
+                c.id === targetConvId
+                  ? { ...c, title: c.title === "New conversation" ? content.split(/\s+/).slice(0, 6).join(" ").slice(0, 30) : c.title }
+                  : c
+              ),
+            }));
+          } else {
             set((s) => ({
               backgroundTasks: {
                 ...s.backgroundTasks,
@@ -381,6 +382,9 @@ export const useChatStore = create<ChatState>()(
               ),
             }));
           }
+        } else if (isFg()) {
+          // Has generate block: just clear streaming state, generation handler takes over
+          set({ streaming: false, streamContent: "" });
         }
 
         if (wasNew) {
