@@ -64,6 +64,7 @@ interface ChatState {
 // Per-conversation abort controllers and typing intervals
 const _controllers = new Map<number, AbortController>();
 const _typingIntervals = new Map<number, ReturnType<typeof setInterval>>();
+let creatingPromise: Promise<Conversation> | null = null;
 
 function clearTypingForConv(convId: number) {
   const iv = _typingIntervals.get(convId);
@@ -119,19 +120,28 @@ export const useChatStore = create<ChatState>()(
       },
 
       createConversation: async (title?: string) => {
-        const conv = await api.post<Conversation>("/conversations", {
+        if (creatingPromise) {
+          return creatingPromise;
+        }
+
+        creatingPromise = api.post<Conversation>("/conversations", {
           title: title || "New conversation",
+        }).then((conv) => {
+          set((s) => ({
+            conversations: [conv, ...s.conversations],
+            activeConversationId: conv.id,
+            messages: [],
+            streaming: false,
+            streamContent: "",
+            suggestions: [],
+            contentPanel: { visible: false, generating: false, result: null },
+          }));
+          return conv;
+        }).finally(() => {
+          creatingPromise = null;
         });
-        set((s) => ({
-          conversations: [conv, ...s.conversations],
-          activeConversationId: conv.id,
-          messages: [],
-          streaming: false,
-          streamContent: "",
-          suggestions: [],
-          contentPanel: { visible: false, generating: false, result: null },
-        }));
-        return conv;
+
+        return creatingPromise;
       },
 
       selectConversation: async (id: number) => {
@@ -248,6 +258,8 @@ export const useChatStore = create<ChatState>()(
       },
 
       sendMessage: async (content: string) => {
+        if (get().streaming) return;
+        
         const targetConvId = get().activeConversationId;
         if (!targetConvId) return;
 

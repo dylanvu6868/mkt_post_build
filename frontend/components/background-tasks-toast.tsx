@@ -3,17 +3,43 @@
 import { useChatStore } from "@/store/chat";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { useEffect, useRef } from "react";
 
 export function BackgroundTasksToast() {
   const { backgroundTasks, dismissBackgroundTask, selectConversation } = useChatStore();
+  const timeoutsRef = useRef<{ [key: number]: ReturnType<typeof setTimeout> }>({});
 
   const tasks = Object.values(backgroundTasks);
   if (tasks.length === 0) return null;
 
   const handleClick = (convId: number) => {
+    if (timeoutsRef.current[convId]) {
+      clearTimeout(timeoutsRef.current[convId]);
+      delete timeoutsRef.current[convId];
+    }
     dismissBackgroundTask(convId);
     selectConversation(convId);
   };
+
+  useEffect(() => {
+    tasks.forEach((task) => {
+      if ((task.status === "done" || task.status === "error") && !timeoutsRef.current[task.convId]) {
+        timeoutsRef.current[task.convId] = setTimeout(() => {
+          dismissBackgroundTask(task.convId);
+          delete timeoutsRef.current[task.convId];
+        }, 5000);
+      }
+    });
+
+    const currentTaskIds = tasks.map((t) => t.convId);
+    Object.keys(timeoutsRef.current).forEach((key) => {
+      const convId = parseInt(key, 10);
+      if (!currentTaskIds.includes(convId)) {
+        clearTimeout(timeoutsRef.current[convId]);
+        delete timeoutsRef.current[convId];
+      }
+    });
+  }, [tasks, dismissBackgroundTask]);
 
   return (
     <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex flex-col-reverse gap-2 items-center">

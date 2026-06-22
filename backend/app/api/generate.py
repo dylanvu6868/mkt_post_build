@@ -20,6 +20,7 @@ from app.core.plan_limits import (
 )
 from app.schemas.generation import GenerateRequest, JobResponse, JobStatusResponse
 from app.services import generation_service
+from app.agents.guard import run_guard_agent
 
 router = APIRouter(prefix="/generate", tags=["generate"])
 
@@ -83,6 +84,14 @@ async def start_generation(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Project not found"
         )
+
+    if provider_available():
+        guard_result = await run_guard_agent(payload.brief)
+        if not guard_result.is_safe:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=guard_result.reason
+            )
 
     # Load brand profile for this project (may be None)
     result = await session.execute(

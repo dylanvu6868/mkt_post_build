@@ -18,6 +18,7 @@ from app.models.conversation import Conversation, Message
 from app.models.user import User
 from app.schemas.conversation import MessageCreate
 from app.models.project import Project
+from app.agents.guard import run_guard_agent
 
 logger = logging.getLogger(__name__)
 
@@ -478,6 +479,30 @@ async def send_message(
         conv.title = " ".join(payload.content.split()[:6])[:30]
 
     await session.commit()
+
+    # Guard Agent Check
+    if provider_available():
+        guard_result = await run_guard_agent(payload.content)
+        if not guard_result.is_safe:
+            # Save AI rejection message
+            async with session_maker() as save_session:
+                ai_msg = Message(
+                    conversation_id=conversation_id,
+                    role="assistant",
+                    content=guard_result.reason,
+                )
+                save_session.add(ai_msg)
+                await save_session.commit()
+
+            async def rejected_stream():
+                yield f"data: {json.dumps({'type': 'token', 'content': guard_result.reason})}\n\n"
+                yield f"data: {json.dumps({'type': 'done', 'content': guard_result.reason})}\n\n"
+
+            return StreamingResponse(
+                rejected_stream(),
+                media_type="text/event-stream",
+                headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+            )
 
     image_data = _pending_images.pop(conversation_id, None)
 
