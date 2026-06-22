@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { handleApiPlanError } from "@/lib/plan-errors";
 import { motion, AnimatePresence } from "framer-motion";
 import { SettingsModal } from "./settings-modal";
+import { ProjectModal } from "./project-modal";
 
 export function ChatSidebar() {
   const { conversations, activeConversationId, loadConversations, createConversation, selectConversation, deleteConversation, renameConversation, pinConversation, sidebarWidth, leftSidebarCollapsed, toggleLeftSidebar } = useChatStore();
@@ -120,7 +121,15 @@ export function ChatSidebar() {
           </div>
         </div>
 
-        <div className="px-4 pb-3">
+        <div className="px-4 pb-3 space-y-2">
+          <ProjectModal>
+            <button
+              className="flex w-full items-center gap-2 rounded-[16px] border border-primary/30 bg-primary/5 px-4 py-3 text-[14px] font-medium text-primary hover:bg-primary/10 hover:border-primary/50 transition-all duration-300 shadow-[0_2px_10px_rgba(0,0,0,0.2)] group"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="group-hover:scale-110 transition-transform"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+              Dự án hóa
+            </button>
+          </ProjectModal>
           <button
             onClick={handleCreate}
             className="flex w-full items-center gap-2 rounded-[16px] border border-border bg-card px-4 py-3 text-[14px] font-medium text-foreground hover:bg-accent hover:border-primary/50 transition-all duration-300 shadow-[0_2px_10px_rgba(0,0,0,0.2)] group"
