@@ -32,64 +32,77 @@ const CARD_ICONS: Record<string, JSX.Element> = {
   marketing_plan: <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" x2="18" y1="20" y2="10"/><line x1="12" x2="12" y1="20" y2="4"/><line x1="6" x2="6" y1="20" y2="14"/></svg>,
 };
 
-const GUIDE_STEPS = [
+const GI = {
+  welcome: <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>,
+  folder: <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2z"/></svg>,
+  mic: <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>,
+  book: <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>,
+  template: <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>,
+  chat: <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>,
+  agents: <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>,
+  star: <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>,
+  list: <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>,
+  rocket: <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg>,
+};
+
+const GUIDE_STEPS: { title: string; icon: JSX.Element; desc: string; tip: string | null }[] = [
   {
     title: "Chào mừng đến Vitba.ai!",
-    icon: "👋",
+    icon: GI.welcome,
     desc: "Đây là trợ lý AI Marketing giúp bạn tạo nội dung chuyên nghiệp. Hướng dẫn này sẽ đưa bạn qua từng bước để bắt đầu.",
     tip: null,
   },
   {
     title: "Bước 1: Tạo Dự án",
-    icon: "📁",
+    icon: GI.folder,
     desc: 'Nhấn nút "Dự án hóa" ở thanh bên trái (sidebar). Trong tab "Dự án", nhập tên chiến dịch/sản phẩm rồi nhấn "Tạo". Mỗi dự án là một không gian riêng chứa giọng điệu, tài liệu và mẫu cấu trúc.',
     tip: 'VD: "Chiến dịch Ra mắt Sản phẩm X" hoặc "Fanpage ABC tháng 7"',
   },
   {
     title: "Bước 2: Thiết lập Giọng điệu",
-    icon: "🎤",
+    icon: GI.mic,
     desc: 'Trong "Dự án hóa" → tab "Giọng điệu", điền: tên thương hiệu, giọng điệu (thân thiện/chuyên nghiệp), phong cách viết, từ vựng ưu tiên và từ cấm. AI sẽ viết đúng theo phong cách này.',
     tip: "Nhấn nút X bên phải mỗi trường để xóa nhanh khi cần thay đổi.",
   },
   {
     title: "Bước 3: Tải tài liệu nền (Tùy chọn)",
-    icon: "📚",
+    icon: GI.book,
     desc: 'Tab "Cơ sở kiến thức" cho phép tải lên PDF, DOCX, TXT về sản phẩm/dịch vụ. AI sẽ đọc hiểu tài liệu này để viết nội dung chính xác hơn, bám sát thông tin thật.',
     tip: "Tải lên: brochure sản phẩm, bảng giá, FAQ nội bộ, guideline thương hiệu...",
   },
   {
     title: "Bước 4: Tạo Mẫu cấu trúc (Tùy chọn)",
-    icon: "📝",
+    icon: GI.template,
     desc: 'Tab "Mẫu Cấu trúc" để bạn định nghĩa khung sườn cho AI. Chọn loại nội dung (Facebook Post, SEO Blog...) rồi viết template dùng [Tiêu đề], [Nội dung]... AI sẽ điền vào.',
     tip: "VD template Facebook:\n[Hook gây tò mò]\n[3 lợi ích chính]\n[Call to action]\n[Hashtags]",
   },
   {
     title: "Bước 5: Bắt đầu tạo nội dung",
-    icon: "💬",
+    icon: GI.chat,
     desc: "Quay lại màn hình chat chính. Bạn có thể: (1) Nhấn vào thẻ loại nội dung bên dưới, hoặc (2) Gõ trực tiếp yêu cầu vào ô chat. AI sẽ hỏi thêm thông tin nếu cần, sau đó tự động chạy pipeline tạo nội dung.",
     tip: 'VD: "Viết bài SEO Blog về cách chọn laptop cho sinh viên" hoặc nhấn thẻ "Facebook Post".',
   },
   {
     title: "Bước 6: Vitba Agents hoạt động",
-    icon: "🤖",
+    icon: GI.agents,
     desc: "Khi AI bắt đầu tạo nội dung, bạn sẽ thấy thanh tiến trình: Lên kế hoạch → Nghiên cứu thị trường → Tối ưu SEO → Phân tích thương hiệu → Tổng hợp → Viết → Kiểm duyệt. Toàn bộ chạy tự động!",
     tip: "Bạn có thể chuyển sang tab trình duyệt khác hoặc mở cuộc trò chuyện mới — AI vẫn chạy nền và thông báo khi xong.",
   },
   {
     title: "Bước 7: Xem & sử dụng kết quả",
-    icon: "✨",
-    desc: "Khi hoàn tất, kết quả hiện trong hộp đặc biệt có điểm chất lượng (/100). Bạn có 4 hành động:",
-    tip: "📋 Copy — sao chép nội dung\n📥 Tải về — xuất file TXT hoặc HTML\n🔍 Phóng to — xem toàn màn hình\n🔄 Làm lại — yêu cầu AI viết lại",
+    icon: GI.star,
+    desc: "Khi hoàn tất, kết quả hiện trong hộp đặc biệt có điểm chất lượng (/100). Bạn có 4 hành động: Copy, Tải về, Phóng to, Làm lại.",
+    tip: "Copy — sao chép nội dung\nTải về — xuất file TXT hoặc HTML\nPhóng to — xem toàn màn hình\nLàm lại — yêu cầu AI viết lại",
   },
   {
     title: "Bước 8: Quản lý cuộc trò chuyện",
-    icon: "💡",
+    icon: GI.list,
     desc: 'Thanh bên trái hiển thị tất cả cuộc trò chuyện. Nhấn "+" để tạo mới. Nhấn chuột phải hoặc dấu "..." để ghim, đổi tên, xóa. Cuộc trò chuyện đang chạy nền sẽ có biểu tượng xoay.',
     tip: "Bạn có thể chạy song song 4-6 cuộc trò chuyện cùng lúc!",
   },
   {
     title: "Sẵn sàng rồi!",
-    icon: "🚀",
+    icon: GI.rocket,
     desc: "Bạn đã nắm hết các bước cơ bản. Hãy bắt đầu tạo nội dung marketing đầu tiên! Nhấn nút (?) bất kỳ lúc nào để xem lại hướng dẫn này.",
     tip: null,
   },
@@ -456,9 +469,22 @@ h1,h2,h3{color:#b8860b;margin-top:24px}p{margin-bottom:12px}ul,ol{margin-left:20
   );
 }
 
-function GuideModal({ onClose }: { onClose: () => void }) {
+const TOUR_STEPS: { target: string | null; title: string; desc: string; placement: "bottom" | "top" | "left" | "right" | "center"; icon: JSX.Element }[] = [
+  { target: null, placement: "center", icon: GI.welcome, title: "Chào mừng đến Vitba.ai!", desc: "Hướng dẫn tương tác sẽ chỉ bạn từng bước. Hãy nhấn 'Tiếp theo' để bắt đầu!" },
+  { target: "[data-tour='project-btn']", placement: "right", icon: GI.folder, title: "Tạo Dự án", desc: "Nhấn vào đây để tạo dự án mới. Mỗi dự án chứa giọng điệu, tài liệu và mẫu cấu trúc riêng." },
+  { target: "[data-tour='project-btn']", placement: "right", icon: GI.mic, title: "Thiết lập Giọng điệu", desc: "Trong Dự án hóa → tab 'Giọng điệu', thiết lập brand name, tone, phong cách viết, từ ưu tiên & từ cấm." },
+  { target: "[data-tour='project-btn']", placement: "right", icon: GI.book, title: "Tải tài liệu nền", desc: "Tab 'Cơ sở kiến thức' — tải PDF, DOCX, TXT để AI hiểu sản phẩm/dịch vụ của bạn." },
+  { target: "[data-tour='chat-input']", placement: "top", icon: GI.chat, title: "Nhập yêu cầu", desc: "Gõ trực tiếp yêu cầu tạo nội dung vào đây. VD: 'Viết bài SEO Blog về cách chọn laptop cho sinh viên'." },
+  { target: "[data-tour='content-cards']", placement: "top", icon: GI.template, title: "Chọn loại nội dung", desc: "Hoặc nhấn vào thẻ để chọn nhanh: Facebook Post, SEO Blog, Email, Landing Page, TikTok Script..." },
+  { target: "[data-tour='content-cards']", placement: "top", icon: GI.agents, title: "Vitba Agents tự động", desc: "AI sẽ chạy pipeline 7 bước: Lên kế hoạch → Nghiên cứu → SEO → Thương hiệu → Tổng hợp → Viết → Kiểm duyệt." },
+  { target: "[data-tour='new-conv-btn']", placement: "right", icon: GI.list, title: "Quản lý trò chuyện", desc: "Tạo cuộc trò chuyện mới ở đây. Chạy song song nhiều cuộc trò chuyện — AI vẫn chạy nền khi bạn chuyển tab!" },
+  { target: "[data-tour='guide-btn']", placement: "bottom", icon: GI.rocket, title: "Sẵn sàng!", desc: "Nhấn nút (?) bất kỳ lúc nào để xem lại hướng dẫn. Chúc bạn tạo nội dung marketing hiệu quả!" },
+];
+
+function SpotlightTour({ onClose }: { onClose: () => void }) {
   const [step, setStep] = useState(0);
-  const current = GUIDE_STEPS[step];
+  const [rect, setRect] = useState<DOMRect | null>(null);
+  const current = TOUR_STEPS[step];
 
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
@@ -466,91 +492,117 @@ function GuideModal({ onClose }: { onClose: () => void }) {
     return () => window.removeEventListener("keydown", handleEsc);
   }, [onClose]);
 
+  useEffect(() => {
+    if (!current.target) { setRect(null); return; }
+    const el = document.querySelector(current.target);
+    if (!el) { setRect(null); return; }
+    el.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    const update = () => setRect(el.getBoundingClientRect());
+    requestAnimationFrame(() => requestAnimationFrame(update));
+    window.addEventListener("resize", update);
+    window.addEventListener("scroll", update, true);
+    return () => { window.removeEventListener("resize", update); window.removeEventListener("scroll", update, true); };
+  }, [step, current.target]);
+
+  const pad = 8;
+  const spotStyle = rect ? {
+    top: rect.top - pad,
+    left: rect.left - pad,
+    width: rect.width + pad * 2,
+    height: rect.height + pad * 2,
+  } : null;
+
+  const getTooltipStyle = (): React.CSSProperties => {
+    if (!rect || current.placement === "center") return { top: "50%", left: "50%", transform: "translate(-50%, -50%)" };
+    const gap = 16;
+    switch (current.placement) {
+      case "bottom": return { top: rect.bottom + gap + pad, left: rect.left + rect.width / 2, transform: "translateX(-50%)" };
+      case "top": return { bottom: window.innerHeight - rect.top + gap + pad, left: rect.left + rect.width / 2, transform: "translateX(-50%)" };
+      case "right": return { top: rect.top + rect.height / 2, left: rect.right + gap + pad, transform: "translateY(-50%)" };
+      case "left": return { top: rect.top + rect.height / 2, right: window.innerWidth - rect.left + gap + pad, transform: "translateY(-50%)" };
+    }
+  };
+
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
-      onClick={onClose}
-    >
-      <motion.div
-        initial={{ scale: 0.9, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.9, opacity: 0 }}
-        className="relative w-full max-w-lg rounded-[20px] border border-primary/20 bg-background overflow-hidden shadow-2xl"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="px-6 py-4 border-b border-primary/10 bg-primary/5 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-            <span className="text-[15px] font-semibold text-foreground">Hướng dẫn sử dụng</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <button onClick={onClose} className="text-[12px] text-muted-foreground hover:text-foreground transition-colors">Bỏ qua</button>
-            <button onClick={onClose} className="rounded-full p-1.5 hover:bg-muted transition-colors text-muted-foreground hover:text-foreground">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-            </button>
-          </div>
-        </div>
+    <div className="fixed inset-0 z-[100]">
+      {/* Overlay */}
+      <div className="absolute inset-0 bg-black/70 transition-opacity duration-300" onClick={onClose} />
 
-        <div className="p-6">
-          <div className="flex items-center gap-1 mb-5">
-            {GUIDE_STEPS.map((_, i) => (
-              <div key={i} className={cn("h-1 rounded-full flex-1 transition-all duration-300", i <= step ? "bg-primary" : "bg-muted")} />
-            ))}
+      {/* Spotlight hole */}
+      {spotStyle && (
+        <motion.div
+          className="absolute rounded-2xl z-[101] pointer-events-none"
+          style={{
+            boxShadow: "0 0 0 9999px rgba(0,0,0,0.70), 0 0 30px 4px rgba(255,213,74,0.3)",
+          }}
+          initial={false}
+          animate={{ top: spotStyle.top, left: spotStyle.left, width: spotStyle.width, height: spotStyle.height }}
+          transition={{ type: "spring", stiffness: 200, damping: 28 }}
+        />
+      )}
+
+      {/* Pulse ring around spotlight */}
+      {spotStyle && (
+        <motion.div
+          className="absolute rounded-2xl border-2 border-primary/50 z-[101] pointer-events-none"
+          initial={false}
+          animate={{
+            top: spotStyle.top - 4, left: spotStyle.left - 4,
+            width: spotStyle.width + 8, height: spotStyle.height + 8,
+            opacity: [0.5, 1, 0.5],
+          }}
+          transition={{ top: { type: "spring", stiffness: 200, damping: 28 }, left: { type: "spring", stiffness: 200, damping: 28 }, width: { type: "spring", stiffness: 200, damping: 28 }, height: { type: "spring", stiffness: 200, damping: 28 }, opacity: { repeat: Infinity, duration: 2 } }}
+        />
+      )}
+
+      {/* Tooltip */}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={step}
+          initial={{ opacity: 0, scale: 0.9, y: 10 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.9, y: -10 }}
+          transition={{ duration: 0.25 }}
+          className="absolute z-[102] w-[340px] max-w-[90vw] rounded-2xl border border-primary/20 bg-background shadow-2xl shadow-primary/10 overflow-hidden"
+          style={getTooltipStyle()}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Progress bar */}
+          <div className="h-1 bg-muted">
+            <motion.div className="h-full bg-primary rounded-r-full" initial={false} animate={{ width: `${((step + 1) / TOUR_STEPS.length) * 100}%` }} transition={{ duration: 0.3 }} />
           </div>
 
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={step}
-              initial={{ opacity: 0, x: 30 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -30 }}
-              transition={{ duration: 0.25 }}
-              className="space-y-4"
-            >
-              <div className="flex items-center gap-3">
-                <span className="flex items-center justify-center w-10 h-10 rounded-2xl bg-primary/10 text-[22px] shrink-0">{current.icon}</span>
-                <h3 className="text-[17px] font-bold text-foreground leading-tight">{current.title}</h3>
+          <div className="p-5">
+            <div className="flex items-center gap-3 mb-3">
+              <span className="flex items-center justify-center w-9 h-9 rounded-xl bg-primary/10 text-primary shrink-0">{current.icon}</span>
+              <div>
+                <h3 className="text-[15px] font-bold text-foreground leading-tight">{current.title}</h3>
+                <span className="text-[11px] text-muted-foreground">{step + 1} / {TOUR_STEPS.length}</span>
               </div>
-              <p className="text-[14px] text-muted-foreground leading-relaxed">{current.desc}</p>
-              {current.tip && (
-                <div className="rounded-xl bg-primary/5 border border-primary/10 px-4 py-3">
-                  <p className="text-[13px] text-foreground/80 leading-relaxed whitespace-pre-line">{current.tip}</p>
-                </div>
-              )}
-            </motion.div>
-          </AnimatePresence>
-        </div>
+            </div>
+            <p className="text-[13px] text-muted-foreground leading-relaxed">{current.desc}</p>
+          </div>
 
-        <div className="flex items-center justify-between px-6 py-4 border-t border-border bg-background/50">
-          <button
-            onClick={() => setStep(Math.max(0, step - 1))}
-            disabled={step === 0}
-            className="rounded-[10px] px-4 py-2 text-[13px] font-medium text-muted-foreground hover:text-foreground disabled:opacity-30 transition-all"
-          >
-            ← Trước
-          </button>
-          <span className="text-[12px] text-muted-foreground font-medium">{step + 1} / {GUIDE_STEPS.length}</span>
-          {step < GUIDE_STEPS.length - 1 ? (
-            <button
-              onClick={() => setStep(step + 1)}
-              className="rounded-[10px] bg-primary px-5 py-2 text-[13px] font-bold text-primary-foreground hover:bg-primary/90 transition-all shadow-[0_0_12px_rgba(255,213,74,0.2)]"
-            >
-              Tiếp theo →
-            </button>
-          ) : (
-            <button
-              onClick={onClose}
-              className="rounded-[10px] bg-primary px-5 py-2 text-[13px] font-bold text-primary-foreground hover:bg-primary/90 transition-all shadow-[0_0_12px_rgba(255,213,74,0.2)]"
-            >
-              Bắt đầu ngay!
-            </button>
-          )}
-        </div>
-      </motion.div>
-    </motion.div>
+          <div className="flex items-center justify-between px-5 py-3 border-t border-border bg-muted/30">
+            <div className="flex gap-2">
+              {step > 0 && (
+                <button onClick={() => setStep(step - 1)} className="rounded-lg px-3 py-1.5 text-[12px] font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-all">← Trước</button>
+              )}
+              <button onClick={onClose} className="rounded-lg px-3 py-1.5 text-[12px] text-muted-foreground hover:text-foreground transition-all">Bỏ qua</button>
+            </div>
+            {step < TOUR_STEPS.length - 1 ? (
+              <button onClick={() => setStep(step + 1)} className="rounded-lg bg-primary px-4 py-1.5 text-[12px] font-bold text-primary-foreground hover:bg-primary/90 transition-all shadow-[0_0_10px_rgba(255,213,74,0.25)]">
+                Tiếp theo →
+              </button>
+            ) : (
+              <button onClick={onClose} className="rounded-lg bg-primary px-4 py-1.5 text-[12px] font-bold text-primary-foreground hover:bg-primary/90 transition-all shadow-[0_0_10px_rgba(255,213,74,0.25)]">
+                Bắt đầu ngay!
+              </button>
+            )}
+          </div>
+        </motion.div>
+      </AnimatePresence>
+    </div>
   );
 }
 
@@ -904,6 +956,7 @@ export function ChatPanel() {
 
         {/* Guide button - top right */}
         <button
+          data-tour="guide-btn"
           onClick={() => setShowGuide(true)}
           className="absolute right-4 top-4 rounded-full p-2.5 text-primary hover:bg-primary/10 transition-colors z-10"
           aria-label="Hướng dẫn"
@@ -925,7 +978,7 @@ export function ChatPanel() {
             Hôm nay bạn muốn thiết kế nội dung gì?
           </motion.p>
 
-          <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.4 }} className="w-full max-w-2xl bg-card/80 backdrop-blur-2xl rounded-[18px] sm:rounded-[24px] p-1.5 sm:p-2 mb-6 sm:mb-10 relative shadow-[0_8px_32px_-12px_rgba(255,213,74,0.15)] border border-border focus-within:border-primary/50 focus-within:shadow-[0_8px_40px_-12px_rgba(255,213,74,0.3)] transition-all duration-500">
+          <motion.div data-tour="chat-input" initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.4 }} className="w-full max-w-2xl bg-card/80 backdrop-blur-2xl rounded-[18px] sm:rounded-[24px] p-1.5 sm:p-2 mb-6 sm:mb-10 relative shadow-[0_8px_32px_-12px_rgba(255,213,74,0.15)] border border-border focus-within:border-primary/50 focus-within:shadow-[0_8px_40px_-12px_rgba(255,213,74,0.3)] transition-all duration-500">
             <form onSubmit={handleSubmit} className="flex gap-1.5 sm:gap-2 w-full">
               <input value={input} onChange={(e) => setInput(e.target.value)} placeholder="Khởi tạo chiến dịch marketing..." className="flex-1 bg-transparent border-none px-4 sm:px-6 py-3 sm:py-4 text-[15px] sm:text-[16px] text-foreground placeholder:text-foreground/30 focus:outline-none focus:ring-0 min-w-0" />
               <button type="submit" disabled={!input.trim()} className="rounded-[14px] sm:rounded-[16px] bg-primary text-primary-foreground hover:bg-primary/90 hover:scale-105 active:scale-95 h-[44px] w-[44px] sm:h-[52px] sm:w-[52px] flex items-center justify-center disabled:opacity-50 disabled:hover:scale-100 transition-all duration-300 mr-0.5 self-center shadow-[0_0_20px_rgba(255,213,74,0.4)] shrink-0">
@@ -934,7 +987,7 @@ export function ChatPanel() {
             </form>
           </motion.div>
 
-          <motion.div initial="hidden" animate="visible" variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.1, delayChildren: 0.5 } } }} className="grid grid-cols-2 md:grid-cols-3 gap-2.5 sm:gap-4 w-full">
+          <motion.div data-tour="content-cards" initial="hidden" animate="visible" variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.1, delayChildren: 0.5 } } }} className="grid grid-cols-2 md:grid-cols-3 gap-2.5 sm:gap-4 w-full">
             {DASHBOARD_CARDS.map((item) => {
               const locked = !canUse(item.minPlan);
               return (
@@ -980,7 +1033,7 @@ export function ChatPanel() {
         <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(128,128,128,0.1)_1px,transparent_1px),linear-gradient(to_bottom,rgba(128,128,128,0.1)_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none mix-blend-overlay" />
 
         <AnimatePresence>
-          {showGuide && <GuideModal onClose={closeGuide} />}
+          {showGuide && <SpotlightTour onClose={closeGuide} />}
         </AnimatePresence>
       </div>
     );
@@ -1175,7 +1228,7 @@ export function ChatPanel() {
       <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(128,128,128,0.1)_1px,transparent_1px),linear-gradient(to_bottom,rgba(128,128,128,0.1)_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none -z-10 mix-blend-overlay" />
 
       <AnimatePresence>
-        {showGuide && <GuideModal onClose={closeGuide} />}
+        {showGuide && <SpotlightTour onClose={closeGuide} />}
       </AnimatePresence>
     </div>
   );

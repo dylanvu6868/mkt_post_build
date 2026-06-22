@@ -122,15 +122,21 @@ export const useChatStore = create<ChatState>()(
         const conv = await api.post<Conversation>("/conversations", {
           title: title || "New conversation",
         });
-        set((s) => ({ conversations: [conv, ...s.conversations] }));
-        await get().selectConversation(conv.id);
+        set((s) => ({
+          conversations: [conv, ...s.conversations],
+          activeConversationId: conv.id,
+          messages: [],
+          streaming: false,
+          streamContent: "",
+          suggestions: [],
+          contentPanel: { visible: false, generating: false, result: null },
+        }));
         return conv;
       },
 
       selectConversation: async (id: number) => {
         const { activeConversationId, streaming, contentPanel, conversations } = get();
 
-        // If current conversation is busy, move it to background tasks
         if (activeConversationId && activeConversationId !== id && (streaming || contentPanel.generating)) {
           const title = conversations.find((c) => c.id === activeConversationId)?.title || "Cuộc trò chuyện";
           set((s) => ({
@@ -146,7 +152,6 @@ export const useChatStore = create<ChatState>()(
           }));
         }
 
-        // Switch display — do NOT abort running controllers
         set({
           activeConversationId: id,
           messages: [],
@@ -155,12 +160,13 @@ export const useChatStore = create<ChatState>()(
           suggestions: [],
           contentPanel: { visible: false, generating: false, result: null },
         });
-        const msgs = await api.get<ChatMessage[]>(`/conversations/${id}/messages`);
-        set({ messages: msgs });
+        // Non-blocking: load messages without awaiting (UI shows spinner-free switch)
+        api.get<ChatMessage[]>(`/conversations/${id}/messages`).then((msgs) => {
+          if (get().activeConversationId === id) set({ messages: msgs });
+        });
       },
 
       deleteConversation: async (id: number) => {
-        // Stop any running task for this conversation
         const ctrl = _controllers.get(id);
         if (ctrl) {
           ctrl.abort();
@@ -168,7 +174,7 @@ export const useChatStore = create<ChatState>()(
         }
         clearTypingForConv(id);
 
-        await api.delete(`/conversations/${id}`);
+        // Optimistic: remove from UI immediately
         set((s) => {
           const { [id]: _, ...remainingTasks } = s.backgroundTasks;
           return {
@@ -178,17 +184,17 @@ export const useChatStore = create<ChatState>()(
             backgroundTasks: remainingTasks,
           };
         });
+        api.delete(`/conversations/${id}`).catch(() => {});
       },
 
       renameConversation: async (id: number, title: string) => {
-        await api.patch(`/conversations/${id}`, { title });
         set((s) => ({
           conversations: s.conversations.map((c) => (c.id === id ? { ...c, title } : c)),
         }));
+        api.patch(`/conversations/${id}`, { title }).catch(() => {});
       },
 
       pinConversation: async (id: number, pinned: boolean) => {
-        await api.patch(`/conversations/${id}`, { is_pinned: pinned });
         set((s) => ({
           conversations: s.conversations
             .map((c) => (c.id === id ? { ...c, is_pinned: pinned } : c))
@@ -197,6 +203,7 @@ export const useChatStore = create<ChatState>()(
               return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
             }),
         }));
+        api.patch(`/conversations/${id}`, { is_pinned: pinned }).catch(() => {});
       },
 
       searchConversations: async (q: string) => {
@@ -399,7 +406,7 @@ export const useChatStore = create<ChatState>()(
         }
 
         if (wasNew) {
-          setTimeout(() => get().loadConversations(), 3000);
+          get().loadConversations();
         }
       },
 
