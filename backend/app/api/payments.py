@@ -12,6 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.deps import get_current_user
 from app.core.config import settings
 from app.core.db import get_session
+from app.core.rate_limit import limiter
 from app.models.payment import PaymentOrder
 from app.models.user import User
 
@@ -62,6 +63,7 @@ class CreateOrderRequest(BaseModel):
 
 
 @router.post("/create-order")
+@limiter.limit("5/minute")
 async def create_order(
     body: CreateOrderRequest,
     session: AsyncSession = Depends(get_session),
@@ -107,6 +109,7 @@ async def create_order(
 
 
 @router.get("/order-status")
+@limiter.limit("6/minute")
 async def order_status(
     code: str,
     session: AsyncSession = Depends(get_session),
@@ -127,6 +130,7 @@ async def order_status(
 
 
 @router.post("/sepay-webhook")
+@limiter.exempt
 async def sepay_webhook(
     request: Request,
     session: AsyncSession = Depends(get_session),
@@ -160,13 +164,10 @@ async def sepay_webhook(
             raise HTTPException(status_code=401, detail="Invalid API Key")
 
     body = json.loads(raw_body or b"{}")
-    print("Webhook payload:", body)
     logger.info("SePay webhook received: gateway=%s account=%s amount=%s",
                 body.get("gateway"), body.get("accountNumber"), body.get("transferAmount"))
     
     content = (body.get("content") or body.get("code") or "").strip().upper()
-    print("Content:", content)
-    
     amount = body.get("transferAmount") or 0
     transaction_id = str(body.get("id", ""))
     transfer_type = body.get("transferType", "")
@@ -180,8 +181,6 @@ async def sepay_webhook(
 
     # Extract transfer_code from content (first word before space)
     transfer_code = content.split(" ")[0] if content else ""
-    print("Transfer code:", transfer_code)
-    
     if not transfer_code:
         logger.warning("SePay webhook: could not extract transfer_code from content=%s", content)
         return {"success": False, "message": "Invalid transfer code"}
@@ -207,8 +206,6 @@ async def sepay_webhook(
         )
     ).scalar_one_or_none()
 
-    print("Order found:", order)
-    
     if not order:
         logger.warning("SePay webhook: no pending order for transfer_code=%s (content=%s)", transfer_code, content)
         return {"success": False, "message": "Order not found"}

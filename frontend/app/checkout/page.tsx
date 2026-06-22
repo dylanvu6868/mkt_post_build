@@ -62,10 +62,20 @@ function CheckoutContent() {
     api.get<BankInfo>("/payments/config").then(setBank).catch(() => {});
   }, [token]);
 
-  // While on the transfer step, poll until the SePay webhook confirms the order
+  // Poll until the SePay webhook confirms the order — stops after 15 min or when tab is hidden
   useEffect(() => {
     if (step !== "transfer") return;
-    pollRef.current = setInterval(async () => {
+
+    const startedAt = Date.now();
+    const MAX_POLL_MS = 15 * 60 * 1000;
+    const POLL_INTERVAL = 10_000;
+
+    const poll = async () => {
+      if (Date.now() - startedAt > MAX_POLL_MS) {
+        if (pollRef.current) clearInterval(pollRef.current);
+        return;
+      }
+      if (document.hidden) return;
       try {
         const res = await api.get<{ status: string }>(
           `/payments/order-status?code=${encodeURIComponent(transferCode)}`
@@ -78,9 +88,18 @@ function CheckoutContent() {
           );
         }
       } catch {}
-    }, 4000);
+    };
+
+    pollRef.current = setInterval(poll, POLL_INTERVAL);
+
+    const onVisibility = () => {
+      if (!document.hidden) poll();
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+
     return () => {
       if (pollRef.current) clearInterval(pollRef.current);
+      document.removeEventListener("visibilitychange", onVisibility);
     };
   }, [step, transferCode, refreshUser, router, planId, cycle]);
 
