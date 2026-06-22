@@ -54,12 +54,14 @@ export function ChatSidebar() {
   const handleSelect = (id: number) => {
     selectConversation(id);
     setOpen(false);
+    if (window.location.pathname !== "/dashboard") router.push("/dashboard");
   };
 
   const handleCreate = async () => {
     try {
       await createConversation();
       setOpen(false);
+      if (window.location.pathname !== "/dashboard") router.push("/dashboard");
     } catch (err) {
       handleApiPlanError(err, () => router.push("/pricing"), "Không thể tạo cuộc trò chuyện");
     }

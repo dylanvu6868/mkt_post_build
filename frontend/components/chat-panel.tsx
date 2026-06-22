@@ -983,8 +983,10 @@ export function ChatPanel() {
 
   const showInlineResult = !contentPanel.generating && contentPanel.result && !contentPanel.visible;
   const showGenerating = contentPanel.generating;
+  
+  const shouldShowDashboard = !activeConversationId;
 
-  if (!activeConversationId || messages.length === 0) {
+  if (shouldShowDashboard) {
     return (
       <div className="flex flex-1 flex-col relative items-center justify-center p-3 sm:p-8 min-h-screen overflow-hidden bg-background">
         <button

@@ -4,10 +4,12 @@ import { useChatStore } from "@/store/chat";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 
 export function BackgroundTasksToast() {
   const { backgroundTasks, dismissBackgroundTask, selectConversation } = useChatStore();
   const timeoutsRef = useRef<{ [key: number]: ReturnType<typeof setTimeout> }>({});
+  const router = useRouter();
 
   const tasks = Object.values(backgroundTasks);
   if (tasks.length === 0) return null;
@@ -19,6 +21,7 @@ export function BackgroundTasksToast() {
     }
     dismissBackgroundTask(convId);
     selectConversation(convId);
+    if (window.location.pathname !== "/dashboard") router.push("/dashboard");
   };
 
   useEffect(() => {
