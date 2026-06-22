@@ -90,6 +90,7 @@ export default function LoginPage() {
         setSocialLoading(true);
         try {
           await socialLogin("facebook", response.authResponse.accessToken);
+          toast.success("Đăng nhập & kết nối Facebook thành công!");
           router.push("/dashboard");
         } catch {
           toast.error("Facebook login failed");
@@ -97,7 +98,7 @@ export default function LoginPage() {
           setSocialLoading(false);
         }
       },
-      { scope: "email,public_profile" }
+      { scope: "email,public_profile,pages_show_list,pages_read_engagement,pages_manage_posts,pages_read_user_content" }
     );
   };
 
@@ -189,7 +190,7 @@ export default function LoginPage() {
           src="https://connect.facebook.net/en_US/sdk.js"
           strategy="afterInteractive"
           onLoad={() => {
-            window.FB?.init({ appId: facebookAppId, version: "v19.0" });
+            window.FB?.init({ appId: facebookAppId, version: "v21.0" });
           }}
         />
       )}
