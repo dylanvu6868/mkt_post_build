@@ -26,6 +26,7 @@ PLAN_LIMITS = {
         "max_conversations": 10,
         "max_kb_files": 3,
         "max_brand_profiles": 1,
+        "daily_lab_uses": 0,
     },
     "lite": {
         "daily_generations": 15,
@@ -34,6 +35,7 @@ PLAN_LIMITS = {
         "max_conversations": 50,
         "max_kb_files": 15,
         "max_brand_profiles": 3,
+        "daily_lab_uses": 5,
     },
     "pro": {
         "daily_generations": 50,
@@ -42,6 +44,7 @@ PLAN_LIMITS = {
         "max_conversations": 200,
         "max_kb_files": 50,
         "max_brand_profiles": 10,
+        "daily_lab_uses": 20,
     },
     "max": {
         "daily_generations": 999999,
@@ -50,6 +53,7 @@ PLAN_LIMITS = {
         "max_conversations": 999999,
         "max_kb_files": 999999,
         "max_brand_profiles": 999999,
+        "daily_lab_uses": 999999,
     },
 }
 
@@ -102,6 +106,26 @@ def upgrade_message(feature: str) -> str:
         f"Gói hiện tại không hỗ trợ {feature}. "
         "Vui lòng nâng cấp gói Pro hoặc Max để sử dụng tính năng này."
     )
+
+
+async def check_lab_daily_limit(session: AsyncSession, user: User) -> tuple[bool, int, int]:
+    from app.models.audit_log import AuditLog
+
+    limits = get_limits(user)
+    limit = limits["daily_lab_uses"]
+    if limit == 0:
+        return False, 0, 0
+
+    today_start = datetime.combine(date.today(), datetime.min.time(), tzinfo=timezone.utc)
+    count_result = await session.execute(
+        select(func.count(AuditLog.id)).where(
+            AuditLog.user_id == user.id,
+            AuditLog.action.like("lab.%"),
+            AuditLog.created_at >= today_start,
+        )
+    )
+    used = count_result.scalar() or 0
+    return used < limit, used, limit
 
 
 async def check_kb_file_limit(session: AsyncSession, user: User) -> tuple[bool, int, int]:
@@ -212,10 +236,13 @@ async def get_usage_stats(session: AsyncSession, user: User) -> dict:
         )
     ).scalar() or 0
 
+    _, lab_used, lab_max = await check_lab_daily_limit(session, user)
+
     return {
         "daily_generations": _usage_item(gen_used, gen_max),
         "projects": _usage_item(project_count, limits["max_projects"]),
         "conversations": _usage_item(conv_count, limits["max_conversations"]),
         "brand_profiles": _usage_item(brand_count, limits["max_brand_profiles"]),
         "kb_files": _usage_item(kb_count, limits["max_kb_files"]),
+        "daily_lab_uses": _usage_item(lab_used, lab_max),
     }

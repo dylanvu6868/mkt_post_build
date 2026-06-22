@@ -5,6 +5,7 @@ from pydantic import BaseModel, Field
 
 from app.api.deps import get_current_user
 from app.core.db import async_session_maker
+from app.core.plan_limits import check_lab_daily_limit, get_user_plan, upgrade_message
 from app.core.rate_limit import limiter
 from app.models.user import User
 from app.services.audit import log_action
@@ -78,6 +79,17 @@ async def _audit(user_id: int, tool: str, ip: str | None = None):
 
 
 async def _run_tool(tool_name: str, agent_fn, user: User, request: Request):
+    plan = get_user_plan(user)
+    async with async_session_maker() as session:
+        allowed, used, limit = await check_lab_daily_limit(session, user)
+    if not allowed:
+        if limit == 0:
+            raise HTTPException(status_code=403, detail=upgrade_message("Vitba Lab"))
+        raise HTTPException(
+            status_code=429,
+            detail=f"Bạn đã dùng hết {limit} lượt Lab hôm nay ({used}/{limit}). "
+            + upgrade_message("thêm lượt sử dụng Lab"),
+        )
     await _audit(user.id, tool_name, request.client.host if request.client else None)
     try:
         result = await agent_fn()
