@@ -31,7 +31,7 @@ async def brand(state: dict[str, Any]) -> dict[str, Any]:
         brand_notes = "No brand documents found for this project."
 
     return {
-        "brand_context": BrandContext(
+        "brand_output": BrandContext(
             relevant_context=chunks,
             brand_notes=brand_notes,
         ).model_dump()

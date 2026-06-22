@@ -13,10 +13,10 @@ SYSTEM = (
 async def fusion(state: dict[str, Any]) -> dict[str, Any]:
     brief = state["brief"]
     if not state.get("provider_available"):
-        keyword = (state.get("seo") or {}).get("primary_keyword", brief)
+        keyword = (state.get("seo_output") or {}).get("primary_keyword", brief)
         goal = state.get("marketing_goal") or "engagement"
         return {
-            "fused_brief": FusedBrief(
+            "fused_output": FusedBrief(
                 unified_brief=(
                     f"Write a Facebook post about {brief}. "
                     f"Lead with the primary keyword '{keyword}'. "
@@ -27,9 +27,9 @@ async def fusion(state: dict[str, Any]) -> dict[str, Any]:
         }
     user = (
         f"Brief: {brief}\n"
-        f"Research: {state.get('research')}\n"
-        f"SEO: {state.get('seo')}\n"
-        f"Brand context: {state.get('brand_context')}"
+        f"Research: {state.get('research_output')}\n"
+        f"SEO: {state.get('seo_output')}\n"
+        f"Brand context: {state.get('brand_output')}"
     )
     result = await generate_structured("fast", SYSTEM, user, FusedBrief)
-    return {"fused_brief": result.model_dump()}
+    return {"fused_output": result.model_dump()}

@@ -23,20 +23,20 @@ def _mock_state():
 
 async def test_planner_returns_fixed_three_branches():
     out = await planner(_mock_state())
-    Plan(**out["plan"])  # validates shape
-    assert out["plan"]["tasks"] == ["research", "seo", "brand"]
+    Plan(**out["plan_output"])  # validates shape
+    assert out["plan_output"]["tasks"] == ["research", "seo", "brand"]
 
 
 async def test_research_mock_is_schema_valid_and_nonempty():
     out = await research(_mock_state())
-    parsed = Research(**out["research"])
+    parsed = Research(**out["research_output"])
     assert parsed.pain_points
     assert parsed.product_benefits
 
 
 async def test_seo_mock_uses_brief_as_keyword_source():
     out = await seo(_mock_state())
-    parsed = SEO(**out["seo"])
+    parsed = SEO(**out["seo_output"])
     assert parsed.primary_keyword
     assert parsed.secondary_keywords
 
@@ -45,7 +45,7 @@ async def test_seo_mock_uses_brief_as_keyword_source():
 @patch("app.agents.brand.embed_query", return_value=[0.1] * 384)
 async def test_brand_returns_empty_context_when_no_docs(mock_embed, mock_retrieve):
     out = await brand(_mock_state())
-    parsed = BrandContext(**out["brand_context"])
+    parsed = BrandContext(**out["brand_output"])
     assert parsed.relevant_context == []
     assert parsed.brand_notes
 
@@ -57,32 +57,32 @@ def _downstream_state():
         "content_type": "facebook_post",
         "provider_available": False,
         "brand_profile": {},
-        "research": {
+        "research_output": {
             "pain_points": ["p"],
             "customer_motivations": ["m"],
             "product_benefits": ["b"],
             "industry_context": "c",
         },
-        "seo": {
+        "seo_output": {
             "primary_keyword": "eco water bottle",
             "secondary_keywords": ["reusable bottle"],
             "search_intent": "informational",
             "meta_description": "m",
         },
-        "brand_context": {"relevant_context": [], "brand_notes": "none"},
+        "brand_output": {"relevant_context": [], "brand_notes": "none"},
         "errors": [],
     }
 
 
 async def test_fusion_mock_produces_unified_brief():
     out = await fusion(_downstream_state())
-    parsed = FusedBrief(**out["fused_brief"])
+    parsed = FusedBrief(**out["fused_output"])
     assert parsed.unified_brief
 
 
 async def test_copywriter_mock_produces_facebook_post():
     state = _downstream_state()
-    state["fused_brief"] = {"unified_brief": "write a post"}
+    state["fused_output"] = {"unified_brief": "write a post"}
     out = await copywriter(state)
     parsed = FacebookPostDraft(**out["draft"])
     assert parsed.hook and parsed.body and parsed.cta
@@ -106,7 +106,7 @@ async def test_reviewer_mock_scores_and_returns_final():
 
 async def test_copywriter_mock_uses_brand_profile():
     state = _downstream_state()
-    state["fused_brief"] = {"unified_brief": "write a post"}
+    state["fused_output"] = {"unified_brief": "write a post"}
     state["brand_profile"] = {
         "brand_name": "EcoBottle",
         "tone": "friendly",
@@ -125,7 +125,7 @@ async def test_copywriter_mock_uses_brand_profile():
 async def test_copywriter_mock_produces_seo_blog():
     state = _downstream_state()
     state["content_type"] = "seo_blog"
-    state["fused_brief"] = {"unified_brief": "write a blog post"}
+    state["fused_output"] = {"unified_brief": "write a blog post"}
     out = await copywriter(state)
     assert "seo_title" in out["draft"]
     assert "blog_content" in out["draft"]
@@ -135,7 +135,7 @@ async def test_copywriter_mock_produces_seo_blog():
 async def test_copywriter_mock_produces_email():
     state = _downstream_state()
     state["content_type"] = "email"
-    state["fused_brief"] = {"unified_brief": "write an email"}
+    state["fused_output"] = {"unified_brief": "write an email"}
     out = await copywriter(state)
     assert "subject" in out["draft"]
     assert "body" in out["draft"]
@@ -145,7 +145,7 @@ async def test_copywriter_mock_produces_email():
 async def test_copywriter_mock_produces_landing_page():
     state = _downstream_state()
     state["content_type"] = "landing_page"
-    state["fused_brief"] = {"unified_brief": "write a landing page"}
+    state["fused_output"] = {"unified_brief": "write a landing page"}
     out = await copywriter(state)
     assert "headline" in out["draft"]
     assert "subheadline" in out["draft"]
@@ -156,7 +156,7 @@ async def test_copywriter_mock_produces_landing_page():
 async def test_copywriter_mock_produces_tiktok_script():
     state = _downstream_state()
     state["content_type"] = "tiktok_script"
-    state["fused_brief"] = {"unified_brief": "write a tiktok script"}
+    state["fused_output"] = {"unified_brief": "write a tiktok script"}
     out = await copywriter(state)
     assert "hook" in out["draft"]
     assert "script" in out["draft"]

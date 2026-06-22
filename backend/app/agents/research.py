@@ -14,7 +14,7 @@ async def research(state: dict[str, Any]) -> dict[str, Any]:
     brief = state["brief"]
     if not state.get("provider_available"):
         return {
-            "research": Research(
+            "research_output": Research(
                 pain_points=[f"Buyers find it hard to choose the right {brief}."],
                 customer_motivations=[
                     "Save time",
@@ -27,4 +27,4 @@ async def research(state: dict[str, Any]) -> dict[str, Any]:
         }
     user = f"Product/brief: {brief}\nMarketing goal: {state.get('marketing_goal', '')}"
     result = await generate_structured("fast", SYSTEM, user, Research)
-    return {"research": result.model_dump()}
+    return {"research_output": result.model_dump()}

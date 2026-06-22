@@ -18,7 +18,7 @@ def _mock_state(project_id=1):
 @patch("app.agents.brand.embed_query", return_value=[0.1] * 384)
 async def test_brand_returns_empty_context_when_no_docs(mock_embed, mock_retrieve):
     out = await brand(_mock_state())
-    parsed = BrandContext(**out["brand_context"])
+    parsed = BrandContext(**out["brand_output"])
     assert parsed.relevant_context == []
     assert parsed.brand_notes
 
@@ -30,7 +30,7 @@ async def test_brand_returns_empty_context_when_no_docs(mock_embed, mock_retriev
 @patch("app.agents.brand.embed_query", return_value=[0.1] * 384)
 async def test_brand_returns_retrieved_chunks_as_context(mock_embed, mock_retrieve):
     out = await brand(_mock_state())
-    parsed = BrandContext(**out["brand_context"])
+    parsed = BrandContext(**out["brand_output"])
     assert len(parsed.relevant_context) == 2
     assert "premium" in parsed.relevant_context[0]
     assert parsed.brand_notes
@@ -40,6 +40,6 @@ async def test_brand_returns_retrieved_chunks_as_context(mock_embed, mock_retrie
 @patch("app.agents.brand.embed_query", return_value=[0.1] * 384)
 async def test_brand_handles_qdrant_failure_gracefully(mock_embed, mock_retrieve):
     out = await brand(_mock_state())
-    parsed = BrandContext(**out["brand_context"])
+    parsed = BrandContext(**out["brand_output"])
     assert parsed.relevant_context == []
     # Should still return valid output, not crash

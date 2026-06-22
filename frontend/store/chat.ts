@@ -394,6 +394,28 @@ export const useChatStore = create<ChatState>()(
                     contentPanel: { visible: false, generating: false, result: { ...statusData.result, _contentType: payload.content_type } },
                     streamContent: "",
                   });
+
+                  const convId = get().activeConversationId;
+                  if (convId && token && draftText) {
+                    fetch(`${baseUrl}/conversations/${convId}/messages`, {
+                      method: "POST",
+                      headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                      },
+                      body: JSON.stringify({ content: draftText }),
+                    })
+                      .then((r) => r.json())
+                      .then((saved) => {
+                        set((s) => ({
+                          messages: [
+                            ...s.messages,
+                            { id: saved.id, conversation_id: convId, role: "assistant" as const, content: draftText, metadata_json: null, created_at: saved.created_at },
+                          ],
+                        }));
+                      })
+                      .catch(() => {});
+                  }
                 }
               }, 15);
 

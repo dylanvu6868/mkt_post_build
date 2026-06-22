@@ -320,6 +320,27 @@ async def copywriter(state: dict[str, Any]) -> dict[str, Any]:
     if insights_data:
         insights_section = f"\n## Dữ liệu phân tích sẵn:\n{insights_data}\n"
 
+    fused = state.get("fused_output") or {}
+    if fused:
+        insights_section += f"\n## Creative Brief (tổng hợp từ nghiên cứu):\n{fused.get('unified_brief', '')}\n"
+        if fused.get("key_messages"):
+            insights_section += "Key messages: " + ", ".join(fused["key_messages"]) + "\n"
+
+    research_data = state.get("research_output") or {}
+    if research_data:
+        if research_data.get("pain_points"):
+            insights_section += "\n## Pain points khách hàng:\n" + "\n".join(f"- {p}" for p in research_data["pain_points"]) + "\n"
+        if research_data.get("motivations"):
+            insights_section += "\n## Động lực mua hàng:\n" + "\n".join(f"- {m}" for m in research_data["motivations"]) + "\n"
+
+    seo_data = state.get("seo_output") or {}
+    if seo_data and content_type == "seo_blog":
+        insights_section += f"\n## SEO Data:\nPrimary keyword: {seo_data.get('primary_keyword', '')}\n"
+        if seo_data.get("secondary_keywords"):
+            insights_section += "Secondary: " + ", ".join(seo_data["secondary_keywords"]) + "\n"
+        if seo_data.get("search_intent"):
+            insights_section += f"Search intent: {seo_data['search_intent']}\n"
+
     extra_context = ""
     industry = state.get("industry", "")
     target_audience = state.get("target_audience", "")

@@ -14,7 +14,7 @@ async def seo(state: dict[str, Any]) -> dict[str, Any]:
     brief = state["brief"]
     if not state.get("provider_available"):
         return {
-            "seo": SEO(
+            "seo_output": SEO(
                 primary_keyword=brief,
                 secondary_keywords=[f"best {brief}", f"{brief} guide"],
                 search_intent="informational",
@@ -23,4 +23,4 @@ async def seo(state: dict[str, Any]) -> dict[str, Any]:
         }
     user = f"Product/brief: {brief}"
     result = await generate_structured("fast", SYSTEM, user, SEO)
-    return {"seo": result.model_dump()}
+    return {"seo_output": result.model_dump()}

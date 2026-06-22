@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import func, select, desc
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -22,25 +22,43 @@ router = APIRouter(prefix="/conversations", tags=["conversations"])
 async def list_conversations(
     current_user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
+    limit: int = Query(default=50, ge=1, le=200),
+    offset: int = Query(default=0, ge=0),
 ):
     result = await session.execute(
         select(Conversation)
         .where(Conversation.user_id == current_user.id)
         .order_by(desc(Conversation.is_pinned), desc(Conversation.updated_at))
+        .limit(limit)
+        .offset(offset)
     )
     conversations = result.scalars().all()
+    if not conversations:
+        return []
+
+    conv_ids = [c.id for c in conversations]
+
+    latest_sub = (
+        select(
+            Message.conversation_id,
+            func.max(Message.id).label("max_id"),
+        )
+        .where(Message.conversation_id.in_(conv_ids))
+        .group_by(Message.conversation_id)
+        .subquery()
+    )
+    last_msgs_result = await session.execute(
+        select(Message.conversation_id, Message.content)
+        .join(latest_sub, Message.id == latest_sub.c.max_id)
+    )
+    last_msg_map: dict[int, str | None] = {}
+    for row in last_msgs_result:
+        last_msg_map[row.conversation_id] = row.content[:100] if row.content else None
 
     response = []
     for conv in conversations:
-        last_msg_result = await session.execute(
-            select(Message.content)
-            .where(Message.conversation_id == conv.id)
-            .order_by(desc(Message.created_at))
-            .limit(1)
-        )
-        last_msg = last_msg_result.scalar_one_or_none()
         resp = ConversationResponse.model_validate(conv)
-        resp.last_message = last_msg[:100] if last_msg else None
+        resp.last_message = last_msg_map.get(conv.id)
         response.append(resp)
 
     return response
@@ -159,3 +177,28 @@ async def list_messages(
         .order_by(Message.created_at)
     )
     return result.scalars().all()
+
+
+@router.post(
+    "/{conversation_id}/messages",
+    response_model=MessageResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+async def save_message(
+    conversation_id: int,
+    payload: MessageCreate,
+    current_user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+):
+    conv = await session.get(Conversation, conversation_id)
+    if conv is None or conv.user_id != current_user.id:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+    msg = Message(
+        conversation_id=conversation_id,
+        role="assistant",
+        content=payload.content,
+    )
+    session.add(msg)
+    await session.commit()
+    await session.refresh(msg)
+    return msg

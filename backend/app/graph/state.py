@@ -17,6 +17,11 @@ class GraphState(TypedDict, total=False):
     cta_text: str
     custom_structure: str | None
     # agent outputs (stored as JSON-serializable dicts)
+    plan_output: dict[str, Any]
+    research_output: dict[str, Any]
+    seo_output: dict[str, Any]
+    brand_output: dict[str, Any]
+    fused_output: dict[str, Any]
     insights: dict[str, Any]
     draft: dict[str, Any]
     review: dict[str, Any]
