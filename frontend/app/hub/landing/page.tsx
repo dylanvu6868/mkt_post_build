@@ -6,6 +6,7 @@ import {
   type LandingPageListItem,
   type LandingPageDetail,
 } from "@/store/mcp";
+import { API_BASE_URL, ApiError, getToken } from "@/services/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -23,8 +24,6 @@ import { toast } from "sonner";
 /*  Constants                                                           */
 /* ------------------------------------------------------------------ */
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
-
 const btn =
   "inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition disabled:opacity-50";
 const btnOutline =
@@ -38,18 +37,6 @@ const ta = inp + " min-h-[120px] resize-y";
 /* ------------------------------------------------------------------ */
 /*  Helpers                                                             */
 /* ------------------------------------------------------------------ */
-
-function getToken(): string | null {
-  if (typeof window === "undefined") return null;
-  try {
-    const raw = localStorage.getItem("auth-storage");
-    if (!raw) return null;
-    const parsed = JSON.parse(raw) as { state?: { token?: string } };
-    return parsed?.state?.token ?? null;
-  } catch {
-    return null;
-  }
-}
 
 function statusBadgeVariant(
   status: LandingPageListItem["status"]
@@ -232,10 +219,10 @@ function CreateTab({
       toast.success("Đã tạo trang đích bằng AI!");
       onGenerated(result.html);
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : "Lỗi tạo trang";
-      if (msg.toLowerCase().includes("llm") || msg.toLowerCase().includes("provider") || msg.toLowerCase().includes("configured")) {
+      if (e instanceof ApiError && e.status === 503) {
         toast.error("Nhà cung cấp AI chưa được cấu hình. Vui lòng kiểm tra cài đặt hệ thống.");
       } else {
+        const msg = e instanceof Error ? e.message : "Lỗi tạo trang";
         toast.error(msg);
       }
     }
@@ -411,7 +398,7 @@ function EditorTab({
           title: title.trim(),
           slug: slug.trim(),
           html_content: htmlContent,
-          css_content: cssContent || undefined,
+          css_content: cssContent,
         });
         setPageId(created.id);
         await loadLandingPages();
@@ -420,16 +407,16 @@ function EditorTab({
         await updateLandingPage(pageId, {
           title: title.trim(),
           html_content: htmlContent,
-          css_content: cssContent || undefined,
+          css_content: cssContent,
         });
         await loadLandingPages();
         toast.success("Đã lưu thay đổi!");
       }
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : "Lỗi lưu trang";
-      if (msg.toLowerCase().includes("slug")) {
+      if (e instanceof ApiError && e.status === 400) {
         toast.error("Đường dẫn (slug) đã tồn tại. Vui lòng chọn slug khác.");
       } else {
+        const msg = e instanceof Error ? e.message : "Lỗi lưu trang";
         toast.error(msg);
       }
     } finally {
@@ -469,7 +456,7 @@ function EditorTab({
       const headers: Record<string, string> = {};
       if (token) headers["Authorization"] = `Bearer ${token}`;
       const res = await fetch(
-        `${API_BASE}/mcp/landing/pages/${pageId}/export`,
+        `${API_BASE_URL}/mcp/landing/pages/${pageId}/export`,
         { headers }
       );
       if (!res.ok) {
@@ -492,7 +479,7 @@ function EditorTab({
   };
 
   /* --- Copy public link --- */
-  const publicUrl = publicSlug ? `${API_BASE}/p/${publicSlug}` : null;
+  const publicUrl = publicSlug ? `${API_BASE_URL}/p/${publicSlug}` : null;
   const handleCopyLink = () => {
     if (!publicUrl) return;
     navigator.clipboard.writeText(publicUrl).then(() => {

@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { api } from "@/services/api";
+import { api, ApiError } from "@/services/api";
 
 /* ------------------------------------------------------------------ */
 /*  Interfaces                                                         */
@@ -697,6 +697,7 @@ export const useMcpStore = create<McpState>()((set) => ({
     try {
       return await api.post<LandingPageCreated>("/mcp/landing/pages", body);
     } catch (e: unknown) {
+      if (e instanceof ApiError) throw e;
       const msg = e instanceof Error ? e.message : "Lỗi tạo trang đích";
       throw new Error(msg);
     }
@@ -716,6 +717,7 @@ export const useMcpStore = create<McpState>()((set) => ({
     try {
       return await api.post<LandingPageGenerateResult>("/mcp/landing/generate", req);
     } catch (e: unknown) {
+      if (e instanceof ApiError) throw e;
       const msg = e instanceof Error ? e.message : "Lỗi tạo trang bằng AI";
       throw new Error(msg);
     } finally {
