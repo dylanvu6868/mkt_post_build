@@ -18,6 +18,8 @@ const btn2 =
   "inline-flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium hover:bg-muted transition disabled:opacity-50";
 const btnDanger =
   "inline-flex items-center gap-2 rounded-lg bg-destructive px-3 py-1.5 text-xs font-medium text-destructive-foreground hover:bg-destructive/90 transition disabled:opacity-50";
+const btnSecondary =
+  "inline-flex items-center gap-2 rounded-lg border px-3 py-1.5 text-xs font-medium hover:bg-muted transition disabled:opacity-50";
 const inp =
   "w-full rounded-lg border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/50";
 const ta = inp + " min-h-[120px] resize-y";
@@ -45,7 +47,7 @@ function ComposeTab() {
       setSubject(tpl.subject);
       setHtml(tpl.html_body ?? "");
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : "Loi";
+      const msg = e instanceof Error ? e.message : "Lỗi tải mẫu";
       toast.error(msg);
     }
   };
@@ -57,12 +59,12 @@ function ComposeTab() {
         const emails = to.split(",").map((e) => e.trim()).filter(Boolean);
         if (!emails.length || !subject || !html) return;
         await sendEmail(emails, subject, html);
-        setResult(`Da gui toi ${emails.length} dia chi!`);
+        setResult(`Đã gửi tới ${emails.length} địa chỉ!`);
       } else {
         const recipients = JSON.parse(batchData) as Record<string, string>[];
         if (!recipients.length || !subject || !html) return;
         await sendBatchEmail(recipients, subject, html);
-        setResult(`Da gui batch toi ${recipients.length} nguoi!`);
+        setResult(`Đã gửi batch tới ${recipients.length} người!`);
       }
       setTo("");
       setSubject("");
@@ -71,25 +73,25 @@ function ComposeTab() {
       setSelectedTemplateId("");
       loadEmailStats();
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : "Loi gui email";
-      setResult(`Loi: ${msg}`);
+      const msg = e instanceof Error ? e.message : "Lỗi gửi email";
+      setResult(`Lỗi: ${msg}`);
     }
   };
 
   return (
     <Card>
-      <CardHeader><CardTitle>Gui Email</CardTitle></CardHeader>
+      <CardHeader><CardTitle>Gửi Email</CardTitle></CardHeader>
       <CardContent className="space-y-4">
         <div className="flex gap-2">
-          <button onClick={() => setMode("single")} className={mode === "single" ? btn : btn2}>Email don</button>
-          <button onClick={() => setMode("batch")} className={mode === "batch" ? btn : btn2}>Batch</button>
+          <button onClick={() => setMode("single")} className={mode === "single" ? btn : btn2}>Email đơn</button>
+          <button onClick={() => setMode("batch")} className={mode === "batch" ? btn : btn2}>Hàng loạt</button>
         </div>
 
-        {/* Template prefill */}
+        {/* Chọn mẫu để điền sẵn */}
         <div>
-          <label className="text-sm font-medium mb-1 block">Chon template (tuy chon)</label>
+          <label className="text-sm font-medium mb-1 block">Chọn mẫu (tùy chọn)</label>
           <select className={inp} value={selectedTemplateId} onChange={(e) => handleTemplateSelect(e.target.value)}>
-            <option value="">-- Khong dung template --</option>
+            <option value="">-- Không dùng mẫu --</option>
             {templates.map((t) => (
               <option key={t.id} value={String(t.id)}>{t.name}</option>
             ))}
@@ -97,20 +99,20 @@ function ComposeTab() {
         </div>
 
         {mode === "single" ? (
-          <input className={inp} placeholder="Dia chi email (phan cach bang dau phay)" value={to} onChange={(e) => setTo(e.target.value)} />
+          <input className={inp} placeholder="Địa chỉ email (phân cách bằng dấu phẩy)" value={to} onChange={(e) => setTo(e.target.value)} />
         ) : (
           <textarea
             className={ta}
-            placeholder={'[\n  {"email":"a@b.com","name":"An"},\n  {"email":"c@d.com","name":"Binh"}\n]'}
+            placeholder={'[\n  {"email":"a@b.com","name":"An"},\n  {"email":"c@d.com","name":"Bình"}\n]'}
             value={batchData}
             onChange={(e) => setBatchData(e.target.value)}
           />
         )}
-        <input className={inp} placeholder="Tieu de email" value={subject} onChange={(e) => setSubject(e.target.value)} />
-        <textarea className={ta + " min-h-[200px]"} placeholder="Noi dung HTML (dung {{name}} cho bien ca nhan hoa)" value={html} onChange={(e) => setHtml(e.target.value)} />
+        <input className={inp} placeholder="Tiêu đề email" value={subject} onChange={(e) => setSubject(e.target.value)} />
+        <textarea className={ta + " min-h-[200px]"} placeholder="Nội dung HTML (dùng {{name}} cho biến cá nhân hóa)" value={html} onChange={(e) => setHtml(e.target.value)} />
         <div className="flex items-center gap-3">
           <button onClick={handleSend} disabled={sending || !subject || !html} className={btn}>
-            {sending ? "Dang gui..." : "Gui email"}
+            {sending ? "Đang gửi..." : "Gửi email"}
           </button>
           {result && <p className="text-sm text-muted-foreground">{result}</p>}
         </div>
@@ -123,8 +125,10 @@ function ComposeTab() {
 /*  Templates Tab                                                      */
 /* ------------------------------------------------------------------ */
 function TemplatesTab() {
-  const { templates, templatesLoading, loadTemplates, createTemplate, deleteTemplate } = useMcpStore();
+  const { templates, templatesLoading, loadTemplates, createTemplate, updateTemplate, deleteTemplate, getTemplate } = useMcpStore();
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [editMode, setEditMode] = useState(false);
+  const [editId, setEditId] = useState<number | null>(null);
   const [name, setName] = useState("");
   const [subject, setSubject] = useState("");
   const [htmlBody, setHtmlBody] = useState("");
@@ -132,21 +136,44 @@ function TemplatesTab() {
 
   useEffect(() => { loadTemplates(); }, [loadTemplates]);
 
-  const handleCreate = async () => {
+  const openCreate = () => {
+    setEditMode(false);
+    setEditId(null);
+    setName(""); setSubject(""); setHtmlBody(""); setCategory("");
+    setDialogOpen(true);
+  };
+
+  const openEdit = async (id: number) => {
+    try {
+      const tpl = await getTemplate(id);
+      setEditMode(true);
+      setEditId(id);
+      setName(tpl.name);
+      setSubject(tpl.subject);
+      setHtmlBody(tpl.html_body ?? "");
+      setCategory(tpl.category ?? "");
+      setDialogOpen(true);
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Lỗi tải mẫu";
+      toast.error(msg);
+    }
+  };
+
+  const handleSave = async () => {
     if (!name || !subject || !htmlBody) return;
     try {
-      await createTemplate({
-        name,
-        subject,
-        html_body: htmlBody,
-        category: category || undefined,
-      });
-      toast.success("Da tao template!");
+      if (editMode && editId !== null) {
+        await updateTemplate(editId, { name, subject, html_body: htmlBody, category: category || undefined });
+        toast.success("Đã cập nhật mẫu email!");
+      } else {
+        await createTemplate({ name, subject, html_body: htmlBody, category: category || undefined });
+        toast.success("Đã tạo mẫu email!");
+      }
       setDialogOpen(false);
       setName(""); setSubject(""); setHtmlBody(""); setCategory("");
       loadTemplates();
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : "Loi";
+      const msg = e instanceof Error ? e.message : "Lỗi";
       toast.error(msg);
     }
   };
@@ -154,10 +181,10 @@ function TemplatesTab() {
   const handleDelete = async (id: number) => {
     try {
       await deleteTemplate(id);
-      toast.success("Da xoa template!");
+      toast.success("Đã xóa mẫu email!");
       loadTemplates();
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : "Loi";
+      const msg = e instanceof Error ? e.message : "Lỗi";
       toast.error(msg);
     }
   };
@@ -165,23 +192,23 @@ function TemplatesTab() {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>Templates</CardTitle>
-        <button className={btn} onClick={() => setDialogOpen(true)}>Tao template</button>
+        <CardTitle>Mẫu Email</CardTitle>
+        <button className={btn} onClick={openCreate}>Tạo mẫu</button>
       </CardHeader>
       <CardContent>
         {templatesLoading ? (
           <div className="space-y-2">{[1, 2, 3].map((i) => <Skeleton key={i} className="h-10 w-full" />)}</div>
         ) : templates.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Chua co template nao.</p>
+          <p className="text-sm text-muted-foreground">Chưa có mẫu nào.</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b text-left">
-                  <th className="pb-2 font-medium">Ten</th>
-                  <th className="pb-2 font-medium">Tieu de</th>
-                  <th className="pb-2 font-medium">Danh muc</th>
-                  <th className="pb-2 font-medium">Ngay tao</th>
+                  <th className="pb-2 font-medium">Tên</th>
+                  <th className="pb-2 font-medium">Tiêu đề</th>
+                  <th className="pb-2 font-medium">Danh mục</th>
+                  <th className="pb-2 font-medium">Ngày tạo</th>
                   <th className="pb-2 font-medium"></th>
                 </tr>
               </thead>
@@ -192,8 +219,9 @@ function TemplatesTab() {
                     <td className="py-2">{t.subject}</td>
                     <td className="py-2">{t.category ? <Badge variant="secondary">{t.category}</Badge> : "-"}</td>
                     <td className="py-2 text-muted-foreground">{t.created_at ? new Date(t.created_at).toLocaleDateString("vi-VN") : "-"}</td>
-                    <td className="py-2">
-                      <button className={btnDanger} onClick={() => handleDelete(t.id)}>Xoa</button>
+                    <td className="py-2 flex gap-2">
+                      <button className={btnSecondary} onClick={() => openEdit(t.id)}>Chỉnh sửa</button>
+                      <button className={btnDanger} onClick={() => handleDelete(t.id)}>Xóa</button>
                     </td>
                   </tr>
                 ))}
@@ -206,15 +234,17 @@ function TemplatesTab() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Tao template moi</DialogTitle>
-            <DialogDescription>Dien thong tin template email.</DialogDescription>
+            <DialogTitle>{editMode ? "Chỉnh sửa mẫu email" : "Tạo mẫu email mới"}</DialogTitle>
+            <DialogDescription>Điền thông tin mẫu email.</DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
-            <input className={inp} placeholder="Ten template" value={name} onChange={(e) => setName(e.target.value)} />
-            <input className={inp} placeholder="Tieu de" value={subject} onChange={(e) => setSubject(e.target.value)} />
-            <textarea className={ta} placeholder="Noi dung HTML" value={htmlBody} onChange={(e) => setHtmlBody(e.target.value)} />
-            <input className={inp} placeholder="Danh muc (tuy chon)" value={category} onChange={(e) => setCategory(e.target.value)} />
-            <button className={btn} onClick={handleCreate} disabled={!name || !subject || !htmlBody}>Tao</button>
+            <input className={inp} placeholder="Tên mẫu" value={name} onChange={(e) => setName(e.target.value)} />
+            <input className={inp} placeholder="Tiêu đề" value={subject} onChange={(e) => setSubject(e.target.value)} />
+            <textarea className={ta} placeholder="Nội dung HTML" value={htmlBody} onChange={(e) => setHtmlBody(e.target.value)} />
+            <input className={inp} placeholder="Danh mục (tùy chọn)" value={category} onChange={(e) => setCategory(e.target.value)} />
+            <button className={btn} onClick={handleSave} disabled={!name || !subject || !htmlBody}>
+              {editMode ? "Lưu thay đổi" : "Tạo"}
+            </button>
           </div>
         </DialogContent>
       </Dialog>
@@ -226,35 +256,72 @@ function TemplatesTab() {
 /*  Contacts Tab                                                       */
 /* ------------------------------------------------------------------ */
 function ContactsTab() {
-  const { contacts, contactsLoading, loadContacts, createContact, importContacts, deleteContact } = useMcpStore();
+  const {
+    contacts, contactsLoading, loadContacts, createContact, updateContact, importContacts, deleteContact,
+    lists, loadLists, addContactsToList,
+  } = useMcpStore();
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [editMode, setEditMode] = useState(false);
+  const [editId, setEditId] = useState<number | null>(null);
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [tags, setTags] = useState("");
+  const [status, setStatus] = useState("active");
   const [filterTag, setFilterTag] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => { loadContacts(); }, [loadContacts]);
+  /* Add-to-list state */
+  const [addListDialogOpen, setAddListDialogOpen] = useState(false);
+  const [addListContactId, setAddListContactId] = useState<number | null>(null);
+  const [selectedListId, setSelectedListId] = useState("");
+
+  useEffect(() => { loadContacts(); loadLists(); }, [loadContacts, loadLists]);
 
   const handleFilter = () => {
     loadContacts(filterTag || undefined, filterStatus || undefined);
   };
 
-  const handleCreate = async () => {
-    if (!email) return;
+  const openCreate = () => {
+    setEditMode(false);
+    setEditId(null);
+    setEmail(""); setName(""); setTags(""); setStatus("active");
+    setDialogOpen(true);
+  };
+
+  const openEdit = (c: { id: number; email: string; name?: string; tags?: string[]; status: string }) => {
+    setEditMode(true);
+    setEditId(c.id);
+    setEmail(c.email);
+    setName(c.name ?? "");
+    setTags(c.tags ? c.tags.join(", ") : "");
+    setStatus(c.status);
+    setDialogOpen(true);
+  };
+
+  const handleSave = async () => {
     try {
-      await createContact({
-        email,
-        name: name || undefined,
-        tags: tags ? tags.split(",").map((t) => t.trim()).filter(Boolean) : undefined,
-      });
-      toast.success("Da them lien he!");
+      if (editMode && editId !== null) {
+        await updateContact(editId, {
+          name: name || undefined,
+          tags: tags ? tags.split(",").map((t) => t.trim()).filter(Boolean) : undefined,
+          status,
+        });
+        toast.success("Đã cập nhật liên hệ!");
+      } else {
+        if (!email) return;
+        await createContact({
+          email,
+          name: name || undefined,
+          tags: tags ? tags.split(",").map((t) => t.trim()).filter(Boolean) : undefined,
+        });
+        toast.success("Đã thêm liên hệ!");
+      }
       setDialogOpen(false);
-      setEmail(""); setName(""); setTags("");
+      setEmail(""); setName(""); setTags(""); setStatus("active");
       loadContacts(filterTag || undefined, filterStatus || undefined);
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : "Loi";
+      const msg = e instanceof Error ? e.message : "Lỗi";
       toast.error(msg);
     }
   };
@@ -264,10 +331,10 @@ function ContactsTab() {
     if (!file) return;
     try {
       const res = await importContacts(file);
-      toast.success(`Da import ${res.imported} lien he!`);
+      toast.success(`Đã nhập ${res.imported} liên hệ!`);
       loadContacts(filterTag || undefined, filterStatus || undefined);
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Loi import";
+      const msg = err instanceof Error ? err.message : "Lỗi nhập dữ liệu";
       toast.error(msg);
     }
     if (fileRef.current) fileRef.current.value = "";
@@ -276,10 +343,29 @@ function ContactsTab() {
   const handleDelete = async (id: number) => {
     try {
       await deleteContact(id);
-      toast.success("Da xoa lien he!");
+      toast.success("Đã xóa liên hệ!");
       loadContacts(filterTag || undefined, filterStatus || undefined);
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : "Loi";
+      const msg = e instanceof Error ? e.message : "Lỗi";
+      toast.error(msg);
+    }
+  };
+
+  const openAddToList = (contactId: number) => {
+    setAddListContactId(contactId);
+    setSelectedListId("");
+    setAddListDialogOpen(true);
+  };
+
+  const handleAddToList = async () => {
+    if (!addListContactId || !selectedListId) return;
+    try {
+      await addContactsToList(Number(selectedListId), [addListContactId]);
+      toast.success("Đã thêm liên hệ vào danh sách!");
+      setAddListDialogOpen(false);
+      loadLists();
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Lỗi";
       toast.error(msg);
     }
   };
@@ -293,41 +379,41 @@ function ContactsTab() {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between flex-wrap gap-2">
-        <CardTitle>Lien he</CardTitle>
+        <CardTitle>Liên hệ</CardTitle>
         <div className="flex gap-2 flex-wrap">
-          <button className={btn} onClick={() => setDialogOpen(true)}>Them lien he</button>
+          <button className={btn} onClick={openCreate}>Thêm liên hệ</button>
           <label className={btn2 + " cursor-pointer"}>
-            Import CSV
+            Nhập CSV
             <input ref={fileRef} type="file" accept=".csv" className="hidden" onChange={handleImport} />
           </label>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Filters */}
+        {/* Bộ lọc */}
         <div className="flex gap-2 flex-wrap">
-          <input className={inp + " max-w-[200px]"} placeholder="Loc theo tag" value={filterTag} onChange={(e) => setFilterTag(e.target.value)} />
+          <input className={inp + " max-w-[200px]"} placeholder="Lọc theo nhãn" value={filterTag} onChange={(e) => setFilterTag(e.target.value)} />
           <select className={inp + " max-w-[180px]"} value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
-            <option value="">Tat ca trang thai</option>
-            <option value="active">Active</option>
-            <option value="subscribed">Subscribed</option>
-            <option value="unsubscribed">Unsubscribed</option>
+            <option value="">Tất cả trạng thái</option>
+            <option value="active">Đang hoạt động</option>
+            <option value="subscribed">Đã đăng ký</option>
+            <option value="unsubscribed">Đã hủy đăng ký</option>
           </select>
-          <button className={btn2} onClick={handleFilter}>Loc</button>
+          <button className={btn2} onClick={handleFilter}>Lọc</button>
         </div>
 
         {contactsLoading ? (
           <div className="space-y-2">{[1, 2, 3].map((i) => <Skeleton key={i} className="h-10 w-full" />)}</div>
         ) : contacts.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Chua co lien he nao.</p>
+          <p className="text-sm text-muted-foreground">Chưa có liên hệ nào.</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b text-left">
                   <th className="pb-2 font-medium">Email</th>
-                  <th className="pb-2 font-medium">Ten</th>
-                  <th className="pb-2 font-medium">Tags</th>
-                  <th className="pb-2 font-medium">Trang thai</th>
+                  <th className="pb-2 font-medium">Tên</th>
+                  <th className="pb-2 font-medium">Nhãn</th>
+                  <th className="pb-2 font-medium">Trạng thái</th>
                   <th className="pb-2 font-medium"></th>
                 </tr>
               </thead>
@@ -342,8 +428,10 @@ function ContactsTab() {
                         : "-"}
                     </td>
                     <td className="py-2"><Badge variant={statusBadgeVariant(c.status)}>{c.status}</Badge></td>
-                    <td className="py-2">
-                      <button className={btnDanger} onClick={() => handleDelete(c.id)}>Xoa</button>
+                    <td className="py-2 flex gap-2">
+                      <button className={btnSecondary} onClick={() => openEdit(c)}>Chỉnh sửa</button>
+                      <button className={btnSecondary} onClick={() => openAddToList(c.id)}>Thêm vào DS</button>
+                      <button className={btnDanger} onClick={() => handleDelete(c.id)}>Xóa</button>
                     </td>
                   </tr>
                 ))}
@@ -353,17 +441,48 @@ function ContactsTab() {
         )}
       </CardContent>
 
+      {/* Dialog tạo/chỉnh sửa liên hệ */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Them lien he moi</DialogTitle>
-            <DialogDescription>Nhap thong tin lien he.</DialogDescription>
+            <DialogTitle>{editMode ? "Chỉnh sửa liên hệ" : "Thêm liên hệ mới"}</DialogTitle>
+            <DialogDescription>Nhập thông tin liên hệ.</DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
-            <input className={inp} placeholder="Email *" value={email} onChange={(e) => setEmail(e.target.value)} />
-            <input className={inp} placeholder="Ten (tuy chon)" value={name} onChange={(e) => setName(e.target.value)} />
-            <input className={inp} placeholder="Tags (phan cach bang dau phay)" value={tags} onChange={(e) => setTags(e.target.value)} />
-            <button className={btn} onClick={handleCreate} disabled={!email}>Them</button>
+            {!editMode && (
+              <input className={inp} placeholder="Email *" value={email} onChange={(e) => setEmail(e.target.value)} />
+            )}
+            <input className={inp} placeholder="Tên (tùy chọn)" value={name} onChange={(e) => setName(e.target.value)} />
+            <input className={inp} placeholder="Nhãn (phân cách bằng dấu phẩy)" value={tags} onChange={(e) => setTags(e.target.value)} />
+            {editMode && (
+              <select className={inp} value={status} onChange={(e) => setStatus(e.target.value)}>
+                <option value="active">Đang hoạt động</option>
+                <option value="unsubscribed">Đã hủy đăng ký</option>
+                <option value="bounced">Bounce</option>
+              </select>
+            )}
+            <button className={btn} onClick={handleSave} disabled={!editMode && !email}>
+              {editMode ? "Lưu thay đổi" : "Thêm"}
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog thêm vào danh sách */}
+      <Dialog open={addListDialogOpen} onOpenChange={setAddListDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Thêm vào danh sách gửi</DialogTitle>
+            <DialogDescription>Chọn danh sách để thêm liên hệ này vào.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <select className={inp} value={selectedListId} onChange={(e) => setSelectedListId(e.target.value)}>
+              <option value="">-- Chọn danh sách --</option>
+              {lists.map((l) => (
+                <option key={l.id} value={String(l.id)}>{l.name} ({l.contact_count} liên hệ)</option>
+              ))}
+            </select>
+            <button className={btn} onClick={handleAddToList} disabled={!selectedListId}>Thêm vào danh sách</button>
           </div>
         </DialogContent>
       </Dialog>
@@ -399,11 +518,11 @@ function ScheduledTab() {
         list_id: Number(listId),
         scheduled_at: new Date(scheduledAt).toISOString(),
       });
-      toast.success("Da len lich gui email!");
+      toast.success("Đã lên lịch gửi email!");
       setTemplateId(""); setListId(""); setScheduledAt("");
       loadScheduled();
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : "Loi";
+      const msg = e instanceof Error ? e.message : "Lỗi";
       toast.error(msg);
     } finally {
       setSubmitting(false);
@@ -413,10 +532,10 @@ function ScheduledTab() {
   const handleCancel = async (id: number) => {
     try {
       await cancelSchedule(id);
-      toast.success("Da huy lich gui!");
+      toast.success("Đã hủy lịch gửi!");
       loadScheduled();
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : "Loi";
+      const msg = e instanceof Error ? e.message : "Lỗi";
       toast.error(msg);
     }
   };
@@ -434,49 +553,49 @@ function ScheduledTab() {
 
   return (
     <Card>
-      <CardHeader><CardTitle>Len lich gui email</CardTitle></CardHeader>
+      <CardHeader><CardTitle>Lên lịch gửi email</CardTitle></CardHeader>
       <CardContent className="space-y-6">
-        {/* Schedule form */}
+        {/* Form lên lịch */}
         <div className="grid gap-3 sm:grid-cols-4">
           <div>
-            <label className="text-sm font-medium mb-1 block">Template</label>
+            <label className="text-sm font-medium mb-1 block">Mẫu email</label>
             <select className={inp} value={templateId} onChange={(e) => setTemplateId(e.target.value)}>
-              <option value="">-- Chon --</option>
+              <option value="">-- Chọn --</option>
               {templates.map((t) => <option key={t.id} value={String(t.id)}>{t.name}</option>)}
             </select>
           </div>
           <div>
-            <label className="text-sm font-medium mb-1 block">Danh sach</label>
+            <label className="text-sm font-medium mb-1 block">Danh sách</label>
             <select className={inp} value={listId} onChange={(e) => setListId(e.target.value)}>
-              <option value="">-- Chon --</option>
+              <option value="">-- Chọn --</option>
               {lists.map((l) => <option key={l.id} value={String(l.id)}>{l.name} ({l.contact_count})</option>)}
             </select>
           </div>
           <div>
-            <label className="text-sm font-medium mb-1 block">Thoi gian gui</label>
+            <label className="text-sm font-medium mb-1 block">Thời gian gửi</label>
             <input type="datetime-local" className={inp} value={scheduledAt} onChange={(e) => setScheduledAt(e.target.value)} />
           </div>
           <div className="flex items-end">
             <button className={btn} onClick={handleSchedule} disabled={submitting || !templateId || !listId || !scheduledAt}>
-              {submitting ? "Dang len lich..." : "Len lich"}
+              {submitting ? "Đang lên lịch..." : "Lên lịch"}
             </button>
           </div>
         </div>
 
-        {/* Scheduled list */}
+        {/* Danh sách lịch gửi */}
         {scheduledLoading ? (
           <div className="space-y-2">{[1, 2, 3].map((i) => <Skeleton key={i} className="h-10 w-full" />)}</div>
         ) : scheduled.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Chua co lich gui nao.</p>
+          <p className="text-sm text-muted-foreground">Chưa có lịch gửi nào.</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b text-left">
-                  <th className="pb-2 font-medium">Template</th>
-                  <th className="pb-2 font-medium">Danh sach</th>
-                  <th className="pb-2 font-medium">Thoi gian gui</th>
-                  <th className="pb-2 font-medium">Trang thai</th>
+                  <th className="pb-2 font-medium">Mẫu email</th>
+                  <th className="pb-2 font-medium">Danh sách</th>
+                  <th className="pb-2 font-medium">Thời gian gửi</th>
+                  <th className="pb-2 font-medium">Trạng thái</th>
                   <th className="pb-2 font-medium"></th>
                 </tr>
               </thead>
@@ -489,7 +608,7 @@ function ScheduledTab() {
                     <td className="py-2"><Badge variant={statusColor(s.status)}>{s.status}</Badge></td>
                     <td className="py-2">
                       {s.status === "pending" && (
-                        <button className={btnDanger} onClick={() => handleCancel(s.id)}>Huy</button>
+                        <button className={btnDanger} onClick={() => handleCancel(s.id)}>Hủy</button>
                       )}
                     </td>
                   </tr>
@@ -513,26 +632,26 @@ function StatsTab() {
 
   return (
     <Card>
-      <CardHeader><CardTitle className="text-sm">Thong ke Email</CardTitle></CardHeader>
+      <CardHeader><CardTitle className="text-sm">Thống kê Email</CardTitle></CardHeader>
       <CardContent>
         {emailStatsLoading ? (
           <div className="space-y-3">{[1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-6 w-full" />)}</div>
         ) : emailStats ? (
           <div className="space-y-4">
-            <div className="flex justify-between"><span className="text-sm text-muted-foreground">Chien dich</span><span className="text-sm font-medium">{emailStats.campaigns}</span></div>
-            <div className="flex justify-between"><span className="text-sm text-muted-foreground">Tong gui</span><span className="text-sm font-medium">{emailStats.total_sent}</span></div>
-            <div className="flex justify-between"><span className="text-sm text-muted-foreground">Da mo</span><span className="text-sm font-medium">{emailStats.total_opened} ({emailStats.open_rate}%)</span></div>
-            <div className="flex justify-between"><span className="text-sm text-muted-foreground">Da click</span><span className="text-sm font-medium">{emailStats.total_clicked} ({emailStats.click_rate}%)</span></div>
+            <div className="flex justify-between"><span className="text-sm text-muted-foreground">Chiến dịch</span><span className="text-sm font-medium">{emailStats.campaigns}</span></div>
+            <div className="flex justify-between"><span className="text-sm text-muted-foreground">Tổng gửi</span><span className="text-sm font-medium">{emailStats.total_sent}</span></div>
+            <div className="flex justify-between"><span className="text-sm text-muted-foreground">Đã mở</span><span className="text-sm font-medium">{emailStats.total_opened} ({emailStats.open_rate}%)</span></div>
+            <div className="flex justify-between"><span className="text-sm text-muted-foreground">Đã nhấp</span><span className="text-sm font-medium">{emailStats.total_clicked} ({emailStats.click_rate}%)</span></div>
             <div className="pt-2 border-t">
-              <p className="text-xs text-muted-foreground mb-1">Ty le mo</p>
+              <p className="text-xs text-muted-foreground mb-1">Tỉ lệ mở</p>
               <div className="h-2 rounded-full bg-muted overflow-hidden"><div className="h-full bg-green-500 rounded-full" style={{ width: `${Math.min(emailStats.open_rate, 100)}%` }} /></div>
             </div>
             <div>
-              <p className="text-xs text-muted-foreground mb-1">Ty le click</p>
+              <p className="text-xs text-muted-foreground mb-1">Tỉ lệ nhấp</p>
               <div className="h-2 rounded-full bg-muted overflow-hidden"><div className="h-full bg-blue-500 rounded-full" style={{ width: `${Math.min(emailStats.click_rate, 100)}%` }} /></div>
             </div>
           </div>
-        ) : <p className="text-sm text-muted-foreground">Chua co du lieu.</p>}
+        ) : <p className="text-sm text-muted-foreground">Chưa có dữ liệu.</p>}
       </CardContent>
     </Card>
   );
@@ -553,12 +672,12 @@ function ListsSection() {
     if (!name) return;
     try {
       await createList({ name, description: description || undefined });
-      toast.success("Da tao danh sach!");
+      toast.success("Đã tạo danh sách!");
       setDialogOpen(false);
       setName(""); setDescription("");
       loadLists();
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : "Loi";
+      const msg = e instanceof Error ? e.message : "Lỗi";
       toast.error(msg);
     }
   };
@@ -566,10 +685,10 @@ function ListsSection() {
   const handleDelete = async (id: number) => {
     try {
       await deleteList(id);
-      toast.success("Da xoa danh sach!");
+      toast.success("Đã xóa danh sách!");
       loadLists();
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : "Loi";
+      const msg = e instanceof Error ? e.message : "Lỗi";
       toast.error(msg);
     }
   };
@@ -577,22 +696,22 @@ function ListsSection() {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>Danh sach gui</CardTitle>
-        <button className={btn} onClick={() => setDialogOpen(true)}>Tao danh sach</button>
+        <CardTitle>Danh sách gửi</CardTitle>
+        <button className={btn} onClick={() => setDialogOpen(true)}>Tạo danh sách</button>
       </CardHeader>
       <CardContent>
         {listsLoading ? (
           <div className="space-y-2">{[1, 2].map((i) => <Skeleton key={i} className="h-10 w-full" />)}</div>
         ) : lists.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Chua co danh sach nao.</p>
+          <p className="text-sm text-muted-foreground">Chưa có danh sách nào.</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b text-left">
-                  <th className="pb-2 font-medium">Ten</th>
-                  <th className="pb-2 font-medium">Mo ta</th>
-                  <th className="pb-2 font-medium">So lien he</th>
+                  <th className="pb-2 font-medium">Tên</th>
+                  <th className="pb-2 font-medium">Mô tả</th>
+                  <th className="pb-2 font-medium">Số liên hệ</th>
                   <th className="pb-2 font-medium"></th>
                 </tr>
               </thead>
@@ -603,7 +722,7 @@ function ListsSection() {
                     <td className="py-2 text-muted-foreground">{l.description ?? "-"}</td>
                     <td className="py-2">{l.contact_count}</td>
                     <td className="py-2">
-                      <button className={btnDanger} onClick={() => handleDelete(l.id)}>Xoa</button>
+                      <button className={btnDanger} onClick={() => handleDelete(l.id)}>Xóa</button>
                     </td>
                   </tr>
                 ))}
@@ -616,13 +735,13 @@ function ListsSection() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Tao danh sach moi</DialogTitle>
-            <DialogDescription>Nhap thong tin danh sach gui.</DialogDescription>
+            <DialogTitle>Tạo danh sách mới</DialogTitle>
+            <DialogDescription>Nhập thông tin danh sách gửi.</DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
-            <input className={inp} placeholder="Ten danh sach *" value={name} onChange={(e) => setName(e.target.value)} />
-            <input className={inp} placeholder="Mo ta (tuy chon)" value={description} onChange={(e) => setDescription(e.target.value)} />
-            <button className={btn} onClick={handleCreate} disabled={!name}>Tao</button>
+            <input className={inp} placeholder="Tên danh sách *" value={name} onChange={(e) => setName(e.target.value)} />
+            <input className={inp} placeholder="Mô tả (tùy chọn)" value={description} onChange={(e) => setDescription(e.target.value)} />
+            <button className={btn} onClick={handleCreate} disabled={!name}>Tạo</button>
           </div>
         </DialogContent>
       </Dialog>
@@ -640,12 +759,12 @@ export default function EmailPage() {
 
       <Tabs defaultValue="compose">
         <TabsList className="flex-wrap">
-          <TabsTrigger value="compose">Gui email</TabsTrigger>
-          <TabsTrigger value="templates">Templates</TabsTrigger>
-          <TabsTrigger value="contacts">Lien he</TabsTrigger>
-          <TabsTrigger value="lists">Danh sach</TabsTrigger>
-          <TabsTrigger value="scheduled">Len lich</TabsTrigger>
-          <TabsTrigger value="stats">Thong ke</TabsTrigger>
+          <TabsTrigger value="compose">Gửi email</TabsTrigger>
+          <TabsTrigger value="templates">Mẫu email</TabsTrigger>
+          <TabsTrigger value="contacts">Liên hệ</TabsTrigger>
+          <TabsTrigger value="lists">Danh sách</TabsTrigger>
+          <TabsTrigger value="scheduled">Lên lịch</TabsTrigger>
+          <TabsTrigger value="stats">Thống kê</TabsTrigger>
         </TabsList>
 
         <TabsContent value="compose"><ComposeTab /></TabsContent>

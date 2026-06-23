@@ -254,6 +254,7 @@ interface McpState {
   loadTemplates: () => Promise<void>;
   createTemplate: (body: { name: string; subject: string; html_body: string; variables?: string[]; category?: string }) => Promise<void>;
   getTemplate: (id: number) => Promise<EmailTemplate>;
+  updateTemplate: (id: number, body: { name?: string; subject?: string; html_body?: string; variables?: string[]; category?: string }) => Promise<void>;
   deleteTemplate: (id: number) => Promise<void>;
 
   /* Contacts */
@@ -262,6 +263,7 @@ interface McpState {
   loadContacts: (tag?: string, status?: string) => Promise<void>;
   createContact: (body: { email: string; name?: string; tags?: string[] }) => Promise<void>;
   importContacts: (file: File) => Promise<{ imported: number }>;
+  updateContact: (id: number, body: { name?: string; tags?: string[]; status?: string }) => Promise<void>;
   deleteContact: (id: number) => Promise<void>;
 
   /* Lists */
@@ -401,6 +403,16 @@ export const useMcpStore = create<McpState>()((set) => ({
     return await api.get<EmailTemplate>(`/mcp/email/templates/${id}`);
   },
 
+  updateTemplate: async (id, body) => {
+    try {
+      await api.patch(`/mcp/email/templates/${id}`, body);
+    } catch (e: unknown) {
+      if (e instanceof ApiError) throw e;
+      const msg = e instanceof Error ? e.message : "Lỗi cập nhật template";
+      throw new Error(msg);
+    }
+  },
+
   deleteTemplate: async (id) => {
     await api.delete(`/mcp/email/templates/${id}`);
   },
@@ -434,6 +446,16 @@ export const useMcpStore = create<McpState>()((set) => ({
     const fd = new FormData();
     fd.append("file", file);
     return await api.post<{ imported: number }>("/mcp/email/contacts/import", fd);
+  },
+
+  updateContact: async (id, body) => {
+    try {
+      await api.patch(`/mcp/email/contacts/${id}`, body);
+    } catch (e: unknown) {
+      if (e instanceof ApiError) throw e;
+      const msg = e instanceof Error ? e.message : "Lỗi cập nhật liên hệ";
+      throw new Error(msg);
+    }
   },
 
   deleteContact: async (id) => {
