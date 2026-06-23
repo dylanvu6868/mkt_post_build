@@ -98,29 +98,28 @@ export default function LoginPage() {
   }, [initGoogle, isRegister]);
 
   const handleFacebookLogin = () => {
-    console.log("[FB Debug] window.FB:", !!window.FB, "appId:", facebookAppId);
     if (!window.FB) {
       toast.info("Đăng nhập Facebook sắp ra mắt!");
       return;
     }
-    console.log("[FB Debug] Calling FB.login...");
     window.FB.login(
-      async (response: any) => {
-        console.log("[FB Debug] FB.login response:", JSON.stringify(response));
+      (response: any) => {
         if (!response.authResponse) {
           toast.error("Facebook login cancelled");
           return;
         }
         setSocialLoading(true);
-        try {
-          await socialLogin("facebook", response.authResponse.accessToken);
-          toast.success("Đăng nhập & kết nối Facebook thành công!");
-          router.push("/dashboard");
-        } catch {
-          toast.error("Facebook login failed");
-        } finally {
-          setSocialLoading(false);
-        }
+        socialLogin("facebook", response.authResponse.accessToken)
+          .then(() => {
+            toast.success("Đăng nhập & kết nối Facebook thành công!");
+            router.push("/dashboard");
+          })
+          .catch(() => {
+            toast.error("Facebook login failed");
+          })
+          .finally(() => {
+            setSocialLoading(false);
+          });
       },
       { scope: "email,public_profile,pages_show_list,pages_read_engagement,pages_manage_posts,pages_read_user_content" }
     );
