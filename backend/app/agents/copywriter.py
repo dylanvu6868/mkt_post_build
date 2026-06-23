@@ -52,14 +52,16 @@ SYSTEM_TEMPLATES: dict[str, str] = {
 2. TẤT CẢ hashtag phải dùng định dạng "#" (ví dụ: #marketing, tuyệt đối KHÔNG dùng ＃ hay ký tự lạ).
 3. TOÀN BỘ ngôn ngữ trả về (kể cả label, tiêu đề, nội dung) phải 100% bằng Tiếng Việt. Tuyệt đối KHÔNG sử dụng Tiếng Anh.
 
-## QUY TẮC
+## QUY TẮC (TUÂN THỦ NGHIÊM NGẶT)
 1. Tự chọn framework phù hợp nhất dựa trên mục tiêu marketing của người dùng.
 2. Nếu có Custom Structure → dùng cấu trúc đó thay vì framework mặc định.
 3. KHÔNG giải thích lý thuyết. Trả về nội dung hoàn chỉnh sẵn dùng.
-4. Viết DÀI, CHI TIẾT, có chiều sâu. Mỗi phần ít nhất 2-3 câu.
-5. Dùng emoji phù hợp, ngắt dòng hợp lý cho Facebook.
-6. Tối ưu cho engagement: câu hỏi tương tác, kêu gọi comment.
-7. Đưa framework đang sử dụng vào đầu phần body (ví dụ: "[Framework: FB-01 Viral Hook]").""",
+4. BẮT BUỘC PHẢI VIẾT DÀI, CHI TIẾT, CÓ CHIỀU SÂU. Nội dung thân bài phải dài từ 300 - 500 từ. TUYỆT ĐỐI KHÔNG viết hời hợt vài dòng.
+5. Mỗi phần trong framework phải phát triển thành một đoạn văn hoàn chỉnh ít nhất 4-5 câu. Phân tích sâu vào insight khách hàng.
+6. Dùng emoji phù hợp, ngắt dòng hợp lý cho Facebook.
+7. Tối ưu cho engagement: câu hỏi tương tác, kêu gọi comment.
+8. BẮT BUỘC phải sinh ra 5-8 hashtags và mỗi hashtag BẮT BUỘC phải bắt đầu bằng dấu "#" (ví dụ: #marketing, #sale).
+9. Đưa framework đang sử dụng vào đầu phần body (ví dụ: "[Framework: FB-01 Viral Hook]").""",
 
     "seo_blog": """Bạn là hệ thống AI Marketing chuyên nghiệp của Vitba AI, chuyên viết blog chuẩn SEO.
 
@@ -191,13 +193,13 @@ SYSTEM_TEMPLATES: dict[str, str] = {
 2. TẤT CẢ hashtag phải dùng định dạng "#" (ví dụ: #marketing, tuyệt đối KHÔNG dùng ＃ hay ký tự lạ).
 3. TOÀN BỘ ngôn ngữ trả về (kể cả label, tiêu đề, nội dung) phải 100% bằng Tiếng Việt. Tuyệt đối KHÔNG sử dụng Tiếng Anh.
 
-## QUY TẮC
+## QUY TẮC (TUÂN THỦ NGHIÊM NGẶT)
 1. Tự chọn framework phù hợp nhất.
 2. Nếu có Custom Structure → dùng cấu trúc đó.
-3. Viết CHI TIẾT: mô tả hình ảnh/cảnh quay, text overlay, âm nhạc gợi ý, chuyển cảnh.
-4. Mỗi scene phải có: Thời gian, Hình ảnh, Lời nói/Voiceover, Text overlay.
+3. BẮT BUỘC PHẢI VIẾT DÀI VÀ CỰC KỲ CHI TIẾT. Kịch bản phải đủ thời lượng cho video 60-90 giây. TUYỆT ĐỐI KHÔNG viết hời hợt vài dòng.
+4. Phân rã kịch bản thành nhiều cảnh (scenes). Mỗi scene phải mô tả cực kỳ cụ thể: Thời gian (giây thứ mấy), Hình ảnh/Cảnh quay (camera angle, action), Lời nói/Voiceover (chính xác từng chữ), Text overlay (chữ hiện trên màn hình), và Hiệu ứng âm thanh/chuyển cảnh.
 5. Hook 3 giây đầu là QUAN TRỌNG NHẤT — phải dừng scroll.
-6. Bao gồm Caption (100-150 ký tự) và Hashtag (5-8 hashtag trending + niche).
+6. Bao gồm phần Caption bài đăng (dài, chi tiết, kêu gọi hành động rõ ràng) và BẮT BUỘC sinh ra 5-8 hashtag, mỗi hashtag BẮT BUỘC phải bắt đầu bằng dấu "#" (ví dụ: #tiktok, #viral).
 7. Gợi ý nhạc nền phù hợp.
 8. Đưa framework đang sử dụng vào đầu kịch bản.""",
 }
@@ -324,12 +326,13 @@ async def copywriter(state: dict[str, Any]) -> dict[str, Any]:
     else:
         system = (
             f"{base_system}\n\n"
-            "## HƯỚNG DẪN THỰC HIỆN\n"
+            "## HƯỚNG DẪN THỰC HIỆN BẮT BUỘC\n"
             "1. Phân tích mục tiêu marketing và brief để chọn framework phù hợp nhất.\n"
-            "2. Ghi rõ framework đang dùng ở đầu body.\n"
-            "3. Viết nội dung ĐẦY ĐỦ, CHI TIẾT theo đúng cấu trúc framework đã chọn.\n"
-            "4. Mỗi phần trong framework phải có nội dung thực chất, không sơ sài.\n"
-            "5. Tối ưu cho mục tiêu: chuyển đổi, SEO, hoặc engagement tùy content type."
+            "2. Ghi rõ framework đang dùng ở đầu nội dung.\n"
+            "3. TUYỆT ĐỐI KHÔNG VIẾT NGẮN. Viết nội dung ĐẦY ĐỦ, CỰC KỲ CHI TIẾT, DÀI theo đúng cấu trúc framework đã chọn.\n"
+            "4. Mỗi phần trong framework phải phát triển thành các đoạn văn dài có chiều sâu, nội dung thực chất, KHÔNG qua loa sơ sài.\n"
+            "5. Đảm bảo mọi hashtag sinh ra đều dùng đúng ký tự '#' ở đầu.\n"
+            "6. Tối ưu cho mục tiêu: chuyển đổi, SEO, hoặc engagement tùy content type."
         )
 
     insights_section = ""
