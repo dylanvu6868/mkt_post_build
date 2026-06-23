@@ -10,6 +10,7 @@ from app.models.email_list import EmailList
 from app.models.email_template import EmailTemplate
 from app.models.scheduled_email import ScheduledEmail
 from app.models.user import User
+from app.mcp.email.tokens import verify_unsubscribe_token
 from app.services.audit import log_action
 
 router = APIRouter(prefix="/mcp/email", tags=["email-scheduling"])
@@ -62,9 +63,10 @@ async def cancel_schedule(schedule_id: int, user: User = Depends(get_current_use
 
 @router.post("/unsubscribe/{token}")
 async def unsubscribe(token: str, session: AsyncSession = Depends(get_session)):
-    contact = (await session.execute(
-        select(EmailContact).where(EmailContact.email == token)
-    )).scalars().first()
+    contact_id = verify_unsubscribe_token(token)
+    if contact_id is None:
+        raise HTTPException(400, "Invalid unsubscribe token")
+    contact = await session.get(EmailContact, contact_id)
     if not contact:
         raise HTTPException(404, "Contact not found")
     contact.status = "unsubscribed"

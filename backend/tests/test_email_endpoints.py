@@ -1,4 +1,5 @@
 import pytest
+from app.mcp.email.tokens import make_unsubscribe_token
 
 
 async def _register(client, email="user@example.com"):
@@ -280,26 +281,34 @@ async def test_cancel_non_pending_returns_400(client):
 # ── Regression: unsubscribe duplicate email across users ──────────────
 
 
-async def test_unsubscribe_duplicate_email_across_users_no_crash(client):
-    """scalar_one_or_none() crashed when the same email existed for multiple users."""
-    token_a = await _register(client, "owner_a@example.com")
-    token_b = await _register(client, "owner_b@example.com")
-    h_a = {"Authorization": f"Bearer {token_a}"}
-    h_b = {"Authorization": f"Bearer {token_b}"}
+async def test_unsubscribe_valid_token(client):
+    """Valid HMAC token for an existing contact sets status = 'unsubscribed'."""
+    token = await _register(client, "owner@example.com")
+    h = {"Authorization": f"Bearer {token}"}
 
-    dup_email = "dup@example.com"
+    resp = await client.post(
+        "/mcp/email/contacts", json={"email": "sub@example.com"}, headers=h
+    )
+    assert resp.status_code == 201
+    contact_id = resp.json()["id"]
 
-    # Both users create a contact with the same email address
-    await client.post("/mcp/email/contacts", json={"email": dup_email}, headers=h_a)
-    await client.post("/mcp/email/contacts", json={"email": dup_email}, headers=h_b)
-
-    # Unsubscribe must NOT 500 even though two rows match
-    resp = await client.post(f"/mcp/email/unsubscribe/{dup_email}")
+    unsubscribe_token = make_unsubscribe_token(contact_id)
+    resp = await client.post(f"/mcp/email/unsubscribe/{unsubscribe_token}")
     assert resp.status_code == 200
     assert resp.json()["status"] == "unsubscribed"
 
-    # Never-seen email returns 404
-    resp = await client.post("/mcp/email/unsubscribe/nosuch@example.com")
+
+async def test_unsubscribe_invalid_token_returns_400(client):
+    """A tampered / garbage token must return 400."""
+    resp = await client.post("/mcp/email/unsubscribe/notavalidtoken")
+    assert resp.status_code == 400
+
+
+async def test_unsubscribe_valid_token_nonexistent_contact_returns_404(client):
+    """A valid (signed) token for a contact_id that doesn't exist → 404."""
+    # contact_id 999999 almost certainly doesn't exist in the in-memory DB
+    unsubscribe_token = make_unsubscribe_token(999999)
+    resp = await client.post(f"/mcp/email/unsubscribe/{unsubscribe_token}")
     assert resp.status_code == 404
 
 
