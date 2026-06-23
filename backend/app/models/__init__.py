@@ -15,6 +15,7 @@ from app.models.generation_job import GenerationJob
 from app.models.payment import PaymentOrder
 from app.models.project import Project
 from app.models.scheduled_email import ScheduledEmail
+from app.models.seo_audit import SeoAudit
 from app.models.user import User
 from app.models.user_template import UserTemplate
 
@@ -22,5 +23,5 @@ __all__ = [
     "AuditLog", "BrandProfile", "BrandProfileHistory", "Campaign", "ContentHistory", "ContentItem",
     "Conversation", "Deployment", "Document", "EmailCampaign", "EmailContact",
     "EmailList", "EmailTemplate", "GenerationJob", "Message", "PaymentOrder",
-    "Project", "ScheduledEmail", "User", "UserTemplate",
+    "Project", "ScheduledEmail", "SeoAudit", "User", "UserTemplate",
 ]
