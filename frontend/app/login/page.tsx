@@ -98,12 +98,15 @@ export default function LoginPage() {
   }, [initGoogle, isRegister]);
 
   const handleFacebookLogin = () => {
+    console.log("[FB Debug] window.FB:", !!window.FB, "appId:", facebookAppId);
     if (!window.FB) {
       toast.info("Đăng nhập Facebook sắp ra mắt!");
       return;
     }
+    console.log("[FB Debug] Calling FB.login...");
     window.FB.login(
       async (response: any) => {
+        console.log("[FB Debug] FB.login response:", JSON.stringify(response));
         if (!response.authResponse) {
           toast.error("Facebook login cancelled");
           return;
