@@ -197,6 +197,42 @@ export interface Keyword {
   density: number;
 }
 
+/* Landing Pages */
+
+export interface LandingPageListItem {
+  id: number;
+  title: string;
+  slug: string;
+  status: "draft" | "published";
+  created_at: string;
+}
+
+export interface LandingPageDetail {
+  id: number;
+  title: string;
+  slug: string;
+  html_content: string;
+  css_content: string | null;
+  status: "draft" | "published";
+}
+
+export interface LandingPageCreated {
+  id: number;
+  title: string;
+  slug: string;
+}
+
+export interface LandingPageGenerateReq {
+  purpose: string;
+  product: string;
+  tone?: string;
+  cta?: string;
+}
+
+export interface LandingPageGenerateResult {
+  html: string;
+}
+
 /* ------------------------------------------------------------------ */
 /*  Store                                                              */
 /* ------------------------------------------------------------------ */
@@ -283,6 +319,19 @@ interface McpState {
   loadContentAnalytics: (period: AnalyticsPeriod) => Promise<void>;
   loadSeoAnalytics: (period: AnalyticsPeriod) => Promise<void>;
   loadActivity: (limit?: number) => Promise<void>;
+
+  /* Landing Pages */
+  landingPages: LandingPageListItem[];
+  landingPagesLoading: boolean;
+  landingPageDetail: LandingPageDetail | null;
+  landingGenerating: boolean;
+  loadLandingPages: () => Promise<void>;
+  getLandingPage: (id: number) => Promise<LandingPageDetail>;
+  createLandingPage: (body: { title: string; slug: string; html_content?: string; css_content?: string }) => Promise<LandingPageCreated>;
+  updateLandingPage: (id: number, body: { title?: string; html_content?: string; css_content?: string }) => Promise<{ id: number; title: string }>;
+  generateLandingPage: (req: LandingPageGenerateReq) => Promise<LandingPageGenerateResult>;
+  publishLandingPage: (id: number) => Promise<{ id: number; status: string; slug: string }>;
+  deleteLandingPage: (id: number) => Promise<void>;
 }
 
 export const useMcpStore = create<McpState>()((set) => ({
@@ -617,6 +666,87 @@ export const useMcpStore = create<McpState>()((set) => ({
       set({ activity: [] });
     } finally {
       set({ activityLoading: false });
+    }
+  },
+
+  /* ---- Landing Pages ---- */
+  landingPages: [],
+  landingPagesLoading: false,
+  landingPageDetail: null,
+  landingGenerating: false,
+
+  loadLandingPages: async () => {
+    set({ landingPagesLoading: true });
+    try {
+      const data = await api.get<LandingPageListItem[]>("/mcp/landing/pages");
+      set({ landingPages: data });
+    } catch {
+      set({ landingPages: [] });
+    } finally {
+      set({ landingPagesLoading: false });
+    }
+  },
+
+  getLandingPage: async (id) => {
+    const data = await api.get<LandingPageDetail>(`/mcp/landing/pages/${id}`);
+    set({ landingPageDetail: data });
+    return data;
+  },
+
+  createLandingPage: async (body) => {
+    try {
+      return await api.post<LandingPageCreated>("/mcp/landing/pages", body);
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Lỗi tạo trang đích";
+      throw new Error(msg);
+    }
+  },
+
+  updateLandingPage: async (id, body) => {
+    try {
+      return await api.patch<{ id: number; title: string }>(`/mcp/landing/pages/${id}`, body);
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Lỗi cập nhật trang đích";
+      throw new Error(msg);
+    }
+  },
+
+  generateLandingPage: async (req) => {
+    set({ landingGenerating: true });
+    try {
+      return await api.post<LandingPageGenerateResult>("/mcp/landing/generate", req);
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Lỗi tạo trang bằng AI";
+      throw new Error(msg);
+    } finally {
+      set({ landingGenerating: false });
+    }
+  },
+
+  publishLandingPage: async (id) => {
+    try {
+      const data = await api.patch<{ id: number; status: string; slug: string }>(`/mcp/landing/pages/${id}/publish`);
+      set((state) => ({
+        landingPages: state.landingPages.map((p) =>
+          p.id === id ? { ...p, status: "published" as const } : p
+        ),
+      }));
+      return data;
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Lỗi xuất bản trang";
+      throw new Error(msg);
+    }
+  },
+
+  deleteLandingPage: async (id) => {
+    try {
+      await api.delete(`/mcp/landing/pages/${id}`);
+      set((state) => ({
+        landingPages: state.landingPages.filter((p) => p.id !== id),
+      }));
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Lỗi xóa trang đích";
+      throw new Error(msg);
     }
   },
 }));
