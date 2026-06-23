@@ -174,20 +174,20 @@ export interface SeoResult {
 
 export interface SeoAuditListItem {
   id: number;
-  url: string;
-  title: string;
+  url: string | null;
+  title: string | null;
   score: number;
   created_at: string;
 }
 
 export interface SeoAuditDetail {
   id: number;
-  url: string;
-  title: string;
+  url: string | null;
+  title: string | null;
   score: number;
-  issues: SeoIssue[];
-  suggestions: string[];
-  meta_data: SeoResult;
+  issues: SeoIssue[] | null;
+  suggestions: string[] | null;
+  meta_data: SeoResult | null;
   created_at: string;
 }
 

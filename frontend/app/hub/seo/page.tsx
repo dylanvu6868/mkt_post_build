@@ -349,7 +349,7 @@ function KeywordsTab() {
                     <tr key={kw.keyword} className="border-b last:border-0 hover:bg-muted/50">
                       <td className="py-2 px-3 font-medium">{kw.keyword}</td>
                       <td className="py-2 px-3 text-right">{kw.count}</td>
-                      <td className="py-2 px-3 text-right">{(kw.density * 100).toFixed(2)}%</td>
+                      <td className="py-2 px-3 text-right">{kw.density.toFixed(2)}%</td>
                     </tr>
                   ))}
                 </tbody>
@@ -395,11 +395,11 @@ function AuditDetailDialog({
             </div>
             <div>
               <h3 className="text-sm font-semibold mb-2">Vấn đề</h3>
-              <IssuesList issues={audit.issues} />
+              <IssuesList issues={audit.issues ?? []} />
             </div>
             <div>
               <h3 className="text-sm font-semibold mb-2">Đề xuất</h3>
-              <SuggestionsList suggestions={audit.suggestions} />
+              <SuggestionsList suggestions={audit.suggestions ?? []} />
             </div>
           </div>
         ) : (
@@ -468,7 +468,7 @@ function HistoryTab() {
                       className="border-b last:border-0 hover:bg-muted/50 cursor-pointer"
                       onClick={() => handleRowClick(audit.id)}
                     >
-                      <td className="py-2 px-3 max-w-[200px] truncate">{audit.url}</td>
+                      <td className="py-2 px-3 max-w-[200px] truncate">{audit.url ?? "(HTML trực tiếp)"}</td>
                       <td className="py-2 px-3 max-w-[200px] truncate">{audit.title || "-"}</td>
                       <td className="py-2 px-3 text-center">
                         <Badge className={scoreBgColor(audit.score) + " text-white"}>
