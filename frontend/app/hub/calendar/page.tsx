@@ -57,14 +57,6 @@ const KANBAN_COLUMNS: { key: string; label: string }[] = [
   { key: "published", label: "Đã xuất bản" },
 ];
 
-function statusBadgeVariant(s: string) {
-  if (s === "draft") return "secondary" as const;
-  if (s === "review") return "default" as const;
-  if (s === "approved") return "outline" as const;
-  if (s === "published") return "default" as const;
-  return "destructive" as const;
-}
-
 function typeBadgeVariant(t: string) {
   if (t === "blog") return "default" as const;
   if (t === "social") return "secondary" as const;
@@ -117,6 +109,18 @@ function QuickCreateDialog({
   const [tags, setTags] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
+  const resetForm = () => {
+    setTitle("");
+    setContentType("blog");
+    setScheduledDate("");
+    setTags("");
+  };
+
+  const handleOpenChange = (v: boolean) => {
+    if (!v) resetForm();
+    onOpenChange(v);
+  };
+
   const handleCreate = async () => {
     if (!title) return;
     setSubmitting(true);
@@ -128,7 +132,7 @@ function QuickCreateDialog({
         tags: tags ? tags.split(",").map((t) => t.trim()).filter(Boolean) : undefined,
       });
       toast.success("Đã tạo nội dung!");
-      setTitle(""); setContentType("blog"); setScheduledDate(""); setTags("");
+      resetForm();
       onOpenChange(false);
       onCreated();
     } catch (e: unknown) {
@@ -140,7 +144,7 @@ function QuickCreateDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Tạo nội dung mới</DialogTitle>
@@ -293,23 +297,22 @@ function KanbanView({ items, loading, onRefresh }: { items: ContentItem[]; loadi
 /* ------------------------------------------------------------------ */
 /*  Calendar View                                                       */
 /* ------------------------------------------------------------------ */
-function CalendarView({ items, loading, onRefresh }: { items: ContentItem[]; loading: boolean; onRefresh: () => void }) {
-  const { loadCalendarItems } = useMcpStore();
-  const [currentMonth, setCurrentMonth] = useState(() => {
-    const d = new Date();
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-  });
-
+function CalendarView({
+  items,
+  loading,
+  month: currentMonth,
+  onMonthChange,
+}: {
+  items: ContentItem[];
+  loading: boolean;
+  month: string;
+  onMonthChange: (month: string) => void;
+}) {
   const [year, month] = currentMonth.split("-").map(Number);
-
-  useEffect(() => {
-    loadCalendarItems({ month: currentMonth });
-  }, [currentMonth, loadCalendarItems]);
 
   const navigate = (delta: number) => {
     const d = new Date(year, month - 1 + delta, 1);
-    const newMonth = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-    setCurrentMonth(newMonth);
+    onMonthChange(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`);
   };
 
   const monthLabel = new Date(year, month - 1, 1).toLocaleDateString("vi-VN", { month: "long", year: "numeric" });
@@ -429,16 +432,21 @@ export default function CalendarPage() {
   const [createOpen, setCreateOpen] = useState(false);
   const [filterType, setFilterType] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
+  const [currentMonth, setCurrentMonth] = useState(() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+  });
 
   const reload = () => {
     loadCalendarItems({
       content_type: filterType || undefined,
       status: filterStatus || undefined,
+      ...(view === "calendar" ? { month: currentMonth } : {}),
     });
     loadCalendarOverview();
   };
 
-  useEffect(() => { reload(); }, [filterType, filterStatus]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { reload(); }, [view, filterType, filterStatus, currentMonth]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className="space-y-6">
@@ -483,7 +491,7 @@ export default function CalendarPage() {
           {view === "kanban" ? (
             <KanbanView items={calendarItems} loading={calendarLoading} onRefresh={reload} />
           ) : (
-            <CalendarView items={calendarItems} loading={calendarLoading} onRefresh={reload} />
+            <CalendarView items={calendarItems} loading={calendarLoading} month={currentMonth} onMonthChange={setCurrentMonth} />
           )}
         </CardContent>
       </Card>
