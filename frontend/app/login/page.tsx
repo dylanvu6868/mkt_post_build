@@ -14,6 +14,7 @@ declare global {
   interface Window {
     google?: any;
     FB?: any;
+    fbAsyncInit?: () => void;
   }
 }
 
@@ -47,6 +48,16 @@ export default function LoginPage() {
 
   const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ?? "";
   const facebookAppId = process.env.NEXT_PUBLIC_FACEBOOK_APP_ID || "1307206617791657";
+
+  useEffect(() => {
+    if (!facebookAppId) return;
+    window.fbAsyncInit = function () {
+      window.FB?.init({ appId: facebookAppId, cookie: true, xfbml: true, version: "v21.0" });
+    };
+    if (window.FB) {
+      window.FB.init({ appId: facebookAppId, cookie: true, xfbml: true, version: "v21.0" });
+    }
+  }, [facebookAppId]);
 
   const initGoogle = useCallback(() => {
     if (!googleClientId || !window.google || !googleHiddenRef.current) return;
@@ -189,9 +200,6 @@ export default function LoginPage() {
         <Script
           src="https://connect.facebook.net/en_US/sdk.js"
           strategy="afterInteractive"
-          onLoad={() => {
-            window.FB?.init({ appId: facebookAppId, version: "v21.0" });
-          }}
         />
       )}
 
