@@ -66,6 +66,58 @@ export interface ScheduledEmailItem {
   sent_at?: string | null;
 }
 
+/* Analytics */
+
+export type AnalyticsPeriod = "7d" | "30d" | "90d";
+
+export interface AnalyticsOverview {
+  campaigns: number;
+  emails_sent: number;
+  open_rate: number;
+  click_rate: number;
+  content_total: number;
+  content_published: number;
+  avg_seo_score: number;
+}
+
+export interface EmailAnalytics {
+  period: AnalyticsPeriod;
+  campaigns: number;
+  total_sent: number;
+  total_opened: number;
+  total_clicked: number;
+  open_rate: number;
+  click_rate: number;
+}
+
+export interface ContentAnalytics {
+  period: AnalyticsPeriod;
+  total: number;
+  by_status: Record<string, number>;
+  by_type: Record<string, number>;
+}
+
+export interface SeoTopIssue {
+  message: string;
+  count: number;
+}
+
+export interface SeoAnalytics {
+  period: AnalyticsPeriod;
+  audits: number;
+  avg_score: number;
+  top_issues: SeoTopIssue[];
+}
+
+export interface ActivityItem {
+  id: number;
+  action: string;
+  resource_type: string;
+  resource_id: number | null;
+  details: Record<string, unknown> | null;
+  created_at: string;
+}
+
 /* SEO */
 
 export interface SeoIssue {
@@ -214,6 +266,23 @@ interface McpState {
   analyzeKeywords: (text: string, topN?: number) => Promise<void>;
   loadSeoAudits: () => Promise<void>;
   loadSeoAudit: (id: number) => Promise<void>;
+
+  /* Analytics */
+  analyticsOverview: AnalyticsOverview | null;
+  analyticsOverviewLoading: boolean;
+  emailAnalytics: EmailAnalytics | null;
+  emailAnalyticsLoading: boolean;
+  contentAnalytics: ContentAnalytics | null;
+  contentAnalyticsLoading: boolean;
+  seoAnalytics: SeoAnalytics | null;
+  seoAnalyticsLoading: boolean;
+  activity: ActivityItem[];
+  activityLoading: boolean;
+  loadAnalyticsOverview: () => Promise<void>;
+  loadEmailAnalytics: (period: AnalyticsPeriod) => Promise<void>;
+  loadContentAnalytics: (period: AnalyticsPeriod) => Promise<void>;
+  loadSeoAnalytics: (period: AnalyticsPeriod) => Promise<void>;
+  loadActivity: (limit?: number) => Promise<void>;
 }
 
 export const useMcpStore = create<McpState>()((set) => ({
@@ -476,6 +545,78 @@ export const useMcpStore = create<McpState>()((set) => ({
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : "Lỗi tải audit";
       throw new Error(msg);
+    }
+  },
+
+  /* ---- Analytics ---- */
+  analyticsOverview: null,
+  analyticsOverviewLoading: false,
+  emailAnalytics: null,
+  emailAnalyticsLoading: false,
+  contentAnalytics: null,
+  contentAnalyticsLoading: false,
+  seoAnalytics: null,
+  seoAnalyticsLoading: false,
+  activity: [],
+  activityLoading: false,
+
+  loadAnalyticsOverview: async () => {
+    set({ analyticsOverviewLoading: true });
+    try {
+      const data = await api.get<AnalyticsOverview>("/mcp/analytics/overview");
+      set({ analyticsOverview: data });
+    } catch {
+      set({ analyticsOverview: null });
+    } finally {
+      set({ analyticsOverviewLoading: false });
+    }
+  },
+
+  loadEmailAnalytics: async (period) => {
+    set({ emailAnalyticsLoading: true });
+    try {
+      const data = await api.get<EmailAnalytics>(`/mcp/analytics/email?period=${period}`);
+      set({ emailAnalytics: data });
+    } catch {
+      set({ emailAnalytics: null });
+    } finally {
+      set({ emailAnalyticsLoading: false });
+    }
+  },
+
+  loadContentAnalytics: async (period) => {
+    set({ contentAnalyticsLoading: true });
+    try {
+      const data = await api.get<ContentAnalytics>(`/mcp/analytics/content?period=${period}`);
+      set({ contentAnalytics: data });
+    } catch {
+      set({ contentAnalytics: null });
+    } finally {
+      set({ contentAnalyticsLoading: false });
+    }
+  },
+
+  loadSeoAnalytics: async (period) => {
+    set({ seoAnalyticsLoading: true });
+    try {
+      const data = await api.get<SeoAnalytics>(`/mcp/analytics/seo?period=${period}`);
+      set({ seoAnalytics: data });
+    } catch {
+      set({ seoAnalytics: null });
+    } finally {
+      set({ seoAnalyticsLoading: false });
+    }
+  },
+
+  loadActivity: async (limit = 50) => {
+    set({ activityLoading: true });
+    try {
+      const data = await api.get<ActivityItem[]>(`/mcp/analytics/activity?limit=${limit}`);
+      set({ activity: data });
+    } catch {
+      set({ activity: [] });
+    } finally {
+      set({ activityLoading: false });
     }
   },
 }));

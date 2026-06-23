@@ -1353,15 +1353,216 @@ Expected: ImportError
 
 Create `backend/app/mcp/seo/__init__.py` (empty).
 
-Create `backend/app/mcp/seo/analyzer.py` with `analyze_html()` and `extract_keywords()` pure functions using BeautifulSoup4. Checks: title tag, meta description, headings structure, image alt tags, keyword density, links, word count, readability.
+Create `backend/app/mcp/seo/analyzer.py`:
 
-Create `backend/app/models/seo_audit.py` with SeoAudit model (id, user_id, url, title, score, issues JSON, suggestions JSON, meta_data JSON, created_at).
+```python
+import re
+from collections import Counter
 
-Register model in `__init__.py`.
+from bs4 import BeautifulSoup
+
+
+def analyze_html(html: str, url: str | None = None) -> dict:
+    soup = BeautifulSoup(html, "html.parser")
+    issues: list[dict] = []
+    suggestions: list[str] = []
+    score = 100
+
+    title_tag = soup.find("title")
+    title_text = title_tag.get_text(strip=True) if title_tag else ""
+    title_len = len(title_text)
+    title_info = {"exists": bool(title_text), "length": title_len, "text": title_text}
+    if not title_text:
+        issues.append({"severity": "critical", "message": "Missing <title> tag"})
+        suggestions.append("Add a descriptive <title> tag (50-60 characters)")
+        score -= 20
+    elif title_len < 30 or title_len > 70:
+        issues.append({"severity": "warning", "message": f"Title length ({title_len}) outside optimal range (50-60)"})
+        score -= 5
+
+    meta_desc = soup.find("meta", attrs={"name": "description"})
+    desc_content = meta_desc.get("content", "") if meta_desc else ""
+    desc_len = len(desc_content)
+    desc_info = {"exists": bool(desc_content), "length": desc_len}
+    if not desc_content:
+        issues.append({"severity": "critical", "message": "Missing meta description"})
+        suggestions.append("Add a meta description (150-160 characters)")
+        score -= 15
+    elif desc_len < 120 or desc_len > 170:
+        issues.append({"severity": "warning", "message": f"Meta description length ({desc_len}) outside optimal range (150-160)"})
+        score -= 5
+
+    headings: dict[str, int] = {}
+    for level in range(1, 4):
+        tag = f"h{level}"
+        headings[f"{tag}_count"] = len(soup.find_all(tag))
+    if headings["h1_count"] == 0:
+        issues.append({"severity": "critical", "message": "Missing H1 heading"})
+        score -= 15
+    elif headings["h1_count"] > 1:
+        issues.append({"severity": "warning", "message": f"Multiple H1 tags ({headings['h1_count']})"})
+        score -= 5
+
+    images = soup.find_all("img")
+    images_without_alt = [img for img in images if not img.get("alt")]
+    img_info = {"total": len(images), "missing_alt": len(images_without_alt)}
+    if images_without_alt:
+        issues.append({"severity": "warning", "message": f"{len(images_without_alt)} image(s) missing alt text"})
+        score -= 3 * len(images_without_alt)
+
+    body_text = soup.get_text(separator=" ", strip=True)
+    word_count = len(body_text.split())
+    if word_count < 300:
+        issues.append({"severity": "warning", "message": f"Low word count ({word_count}). Aim for 300+"})
+        score -= 10
+
+    links = soup.find_all("a", href=True)
+    internal = [a for a in links if a["href"].startswith("/") or a["href"].startswith("#")]
+    external = [a for a in links if a["href"].startswith("http")]
+    link_info = {"internal": len(internal), "external": len(external), "total": len(links)}
+
+    sentences = [s.strip() for s in re.split(r"[.!?]+", body_text) if len(s.strip()) > 5]
+    avg_sentence_len = sum(len(s.split()) for s in sentences) / max(len(sentences), 1)
+    if avg_sentence_len > 25:
+        issues.append({"severity": "info", "message": f"Average sentence length ({avg_sentence_len:.0f} words) is high. Consider shorter sentences."})
+        score -= 3
+
+    score = max(0, min(100, score))
+
+    return {
+        "score": score,
+        "url": url,
+        "title": title_info,
+        "meta_description": desc_info,
+        "headings": headings,
+        "images": img_info,
+        "word_count": word_count,
+        "links": link_info,
+        "readability": {"avg_sentence_length": round(avg_sentence_len, 1)},
+        "issues": issues,
+        "suggestions": suggestions,
+    }
+
+
+def extract_keywords(text: str, top_n: int = 20) -> list[dict]:
+    words = re.findall(r"\b[a-zA-ZÀ-ỹ]{3,}\b", text.lower())
+    counts = Counter(words)
+    total = len(words)
+    result = []
+    for word, count in counts.most_common(top_n):
+        result.append({
+            "keyword": word,
+            "count": count,
+            "density": round(count / total * 100, 2) if total else 0,
+        })
+    return result
+```
+
+Create `backend/app/models/seo_audit.py`:
+
+```python
+from datetime import datetime
+from typing import Any
+
+from sqlalchemy import JSON, DateTime, ForeignKey, Integer, String, func
+from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.orm import Mapped, mapped_column
+
+from app.core.db import Base
+
+
+class SeoAudit(Base):
+    __tablename__ = "seo_audits"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    url: Mapped[str | None] = mapped_column(String(2000), nullable=True)
+    title: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    score: Mapped[int] = mapped_column(Integer, default=0)
+    issues: Mapped[list[Any] | None] = mapped_column(JSON().with_variant(JSONB, "postgresql"), nullable=True)
+    suggestions: Mapped[list[Any] | None] = mapped_column(JSON().with_variant(JSONB, "postgresql"), nullable=True)
+    meta_data: Mapped[dict[str, Any] | None] = mapped_column(JSON().with_variant(JSONB, "postgresql"), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+```
+
+Register in `__init__.py`: add `from app.models.seo_audit import SeoAudit` and `"SeoAudit"` to `__all__`.
 
 - [ ] **Step 5: Create router and register**
 
-Create `backend/app/mcp/seo/tools.py` with endpoints: POST `/mcp/seo/analyze` (fetch URL via httpx or accept raw HTML), POST `/mcp/seo/keywords`, GET `/mcp/seo/audits`, GET `/mcp/seo/audits/{id}`.
+Create `backend/app/mcp/seo/tools.py`:
+
+```python
+import httpx
+from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.api.deps import get_current_user
+from app.core.db import get_session
+from app.mcp.seo.analyzer import analyze_html, extract_keywords
+from app.models.seo_audit import SeoAudit
+from app.models.user import User
+from app.services.audit import log_action
+
+router = APIRouter(prefix="/mcp/seo", tags=["seo"])
+
+
+class AnalyzeReq(BaseModel):
+    url: str | None = None
+    html: str | None = None
+
+class KeywordsReq(BaseModel):
+    text: str
+    top_n: int = 20
+
+
+@router.post("/analyze")
+async def analyze(body: AnalyzeReq, user: User = Depends(get_current_user), session: AsyncSession = Depends(get_session)):
+    if not body.url and not body.html:
+        raise HTTPException(400, "Provide url or html")
+    html = body.html or ""
+    if body.url and not html:
+        try:
+            async with httpx.AsyncClient(timeout=15) as client:
+                resp = await client.get(body.url, follow_redirects=True)
+                resp.raise_for_status()
+                html = resp.text
+        except httpx.HTTPError as exc:
+            raise HTTPException(400, f"Could not fetch URL: {exc}")
+    result = analyze_html(html, body.url)
+    audit = SeoAudit(
+        user_id=user.id, url=body.url,
+        title=result["title"].get("text", ""),
+        score=result["score"], issues=result["issues"],
+        suggestions=result["suggestions"], meta_data=result,
+    )
+    session.add(audit)
+    await session.commit()
+    await log_action(session, user.id, "seo.analyze", "seo_audit", str(audit.id))
+    return {**result, "audit_id": audit.id}
+
+
+@router.post("/keywords")
+async def keywords(body: KeywordsReq, user: User = Depends(get_current_user)):
+    return extract_keywords(body.text, body.top_n)
+
+
+@router.get("/audits")
+async def list_audits(user: User = Depends(get_current_user), session: AsyncSession = Depends(get_session)):
+    rows = (await session.execute(
+        select(SeoAudit).where(SeoAudit.user_id == user.id).order_by(SeoAudit.created_at.desc()).limit(50)
+    )).scalars().all()
+    return [{"id": a.id, "url": a.url, "title": a.title, "score": a.score, "created_at": str(a.created_at)} for a in rows]
+
+
+@router.get("/audits/{audit_id}")
+async def get_audit(audit_id: int, user: User = Depends(get_current_user), session: AsyncSession = Depends(get_session)):
+    audit = await session.get(SeoAudit, audit_id)
+    if not audit or audit.user_id != user.id:
+        raise HTTPException(404, "Audit not found")
+    return {"id": audit.id, "url": audit.url, "title": audit.title, "score": audit.score, "issues": audit.issues, "suggestions": audit.suggestions, "meta_data": audit.meta_data, "created_at": str(audit.created_at)}
+```
 
 Register in `main.py`:
 ```python
@@ -1397,7 +1598,111 @@ git commit -m "feat: add SEO analyzer and audit endpoints"
 
 - [ ] **Step 2: Create `backend/app/mcp/analytics/tools.py`**
 
-Aggregation endpoints that query existing models. GET `/mcp/analytics/overview` returns KPI totals. GET `/mcp/analytics/email?period=30d` returns email metrics with period filter. GET `/mcp/analytics/content?period=30d` returns content stats. GET `/mcp/analytics/seo?period=30d` returns SEO trends. GET `/mcp/analytics/activity?limit=50` returns recent audit_log entries.
+```python
+from datetime import datetime, timedelta, timezone
+
+from fastapi import APIRouter, Depends
+from sqlalchemy import func, select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.api.deps import get_current_user
+from app.core.db import get_session
+from app.models.audit_log import AuditLog
+from app.models.campaign import Campaign
+from app.models.content_item import ContentItem
+from app.models.email_campaign import EmailCampaign
+from app.models.seo_audit import SeoAudit
+from app.models.user import User
+
+router = APIRouter(prefix="/mcp/analytics", tags=["analytics"])
+
+PERIOD_MAP = {"7d": 7, "30d": 30, "90d": 90}
+
+
+def _cutoff(period: str) -> datetime:
+    days = PERIOD_MAP.get(period, 30)
+    return datetime.now(timezone.utc) - timedelta(days=days)
+
+
+@router.get("/overview")
+async def overview(user: User = Depends(get_current_user), session: AsyncSession = Depends(get_session)):
+    campaigns = (await session.execute(select(func.count(Campaign.id)).where(Campaign.user_id == user.id))).scalar() or 0
+    email_rows = (await session.execute(select(EmailCampaign).where(EmailCampaign.user_id == user.id))).scalars().all()
+    total_sent = sum(r.sent_count for r in email_rows)
+    total_open = sum(r.open_count for r in email_rows)
+    total_click = sum(r.click_count for r in email_rows)
+    content_count = (await session.execute(select(func.count(ContentItem.id)).where(ContentItem.user_id == user.id))).scalar() or 0
+    content_published = (await session.execute(select(func.count(ContentItem.id)).where(ContentItem.user_id == user.id, ContentItem.status == "published"))).scalar() or 0
+    avg_seo = (await session.execute(select(func.avg(SeoAudit.score)).where(SeoAudit.user_id == user.id))).scalar()
+
+    return {
+        "campaigns": campaigns,
+        "emails_sent": total_sent,
+        "open_rate": round(total_open / total_sent * 100, 1) if total_sent else 0,
+        "click_rate": round(total_click / total_sent * 100, 1) if total_sent else 0,
+        "content_total": content_count,
+        "content_published": content_published,
+        "avg_seo_score": round(avg_seo, 1) if avg_seo else 0,
+    }
+
+
+@router.get("/email")
+async def email_analytics(period: str = "30d", user: User = Depends(get_current_user), session: AsyncSession = Depends(get_session)):
+    cutoff = _cutoff(period)
+    rows = (await session.execute(
+        select(EmailCampaign).where(EmailCampaign.user_id == user.id, EmailCampaign.created_at >= cutoff)
+    )).scalars().all()
+    total_sent = sum(r.sent_count for r in rows)
+    total_open = sum(r.open_count for r in rows)
+    total_click = sum(r.click_count for r in rows)
+    return {
+        "period": period,
+        "campaigns": len(rows),
+        "total_sent": total_sent,
+        "total_opened": total_open,
+        "total_clicked": total_click,
+        "open_rate": round(total_open / total_sent * 100, 1) if total_sent else 0,
+        "click_rate": round(total_click / total_sent * 100, 1) if total_sent else 0,
+    }
+
+
+@router.get("/content")
+async def content_analytics(period: str = "30d", user: User = Depends(get_current_user), session: AsyncSession = Depends(get_session)):
+    cutoff = _cutoff(period)
+    rows = (await session.execute(
+        select(ContentItem).where(ContentItem.user_id == user.id, ContentItem.created_at >= cutoff)
+    )).scalars().all()
+    by_status: dict[str, int] = {}
+    by_type: dict[str, int] = {}
+    for item in rows:
+        by_status[item.status] = by_status.get(item.status, 0) + 1
+        by_type[item.content_type] = by_type.get(item.content_type, 0) + 1
+    return {"period": period, "total": len(rows), "by_status": by_status, "by_type": by_type}
+
+
+@router.get("/seo")
+async def seo_analytics(period: str = "30d", user: User = Depends(get_current_user), session: AsyncSession = Depends(get_session)):
+    cutoff = _cutoff(period)
+    rows = (await session.execute(
+        select(SeoAudit).where(SeoAudit.user_id == user.id, SeoAudit.created_at >= cutoff).order_by(SeoAudit.created_at)
+    )).scalars().all()
+    avg = sum(r.score for r in rows) / len(rows) if rows else 0
+    issue_counts: dict[str, int] = {}
+    for r in rows:
+        for iss in (r.issues or []):
+            msg = iss.get("message", "")
+            issue_counts[msg] = issue_counts.get(msg, 0) + 1
+    top_issues = sorted(issue_counts.items(), key=lambda x: -x[1])[:10]
+    return {"period": period, "audits": len(rows), "avg_score": round(avg, 1), "top_issues": [{"message": m, "count": c} for m, c in top_issues]}
+
+
+@router.get("/activity")
+async def activity(limit: int = 50, user: User = Depends(get_current_user), session: AsyncSession = Depends(get_session)):
+    rows = (await session.execute(
+        select(AuditLog).where(AuditLog.user_id == user.id).order_by(AuditLog.created_at.desc()).limit(limit)
+    )).scalars().all()
+    return [{"id": a.id, "action": a.action, "resource_type": a.resource_type, "resource_id": a.resource_id, "details": a.details, "created_at": str(a.created_at)} for a in rows]
+```
 
 - [ ] **Step 3: Register router in `backend/app/main.py`**
 
@@ -1485,13 +1790,198 @@ Run: `cd backend && python -m pytest tests/test_landing.py -v`
 
 - [ ] **Step 3: Create model, router, and register**
 
-Create `backend/app/models/landing_page.py` with LandingPage model (id, user_id, campaign_id, title, slug unique, html_content, css_content, status, template_name, variables JSON, published_at, created_at, updated_at).
+Create `backend/app/models/landing_page.py`:
 
-Register in `__init__.py`.
+```python
+from datetime import datetime
+from typing import Any
+
+from sqlalchemy import JSON, DateTime, ForeignKey, String, Text, func
+from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.orm import Mapped, mapped_column
+
+from app.core.db import Base
+
+
+class LandingPage(Base):
+    __tablename__ = "landing_pages"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    campaign_id: Mapped[int | None] = mapped_column(ForeignKey("campaigns.id", ondelete="SET NULL"), nullable=True)
+    title: Mapped[str] = mapped_column(String(500))
+    slug: Mapped[str] = mapped_column(String(255), unique=True, index=True)
+    html_content: Mapped[str] = mapped_column(Text, default="")
+    css_content: Mapped[str | None] = mapped_column(Text, nullable=True)
+    status: Mapped[str] = mapped_column(String(50), default="draft")
+    template_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    variables: Mapped[dict[str, Any] | None] = mapped_column(JSON().with_variant(JSONB, "postgresql"), nullable=True)
+    published_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+```
+
+Register in `__init__.py`: add `from app.models.landing_page import LandingPage` and `"LandingPage"` to `__all__`.
 
 Create `backend/app/mcp/landing/__init__.py` (empty).
 
-Create `backend/app/mcp/landing/tools.py` with two routers: `router` (authenticated endpoints) and `public_router` (GET `/p/{slug}`). Endpoints: CRUD pages, POST generate (calls DeepSeek via `get_chat_model`), POST preview (returns HTMLResponse), PATCH publish, GET export, GET `/p/{slug}` public serve.
+Create `backend/app/mcp/landing/tools.py`:
+
+```python
+from datetime import datetime, timezone
+
+from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import HTMLResponse
+from pydantic import BaseModel
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.api.deps import get_current_user
+from app.core.db import get_session
+from app.models.landing_page import LandingPage
+from app.models.user import User
+from app.services.audit import log_action
+
+router = APIRouter(tags=["landing"])
+public_router = APIRouter()
+
+
+def _render(page: LandingPage) -> str:
+    css = f"<style>{page.css_content}</style>" if page.css_content else ""
+    return f"<!DOCTYPE html><html><head><meta charset='utf-8'><title>{page.title}</title>{css}</head><body>{page.html_content}</body></html>"
+
+
+class PageCreate(BaseModel):
+    title: str
+    slug: str
+    html_content: str = ""
+    css_content: str | None = None
+
+class PageUpdate(BaseModel):
+    title: str | None = None
+    html_content: str | None = None
+    css_content: str | None = None
+
+class GenerateReq(BaseModel):
+    purpose: str
+    product: str
+    tone: str = "professional"
+    cta: str = "Sign up"
+
+class PreviewReq(BaseModel):
+    html_content: str
+    css_content: str | None = None
+
+
+@router.get("/mcp/landing/pages")
+async def list_pages(user: User = Depends(get_current_user), session: AsyncSession = Depends(get_session)):
+    rows = (await session.execute(
+        select(LandingPage).where(LandingPage.user_id == user.id).order_by(LandingPage.created_at.desc())
+    )).scalars().all()
+    return [{"id": p.id, "title": p.title, "slug": p.slug, "status": p.status, "created_at": str(p.created_at)} for p in rows]
+
+
+@router.post("/mcp/landing/pages", status_code=201)
+async def create_page(body: PageCreate, user: User = Depends(get_current_user), session: AsyncSession = Depends(get_session)):
+    existing = (await session.execute(select(LandingPage).where(LandingPage.slug == body.slug))).scalar_one_or_none()
+    if existing:
+        raise HTTPException(400, "Slug already exists")
+    page = LandingPage(user_id=user.id, title=body.title, slug=body.slug, html_content=body.html_content, css_content=body.css_content)
+    session.add(page)
+    await session.commit()
+    await log_action(session, user.id, "landing.create", "landing_page", str(page.id))
+    return {"id": page.id, "title": page.title, "slug": page.slug}
+
+
+@router.post("/mcp/landing/generate")
+async def generate_page(body: GenerateReq, user: User = Depends(get_current_user)):
+    from app.llm.factory import get_chat_model, provider_available
+    if not provider_available():
+        raise HTTPException(503, "LLM provider not configured")
+    llm = get_chat_model("fast")
+    prompt = (
+        f"Generate a complete, responsive HTML landing page with inline CSS.\n"
+        f"Purpose: {body.purpose}\n"
+        f"Product: {body.product}\n"
+        f"Tone: {body.tone}\n"
+        f"CTA: {body.cta}\n"
+        f"Requirements: modern design, mobile-responsive, single HTML file with inline <style>, "
+        f"professional color scheme, hero section, features section, CTA button. "
+        f"Return ONLY the HTML code, no markdown fences."
+    )
+    response = await llm.ainvoke(prompt)
+    html = (response.content if isinstance(response.content, str) else str(response.content)).strip()
+    if html.startswith("```"):
+        html = html.split("\n", 1)[-1].rsplit("```", 1)[0].strip()
+    return {"html": html}
+
+
+@router.post("/mcp/landing/preview")
+async def preview_page(body: PreviewReq):
+    css = f"<style>{body.css_content}</style>" if body.css_content else ""
+    return HTMLResponse(f"<!DOCTYPE html><html><head>{css}</head><body>{body.html_content}</body></html>")
+
+
+@router.get("/mcp/landing/pages/{page_id}")
+async def get_page(page_id: int, user: User = Depends(get_current_user), session: AsyncSession = Depends(get_session)):
+    page = await session.get(LandingPage, page_id)
+    if not page or page.user_id != user.id:
+        raise HTTPException(404, "Page not found")
+    return {"id": page.id, "title": page.title, "slug": page.slug, "html_content": page.html_content, "css_content": page.css_content, "status": page.status}
+
+
+@router.patch("/mcp/landing/pages/{page_id}")
+async def update_page(page_id: int, body: PageUpdate, user: User = Depends(get_current_user), session: AsyncSession = Depends(get_session)):
+    page = await session.get(LandingPage, page_id)
+    if not page or page.user_id != user.id:
+        raise HTTPException(404, "Page not found")
+    for field, val in body.model_dump(exclude_unset=True).items():
+        setattr(page, field, val)
+    await session.commit()
+    return {"id": page.id, "title": page.title}
+
+
+@router.patch("/mcp/landing/pages/{page_id}/publish")
+async def publish_page(page_id: int, user: User = Depends(get_current_user), session: AsyncSession = Depends(get_session)):
+    page = await session.get(LandingPage, page_id)
+    if not page or page.user_id != user.id:
+        raise HTTPException(404, "Page not found")
+    page.status = "published"
+    page.published_at = datetime.now(timezone.utc)
+    await session.commit()
+    await log_action(session, user.id, "landing.publish", "landing_page", str(page.id))
+    return {"id": page.id, "status": "published", "slug": page.slug}
+
+
+@router.get("/mcp/landing/pages/{page_id}/export")
+async def export_page(page_id: int, user: User = Depends(get_current_user), session: AsyncSession = Depends(get_session)):
+    page = await session.get(LandingPage, page_id)
+    if not page or page.user_id != user.id:
+        raise HTTPException(404, "Page not found")
+    return HTMLResponse(_render(page), headers={"Content-Disposition": f"attachment; filename={page.slug}.html"})
+
+
+@router.delete("/mcp/landing/pages/{page_id}", status_code=204)
+async def delete_page(page_id: int, user: User = Depends(get_current_user), session: AsyncSession = Depends(get_session)):
+    page = await session.get(LandingPage, page_id)
+    if not page or page.user_id != user.id:
+        raise HTTPException(404, "Page not found")
+    await session.delete(page)
+    await session.commit()
+
+
+# Public route — serve published landing pages (no auth)
+@public_router.get("/p/{slug}")
+async def serve_landing_page(slug: str, session: AsyncSession = Depends(get_session)):
+    page = (await session.execute(
+        select(LandingPage).where(LandingPage.slug == slug, LandingPage.status == "published")
+    )).scalar_one_or_none()
+    if not page:
+        raise HTTPException(404, "Page not found")
+    return HTMLResponse(_render(page))
+```
+
+Note: define the static routes `/mcp/landing/pages` (GET/POST), `/mcp/landing/generate`, and `/mcp/landing/preview` BEFORE the `/mcp/landing/pages/{page_id}` routes (as above) so they are not shadowed by the path-parameter route.
 
 Register both routers in `main.py`:
 ```python

@@ -108,4 +108,4 @@ Result: 146 passed, 4 warnings in 31.20s
 ```
 
 ### Commit
-- SHA + subject filled after commit below
+- `533a6c2` fix: landing publish/export ownership tests, auth on preview, escape title
