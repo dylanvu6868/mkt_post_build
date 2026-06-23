@@ -124,6 +124,10 @@ app.include_router(seo_router)
 from app.mcp.analytics.tools import router as analytics_router
 app.include_router(analytics_router)
 
+from app.mcp.landing.tools import router as landing_router, public_router as landing_public_router
+app.include_router(landing_router)
+app.include_router(landing_public_router)
+
 
 @app.get("/health")
 def health() -> dict[str, str]:
