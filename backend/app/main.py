@@ -121,6 +121,9 @@ app.include_router(calendar_router)
 from app.mcp.seo.tools import router as seo_router
 app.include_router(seo_router)
 
+from app.mcp.analytics.tools import router as analytics_router
+app.include_router(analytics_router)
+
 
 @app.get("/health")
 def health() -> dict[str, str]:
