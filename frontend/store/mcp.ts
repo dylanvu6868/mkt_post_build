@@ -66,6 +66,85 @@ export interface ScheduledEmailItem {
   sent_at?: string | null;
 }
 
+/* SEO */
+
+export interface SeoIssue {
+  severity: "critical" | "warning" | "info";
+  message: string;
+}
+
+export interface SeoTitleInfo {
+  exists: boolean;
+  length: number;
+  text: string;
+}
+
+export interface SeoMetaDescription {
+  exists: boolean;
+  length: number;
+}
+
+export interface SeoHeadings {
+  h1_count: number;
+  h2_count: number;
+  h3_count: number;
+}
+
+export interface SeoImages {
+  total: number;
+  missing_alt: number;
+}
+
+export interface SeoLinks {
+  internal: number;
+  external: number;
+  total: number;
+}
+
+export interface SeoReadability {
+  avg_sentence_length: number;
+}
+
+export interface SeoResult {
+  score: number;
+  url: string | null;
+  title: SeoTitleInfo;
+  meta_description: SeoMetaDescription;
+  headings: SeoHeadings;
+  images: SeoImages;
+  word_count: number;
+  links: SeoLinks;
+  readability: SeoReadability;
+  issues: SeoIssue[];
+  suggestions: string[];
+  audit_id: number;
+}
+
+export interface SeoAuditListItem {
+  id: number;
+  url: string;
+  title: string;
+  score: number;
+  created_at: string;
+}
+
+export interface SeoAuditDetail {
+  id: number;
+  url: string;
+  title: string;
+  score: number;
+  issues: SeoIssue[];
+  suggestions: string[];
+  meta_data: SeoResult;
+  created_at: string;
+}
+
+export interface Keyword {
+  keyword: string;
+  count: number;
+  density: number;
+}
+
 /* ------------------------------------------------------------------ */
 /*  Store                                                              */
 /* ------------------------------------------------------------------ */
@@ -122,6 +201,19 @@ interface McpState {
   updateCalendarItem: (id: number, body: { title?: string; content_type?: string; body?: string; scheduled_date?: string; tags?: string[] }) => Promise<void>;
   deleteCalendarItem: (id: number) => Promise<void>;
   loadCalendarOverview: () => Promise<void>;
+
+  /* SEO */
+  seoResult: SeoResult | null;
+  seoAnalyzing: boolean;
+  seoAudits: SeoAuditListItem[];
+  seoAuditsLoading: boolean;
+  seoAuditDetail: SeoAuditDetail | null;
+  keywords: Keyword[];
+  keywordsLoading: boolean;
+  analyzeSeo: (input: { url?: string; html?: string }) => Promise<void>;
+  analyzeKeywords: (text: string, topN?: number) => Promise<void>;
+  loadSeoAudits: () => Promise<void>;
+  loadSeoAudit: (id: number) => Promise<void>;
 }
 
 export const useMcpStore = create<McpState>()((set) => ({
@@ -327,6 +419,63 @@ export const useMcpStore = create<McpState>()((set) => ({
       set({ calendarOverview: data });
     } catch {
       set({ calendarOverview: null });
+    }
+  },
+
+  /* ---- SEO ---- */
+  seoResult: null,
+  seoAnalyzing: false,
+  seoAudits: [],
+  seoAuditsLoading: false,
+  seoAuditDetail: null,
+  keywords: [],
+  keywordsLoading: false,
+
+  analyzeSeo: async (input) => {
+    set({ seoAnalyzing: true, seoResult: null });
+    try {
+      const data = await api.post<SeoResult>("/mcp/seo/analyze", input);
+      set({ seoResult: data });
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Lỗi phân tích SEO";
+      throw new Error(msg);
+    } finally {
+      set({ seoAnalyzing: false });
+    }
+  },
+
+  analyzeKeywords: async (text, topN) => {
+    set({ keywordsLoading: true, keywords: [] });
+    try {
+      const data = await api.post<Keyword[]>("/mcp/seo/keywords", { text, top_n: topN });
+      set({ keywords: data });
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Lỗi phân tích từ khóa";
+      throw new Error(msg);
+    } finally {
+      set({ keywordsLoading: false });
+    }
+  },
+
+  loadSeoAudits: async () => {
+    set({ seoAuditsLoading: true });
+    try {
+      const data = await api.get<SeoAuditListItem[]>("/mcp/seo/audits");
+      set({ seoAudits: data });
+    } catch {
+      set({ seoAudits: [] });
+    } finally {
+      set({ seoAuditsLoading: false });
+    }
+  },
+
+  loadSeoAudit: async (id) => {
+    try {
+      const data = await api.get<SeoAuditDetail>(`/mcp/seo/audits/${id}`);
+      set({ seoAuditDetail: data });
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Lỗi tải audit";
+      throw new Error(msg);
     }
   },
 }));
