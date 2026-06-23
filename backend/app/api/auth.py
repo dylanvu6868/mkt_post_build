@@ -23,63 +23,9 @@ from app.schemas.auth import (
 )
 from app.services import auth_service
 from app.services.email_service import email_service
-from app.services.oauth_service import find_or_create_oauth_user, verify_facebook_token, verify_google_token
+from app.services.oauth_service import find_or_create_oauth_user, verify_google_token
 
 router = APIRouter(prefix="/auth", tags=["auth"])
-
-
-async def _link_facebook_pages(session: AsyncSession, user_id: int, fb_token: str):
-    """Best-effort: save OAuth account + pages when user logs in with Facebook."""
-    from datetime import datetime, timedelta, timezone
-    from sqlalchemy import select
-    from app.core.encryption import encrypt_token
-    from app.models.oauth_account import OAuthAccount
-    from app.models.meta_page import MetaPage
-    from app.mcp.meta.graph_api import get_long_lived_token, get_user_pages
-    from app.core.config import settings
-
-    long_data = await get_long_lived_token(settings.meta_app_id, settings.meta_app_secret, fb_token)
-    access_token = long_data.get("access_token", fb_token)
-    expires_in = long_data.get("expires_in", 5184000)
-
-    existing = (await session.execute(
-        select(OAuthAccount).where(OAuthAccount.user_id == user_id, OAuthAccount.provider == "meta")
-    )).scalar_one_or_none()
-
-    if existing:
-        existing.access_token_enc = encrypt_token(access_token)
-        existing.token_expires_at = datetime.now(timezone.utc) + timedelta(seconds=expires_in)
-    else:
-        session.add(OAuthAccount(
-            user_id=user_id, provider="meta",
-            access_token_enc=encrypt_token(access_token),
-            token_expires_at=datetime.now(timezone.utc) + timedelta(seconds=expires_in),
-            scopes="pages_show_list,pages_read_engagement,pages_manage_posts",
-        ))
-    await session.flush()
-
-    pages = await get_user_pages(access_token)
-    for p in pages:
-        page_id = p["id"]
-        existing_page = (await session.execute(
-            select(MetaPage).where(MetaPage.user_id == user_id, MetaPage.page_id == page_id)
-        )).scalar_one_or_none()
-
-        page_token = p.get("access_token", "")
-        if existing_page:
-            existing_page.page_access_token_enc = encrypt_token(page_token)
-            existing_page.page_name = p.get("name")
-            existing_page.category = p.get("category")
-            existing_page.followers_count = p.get("followers_count", 0)
-        else:
-            session.add(MetaPage(
-                user_id=user_id, page_id=page_id,
-                page_name=p.get("name"), category=p.get("category"),
-                page_access_token_enc=encrypt_token(page_token),
-                followers_count=p.get("followers_count", 0),
-            ))
-    await session.commit()
-    logger.info("Auto-linked %d Facebook pages for user %s", len(pages), user_id)
 
 
 @router.post(
@@ -144,27 +90,6 @@ async def google_login(
         session, "google", profile["oauth_id"], profile["email"], profile["name"]
     )
     logger.info("Google login user_id=%s email=%s", user.id, profile["email"])
-    token = create_access_token(str(user.id))
-    return TokenResponse(access_token=token, user=user_to_response(user))
-
-
-@router.post("/facebook", response_model=TokenResponse)
-@limiter.limit("10/minute")
-async def facebook_login(
-    request: Request,
-    payload: OAuthRequest,
-    session: AsyncSession = Depends(get_session),
-) -> TokenResponse:
-    profile = await verify_facebook_token(payload.token)
-    if profile is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid Facebook token"
-        )
-    user = await find_or_create_oauth_user(
-        session, "facebook", profile["oauth_id"], profile["email"], profile["name"]
-    )
-    logger.info("Facebook login user_id=%s email=%s", user.id, profile["email"])
-
     token = create_access_token(str(user.id))
     return TokenResponse(access_token=token, user=user_to_response(user))
 

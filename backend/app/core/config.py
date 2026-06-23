@@ -30,8 +30,6 @@ class Settings(BaseSettings):
     # OAuth
     google_client_id: str = ""
     google_web_client_id: str = ""
-    facebook_app_id: str = ""
-    facebook_app_secret: str = ""
 
     # SePay payment gateway
     sepay_api_key: str = ""
@@ -47,9 +45,6 @@ class Settings(BaseSettings):
     # MCP Hub (Phase 2)
     mcp_encryption_key: str = ""
     redis_url: str = "redis://localhost:6379"
-    meta_app_id: str = ""
-    meta_app_secret: str = ""
-    meta_redirect_uri: str = "http://localhost:3000/oauth/callback/meta"
     vercel_token: str = ""
     github_token: str = ""
 

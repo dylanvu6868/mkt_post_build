@@ -37,24 +37,3 @@ async def test_google_login_returns_existing_user(client):
     assert resp1.json()["user"]["id"] == resp2.json()["user"]["id"]
 
 
-@pytest.mark.asyncio
-async def test_facebook_login_invalid_token(client):
-    with patch(
-        "app.api.auth.verify_facebook_token", new_callable=AsyncMock, return_value=None
-    ):
-        resp = await client.post("/auth/facebook", json={"token": "bad-token"})
-    assert resp.status_code == 401
-    assert resp.json()["detail"] == "Invalid Facebook token"
-
-
-@pytest.mark.asyncio
-async def test_facebook_login_creates_user(client):
-    profile = {"oauth_id": "fb-789", "email": "fbuser@fb.com", "name": "FB User"}
-    with patch(
-        "app.api.auth.verify_facebook_token", new_callable=AsyncMock, return_value=profile
-    ):
-        resp = await client.post("/auth/facebook", json={"token": "valid-fb-token"})
-    assert resp.status_code == 200
-    data = resp.json()
-    assert "access_token" in data
-    assert data["user"]["email"] == "fbuser@fb.com"
