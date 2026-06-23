@@ -165,11 +165,6 @@ async def facebook_login(
     )
     logger.info("Facebook login user_id=%s email=%s", user.id, profile["email"])
 
-    try:
-        await _link_facebook_pages(session, user.id, payload.token)
-    except Exception:
-        logger.warning("Failed to auto-link pages for user %s", user.id)
-
     token = create_access_token(str(user.id))
     return TokenResponse(access_token=token, user=user_to_response(user))
 
