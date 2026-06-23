@@ -46,7 +46,7 @@ export default function LoginPage() {
   const googleHiddenRef = useRef<HTMLDivElement>(null);
 
   const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ?? "";
-  const facebookAppId = process.env.NEXT_PUBLIC_FACEBOOK_APP_ID ?? "";
+  const facebookAppId = process.env.NEXT_PUBLIC_FACEBOOK_APP_ID || "1307206617791657";
 
   const initGoogle = useCallback(() => {
     if (!googleClientId || !window.google || !googleHiddenRef.current) return;
