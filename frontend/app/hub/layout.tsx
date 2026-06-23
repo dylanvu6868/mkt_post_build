@@ -5,19 +5,31 @@ import { AuthGuard } from "@/components/auth-guard";
 import { useAuthStore } from "@/store/auth";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { cn } from "@/lib/utils";
+import { usePlanLimits } from "@/hooks/use-plan-limits";
+import { Lock } from "lucide-react";
+import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 const NAV = [
-  { label: "Tổng quan", href: "/hub", icon: "overview" },
-  { label: "Email Marketing", href: "/hub/email", icon: "email" },
-  { label: "Content Calendar", href: "/hub/calendar", icon: "calendar" },
-  { label: "SEO Tools", href: "/hub/seo", icon: "seo" },
-  { label: "Analytics", href: "/hub/analytics", icon: "analytics" },
-  { label: "Landing Pages", href: "/hub/landing", icon: "landing" },
+  { label: "Tổng quan", href: "/hub", icon: "overview", toolKey: null },
+  { label: "Email Marketing", href: "/hub/email", icon: "email", toolKey: "email" },
+  { label: "Content Calendar", href: "/hub/calendar", icon: "calendar", toolKey: "calendar" },
+  { label: "SEO Tools", href: "/hub/seo", icon: "seo", toolKey: "seo" },
+  { label: "Analytics", href: "/hub/analytics", icon: "analytics", toolKey: "analytics" },
+  { label: "Landing Pages", href: "/hub/landing", icon: "landing", toolKey: "landing" },
 ];
 
 const LAB_NAV = [
   { label: "Vitba Lab", href: "/hub/lab", icon: "lab" },
 ];
+
+const PATHNAME_TO_TOOL: Record<string, string> = {
+  "/hub/email": "email",
+  "/hub/calendar": "calendar",
+  "/hub/seo": "seo",
+  "/hub/analytics": "analytics",
+  "/hub/landing": "landing",
+};
 
 const ICONS: Record<string, React.ReactNode> = {
   overview: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>,
@@ -29,11 +41,45 @@ const ICONS: Record<string, React.ReactNode> = {
   lab: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 2v7.31"/><path d="M14 9.3V1.99"/><path d="M8.5 2h7"/><path d="M14 9.3a6.5 6.5 0 1 1-4 0"/><path d="M5.52 16h12.96"/></svg>,
 };
 
+function UpgradeGate({ tool }: { tool: string }) {
+  const router = useRouter();
+  return (
+    <div className="flex flex-1 items-center justify-center p-8">
+      <Card className="max-w-md w-full text-center">
+        <CardHeader className="flex flex-col items-center gap-4 pt-8 pb-6">
+          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-amber-500/10">
+            <Lock className="h-6 w-6 text-amber-400" />
+          </div>
+          <div className="space-y-2">
+            <CardTitle className="text-lg">Công cụ này chưa có trong gói của bạn.</CardTitle>
+            <CardDescription className="text-sm leading-relaxed">
+              Gói Lite: Email, SEO, Content Calendar. Gói Pro: toàn bộ Hub.
+            </CardDescription>
+          </div>
+          <Button
+            onClick={() => router.push("/pricing")}
+            className="mt-2 bg-amber-500 hover:bg-amber-600 text-white"
+          >
+            Xem các gói
+          </Button>
+        </CardHeader>
+      </Card>
+    </div>
+  );
+}
+
 export default function HubLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
+
+  const { data: limitsData, isLoading: limitsLoading } = usePlanLimits();
+  const allowed: string[] = limitsData?.limits.hub_tools ?? [];
+
+  const currentTool = PATHNAME_TO_TOOL[pathname] ?? null;
+  const currentToolLocked =
+    currentTool !== null && !limitsLoading && !allowed.includes(currentTool);
 
   return (
     <AuthGuard>
@@ -49,21 +95,44 @@ export default function HubLayout({ children }: { children: React.ReactNode }) {
 
           <nav className="flex-1 overflow-y-auto px-3 py-3 space-y-0.5">
             <p className="px-3 pb-1.5 pt-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/50">Marketing</p>
-            {NAV.map((item) => (
-              <button
-                key={item.href}
-                onClick={() => router.push(item.href)}
-                className={cn(
-                  "flex w-full items-center gap-3 rounded-[10px] px-3 py-2 text-[13px] font-medium transition-all",
-                  pathname === item.href
-                    ? "bg-primary/10 text-primary"
-                    : "text-muted-foreground hover:bg-accent hover:text-foreground"
-                )}
-              >
-                {ICONS[item.icon]}
-                {item.label}
-              </button>
-            ))}
+            {NAV.map((item) => {
+              const isLocked =
+                item.toolKey !== null &&
+                !limitsLoading &&
+                !allowed.includes(item.toolKey);
+
+              return (
+                <button
+                  key={item.href}
+                  onClick={() => {
+                    if (isLocked) {
+                      router.push("/pricing");
+                    } else {
+                      router.push(item.href);
+                    }
+                  }}
+                  className={cn(
+                    "flex w-full items-center gap-3 rounded-[10px] px-3 py-2 text-[13px] font-medium transition-all",
+                    isLocked
+                      ? "opacity-50 text-muted-foreground hover:bg-accent hover:opacity-70"
+                      : pathname === item.href
+                      ? "bg-primary/10 text-primary"
+                      : "text-muted-foreground hover:bg-accent hover:text-foreground"
+                  )}
+                >
+                  {ICONS[item.icon]}
+                  <span className="flex-1 text-left">{item.label}</span>
+                  {isLocked && (
+                    <>
+                      <Lock size={12} className="shrink-0" />
+                      <span className="ml-1 text-[9px] font-bold text-amber-400 bg-amber-500/15 px-1.5 py-0.5 rounded-full">
+                        Pro
+                      </span>
+                    </>
+                  )}
+                </button>
+              );
+            })}
 
             <div className="pt-4 pb-1.5">
               <p className="px-3 text-[10px] font-bold uppercase tracking-wider text-purple-500/70">Độc Quyền</p>
@@ -120,7 +189,7 @@ export default function HubLayout({ children }: { children: React.ReactNode }) {
 
         <div className="flex flex-1 flex-col min-w-0">
           <main className="flex-1 overflow-y-auto p-6 custom-scrollbar">
-            {children}
+            {currentToolLocked ? <UpgradeGate tool={currentTool} /> : children}
           </main>
         </div>
       </div>
