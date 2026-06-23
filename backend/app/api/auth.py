@@ -122,6 +122,9 @@ async def get_my_limits(
             "max_kb_files": limits["max_kb_files"],
             "max_brand_profiles": limits["max_brand_profiles"],
             "history_retention_days": get_history_retention_days(current_user),
+            "hub_tools": sorted(limits["hub_tools"]),
+            "daily_email_sends": limits["daily_email_sends"],
+            "daily_landing_generates": limits["daily_landing_generates"],
         },
         "usage": usage,
     }

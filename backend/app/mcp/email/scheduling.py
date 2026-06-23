@@ -14,6 +14,7 @@ from app.mcp.email.tokens import verify_unsubscribe_token
 from app.services.audit import log_action
 
 router = APIRouter(prefix="/mcp/email", tags=["email-scheduling"])
+public_router = APIRouter(prefix="/mcp/email", tags=["email-scheduling-public"])
 
 
 class ScheduleReq(BaseModel):
@@ -61,7 +62,7 @@ async def cancel_schedule(schedule_id: int, user: User = Depends(get_current_use
     return {"id": sched.id, "status": "cancelled"}
 
 
-@router.post("/unsubscribe/{token}")
+@public_router.post("/unsubscribe/{token}")
 async def unsubscribe(token: str, session: AsyncSession = Depends(get_session)):
     contact_id = verify_unsubscribe_token(token)
     if contact_id is None:

@@ -63,7 +63,8 @@ async def _register(client, email="caluser@example.com"):
         json={"name": "CalUser", "email": email, "password": "secret123"},
     )
     assert resp.status_code == 201
-    return resp.json()["access_token"]
+    data = resp.json()
+    return data["access_token"], data["user"]["id"]
 
 
 async def _create_item(client, headers, **overrides):
@@ -75,8 +76,9 @@ async def _create_item(client, headers, **overrides):
 
 # -- CRUD + ownership -------------------------------------------------------
 
-async def test_create_list_get(client):
-    token = await _register(client)
+async def test_create_list_get(client, promote):
+    token, uid = await _register(client)
+    await promote(uid)
     headers = {"Authorization": f"Bearer {token}"}
 
     # create
@@ -97,9 +99,11 @@ async def test_create_list_get(client):
     assert detail.json()["title"] == "Blog post"
 
 
-async def test_ownership_isolation(client):
-    token_a = await _register(client, "owner_a@example.com")
-    token_b = await _register(client, "owner_b@example.com")
+async def test_ownership_isolation(client, promote):
+    token_a, uid_a = await _register(client, "owner_a@example.com")
+    token_b, uid_b = await _register(client, "owner_b@example.com")
+    await promote(uid_a)
+    await promote(uid_b)
     headers_a = {"Authorization": f"Bearer {token_a}"}
     headers_b = {"Authorization": f"Bearer {token_b}"}
 
@@ -113,8 +117,9 @@ async def test_ownership_isolation(client):
 
 # -- Status transitions -----------------------------------------------------
 
-async def test_status_valid_transition(client):
-    token = await _register(client, "transition@example.com")
+async def test_status_valid_transition(client, promote):
+    token, uid = await _register(client, "transition@example.com")
+    await promote(uid)
     headers = {"Authorization": f"Bearer {token}"}
 
     resp = await _create_item(client, headers)
@@ -130,8 +135,9 @@ async def test_status_valid_transition(client):
     assert patch.json()["status"] == "review"
 
 
-async def test_status_invalid_transition(client):
-    token = await _register(client, "badtrans@example.com")
+async def test_status_invalid_transition(client, promote):
+    token, uid = await _register(client, "badtrans@example.com")
+    await promote(uid)
     headers = {"Authorization": f"Bearer {token}"}
 
     resp = await _create_item(client, headers)
@@ -146,8 +152,9 @@ async def test_status_invalid_transition(client):
     assert patch.status_code == 400
 
 
-async def test_status_unknown_value(client):
-    token = await _register(client, "unknown@example.com")
+async def test_status_unknown_value(client, promote):
+    token, uid = await _register(client, "unknown@example.com")
+    await promote(uid)
     headers = {"Authorization": f"Bearer {token}"}
 
     resp = await _create_item(client, headers)
@@ -161,8 +168,9 @@ async def test_status_unknown_value(client):
     assert patch.status_code == 400
 
 
-async def test_archived_is_terminal(client):
-    token = await _register(client, "archived@example.com")
+async def test_archived_is_terminal(client, promote):
+    token, uid = await _register(client, "archived@example.com")
+    await promote(uid)
     headers = {"Authorization": f"Bearer {token}"}
 
     resp = await _create_item(client, headers)
@@ -186,8 +194,9 @@ async def test_archived_is_terminal(client):
 
 # -- Overview ---------------------------------------------------------------
 
-async def test_overview(client):
-    token = await _register(client, "overview@example.com")
+async def test_overview(client, promote):
+    token, uid = await _register(client, "overview@example.com")
+    await promote(uid)
     headers = {"Authorization": f"Bearer {token}"}
 
     await _create_item(client, headers, title="A", content_type="blog")
@@ -213,8 +222,9 @@ async def test_overview(client):
 
 # -- Filters ----------------------------------------------------------------
 
-async def test_filter_by_status(client):
-    token = await _register(client, "filterstatus@example.com")
+async def test_filter_by_status(client, promote):
+    token, uid = await _register(client, "filterstatus@example.com")
+    await promote(uid)
     headers = {"Authorization": f"Bearer {token}"}
 
     await _create_item(client, headers, title="Draft1")
@@ -232,8 +242,9 @@ async def test_filter_by_status(client):
     assert listing.json()[0]["title"] == "Draft1"
 
 
-async def test_filter_by_content_type(client):
-    token = await _register(client, "filtertype@example.com")
+async def test_filter_by_content_type(client, promote):
+    token, uid = await _register(client, "filtertype@example.com")
+    await promote(uid)
     headers = {"Authorization": f"Bearer {token}"}
 
     await _create_item(client, headers, title="Blog1", content_type="blog")
@@ -247,8 +258,9 @@ async def test_filter_by_content_type(client):
 
 # -- Delete -----------------------------------------------------------------
 
-async def test_delete_then_get_404(client):
-    token = await _register(client, "deleter@example.com")
+async def test_delete_then_get_404(client, promote):
+    token, uid = await _register(client, "deleter@example.com")
+    await promote(uid)
     headers = {"Authorization": f"Bearer {token}"}
 
     resp = await _create_item(client, headers)
@@ -263,9 +275,11 @@ async def test_delete_then_get_404(client):
 
 # -- Ownership mutation tests (Fix 1) -----------------------------------------
 
-async def test_patch_ownership_404(client):
-    token_a = await _register(client, "patch_owner_a@example.com")
-    token_b = await _register(client, "patch_owner_b@example.com")
+async def test_patch_ownership_404(client, promote):
+    token_a, uid_a = await _register(client, "patch_owner_a@example.com")
+    token_b, uid_b = await _register(client, "patch_owner_b@example.com")
+    await promote(uid_a)
+    await promote(uid_b)
     headers_a = {"Authorization": f"Bearer {token_a}"}
     headers_b = {"Authorization": f"Bearer {token_b}"}
 
@@ -289,9 +303,11 @@ async def test_patch_ownership_404(client):
     assert patch_status.status_code == 404
 
 
-async def test_delete_ownership_404(client):
-    token_a = await _register(client, "del_owner_a@example.com")
-    token_b = await _register(client, "del_owner_b@example.com")
+async def test_delete_ownership_404(client, promote):
+    token_a, uid_a = await _register(client, "del_owner_a@example.com")
+    token_b, uid_b = await _register(client, "del_owner_b@example.com")
+    await promote(uid_a)
+    await promote(uid_b)
     headers_a = {"Authorization": f"Bearer {token_a}"}
     headers_b = {"Authorization": f"Bearer {token_b}"}
 
@@ -310,8 +326,9 @@ async def test_delete_ownership_404(client):
 
 # -- published_date tests (Fix 2) ---------------------------------------------
 
-async def test_published_date_stamped(client):
-    token = await _register(client, "pubdate@example.com")
+async def test_published_date_stamped(client, promote):
+    token, uid = await _register(client, "pubdate@example.com")
+    await promote(uid)
     headers = {"Authorization": f"Bearer {token}"}
 
     resp = await _create_item(client, headers, title="Publish me")
