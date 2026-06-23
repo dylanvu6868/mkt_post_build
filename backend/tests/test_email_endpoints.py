@@ -275,3 +275,66 @@ async def test_cancel_non_pending_returns_400(client):
         f"/mcp/email/cancel-schedule?schedule_id={sid}", headers=h
     )
     assert resp.status_code == 400
+
+
+# ── Regression: unsubscribe duplicate email across users ──────────────
+
+
+async def test_unsubscribe_duplicate_email_across_users_no_crash(client):
+    """scalar_one_or_none() crashed when the same email existed for multiple users."""
+    token_a = await _register(client, "owner_a@example.com")
+    token_b = await _register(client, "owner_b@example.com")
+    h_a = {"Authorization": f"Bearer {token_a}"}
+    h_b = {"Authorization": f"Bearer {token_b}"}
+
+    dup_email = "dup@example.com"
+
+    # Both users create a contact with the same email address
+    await client.post("/mcp/email/contacts", json={"email": dup_email}, headers=h_a)
+    await client.post("/mcp/email/contacts", json={"email": dup_email}, headers=h_b)
+
+    # Unsubscribe must NOT 500 even though two rows match
+    resp = await client.post(f"/mcp/email/unsubscribe/{dup_email}")
+    assert resp.status_code == 200
+    assert resp.json()["status"] == "unsubscribed"
+
+    # Never-seen email returns 404
+    resp = await client.post("/mcp/email/unsubscribe/nosuch@example.com")
+    assert resp.status_code == 404
+
+
+# ── Regression: add same contact to list twice is idempotent ──────────
+
+
+async def test_add_same_contact_twice_is_idempotent(client):
+    """Duplicate insert into composite-PK table raised IntegrityError (500)."""
+    token = await _register(client)
+    h = {"Authorization": f"Bearer {token}"}
+
+    # Create a contact and a list
+    r = await client.post("/mcp/email/contacts", json={"email": "c@ex.com"}, headers=h)
+    cid = r.json()["id"]
+    r = await client.post("/mcp/email/lists", json={"name": "L"}, headers=h)
+    lid = r.json()["id"]
+
+    # First add
+    resp = await client.post(
+        f"/mcp/email/lists/{lid}/contacts",
+        json={"contact_ids": [cid]},
+        headers=h,
+    )
+    assert resp.status_code == 200
+    assert resp.json()["added"] == 1
+
+    # Second add — must NOT 500, should be a no-op
+    resp = await client.post(
+        f"/mcp/email/lists/{lid}/contacts",
+        json={"contact_ids": [cid]},
+        headers=h,
+    )
+    assert resp.status_code == 200
+    assert resp.json()["added"] == 0  # already present, nothing new added
+
+    # contact_count must be 1, not 2
+    resp = await client.get("/mcp/email/lists", headers=h)
+    assert resp.json()[0]["contact_count"] == 1

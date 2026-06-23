@@ -49,12 +49,21 @@ async def add_contacts_to_list(list_id: int, body: ListContactsReq, user: User =
     lst = await session.get(EmailList, list_id)
     if not lst or lst.user_id != user.id:
         raise HTTPException(404, "List not found")
+    # Fetch contact_ids already in the list to avoid duplicate PK inserts
+    existing = set((await session.execute(
+        select(email_list_contacts.c.contact_id).where(email_list_contacts.c.list_id == list_id)
+    )).scalars().all())
+    added = 0
     for cid in body.contact_ids:
+        if cid in existing:
+            continue
         contact = await session.get(EmailContact, cid)
         if contact and contact.user_id == user.id:
             await session.execute(email_list_contacts.insert().values(list_id=list_id, contact_id=cid))
+            existing.add(cid)
+            added += 1
     await session.commit()
-    return {"added": len(body.contact_ids)}
+    return {"added": added}
 
 
 @router.delete("/{list_id}/contacts")

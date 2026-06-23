@@ -64,7 +64,7 @@ async def cancel_schedule(schedule_id: int, user: User = Depends(get_current_use
 async def unsubscribe(token: str, session: AsyncSession = Depends(get_session)):
     contact = (await session.execute(
         select(EmailContact).where(EmailContact.email == token)
-    )).scalar_one_or_none()
+    )).scalars().first()
     if not contact:
         raise HTTPException(404, "Contact not found")
     contact.status = "unsubscribed"
