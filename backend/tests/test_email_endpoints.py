@@ -7,14 +7,16 @@ async def _register(client, email="user@example.com"):
         "/auth/register",
         json={"name": "User", "email": email, "password": "secret123"},
     )
-    return resp.json()["access_token"]
+    data = resp.json()
+    return data["access_token"], data["user"]["id"]
 
 
 # ── Templates ──────────────────────────────────────────────────────────
 
 
-async def test_template_crud(client):
-    token = await _register(client)
+async def test_template_crud(client, promote):
+    token, uid = await _register(client)
+    await promote(uid)
     h = {"Authorization": f"Bearer {token}"}
 
     # create
@@ -55,9 +57,11 @@ async def test_template_crud(client):
     assert resp.json() == []
 
 
-async def test_template_ownership_isolation(client):
-    token_a = await _register(client, "a@example.com")
-    token_b = await _register(client, "b@example.com")
+async def test_template_ownership_isolation(client, promote):
+    token_a, uid_a = await _register(client, "a@example.com")
+    token_b, uid_b = await _register(client, "b@example.com")
+    await promote(uid_a)
+    await promote(uid_b)
     h_a = {"Authorization": f"Bearer {token_a}"}
     h_b = {"Authorization": f"Bearer {token_b}"}
 
@@ -76,8 +80,9 @@ async def test_template_ownership_isolation(client):
 # ── Contacts ───────────────────────────────────────────────────────────
 
 
-async def test_contact_create_and_list(client):
-    token = await _register(client)
+async def test_contact_create_and_list(client, promote):
+    token, uid = await _register(client)
+    await promote(uid)
     h = {"Authorization": f"Bearer {token}"}
 
     resp = await client.post(
@@ -92,8 +97,9 @@ async def test_contact_create_and_list(client):
     assert len(resp.json()) == 1
 
 
-async def test_contact_csv_import(client):
-    token = await _register(client)
+async def test_contact_csv_import(client, promote):
+    token, uid = await _register(client)
+    await promote(uid)
     h = {"Authorization": f"Bearer {token}"}
 
     csv_bytes = b"email,name,tags\nbob@ex.com,Bob,vip\ncarl@ex.com,Carl,lead\n"
@@ -109,8 +115,9 @@ async def test_contact_csv_import(client):
     assert len(resp.json()) == 2
 
 
-async def test_contact_filter_by_tag(client):
-    token = await _register(client)
+async def test_contact_filter_by_tag(client, promote):
+    token, uid = await _register(client)
+    await promote(uid)
     h = {"Authorization": f"Bearer {token}"}
 
     await client.post("/mcp/email/contacts", json={"email": "a@ex.com", "tags": ["vip"]}, headers=h)
@@ -121,8 +128,9 @@ async def test_contact_filter_by_tag(client):
     assert resp.json()[0]["email"] == "a@ex.com"
 
 
-async def test_contact_filter_by_status(client):
-    token = await _register(client)
+async def test_contact_filter_by_status(client, promote):
+    token, uid = await _register(client)
+    await promote(uid)
     h = {"Authorization": f"Bearer {token}"}
 
     resp = await client.post("/mcp/email/contacts", json={"email": "a@ex.com"}, headers=h)
@@ -144,8 +152,9 @@ async def test_contact_filter_by_status(client):
 # ── Lists ──────────────────────────────────────────────────────────────
 
 
-async def test_list_crud_with_contacts(client):
-    token = await _register(client)
+async def test_list_crud_with_contacts(client, promote):
+    token, uid = await _register(client)
+    await promote(uid)
     h = {"Authorization": f"Bearer {token}"}
 
     # create contacts
@@ -203,8 +212,9 @@ async def _create_template_and_list(client, headers):
     return t.json()["id"], l.json()["id"]
 
 
-async def test_schedule_and_cancel(client):
-    token = await _register(client)
+async def test_schedule_and_cancel(client, promote):
+    token, uid = await _register(client)
+    await promote(uid)
     h = {"Authorization": f"Bearer {token}"}
     tid, lid = await _create_template_and_list(client, h)
 
@@ -230,8 +240,9 @@ async def test_schedule_and_cancel(client):
     assert resp.json()["status"] == "cancelled"
 
 
-async def test_schedule_nonexistent_template_404(client):
-    token = await _register(client)
+async def test_schedule_nonexistent_template_404(client, promote):
+    token, uid = await _register(client)
+    await promote(uid)
     h = {"Authorization": f"Bearer {token}"}
     _, lid = await _create_template_and_list(client, h)
 
@@ -243,8 +254,9 @@ async def test_schedule_nonexistent_template_404(client):
     assert resp.status_code == 404
 
 
-async def test_schedule_nonexistent_list_404(client):
-    token = await _register(client)
+async def test_schedule_nonexistent_list_404(client, promote):
+    token, uid = await _register(client)
+    await promote(uid)
     h = {"Authorization": f"Bearer {token}"}
     tid, _ = await _create_template_and_list(client, h)
 
@@ -256,8 +268,9 @@ async def test_schedule_nonexistent_list_404(client):
     assert resp.status_code == 404
 
 
-async def test_cancel_non_pending_returns_400(client):
-    token = await _register(client)
+async def test_cancel_non_pending_returns_400(client, promote):
+    token, uid = await _register(client)
+    await promote(uid)
     h = {"Authorization": f"Bearer {token}"}
     tid, lid = await _create_template_and_list(client, h)
 
@@ -281,9 +294,10 @@ async def test_cancel_non_pending_returns_400(client):
 # ── Regression: unsubscribe duplicate email across users ──────────────
 
 
-async def test_unsubscribe_valid_token(client):
+async def test_unsubscribe_valid_token(client, promote):
     """Valid HMAC token for an existing contact sets status = 'unsubscribed'."""
-    token = await _register(client, "owner@example.com")
+    token, uid = await _register(client, "owner@example.com")
+    await promote(uid)
     h = {"Authorization": f"Bearer {token}"}
 
     resp = await client.post(
@@ -315,9 +329,10 @@ async def test_unsubscribe_valid_token_nonexistent_contact_returns_404(client):
 # ── Regression: add same contact to list twice is idempotent ──────────
 
 
-async def test_add_same_contact_twice_is_idempotent(client):
+async def test_add_same_contact_twice_is_idempotent(client, promote):
     """Duplicate insert into composite-PK table raised IntegrityError (500)."""
-    token = await _register(client)
+    token, uid = await _register(client)
+    await promote(uid)
     h = {"Authorization": f"Bearer {token}"}
 
     # Create a contact and a list

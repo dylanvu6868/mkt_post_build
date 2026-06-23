@@ -38,3 +38,16 @@ async def client(session_maker):
     async with AsyncClient(transport=transport, base_url="http://test") as ac:
         yield ac
     app.dependency_overrides.clear()
+
+
+@pytest_asyncio.fixture
+async def promote(session_maker):
+    async def _promote(user_id: int, plan: str = "max"):
+        from datetime import datetime, timedelta, timezone
+        from app.models.user import User
+        async with session_maker() as s:
+            u = await s.get(User, user_id)
+            u.plan = plan
+            u.plan_expires_at = datetime.now(timezone.utc) + timedelta(days=365)
+            await s.commit()
+    return _promote

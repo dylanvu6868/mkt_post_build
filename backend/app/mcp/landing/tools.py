@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_user
 from app.core.db import get_session
+from app.core.plan_limits import check_daily_landing_generates
 from app.models.landing_page import LandingPage
 from app.models.user import User
 from app.services.audit import log_action
@@ -65,7 +66,10 @@ async def create_page(body: PageCreate, user: User = Depends(get_current_user), 
 
 
 @router.post("/mcp/landing/generate")
-async def generate_page(body: GenerateReq, user: User = Depends(get_current_user)):
+async def generate_page(body: GenerateReq, user: User = Depends(get_current_user), session: AsyncSession = Depends(get_session)):
+    allowed, used, limit = await check_daily_landing_generates(session, user)
+    if not allowed:
+        raise HTTPException(429, f"Bạn đã đạt giới hạn tạo landing page trong ngày của gói hiện tại ({limit}/ngày). Vui lòng nâng cấp.")
     from app.llm.factory import get_chat_model, provider_available
     if not provider_available():
         raise HTTPException(503, "LLM provider not configured")
@@ -84,6 +88,7 @@ async def generate_page(body: GenerateReq, user: User = Depends(get_current_user
     html = (response.content if isinstance(response.content, str) else str(response.content)).strip()
     if html.startswith("```"):
         html = html.split("\n", 1)[-1].rsplit("```", 1)[0].strip()
+    await log_action(session, user.id, "landing.generate", "landing_page", None)
     return {"html": html}
 
 

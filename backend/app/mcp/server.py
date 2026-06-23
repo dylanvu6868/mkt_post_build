@@ -1,9 +1,10 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.db import get_session
 from app.api.deps import get_current_user
+from app.core.plan_limits import check_daily_email_sends
 from app.models.user import User
 from app.mcp.email import tools as email_tools
 
@@ -29,11 +30,17 @@ class BatchEmailReq(BaseModel):
 
 @router.post("/email/send")
 async def send_email(body: EmailReq, user: User = Depends(get_current_user), session: AsyncSession = Depends(get_session)):
+    allowed, used, limit = await check_daily_email_sends(session, user)
+    if not allowed:
+        raise HTTPException(429, f"Bạn đã đạt giới hạn gửi email trong ngày của gói hiện tại ({limit}/ngày). Vui lòng nâng cấp.")
     return await email_tools.send_email(session, user.id, body.to, body.subject, body.html, body.from_email)
 
 
 @router.post("/email/batch")
 async def send_batch(body: BatchEmailReq, user: User = Depends(get_current_user), session: AsyncSession = Depends(get_session)):
+    allowed, used, limit = await check_daily_email_sends(session, user)
+    if not allowed:
+        raise HTTPException(429, f"Bạn đã đạt giới hạn gửi email trong ngày của gói hiện tại ({limit}/ngày). Vui lòng nâng cấp.")
     return await email_tools.send_batch(session, user.id, body.recipients, body.subject, body.html_template, body.from_email)
 
 
