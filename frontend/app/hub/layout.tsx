@@ -7,7 +7,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { cn } from "@/lib/utils";
 
 const NAV = [
-  { label: "Tong quan", href: "/hub", icon: "overview" },
+  { label: "Tổng quan", href: "/hub", icon: "overview" },
   { label: "Email Marketing", href: "/hub/email", icon: "email" },
   { label: "Content Calendar", href: "/hub/calendar", icon: "calendar" },
   { label: "SEO Tools", href: "/hub/seo", icon: "seo" },

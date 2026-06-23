@@ -16,7 +16,7 @@ interface AuthState {
   user: User | null;
   login: (email: string, password: string) => Promise<void>;
   register: (name: string, email: string, password: string) => Promise<void>;
-  socialLogin: (provider: "google" | "facebook", token: string) => Promise<void>;
+  socialLogin: (provider: "google", token: string) => Promise<void>;
   refreshUser: () => Promise<void>;
   logout: () => void;
 }

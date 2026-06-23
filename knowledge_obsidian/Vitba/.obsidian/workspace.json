@@ -11,10 +11,10 @@
             "id": "c593ae5172028645",
             "type": "leaf",
             "state": {
-              "type": "empty",
+              "type": "graph",
               "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
+              "icon": "lucide-git-fork",
+              "title": "Graph view"
             }
           }
         ]
@@ -193,7 +193,7 @@
       "bases:Create new base": false
     }
   },
-  "active": "a1f1b4ba3edbaba4",
+  "active": "c593ae5172028645",
   "lastOpenFiles": [
     "Untitled.base",
     "Welcome.md"

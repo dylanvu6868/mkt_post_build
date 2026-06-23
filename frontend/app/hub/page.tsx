@@ -13,14 +13,14 @@ export default function HubOverviewPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">Trung tam Marketing</h1>
-        <p className="text-sm text-muted-foreground mt-1">Email, SEO, Content, Landing Pages - tat ca trong mot.</p>
+        <h1 className="text-2xl font-bold">Trung tâm Marketing</h1>
+        <p className="text-sm text-muted-foreground mt-1">Email, SEO, Content, Landing Pages - tất cả trong một.</p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader>
-            <CardDescription>Email da gui</CardDescription>
+            <CardDescription>Email đã gửi</CardDescription>
             <CardTitle className="text-3xl">
               {emailStatsLoading ? <Skeleton className="h-9 w-16" /> : emailStats?.total_sent ?? 0}
             </CardTitle>
@@ -28,7 +28,7 @@ export default function HubOverviewPage() {
         </Card>
         <Card>
           <CardHeader>
-            <CardDescription>Ty le mo</CardDescription>
+            <CardDescription>Tỷ lệ mở</CardDescription>
             <CardTitle className="text-3xl">
               {emailStatsLoading ? <Skeleton className="h-9 w-16" /> : `${emailStats?.open_rate ?? 0}%`}
             </CardTitle>
@@ -36,7 +36,7 @@ export default function HubOverviewPage() {
         </Card>
         <Card>
           <CardHeader>
-            <CardDescription>Ty le click</CardDescription>
+            <CardDescription>Tỷ lệ click</CardDescription>
             <CardTitle className="text-3xl">
               {emailStatsLoading ? <Skeleton className="h-9 w-16" /> : `${emailStats?.click_rate ?? 0}%`}
             </CardTitle>
@@ -44,7 +44,7 @@ export default function HubOverviewPage() {
         </Card>
         <Card>
           <CardHeader>
-            <CardDescription>Chien dich</CardDescription>
+            <CardDescription>Chiến dịch</CardDescription>
             <CardTitle className="text-3xl">
               {emailStatsLoading ? <Skeleton className="h-9 w-16" /> : emailStats?.campaigns ?? 0}
             </CardTitle>
