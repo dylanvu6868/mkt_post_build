@@ -115,6 +115,9 @@ app.include_router(email_contacts_router)
 app.include_router(email_lists_router)
 app.include_router(email_scheduling_router)
 
+from app.mcp.calendar.tools import router as calendar_router
+app.include_router(calendar_router)
+
 
 @app.get("/health")
 def health() -> dict[str, str]:
