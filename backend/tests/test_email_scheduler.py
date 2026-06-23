@@ -5,6 +5,7 @@ deterministic and independent of wall-clock time.
 """
 
 import pytest
+import httpx
 from datetime import datetime, timezone
 from unittest.mock import AsyncMock, patch
 
@@ -297,3 +298,42 @@ async def test_recipients_carry_unsubscribe_url(seeded):
         # Token must be non-trivial (at least 10 chars)
         token = r["unsubscribe_url"].split("/mcp/email/unsubscribe/")[1]
         assert len(token) > 10
+
+
+@pytest.mark.asyncio
+async def test_send_batch_exception_marks_failed(seeded):
+    """When send_batch raises, the row must be re-fetched after rollback and marked 'failed'.
+
+    This test exercises the rollback branch (FIX 1). It would fail against the
+    old code that wrote sched.status on a detached/expired object after rollback.
+    """
+    maker, ids = seeded
+
+    async with maker() as session:
+        sched = ScheduledEmail(
+            user_id=ids["user_id"],
+            template_id=ids["template_id"],
+            list_id=ids["list_id"],
+            scheduled_at=PAST,
+            status="pending",
+        )
+        session.add(sched)
+        await session.commit()
+        sched_id = sched.id
+
+    mock_send = AsyncMock(side_effect=httpx.HTTPError("Resend API down"))
+
+    with patch("app.mcp.email.scheduler.email_tools.send_batch", mock_send):
+        result = await process_due_scheduled_emails(maker, now=NOW)
+
+    # Accounting must reflect one processed, zero sent, one failed
+    assert result == {"processed": 1, "sent": 0, "failed": 1}
+
+    # send_batch must have been called (we hit the send path, not an earlier guard)
+    mock_send.assert_called_once()
+
+    # Row must be persisted as "failed" — re-query from a fresh session
+    async with maker() as session:
+        row = await session.get(ScheduledEmail, sched_id)
+        assert row is not None
+        assert row.status == "failed"

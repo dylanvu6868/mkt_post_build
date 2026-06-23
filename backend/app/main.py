@@ -87,6 +87,9 @@ async def start_scheduler():
     # Never start the infinite loop during pytest — conftest sets ENVIRONMENT=test.
     if os.environ.get("ENVIRONMENT") == "test":
         return
+    if not settings.resend_api_key:
+        logger.info("Email scheduler disabled: RESEND_API_KEY not set")
+        return
     from app.mcp.email.scheduler import scheduler_loop
     asyncio.create_task(scheduler_loop())
 

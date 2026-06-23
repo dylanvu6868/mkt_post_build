@@ -33,7 +33,7 @@ def _parse_due(scheduled_at: str) -> datetime | None:
 async def process_due_scheduled_emails(
     session_maker: async_sessionmaker,
     now: datetime | None = None,
-) -> dict:
+) -> dict[str, int]:
     """Find pending ScheduledEmail rows whose scheduled_at <= now, send each via
     send_batch, and mark sent/failed.
 
@@ -95,6 +95,8 @@ async def process_due_scheduled_emails(
                         tpl.subject,
                         tpl.html_body,
                     )
+                # no active recipients → schedule completed as a no-op
+                # (status stays within the pending/sent/failed/cancelled enum)
 
                 sched.status = "sent"
                 sched.sent_at = now
@@ -103,10 +105,13 @@ async def process_due_scheduled_emails(
 
             except Exception:
                 logger.exception("Failed to send scheduled email %s", sched.id)
+                sched_id = sched.id
                 await session.rollback()
-                sched.status = "failed"
+                sched = await session.get(ScheduledEmail, sched_id)
+                if sched is not None:
+                    sched.status = "failed"
+                    await session.commit()
                 failed += 1
-                await session.commit()
 
     return {"processed": processed, "sent": sent, "failed": failed}
 
