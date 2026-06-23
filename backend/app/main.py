@@ -105,6 +105,16 @@ app.include_router(images.router)
 app.include_router(mcp_router)
 app.include_router(lab.router)
 
+from app.mcp.email.templates import router as email_templates_router
+from app.mcp.email.contacts import router as email_contacts_router
+from app.mcp.email.lists import router as email_lists_router
+from app.mcp.email.scheduling import router as email_scheduling_router
+
+app.include_router(email_templates_router)
+app.include_router(email_contacts_router)
+app.include_router(email_lists_router)
+app.include_router(email_scheduling_router)
+
 
 @app.get("/health")
 def health() -> dict[str, str]:
