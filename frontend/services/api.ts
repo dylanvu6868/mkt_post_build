@@ -1,5 +1,7 @@
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
+export const API_BASE_URL = BASE_URL;
+
 export class ApiError extends Error {
   constructor(
     public status: number,
@@ -9,7 +11,7 @@ export class ApiError extends Error {
   }
 }
 
-function getToken(): string | null {
+export function getToken(): string | null {
   if (typeof window === "undefined") return null;
   try {
     const raw = localStorage.getItem("auth-storage");

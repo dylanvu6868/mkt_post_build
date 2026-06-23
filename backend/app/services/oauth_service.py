@@ -10,7 +10,6 @@ from app.models.user import User
 logger = logging.getLogger(__name__)
 
 GOOGLE_TOKENINFO_URL = "https://oauth2.googleapis.com/tokeninfo"
-FACEBOOK_GRAPH_URL = "https://graph.facebook.com/v19.0/me"
 
 
 async def verify_google_token(id_token: str) -> dict | None:
@@ -27,24 +26,6 @@ async def verify_google_token(id_token: str) -> dict | None:
         return None
     return {
         "oauth_id": data["sub"],
-        "email": data["email"],
-        "name": data.get("name", data.get("email", "")),
-    }
-
-
-async def verify_facebook_token(access_token: str) -> dict | None:
-    async with httpx.AsyncClient() as client:
-        resp = await client.get(
-            FACEBOOK_GRAPH_URL,
-            params={"fields": "id,name,email", "access_token": access_token},
-        )
-    if resp.status_code != 200:
-        return None
-    data = resp.json()
-    if "email" not in data:
-        return None
-    return {
-        "oauth_id": data["id"],
         "email": data["email"],
         "name": data.get("name", data.get("email", "")),
     }

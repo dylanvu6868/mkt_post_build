@@ -36,20 +36,13 @@ export default function TermsPage() {
         <li>Chúng tôi không sử dụng nội dung của bạn để huấn luyện AI</li>
       </ul>
 
-      <h2>6. Tích hợp Facebook</h2>
-      <ul>
-        <li>Khi kết nối Facebook, bạn cho phép Vitba AI đăng bài lên trang bạn quản lý</li>
-        <li>Bạn có thể hủy kết nối bất kỳ lúc nào</li>
-        <li>Vitba AI tuân thủ chính sách nền tảng của Meta</li>
-      </ul>
-
-      <h2>7. Giới hạn trách nhiệm</h2>
+      <h2>6. Giới hạn trách nhiệm</h2>
       <p>Vitba AI cung cấp dịch vụ &ldquo;nguyên trạng&rdquo;. Chúng tôi không chịu trách nhiệm cho thiệt hại phát sinh từ việc sử dụng nội dung do AI tạo ra hoặc gián đoạn dịch vụ.</p>
 
-      <h2>8. Chấm dứt</h2>
+      <h2>7. Chấm dứt</h2>
       <p>Chúng tôi có quyền tạm ngưng hoặc xóa tài khoản vi phạm điều khoản mà không cần thông báo trước.</p>
 
-      <h2>9. Liên hệ</h2>
+      <h2>8. Liên hệ</h2>
       <p>Email: <a href="mailto:dylanvu6868@gmail.com" className="text-foreground underline">dylanvu6868@gmail.com</a></p>
     </div>
   );

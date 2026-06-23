@@ -6,7 +6,7 @@ from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from app.api import admin, auth, brand, chat, conversations, documents, generate, history, images, oauth_callbacks, payments, projects, templates, lab
+from app.api import admin, auth, brand, chat, conversations, documents, generate, history, images, payments, projects, templates, lab
 from app.mcp.server import router as mcp_router
 from app.core.config import settings
 from app.core.rate_limit import limiter
@@ -21,6 +21,14 @@ if settings.jwt_secret == "change-me":
     logger.warning("JWT_SECRET is using the default value — change it in production!")
 
 
+_RELAXED_CSP = (
+    "default-src 'self'; img-src * data:; font-src * data:; "
+    "style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; "
+    "frame-ancestors 'none'"
+)
+_STRICT_CSP = "default-src 'self'; frame-ancestors 'none'"
+
+
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         response: Response = await call_next(request)
@@ -28,7 +36,11 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response.headers["X-Frame-Options"] = "DENY"
         response.headers["X-XSS-Protection"] = "1; mode=block"
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-        response.headers["Content-Security-Policy"] = "default-src 'self'; frame-ancestors 'none'"
+        path = request.url.path
+        if path.startswith("/p/") or path == "/mcp/landing/preview":
+            response.headers["Content-Security-Policy"] = _RELAXED_CSP
+        else:
+            response.headers["Content-Security-Policy"] = _STRICT_CSP
         response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
         if settings.environment == "production":
             response.headers["Strict-Transport-Security"] = (
@@ -64,6 +76,22 @@ async def ensure_tables():
     import app.models  # noqa: F401 — register all models
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+
+
+@app.on_event("startup")
+async def start_scheduler():
+    import asyncio
+    import os
+    if not settings.scheduler_enabled:
+        return
+    # Never start the infinite loop during pytest — conftest sets ENVIRONMENT=test.
+    if os.environ.get("ENVIRONMENT") == "test":
+        return
+    if not settings.resend_api_key:
+        logger.info("Email scheduler disabled: RESEND_API_KEY not set")
+        return
+    from app.mcp.email.scheduler import scheduler_loop
+    asyncio.create_task(scheduler_loop())
 
 @app.on_event("startup")
 async def seed_admin():
@@ -102,9 +130,31 @@ app.include_router(generate.router)
 app.include_router(history.router)
 app.include_router(templates.router)
 app.include_router(images.router)
-app.include_router(oauth_callbacks.router)
 app.include_router(mcp_router)
 app.include_router(lab.router)
+
+from app.mcp.email.templates import router as email_templates_router
+from app.mcp.email.contacts import router as email_contacts_router
+from app.mcp.email.lists import router as email_lists_router
+from app.mcp.email.scheduling import router as email_scheduling_router
+
+app.include_router(email_templates_router)
+app.include_router(email_contacts_router)
+app.include_router(email_lists_router)
+app.include_router(email_scheduling_router)
+
+from app.mcp.calendar.tools import router as calendar_router
+app.include_router(calendar_router)
+
+from app.mcp.seo.tools import router as seo_router
+app.include_router(seo_router)
+
+from app.mcp.analytics.tools import router as analytics_router
+app.include_router(analytics_router)
+
+from app.mcp.landing.tools import router as landing_router, public_router as landing_public_router
+app.include_router(landing_router)
+app.include_router(landing_public_router)
 
 
 @app.get("/health")

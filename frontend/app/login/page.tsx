@@ -13,8 +13,6 @@ import { Check, Mail, Lock, Sparkles, Search, TrendingUp, Calendar, ShieldCheck,
 declare global {
   interface Window {
     google?: any;
-    FB?: any;
-    fbAsyncInit?: () => void;
   }
 }
 
@@ -47,27 +45,6 @@ export default function LoginPage() {
   const googleHiddenRef = useRef<HTMLDivElement>(null);
 
   const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ?? "";
-  const facebookAppId = process.env.NEXT_PUBLIC_FACEBOOK_APP_ID || "1307206617791657";
-
-  const checkFbLoginStatus = useCallback(() => {
-    window.FB?.getLoginStatus((response: any) => {
-      if (response.status === "connected" && response.authResponse) {
-        console.log("[FB] Already connected, token available");
-      }
-    });
-  }, []);
-
-  useEffect(() => {
-    if (!facebookAppId) return;
-    window.fbAsyncInit = function () {
-      window.FB?.init({ appId: facebookAppId, cookie: true, xfbml: true, version: "v21.0" });
-      checkFbLoginStatus();
-    };
-    if (window.FB) {
-      window.FB.init({ appId: facebookAppId, cookie: true, xfbml: true, version: "v21.0" });
-      checkFbLoginStatus();
-    }
-  }, [facebookAppId, checkFbLoginStatus]);
 
   const initGoogle = useCallback(() => {
     if (!googleClientId || !window.google || !googleHiddenRef.current) return;
@@ -96,34 +73,6 @@ export default function LoginPage() {
   useEffect(() => {
     initGoogle();
   }, [initGoogle, isRegister]);
-
-  const handleFacebookLogin = () => {
-    if (!window.FB) {
-      toast.info("Đăng nhập Facebook sắp ra mắt!");
-      return;
-    }
-    window.FB.login(
-      (response: any) => {
-        if (!response.authResponse) {
-          toast.error("Facebook login cancelled");
-          return;
-        }
-        setSocialLoading(true);
-        socialLogin("facebook", response.authResponse.accessToken)
-          .then(() => {
-            toast.success("Đăng nhập & kết nối Facebook thành công!");
-            router.push("/dashboard");
-          })
-          .catch(() => {
-            toast.error("Facebook login failed");
-          })
-          .finally(() => {
-            setSocialLoading(false);
-          });
-      },
-      { scope: "public_profile" }
-    );
-  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -208,13 +157,6 @@ export default function LoginPage() {
       {googleClientId && (
         <Script src="https://accounts.google.com/gsi/client" strategy="afterInteractive" onLoad={initGoogle} />
       )}
-      {facebookAppId && (
-        <Script
-          src="https://connect.facebook.net/en_US/sdk.js"
-          strategy="afterInteractive"
-        />
-      )}
-
       <main
         className="h-screen w-full text-neutral-100 flex flex-col lg:flex-row relative overflow-hidden font-sans"
         style={{ background: "linear-gradient(135deg, #080600 0%, #150f00 35%, #221800 65%, #302200 100%)" }}
@@ -418,17 +360,6 @@ export default function LoginPage() {
                     <div ref={googleHiddenRef} className="absolute inset-0 z-10 opacity-[0.01] cursor-pointer [&_iframe]{width:48px!important;height:48px!important;border-radius:50%!important}" />
                   </div>
                 )}
-                <button
-                  type="button"
-                  onClick={handleFacebookLogin}
-                  disabled={socialLoading}
-                  className="w-12 h-12 rounded-full bg-white/[0.06] border border-white/10 hover:bg-white/[0.1] hover:border-[#1877F2]/40 hover:shadow-[0_0_15px_rgba(24,119,242,0.15)] transition-all duration-300 flex items-center justify-center disabled:opacity-50 group"
-                  title="Đăng nhập bằng Facebook"
-                >
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="#1877F2">
-                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-                  </svg>
-                </button>
                 {socialLoading && (
                   <p className="text-xs text-neutral-400">Đang xử lý...</p>
                 )}
