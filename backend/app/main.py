@@ -21,6 +21,14 @@ if settings.jwt_secret == "change-me":
     logger.warning("JWT_SECRET is using the default value — change it in production!")
 
 
+_RELAXED_CSP = (
+    "default-src 'self'; img-src * data:; font-src * data:; "
+    "style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; "
+    "frame-ancestors 'none'"
+)
+_STRICT_CSP = "default-src 'self'; frame-ancestors 'none'"
+
+
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         response: Response = await call_next(request)
@@ -28,7 +36,11 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response.headers["X-Frame-Options"] = "DENY"
         response.headers["X-XSS-Protection"] = "1; mode=block"
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-        response.headers["Content-Security-Policy"] = "default-src 'self'; frame-ancestors 'none'"
+        path = request.url.path
+        if path.startswith("/p/") or path == "/mcp/landing/preview":
+            response.headers["Content-Security-Policy"] = _RELAXED_CSP
+        else:
+            response.headers["Content-Security-Policy"] = _STRICT_CSP
         response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
         if settings.environment == "production":
             response.headers["Strict-Transport-Security"] = (

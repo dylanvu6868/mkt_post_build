@@ -271,3 +271,38 @@ async def test_delete_page(client):
 
     resp = await client.get(f"/mcp/landing/pages/{pid}", headers=h)
     assert resp.status_code == 404
+
+
+async def test_public_page_csp_is_relaxed(client):
+    """Published /p/{slug} uses relaxed CSP (allows unsafe-inline), not strict default-src 'self'."""
+    STRICT_CSP = "default-src 'self'; frame-ancestors 'none'"
+    token = await _register(client, "csp@example.com")
+    h = {"Authorization": f"Bearer {token}"}
+
+    # Create and publish a page with inline style
+    resp = await client.post(
+        "/mcp/landing/pages",
+        json={
+            "title": "CSP Test",
+            "slug": "csp-test-page",
+            "html_content": "<h1 style='color:red'>Hello</h1>",
+        },
+        headers=h,
+    )
+    assert resp.status_code == 201
+    pid = resp.json()["id"]
+
+    await client.patch(f"/mcp/landing/pages/{pid}/publish", headers=h)
+
+    # Public route — no auth required
+    resp = await client.get("/p/csp-test-page")
+    assert resp.status_code == 200
+    csp = resp.headers.get("content-security-policy", "")
+    assert "'unsafe-inline'" in csp, f"Expected 'unsafe-inline' in CSP, got: {csp}"
+    assert csp != STRICT_CSP, "Public landing page must not use the strict CSP"
+
+    # A normal authed JSON endpoint must still use the strict CSP
+    resp2 = await client.get("/mcp/landing/pages", headers=h)
+    assert resp2.status_code == 200
+    csp2 = resp2.headers.get("content-security-policy", "")
+    assert csp2 == STRICT_CSP, f"API endpoint must use strict CSP, got: {csp2}"

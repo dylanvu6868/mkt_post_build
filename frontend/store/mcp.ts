@@ -707,6 +707,7 @@ export const useMcpStore = create<McpState>()((set) => ({
     try {
       return await api.patch<{ id: number; title: string }>(`/mcp/landing/pages/${id}`, body);
     } catch (e: unknown) {
+      if (e instanceof ApiError) throw e;
       const msg = e instanceof Error ? e.message : "Lỗi cập nhật trang đích";
       throw new Error(msg);
     }

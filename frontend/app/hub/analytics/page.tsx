@@ -50,24 +50,43 @@ function formatDateTime(iso: string): string {
 }
 
 function actionLabel(action: string): string {
+  // Backend writes dot-notation actions like "seo.analyze", "email.template_create".
+  // Extract the part after the last "." as the verb key.
+  const verb = action.includes(".") ? action.slice(action.lastIndexOf(".") + 1) : action;
   const map: Record<string, string> = {
-    create: "Tạo mới",
+    create: "Tạo",
     update: "Cập nhật",
     delete: "Xóa",
     send: "Gửi",
-    publish: "Đăng",
+    publish: "Xuất bản",
     schedule: "Lên lịch",
+    cancel_schedule: "Hủy lịch",
     analyze: "Phân tích",
+    status_change: "Đổi trạng thái",
+    import: "Nhập",
+    contacts_import: "Nhập",
+    template_create: "Tạo",
+    contact_create: "Tạo",
+    list_create: "Tạo",
+    item_create: "Tạo",
   };
-  return map[action] ?? action;
+  return map[verb] ?? verb.replace(/_/g, " ");
 }
 
 function resourceLabel(resource: string): string {
   const map: Record<string, string> = {
+    // Full resource type keys from backend
+    email_template: "Mẫu email",
+    email_contact: "Liên hệ",
+    email_list: "Danh sách",
+    scheduled_email: "Email đã lên lịch",
+    content_item: "Nội dung",
+    seo_audit: "Phân tích SEO",
+    landing_page: "Trang đích",
+    // Short keys (kept for backward compatibility)
     email: "Email",
     campaign: "Chiến dịch",
     content: "Nội dung",
-    seo_audit: "SEO Audit",
     template: "Mẫu",
     contact: "Liên hệ",
     list: "Danh sách",
