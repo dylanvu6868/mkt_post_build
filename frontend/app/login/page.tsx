@@ -121,7 +121,7 @@ export default function LoginPage() {
             setSocialLoading(false);
           });
       },
-      { scope: "public_profile,email" }
+      { scope: "public_profile" }
     );
   };
 
