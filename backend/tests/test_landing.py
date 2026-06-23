@@ -132,6 +132,10 @@ async def test_ownership_isolation(client):
     assert (await client.patch(f"/mcp/landing/pages/{pid}", json={"title": "Hacked"}, headers=h_b)).status_code == 404
     # user B cannot delete it
     assert (await client.delete(f"/mcp/landing/pages/{pid}", headers=h_b)).status_code == 404
+    # user B cannot publish it
+    assert (await client.patch(f"/mcp/landing/pages/{pid}/publish", headers=h_b)).status_code == 404
+    # user B cannot export it
+    assert (await client.get(f"/mcp/landing/pages/{pid}/export", headers=h_b)).status_code == 404
 
 
 async def test_publish_and_public_serve(client):

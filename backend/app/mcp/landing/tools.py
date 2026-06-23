@@ -1,3 +1,4 @@
+import html as html_mod
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -18,7 +19,7 @@ public_router = APIRouter()
 
 def _render(page: LandingPage) -> str:
     css = f"<style>{page.css_content}</style>" if page.css_content else ""
-    return f"<!DOCTYPE html><html><head><meta charset='utf-8'><title>{page.title}</title>{css}</head><body>{page.html_content}</body></html>"
+    return f"<!DOCTYPE html><html><head><meta charset='utf-8'><title>{html_mod.escape(page.title)}</title>{css}</head><body>{page.html_content}</body></html>"
 
 
 class PageCreate(BaseModel):
@@ -87,7 +88,7 @@ async def generate_page(body: GenerateReq, user: User = Depends(get_current_user
 
 
 @router.post("/mcp/landing/preview")
-async def preview_page(body: PreviewReq):
+async def preview_page(body: PreviewReq, user: User = Depends(get_current_user)):
     css = f"<style>{body.css_content}</style>" if body.css_content else ""
     return HTMLResponse(f"<!DOCTYPE html><html><head>{css}</head><body>{body.html_content}</body></html>")
 
