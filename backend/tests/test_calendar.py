@@ -62,6 +62,7 @@ async def _register(client, email="caluser@example.com"):
         "/auth/register",
         json={"name": "CalUser", "email": email, "password": "secret123"},
     )
+    assert resp.status_code == 201
     return resp.json()["access_token"]
 
 
@@ -168,11 +169,12 @@ async def test_archived_is_terminal(client):
     item_id = resp.json()["id"]
 
     # draft -> archived (valid)
-    await client.patch(
+    first = await client.patch(
         f"/mcp/calendar/items/{item_id}/status",
         json={"status": "archived"},
         headers=headers,
     )
+    assert first.status_code == 200
     # archived -> draft (invalid, archived is terminal)
     patch = await client.patch(
         f"/mcp/calendar/items/{item_id}/status",
@@ -257,3 +259,79 @@ async def test_delete_then_get_404(client):
 
     get = await client.get(f"/mcp/calendar/items/{item_id}", headers=headers)
     assert get.status_code == 404
+
+
+# -- Ownership mutation tests (Fix 1) -----------------------------------------
+
+async def test_patch_ownership_404(client):
+    token_a = await _register(client, "patch_owner_a@example.com")
+    token_b = await _register(client, "patch_owner_b@example.com")
+    headers_a = {"Authorization": f"Bearer {token_a}"}
+    headers_b = {"Authorization": f"Bearer {token_b}"}
+
+    resp = await _create_item(client, headers_a, title="A's protected item")
+    item_id = resp.json()["id"]
+
+    # user B cannot PATCH user A's item fields
+    patch_fields = await client.patch(
+        f"/mcp/calendar/items/{item_id}",
+        json={"title": "hacked"},
+        headers=headers_b,
+    )
+    assert patch_fields.status_code == 404
+
+    # user B cannot PATCH user A's item status
+    patch_status = await client.patch(
+        f"/mcp/calendar/items/{item_id}/status",
+        json={"status": "review"},
+        headers=headers_b,
+    )
+    assert patch_status.status_code == 404
+
+
+async def test_delete_ownership_404(client):
+    token_a = await _register(client, "del_owner_a@example.com")
+    token_b = await _register(client, "del_owner_b@example.com")
+    headers_a = {"Authorization": f"Bearer {token_a}"}
+    headers_b = {"Authorization": f"Bearer {token_b}"}
+
+    resp = await _create_item(client, headers_a, title="A's undeletable item")
+    item_id = resp.json()["id"]
+
+    # user B cannot DELETE user A's item
+    delete = await client.delete(f"/mcp/calendar/items/{item_id}", headers=headers_b)
+    assert delete.status_code == 404
+
+    # confirm user A can still GET the item -- it was NOT deleted
+    get = await client.get(f"/mcp/calendar/items/{item_id}", headers=headers_a)
+    assert get.status_code == 200
+    assert get.json()["title"] == "A's undeletable item"
+
+
+# -- published_date tests (Fix 2) ---------------------------------------------
+
+async def test_published_date_stamped(client):
+    token = await _register(client, "pubdate@example.com")
+    headers = {"Authorization": f"Bearer {token}"}
+
+    resp = await _create_item(client, headers, title="Publish me")
+    item_id = resp.json()["id"]
+
+    # non-published item should have published_date = None
+    detail = await client.get(f"/mcp/calendar/items/{item_id}", headers=headers)
+    assert detail.status_code == 200
+    assert detail.json()["published_date"] is None
+
+    # walk the full chain: draft -> review -> approved -> published
+    for target_status in ("review", "approved", "published"):
+        step = await client.patch(
+            f"/mcp/calendar/items/{item_id}/status",
+            json={"status": target_status},
+            headers=headers,
+        )
+        assert step.status_code == 200
+
+    # now GET and confirm published_date is stamped
+    detail2 = await client.get(f"/mcp/calendar/items/{item_id}", headers=headers)
+    assert detail2.status_code == 200
+    assert detail2.json()["published_date"] is not None

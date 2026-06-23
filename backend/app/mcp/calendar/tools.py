@@ -82,7 +82,7 @@ async def get_item(item_id: int, user: User = Depends(get_current_user), session
     item = await session.get(ContentItem, item_id)
     if not item or item.user_id != user.id:
         raise HTTPException(404, "Item not found")
-    return {"id": item.id, "title": item.title, "content_type": item.content_type, "body": item.body, "status": item.status, "scheduled_date": item.scheduled_date, "tags": item.tags}
+    return {"id": item.id, "title": item.title, "content_type": item.content_type, "body": item.body, "status": item.status, "scheduled_date": item.scheduled_date, "published_date": item.published_date, "tags": item.tags}
 
 
 @router.patch("/items/{item_id}")
