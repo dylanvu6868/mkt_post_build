@@ -57,6 +57,9 @@ class Settings(BaseSettings):
     smtp_password: str = ""
     smtp_from: str = ""
 
+    # Scheduler
+    scheduler_enabled: bool = True
+
     # RAG (M3)
     qdrant_collection_name: str = "marketing_docs"
     embedding_model: str = "BAAI/bge-small-en-v1.5"

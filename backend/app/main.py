@@ -77,6 +77,19 @@ async def ensure_tables():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
+
+@app.on_event("startup")
+async def start_scheduler():
+    import asyncio
+    import os
+    if not settings.scheduler_enabled:
+        return
+    # Never start the infinite loop during pytest — conftest sets ENVIRONMENT=test.
+    if os.environ.get("ENVIRONMENT") == "test":
+        return
+    from app.mcp.email.scheduler import scheduler_loop
+    asyncio.create_task(scheduler_loop())
+
 @app.on_event("startup")
 async def seed_admin():
     from sqlalchemy import select
