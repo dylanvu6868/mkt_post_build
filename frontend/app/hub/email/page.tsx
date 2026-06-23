@@ -219,9 +219,11 @@ function TemplatesTab() {
                     <td className="py-2">{t.subject}</td>
                     <td className="py-2">{t.category ? <Badge variant="secondary">{t.category}</Badge> : "-"}</td>
                     <td className="py-2 text-muted-foreground">{t.created_at ? new Date(t.created_at).toLocaleDateString("vi-VN") : "-"}</td>
-                    <td className="py-2 flex gap-2">
-                      <button className={btnSecondary} onClick={() => openEdit(t.id)}>Chỉnh sửa</button>
-                      <button className={btnDanger} onClick={() => handleDelete(t.id)}>Xóa</button>
+                    <td className="py-2">
+                      <div className="flex gap-2">
+                        <button className={btnSecondary} onClick={() => openEdit(t.id)}>Chỉnh sửa</button>
+                        <button className={btnDanger} onClick={() => handleDelete(t.id)}>Xóa</button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -428,10 +430,12 @@ function ContactsTab() {
                         : "-"}
                     </td>
                     <td className="py-2"><Badge variant={statusBadgeVariant(c.status)}>{c.status}</Badge></td>
-                    <td className="py-2 flex gap-2">
-                      <button className={btnSecondary} onClick={() => openEdit(c)}>Chỉnh sửa</button>
-                      <button className={btnSecondary} onClick={() => openAddToList(c.id)}>Thêm vào DS</button>
-                      <button className={btnDanger} onClick={() => handleDelete(c.id)}>Xóa</button>
+                    <td className="py-2">
+                      <div className="flex gap-2">
+                        <button className={btnSecondary} onClick={() => openEdit(c)}>Chỉnh sửa</button>
+                        <button className={btnSecondary} onClick={() => openAddToList(c.id)}>Thêm vào DS</button>
+                        <button className={btnDanger} onClick={() => handleDelete(c.id)}>Xóa</button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -458,7 +462,7 @@ function ContactsTab() {
               <select className={inp} value={status} onChange={(e) => setStatus(e.target.value)}>
                 <option value="active">Đang hoạt động</option>
                 <option value="unsubscribed">Đã hủy đăng ký</option>
-                <option value="bounced">Bounce</option>
+                <option value="bounced">Bị trả lại</option>
               </select>
             )}
             <button className={btn} onClick={handleSave} disabled={!editMode && !email}>
