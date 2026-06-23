@@ -1,4 +1,5 @@
 import base64
+import binascii
 import hashlib
 import hmac
 
@@ -28,5 +29,5 @@ def verify_unsubscribe_token(token: str) -> int | None:
         if not hmac.compare_digest(sig, expected):
             return None
         return int(payload.decode())
-    except (ValueError, TypeError):
+    except (ValueError, TypeError, binascii.Error):
         return None

@@ -306,8 +306,8 @@ async def test_unsubscribe_invalid_token_returns_400(client):
 
 async def test_unsubscribe_valid_token_nonexistent_contact_returns_404(client):
     """A valid (signed) token for a contact_id that doesn't exist → 404."""
-    # contact_id 999999 almost certainly doesn't exist in the in-memory DB
-    unsubscribe_token = make_unsubscribe_token(999999)
+    # Auto-increment IDs are never negative; a valid-signed token for -1 can never match a row.
+    unsubscribe_token = make_unsubscribe_token(-1)
     resp = await client.post(f"/mcp/email/unsubscribe/{unsubscribe_token}")
     assert resp.status_code == 404
 
