@@ -17,7 +17,6 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  Legend,
 } from "recharts";
 
 /* ------------------------------------------------------------------ */
@@ -455,7 +454,7 @@ function ActivitySection() {
         ) : activity.length === 0 ? (
           <p className="text-sm text-muted-foreground">Chưa có hoạt động nào.</p>
         ) : (
-          <ol className="space-y-0">
+          <ol className="space-y-0" aria-label="Hoạt động gần đây">
             {activity.map((item, idx) => (
               <li key={item.id} className="flex gap-3">
                 {/* Timeline line */}
@@ -472,7 +471,7 @@ function ActivitySection() {
                     {" "}
                     <span className="text-muted-foreground">
                       {resourceLabel(item.resource_type)}
-                      {item.resource_id ? ` #${item.resource_id}` : ""}
+                      {item.resource_id != null ? ` #${item.resource_id}` : ""}
                     </span>
                   </p>
                   <p className="text-xs text-muted-foreground mt-0.5">
