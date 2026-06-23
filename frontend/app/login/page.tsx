@@ -49,15 +49,25 @@ export default function LoginPage() {
   const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ?? "";
   const facebookAppId = process.env.NEXT_PUBLIC_FACEBOOK_APP_ID || "1307206617791657";
 
+  const checkFbLoginStatus = useCallback(() => {
+    window.FB?.getLoginStatus((response: any) => {
+      if (response.status === "connected" && response.authResponse) {
+        console.log("[FB] Already connected, token available");
+      }
+    });
+  }, []);
+
   useEffect(() => {
     if (!facebookAppId) return;
     window.fbAsyncInit = function () {
       window.FB?.init({ appId: facebookAppId, cookie: true, xfbml: true, version: "v21.0" });
+      checkFbLoginStatus();
     };
     if (window.FB) {
       window.FB.init({ appId: facebookAppId, cookie: true, xfbml: true, version: "v21.0" });
+      checkFbLoginStatus();
     }
-  }, [facebookAppId]);
+  }, [facebookAppId, checkFbLoginStatus]);
 
   const initGoogle = useCallback(() => {
     if (!googleClientId || !window.google || !googleHiddenRef.current) return;
