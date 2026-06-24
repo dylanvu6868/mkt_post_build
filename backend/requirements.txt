@@ -29,3 +29,4 @@ Pillow>=10.3.0,<11.0.0
 slowapi==0.1.9
 cryptography>=42.0.0
 beautifulsoup4==4.12.3
+google-genai==2.7.0

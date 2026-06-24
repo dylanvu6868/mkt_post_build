@@ -3,7 +3,7 @@ from app.agents.base import generate_structured
 from langgraph.prebuilt import create_react_agent
 from langchain_core.messages import HumanMessage
 from app.llm.factory import get_chat_model
-from app.agents.tools.marketing_tools import get_search_tool
+from app.agents.tools.marketing_tools import get_marketing_tools
 from app.core.tracing import langfuse_handler
 
 STRICT_RULES = """
@@ -283,12 +283,12 @@ YÊU CẦU VỀ PHONG CÁCH VIẾT:
             
     # --- PHASE 1: RESEARCHER AGENT ---
     model = get_chat_model("fast")
-    tools = [get_search_tool()]
+    tools = get_marketing_tools()
     researcher_system = "Bạn là Chuyên gia Nghiên cứu Thị trường. Nhiệm vụ của bạn là tìm kiếm thông tin mới nhất trên mạng về ngành hàng, đối thủ cạnh tranh, và xu hướng dựa trên thông tin dự án. Trả về một bản tóm tắt ngắn gọn các insight quan trọng tìm được."
     researcher_agent = create_react_agent(model, tools, state_modifier=researcher_system)
     
     config = {"callbacks": [langfuse_handler]} if langfuse_handler else {}
-    research_prompt = f"Tìm kiếm thông tin thị trường, đối thủ cạnh tranh và xu hướng nổi bật cho dự án sau: {user_info}"
+    research_prompt = f"Tìm kiếm thông tin thị trường, đối thủ cạnh tranh và xu hướng nổi bật cho dự án sau: {user}"
     writer_prompt = system + "\n\nTHÔNG TIN NGHIÊN CỨU THỊ TRƯỜNG THỰC TẾ (Dùng để bổ sung vào báo cáo):\n{research_data}\n\nTiến hành phân tích và tạo Vitba Report chi tiết dựa trên thông tin dự án ở trên."
     writer_agent = create_react_agent(get_chat_model("smart"), [], state_modifier=system)
 
