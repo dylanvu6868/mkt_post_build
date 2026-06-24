@@ -28,8 +28,9 @@ def _auth(token: str) -> dict:
 
 
 @pytest.mark.asyncio
-async def test_overview(client, session_maker):
+async def test_overview(client, session_maker, promote):
     token, uid = await _register(client)
+    await promote(uid)
 
     async with session_maker() as s:
         s.add_all([
@@ -61,9 +62,10 @@ async def test_overview(client, session_maker):
 
 
 @pytest.mark.asyncio
-async def test_overview_zero_data(client, session_maker):
+async def test_overview_zero_data(client, session_maker, promote):
     """Division-by-zero safety: brand-new user with no data should get 0 rates, not 500."""
-    token, _ = await _register(client)
+    token, uid = await _register(client)
+    await promote(uid)
     r = await client.get("/mcp/analytics/overview", headers=_auth(token))
     assert r.status_code == 200
     body = r.json()
@@ -82,8 +84,9 @@ async def test_overview_zero_data(client, session_maker):
 
 
 @pytest.mark.asyncio
-async def test_email_analytics(client, session_maker):
+async def test_email_analytics(client, session_maker, promote):
     token, uid = await _register(client)
+    await promote(uid)
 
     async with session_maker() as s:
         s.add_all([
@@ -107,9 +110,10 @@ async def test_email_analytics(client, session_maker):
 
 
 @pytest.mark.asyncio
-async def test_email_analytics_zero_data(client, session_maker):
+async def test_email_analytics_zero_data(client, session_maker, promote):
     """Division-by-zero safety for /email endpoint."""
-    token, _ = await _register(client)
+    token, uid = await _register(client)
+    await promote(uid)
     r = await client.get("/mcp/analytics/email", headers=_auth(token))
     assert r.status_code == 200
     body = r.json()
@@ -119,7 +123,7 @@ async def test_email_analytics_zero_data(client, session_maker):
 
 
 @pytest.mark.asyncio
-async def test_email_analytics_period_filter(client, session_maker):
+async def test_email_analytics_period_filter(client, session_maker, promote):
     """Rows created with server_default are in-window; we confirm they are counted.
 
     Note: created_at uses server_default=func.now() which in SQLite returns the
@@ -127,6 +131,7 @@ async def test_email_analytics_period_filter(client, session_maker):
     This test verifies in-window aggregation works correctly with period=7d.
     """
     token, uid = await _register(client)
+    await promote(uid)
 
     async with session_maker() as s:
         s.add_all([
@@ -148,8 +153,9 @@ async def test_email_analytics_period_filter(client, session_maker):
 
 
 @pytest.mark.asyncio
-async def test_content_analytics(client, session_maker):
+async def test_content_analytics(client, session_maker, promote):
     token, uid = await _register(client)
+    await promote(uid)
 
     async with session_maker() as s:
         s.add_all([
@@ -174,8 +180,9 @@ async def test_content_analytics(client, session_maker):
 
 
 @pytest.mark.asyncio
-async def test_seo_analytics(client, session_maker):
+async def test_seo_analytics(client, session_maker, promote):
     token, uid = await _register(client)
+    await promote(uid)
 
     async with session_maker() as s:
         s.add_all([
@@ -217,9 +224,10 @@ async def test_seo_analytics(client, session_maker):
 
 
 @pytest.mark.asyncio
-async def test_activity_from_real_mutation(client, session_maker):
+async def test_activity_from_real_mutation(client, session_maker, promote):
     """Create a calendar item (which writes an AuditLog) and verify it shows in /activity."""
     token, uid = await _register(client)
+    await promote(uid)
 
     # Perform a real mutation that writes an audit log
     create_resp = await client.post(
@@ -243,10 +251,12 @@ async def test_activity_from_real_mutation(client, session_maker):
 
 
 @pytest.mark.asyncio
-async def test_ownership_scoping(client, session_maker):
+async def test_ownership_scoping(client, session_maker, promote):
     """User B sees zeros/empty, not user A's data."""
     token_a, uid_a = await _register(client, email="userA@example.com")
     token_b, uid_b = await _register(client, email="userB@example.com")
+    await promote(uid_a)
+    await promote(uid_b)
 
     # Seed data only for user A
     async with session_maker() as s:

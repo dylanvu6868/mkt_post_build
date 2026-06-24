@@ -313,6 +313,7 @@ export const useChatStore = create<ChatState>()(
         const reader = res.body.getReader();
         const decoder = new TextDecoder();
         let fullContent = "";
+        let buffer = "";
 
         while (true) {
           let done: boolean, value: Uint8Array | undefined;
@@ -323,8 +324,9 @@ export const useChatStore = create<ChatState>()(
           }
           if (done) break;
 
-          const text = decoder.decode(value, { stream: true });
-          const lines = text.split("\n");
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split("\n");
+          buffer = lines.pop() || "";
 
           for (const line of lines) {
             if (!line.startsWith("data: ")) continue;

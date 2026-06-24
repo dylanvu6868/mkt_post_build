@@ -9,7 +9,8 @@ async def _register(client, email="seouser@example.com"):
         "/auth/register",
         json={"name": "SEO User", "email": email, "password": "secret123"},
     )
-    return resp.json()["access_token"]
+    data = resp.json()
+    return data["access_token"], data["user"]["id"]
 
 
 GOOD_HTML = """
@@ -53,9 +54,10 @@ def test_extract_keywords():
 
 
 # ── Endpoint tests ────────────────────────────────────────────────────
-async def test_analyze_html_endpoint(client):
+async def test_analyze_html_endpoint(client, promote):
     """POST /mcp/seo/analyze with html -> 200, returns score + audit_id, persists row."""
-    token = await _register(client)
+    token, uid = await _register(client)
+    await promote(uid)
     headers = {"Authorization": f"Bearer {token}"}
 
     resp = await client.post(
@@ -77,9 +79,10 @@ async def test_analyze_html_endpoint(client):
     assert audits[0]["id"] == data["audit_id"]
 
 
-async def test_analyze_missing_input(client):
+async def test_analyze_missing_input(client, promote):
     """POST /mcp/seo/analyze with neither url nor html -> 400."""
-    token = await _register(client, "missing@example.com")
+    token, uid = await _register(client, "missing@example.com")
+    await promote(uid)
     headers = {"Authorization": f"Bearer {token}"}
 
     resp = await client.post(
@@ -90,9 +93,10 @@ async def test_analyze_missing_input(client):
     assert resp.status_code == 400
 
 
-async def test_keywords_endpoint(client):
+async def test_keywords_endpoint(client, promote):
     """POST /mcp/seo/keywords with text -> ranked keyword list."""
-    token = await _register(client, "kwuser@example.com")
+    token, uid = await _register(client, "kwuser@example.com")
+    await promote(uid)
     headers = {"Authorization": f"Bearer {token}"}
 
     resp = await client.post(
@@ -107,10 +111,12 @@ async def test_keywords_endpoint(client):
     assert data[0]["count"] == 3
 
 
-async def test_audits_ownership(client):
+async def test_audits_ownership(client, promote):
     """GET /mcp/seo/audits returns only the caller's audits."""
-    token_a = await _register(client, "owner_a@example.com")
-    token_b = await _register(client, "owner_b@example.com")
+    token_a, uid_a = await _register(client, "owner_a@example.com")
+    token_b, uid_b = await _register(client, "owner_b@example.com")
+    await promote(uid_a)
+    await promote(uid_b)
     headers_a = {"Authorization": f"Bearer {token_a}"}
     headers_b = {"Authorization": f"Bearer {token_b}"}
 
@@ -128,10 +134,12 @@ async def test_audits_ownership(client):
     assert len(resp_a.json()) == 1
 
 
-async def test_audit_detail_owner_vs_nonowner(client):
+async def test_audit_detail_owner_vs_nonowner(client, promote):
     """GET /mcp/seo/audits/{id} -> 200 for owner, 404 for non-owner."""
-    token_a = await _register(client, "detail_a@example.com")
-    token_b = await _register(client, "detail_b@example.com")
+    token_a, uid_a = await _register(client, "detail_a@example.com")
+    token_b, uid_b = await _register(client, "detail_b@example.com")
+    await promote(uid_a)
+    await promote(uid_b)
     headers_a = {"Authorization": f"Bearer {token_a}"}
     headers_b = {"Authorization": f"Bearer {token_b}"}
 

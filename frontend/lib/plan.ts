@@ -16,6 +16,9 @@ export interface PlanLimitsResponse {
     max_kb_files: number;
     max_brand_profiles: number;
     history_retention_days: number | null;
+    hub_tools: string[];
+    daily_email_sends: number;
+    daily_landing_generates: number;
   };
   usage: {
     daily_generations: UsageItem;

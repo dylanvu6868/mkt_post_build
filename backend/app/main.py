@@ -1,6 +1,6 @@
 import logging
 
-from fastapi import FastAPI, Request, Response
+from fastapi import Depends, FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
@@ -130,31 +130,33 @@ app.include_router(generate.router)
 app.include_router(history.router)
 app.include_router(templates.router)
 app.include_router(images.router)
-app.include_router(mcp_router)
 app.include_router(lab.router)
 
+from app.api.hub_deps import require_hub_tool
 from app.mcp.email.templates import router as email_templates_router
 from app.mcp.email.contacts import router as email_contacts_router
 from app.mcp.email.lists import router as email_lists_router
-from app.mcp.email.scheduling import router as email_scheduling_router
+from app.mcp.email.scheduling import router as email_scheduling_router, public_router as email_unsubscribe_router
 
-app.include_router(email_templates_router)
-app.include_router(email_contacts_router)
-app.include_router(email_lists_router)
-app.include_router(email_scheduling_router)
+app.include_router(mcp_router, dependencies=[Depends(require_hub_tool("email"))])
+app.include_router(email_templates_router, dependencies=[Depends(require_hub_tool("email"))])
+app.include_router(email_contacts_router, dependencies=[Depends(require_hub_tool("email"))])
+app.include_router(email_lists_router, dependencies=[Depends(require_hub_tool("email"))])
+app.include_router(email_scheduling_router, dependencies=[Depends(require_hub_tool("email"))])
+app.include_router(email_unsubscribe_router)  # public — no gating
 
 from app.mcp.calendar.tools import router as calendar_router
-app.include_router(calendar_router)
+app.include_router(calendar_router, dependencies=[Depends(require_hub_tool("calendar"))])
 
 from app.mcp.seo.tools import router as seo_router
-app.include_router(seo_router)
+app.include_router(seo_router, dependencies=[Depends(require_hub_tool("seo"))])
 
 from app.mcp.analytics.tools import router as analytics_router
-app.include_router(analytics_router)
+app.include_router(analytics_router, dependencies=[Depends(require_hub_tool("analytics"))])
 
 from app.mcp.landing.tools import router as landing_router, public_router as landing_public_router
-app.include_router(landing_router)
-app.include_router(landing_public_router)
+app.include_router(landing_router, dependencies=[Depends(require_hub_tool("landing"))])
+app.include_router(landing_public_router)  # public — no gating
 
 
 @app.get("/health")

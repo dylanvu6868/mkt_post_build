@@ -18,7 +18,8 @@ async def _register(client, email="landing@example.com"):
         "/auth/register",
         json={"name": "User", "email": email, "password": "secret123"},
     )
-    return resp.json()["access_token"]
+    data = resp.json()
+    return data["access_token"], data["user"]["id"]
 
 
 # ── Model unit test ───────────────────────────────────────────────────
@@ -67,9 +68,10 @@ async def test_landing_page_crud(db):
 # ── Endpoint tests ────────────────────────────────────────────────────
 
 
-async def test_create_list_get(client):
+async def test_create_list_get(client, promote):
     """Create a page, list pages, get by id."""
-    token = await _register(client, "create@example.com")
+    token, uid = await _register(client, "create@example.com")
+    await promote(uid)
     h = {"Authorization": f"Bearer {token}"}
 
     # create
@@ -94,9 +96,10 @@ async def test_create_list_get(client):
     assert resp.json()["html_content"] == "<h1>Hi</h1>"
 
 
-async def test_duplicate_slug_400(client):
+async def test_duplicate_slug_400(client, promote):
     """Creating a second page with the same slug returns 400."""
-    token = await _register(client, "dup@example.com")
+    token, uid = await _register(client, "dup@example.com")
+    await promote(uid)
     h = {"Authorization": f"Bearer {token}"}
 
     await client.post(
@@ -112,10 +115,12 @@ async def test_duplicate_slug_400(client):
     assert resp.status_code == 400
 
 
-async def test_ownership_isolation(client):
+async def test_ownership_isolation(client, promote):
     """User B cannot GET/PATCH/DELETE user A's page."""
-    token_a = await _register(client, "owner_a@lp.com")
-    token_b = await _register(client, "owner_b@lp.com")
+    token_a, uid_a = await _register(client, "owner_a@lp.com")
+    token_b, uid_b = await _register(client, "owner_b@lp.com")
+    await promote(uid_a)
+    await promote(uid_b)
     h_a = {"Authorization": f"Bearer {token_a}"}
     h_b = {"Authorization": f"Bearer {token_b}"}
 
@@ -138,9 +143,10 @@ async def test_ownership_isolation(client):
     assert (await client.get(f"/mcp/landing/pages/{pid}/export", headers=h_b)).status_code == 404
 
 
-async def test_publish_and_public_serve(client):
+async def test_publish_and_public_serve(client, promote):
     """Publish a page, then fetch it via the public /p/{slug} route (no auth)."""
-    token = await _register(client, "pub@example.com")
+    token, uid = await _register(client, "pub@example.com")
+    await promote(uid)
     h = {"Authorization": f"Bearer {token}"}
 
     resp = await client.post(
@@ -165,9 +171,10 @@ async def test_publish_and_public_serve(client):
     assert "<h1>Welcome</h1>" in resp.text
 
 
-async def test_unpublished_slug_public_404(client):
+async def test_unpublished_slug_public_404(client, promote):
     """A draft page is NOT served via the public route."""
-    token = await _register(client, "draft@example.com")
+    token, uid = await _register(client, "draft@example.com")
+    await promote(uid)
     h = {"Authorization": f"Bearer {token}"}
 
     await client.post(
@@ -179,9 +186,10 @@ async def test_unpublished_slug_public_404(client):
     assert resp.status_code == 404
 
 
-async def test_preview(client):
+async def test_preview(client, promote):
     """POST /mcp/landing/preview returns rendered HTML."""
-    token = await _register(client, "preview@example.com")
+    token, uid = await _register(client, "preview@example.com")
+    await promote(uid)
     h = {"Authorization": f"Bearer {token}"}
 
     resp = await client.post(
@@ -194,9 +202,10 @@ async def test_preview(client):
     assert "h1{color:blue}" in resp.text
 
 
-async def test_export(client):
+async def test_export(client, promote):
     """GET /mcp/landing/pages/{id}/export returns HTML with Content-Disposition."""
-    token = await _register(client, "export@example.com")
+    token, uid = await _register(client, "export@example.com")
+    await promote(uid)
     h = {"Authorization": f"Bearer {token}"}
 
     resp = await client.post(
@@ -212,9 +221,10 @@ async def test_export(client):
     assert "<p>export</p>" in resp.text
 
 
-async def test_generate_no_provider_503(client, monkeypatch):
+async def test_generate_no_provider_503(client, monkeypatch, promote):
     """When LLM provider is unavailable, generate returns 503."""
-    token = await _register(client, "gen503@example.com")
+    token, uid = await _register(client, "gen503@example.com")
+    await promote(uid)
     h = {"Authorization": f"Bearer {token}"}
 
     import app.llm.factory as factory_mod
@@ -228,9 +238,10 @@ async def test_generate_no_provider_503(client, monkeypatch):
     assert resp.status_code == 503
 
 
-async def test_generate_success_mocked(client, monkeypatch):
+async def test_generate_success_mocked(client, monkeypatch, promote):
     """Happy path: mocked LLM returns HTML; endpoint returns it."""
-    token = await _register(client, "gen200@example.com")
+    token, uid = await _register(client, "gen200@example.com")
+    await promote(uid)
     h = {"Authorization": f"Bearer {token}"}
 
     import app.llm.factory as factory_mod
@@ -254,9 +265,10 @@ async def test_generate_success_mocked(client, monkeypatch):
     assert resp.json()["html"] == "<html><body>Generated</body></html>"
 
 
-async def test_delete_page(client):
+async def test_delete_page(client, promote):
     """Delete a page and confirm it's gone."""
-    token = await _register(client, "del@example.com")
+    token, uid = await _register(client, "del@example.com")
+    await promote(uid)
     h = {"Authorization": f"Bearer {token}"}
 
     resp = await client.post(
@@ -273,10 +285,11 @@ async def test_delete_page(client):
     assert resp.status_code == 404
 
 
-async def test_public_page_csp_is_relaxed(client):
+async def test_public_page_csp_is_relaxed(client, promote):
     """Published /p/{slug} uses relaxed CSP (allows unsafe-inline), not strict default-src 'self'."""
     STRICT_CSP = "default-src 'self'; frame-ancestors 'none'"
-    token = await _register(client, "csp@example.com")
+    token, uid = await _register(client, "csp@example.com")
+    await promote(uid)
     h = {"Authorization": f"Bearer {token}"}
 
     # Create and publish a page with inline style
