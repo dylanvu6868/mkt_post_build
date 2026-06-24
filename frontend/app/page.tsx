@@ -10,6 +10,7 @@ import {
   Users, Rocket, Building2, Briefcase, Calendar, BarChart3, Globe,
   MessageSquare, Cog, CheckCircle2,
 } from "lucide-react";
+import { ParticleNetwork } from "@/components/particle-network";
 
 const FEATURES = [
   { icon: FileText, title: "Facebook Post", desc: "Bài viết viral với hook 3s, body storytelling, CTA chuyển đổi và hashtag tối ưu.", details: ["Hook 3 giây", "Body storytelling", "CTA chuyển đổi", "30+ hashtag"] },
@@ -174,17 +175,8 @@ export default function LandingPage() {
                 </div>
               </div>
               <div className="relative p-3 md:p-4">
-                <div className="hero-smoke-container surface-card overflow-hidden h-full min-h-[340px] relative flex items-center justify-center">
-                  <div className="hero-smoke-layer hero-smoke-1" />
-                  <div className="hero-smoke-layer hero-smoke-2" />
-                  <div className="hero-smoke-layer hero-smoke-3" />
-                  <div className="relative z-10 text-center px-6">
-                    <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-primary/20 backdrop-blur-sm mb-5 ring-1 ring-primary/30">
-                      <Sparkles className="h-9 w-9 text-primary" strokeWidth={1.5} />
-                    </div>
-                    <p className="text-lg font-bold text-foreground/90">AI đang sẵn sàng</p>
-                    <p className="text-xs text-muted-foreground mt-1">5 Agents · 30 giây · Tiếng Việt</p>
-                  </div>
+                <div className="surface-card overflow-hidden h-full min-h-[340px] relative flex items-center justify-center bg-black">
+                  <ParticleNetwork />
                 </div>
               </div>
             </div>
