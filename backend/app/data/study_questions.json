@@ -1,0 +1,411 @@
+[
+  {
+    "id": "mkt_basic_01",
+    "topic_id": "marketing_basics",
+    "question": "Marketing Mix 4P bao gồm những yếu tố nào?",
+    "options": ["Product, Price, Place, Promotion", "People, Process, Physical Evidence, Performance", "Planning, Production, Pricing, Placing", "Product, Positioning, Packaging, Pricing"],
+    "correct_index": 0,
+    "explanation": "Marketing Mix 4P gồm: Product (Sản phẩm), Price (Giá), Place (Phân phối), Promotion (Xúc tiến). Đây là framework nền tảng cốt lõi nhất của Marketing truyền thống."
+  },
+  {
+    "id": "mkt_basic_02",
+    "topic_id": "marketing_basics",
+    "question": "Đâu là định nghĩa đúng nhất về Marketing theo Philip Kotler?",
+    "options": ["Là nghệ thuật bán hàng và chốt sale", "Là quá trình tạo ra giá trị cho khách hàng và xây dựng mối quan hệ để nhận lại giá trị", "Là các hoạt động quảng cáo trên Facebook và Google", "Là quá trình làm cho sản phẩm trở nên đẹp và bắt mắt hơn"],
+    "correct_index": 1,
+    "explanation": "Theo Philip Kotler: 'Marketing là quá trình mà qua đó các cá nhân và tổ chức có được những gì họ cần và muốn thông qua việc tạo ra và trao đổi giá trị với người khác.'"
+  },
+  {
+    "id": "mkt_basic_03",
+    "topic_id": "marketing_basics",
+    "question": "B2B Marketing khác B2C Marketing chủ yếu ở điểm nào?",
+    "options": ["B2B sử dụng nhiều quảng cáo truyền hình hơn", "B2B tập trung vào khách hàng cá nhân", "Quy trình ra quyết định của B2B thường phức tạp và có nhiều bên tham gia hơn", "B2B không cần quan tâm đến xây dựng thương hiệu"],
+    "correct_index": 2,
+    "explanation": "B2B (Business to Business) bán hàng cho doanh nghiệp, nên quy trình ra quyết định thường dài hơn, lý tính hơn và liên quan đến nhiều người (Purchasing, Manager, User...) hơn B2C."
+  },
+  {
+    "id": "mkt_basic_04",
+    "topic_id": "marketing_basics",
+    "question": "Mô hình SWOT dùng để phân tích những yếu tố nào?",
+    "options": ["Sales, Wealth, Opportunities, Threats", "Strengths, Weaknesses, Opportunities, Threats", "Strategies, Wants, Objectives, Tactics", "Systems, Workflows, Operations, Technologies"],
+    "correct_index": 1,
+    "explanation": "SWOT là viết tắt của Strengths (Điểm mạnh), Weaknesses (Điểm yếu), Opportunities (Cơ hội), Threats (Thách thức). Trong đó S, W là yếu tố nội vi; O, T là yếu tố ngoại vi."
+  },
+  {
+    "id": "mkt_basic_05",
+    "topic_id": "marketing_basics",
+    "question": "Thị trường ngách (Niche Market) là gì?",
+    "options": ["Thị trường có quy mô lớn nhất", "Một phân khúc thị trường nhỏ, hẹp với nhu cầu cụ thể chưa được phục vụ tốt", "Thị trường dành riêng cho các sản phẩm giá rẻ", "Thị trường bán lẻ truyền thống"],
+    "correct_index": 1,
+    "explanation": "Niche market (Thị trường ngách) là một phân đoạn nhỏ của thị trường lớn, có những đặc điểm và nhu cầu rất cụ thể mà các thương hiệu lớn thường bỏ qua."
+  },
+
+  {
+    "id": "cb_01",
+    "topic_id": "consumer_behavior",
+    "question": "Trong tháp nhu cầu Maslow, nhu cầu nào nằm ở vị trí cao nhất?",
+    "options": ["Nhu cầu sinh lý (Physiological)", "Nhu cầu an toàn (Safety)", "Nhu cầu được tôn trọng (Esteem)", "Nhu cầu thể hiện bản thân (Self-actualization)"],
+    "correct_index": 3,
+    "explanation": "Tháp Maslow từ dưới lên: Sinh lý -> An toàn -> Xã hội -> Tôn trọng -> Thể hiện bản thân (Self-actualization). Apple thường đánh vào nhu cầu Tôn trọng và Thể hiện bản thân."
+  },
+  {
+    "id": "cb_02",
+    "topic_id": "consumer_behavior",
+    "question": "FOMO (Fear Of Missing Out) trong Marketing thường được sử dụng để làm gì?",
+    "options": ["Xây dựng lòng trung thành dài hạn", "Tạo sự khan hiếm và thúc đẩy khách hàng ra quyết định nhanh", "Giảm giá thành sản phẩm", "Tăng cường chất lượng dịch vụ khách hàng"],
+    "correct_index": 1,
+    "explanation": "FOMO là nỗi sợ bị bỏ lỡ. Các Marketer thường dùng Flash Sale, 'Chỉ còn 2 sản phẩm', 'Đồng hồ đếm ngược' để kích hoạt FOMO, thúc đẩy chuyển đổi tức thì."
+  },
+  {
+    "id": "cb_03",
+    "topic_id": "consumer_behavior",
+    "question": "Khái niệm 'Customer Journey' (Hành trình khách hàng) thường bao gồm các giai đoạn nào?",
+    "options": ["Sản xuất - Phân phối - Bán lẻ - Tiêu dùng", "Nhận thức - Cân nhắc - Mua hàng - Giữ chân - Ủng hộ", "Lên kế hoạch - Chạy Ads - Đo lường - Tối ưu", "Nghiên cứu - Thiết kế - Lập trình - Ra mắt"],
+    "correct_index": 1,
+    "explanation": "Customer Journey cơ bản gồm 5 giai đoạn: Awareness (Nhận thức) -> Consideration (Cân nhắc) -> Purchase (Mua hàng) -> Retention (Giữ chân) -> Advocacy (Ủng hộ)."
+  },
+  {
+    "id": "cb_04",
+    "topic_id": "consumer_behavior",
+    "question": "Cognitive Dissonance (Sự bất hòa nhận thức) sau khi mua hàng là gì?",
+    "options": ["Khách hàng hài lòng và giới thiệu cho người khác", "Cảm giác hối hận, nghi ngờ hoặc lo lắng sau khi đưa ra quyết định mua hàng", "Sự không đồng ý giữa người mua và người bán về giá cả", "Lỗi kỹ thuật trên website khi thanh toán"],
+    "correct_index": 1,
+    "explanation": "Buyer's remorse hay Cognitive Dissonance là cảm giác băn khoăn 'Mình mua cái này có đúng không nhỉ?' sau khi mua. Email cảm ơn hoặc thẻ bảo hành xịn giúp giảm cảm giác này."
+  },
+  {
+    "id": "cb_05",
+    "topic_id": "consumer_behavior",
+    "question": "Hiệu ứng Chim mồi (Decoy Effect) có mục đích gì?",
+    "options": ["Lừa khách hàng mua hàng giả", "Đưa ra một lựa chọn thứ 3 (kém hấp dẫn) để hướng khách hàng chọn sản phẩm mục tiêu (thường là đắt hơn)", "Giảm giá liên tục để thu hút khách", "Tặng quà miễn phí để lấy data"],
+    "correct_index": 1,
+    "explanation": "VD: Bắp rang bơ Nhỏ 3$, Vừa 6.5$, Lớn 7$. Size Vừa chính là chim mồi để khách hàng thấy Size Lớn 'rẻ hơn, hời hơn' và chọn Size Lớn."
+  },
+
+  {
+    "id": "brand_01",
+    "topic_id": "branding",
+    "question": "Brand Positioning (Định vị thương hiệu) là gì?",
+    "options": ["Vị trí đặt logo trên bao bì sản phẩm", "Vị trí của cửa hàng trên bản đồ", "Quá trình tạo ra một vị trí độc tôn và rõ ràng trong tâm trí khách hàng mục tiêu", "Số lượng người theo dõi trên fanpage"],
+    "correct_index": 2,
+    "explanation": "Định vị (Positioning) không phải là những gì bạn làm với sản phẩm, mà là những gì bạn làm với TÂM TRÍ của khách hàng. Ví dụ: Volvo = An toàn."
+  },
+  {
+    "id": "brand_02",
+    "topic_id": "branding",
+    "question": "Brand Equity (Tài sản thương hiệu) được cấu thành từ yếu tố nào sau đây?",
+    "options": ["Lợi nhuận ròng của công ty", "Số lượng nhân viên", "Nhận biết thương hiệu, Chất lượng cảm nhận, Lòng trung thành và Liên tưởng thương hiệu", "Số lượng cửa hàng bán lẻ"],
+    "correct_index": 2,
+    "explanation": "Theo mô hình của David Aaker, Brand Equity gồm: Brand Awareness, Perceived Quality, Brand Loyalty, và Brand Associations."
+  },
+  {
+    "id": "brand_03",
+    "topic_id": "branding",
+    "question": "Brand Archetype (Hình mẫu thương hiệu) dựa trên lý thuyết của nhà tâm lý học nào?",
+    "options": ["Sigmund Freud", "Carl Jung", "Ivan Pavlov", "B.F. Skinner"],
+    "correct_index": 1,
+    "explanation": "Carl Jung đưa ra lý thuyết về 12 Hình mẫu (Archetypes) đại diện cho các tính cách chung của nhân loại (Hero, Outlaw, Magician, Lover...). Ví dụ: Nike là The Hero."
+  },
+  {
+    "id": "brand_04",
+    "topic_id": "branding",
+    "question": "Logo, màu sắc, font chữ, bao bì được gọi chung là gì trong Branding?",
+    "options": ["Brand Strategy (Chiến lược thương hiệu)", "Brand Identity (Nhận diện thương hiệu)", "Brand Image (Hình ảnh thương hiệu)", "Brand Personality (Tính cách thương hiệu)"],
+    "correct_index": 1,
+    "explanation": "Brand Identity (Nhận diện) là những yếu tố hữu hình mà chúng ta có thể nhìn thấy, nghe thấy. Còn Brand Image là hình ảnh hiện lên trong đầu khách hàng."
+  },
+  {
+    "id": "brand_05",
+    "topic_id": "branding",
+    "question": "USP (Unique Selling Proposition) khác với USP (Unique Value Proposition - UVP) ở điểm nào?",
+    "options": ["Không có sự khác biệt", "USP tập trung vào tính năng nổi bật của sản phẩm, UVP tập trung vào giá trị tổng thể khách hàng nhận được", "USP dành cho B2B, UVP dành cho B2C", "USP chỉ dùng trong quảng cáo Facebook"],
+    "correct_index": 1,
+    "explanation": "USP thường nói về 'Sản phẩm của tôi có gì độc nhất' (VD: Bánh pizza giao trong 30p). UVP nói về 'Khách hàng nhận được giá trị độc nhất gì' (Sự tiện lợi, không phải chờ đợi)."
+  },
+
+  {
+    "id": "digi_01",
+    "topic_id": "digital_marketing",
+    "question": "Phễu Marketing (Marketing Funnel) TOFU, MOFU, BOFU viết tắt của từ gì?",
+    "options": ["Top, Middle, Bottom of the Funnel", "Target, Market, Brand of the Future", "Testing, Measuring, Boosting of Facebook", "Traffic, Money, Business of Funnel"],
+    "correct_index": 0,
+    "explanation": "TOFU (Top): Nhận thức, thu hút traffic. MOFU (Middle): Cân nhắc, nuôi dưỡng lead. BOFU (Bottom): Quyết định, chốt sale."
+  },
+  {
+    "id": "digi_02",
+    "topic_id": "digital_marketing",
+    "question": "Chỉ số CTR (Click-Through Rate) được tính như thế nào?",
+    "options": ["Số lần nhấp chuột / Số lượt hiển thị (Clicks / Impressions)", "Số đơn hàng / Số lượt hiển thị", "Chi phí / Số lần nhấp chuột", "Số lần nhấp chuột / Dân số mục tiêu"],
+    "correct_index": 0,
+    "explanation": "CTR = (Clicks / Impressions) * 100%. Đo lường mức độ hấp dẫn của quảng cáo/tiêu đề đối với người xem."
+  },
+  {
+    "id": "digi_03",
+    "topic_id": "digital_marketing",
+    "question": "A/B Testing trong Digital Marketing là gì?",
+    "options": ["Kiểm tra xem website có bị lỗi 404 không", "So sánh 2 phiên bản (A và B) của một chiến dịch/trang web để xem phiên bản nào hiệu quả hơn", "Cách đánh giá nhân viên Marketing loại A hay B", "Mua 2 gói quảng cáo trên Facebook và Google"],
+    "correct_index": 1,
+    "explanation": "A/B Testing (Split testing) là phương pháp chia nhỏ traffic cho 2 biến thể (đổi màu nút, đổi tiêu đề...) để đo lường xem cái nào mang lại tỷ lệ chuyển đổi (CVR) cao hơn."
+  },
+  {
+    "id": "digi_04",
+    "topic_id": "digital_marketing",
+    "question": "Retargeting / Remarketing (Tiếp thị lại) hoạt động dựa trên công nghệ nào?",
+    "options": ["Blockchain", "Cookies / Pixels", "Trí tuệ nhân tạo (AI)", "Cloud Computing"],
+    "correct_index": 1,
+    "explanation": "Retargeting sử dụng đoạn mã (Pixel, Tag) hoặc Cookies lưu trên trình duyệt của người dùng để 'bám đuôi' và hiển thị lại quảng cáo cho những người đã từng truy cập website."
+  },
+  {
+    "id": "digi_05",
+    "topic_id": "digital_marketing",
+    "question": "CAC (Customer Acquisition Cost) là gì?",
+    "options": ["Chi phí chăm sóc khách hàng", "Doanh thu trung bình trên mỗi khách hàng", "Chi phí để có được một khách hàng mới", "Tỷ lệ hủy đơn hàng"],
+    "correct_index": 2,
+    "explanation": "CAC = Tổng chi phí Sales & Marketing / Số khách hàng mới thu được trong cùng kỳ. CAC phải nhỏ hơn LTV (Lifetime Value) thì doanh nghiệp mới có lãi."
+  },
+
+  {
+    "id": "content_01",
+    "topic_id": "content_marketing",
+    "question": "Evergreen Content là loại nội dung gì?",
+    "options": ["Nội dung chuyên nói về cây xanh và môi trường", "Nội dung luôn giữ được giá trị và tính liên quan trong thời gian dài (không bị lỗi thời)", "Nội dung bắt trend, chỉ hot trong 1-2 ngày", "Nội dung do AI tự động tạo ra"],
+    "correct_index": 1,
+    "explanation": "Evergreen Content (Nội dung xanh mãi) là những bài viết như 'Hướng dẫn chi tiết', 'Cách làm...', 'FAQ'. Chúng liên tục mang lại SEO traffic trong nhiều năm."
+  },
+  {
+    "id": "content_02",
+    "topic_id": "content_marketing",
+    "question": "UGC (User-Generated Content) có nghĩa là gì?",
+    "options": ["Nội dung do đội ngũ agency chuyên nghiệp tạo ra", "Nội dung được tạo ra bằng ChatGPT", "Nội dung do chính người dùng, khách hàng tạo ra (ví dụ: review, ảnh feedback)", "Nội dung bị cấm trên mạng xã hội"],
+    "correct_index": 2,
+    "explanation": "UGC (User-Generated Content) cực kỳ quyền lực vì nó mang tính xác thực (Authenticity) cao hơn nhiều so với quảng cáo từ thương hiệu. (Review Shopee là một dạng UGC)."
+  },
+  {
+    "id": "content_03",
+    "topic_id": "content_marketing",
+    "question": "Trong Copywriting, công thức AIDA viết tắt của:",
+    "options": ["Action, Interest, Desire, Awareness", "Attention, Interest, Desire, Action", "Always, Inspire, Direct, Act", "Analysis, Insight, Data, Action"],
+    "correct_index": 1,
+    "explanation": "AIDA: Attention (Thu hút sự chú ý) -> Interest (Tạo sự thích thú) -> Desire (Khơi gợi khát khao) -> Action (Kêu gọi hành động). Là công thức kinh điển nhất."
+  },
+  {
+    "id": "content_04",
+    "topic_id": "content_marketing",
+    "question": "CTA (Call To Action) có vai trò gì trong bài viết?",
+    "options": ["Làm cho bài viết dài hơn", "Giải thích thuật ngữ khó hiểu", "Kêu gọi, thúc giục người đọc thực hiện một hành động cụ thể (Mua ngay, Đăng ký, Chia sẻ...)", "Trang trí cho đẹp"],
+    "correct_index": 2,
+    "explanation": "Mọi bài content hướng đến chuyển đổi (Conversion) đều bắt buộc phải có CTA rõ ràng để dẫn dắt user thực hiện bước tiếp theo."
+  },
+  {
+    "id": "content_05",
+    "topic_id": "content_marketing",
+    "question": "Kỹ thuật Storytelling trong Marketing mang lại lợi ích lớn nhất là gì?",
+    "options": ["Giúp bài viết chuẩn SEO hơn", "Kết nối cảm xúc với khách hàng, làm cho thông điệp dễ nhớ hơn", "Bắt buộc khách hàng phải mua đồ", "Giảm chi phí chạy ads"],
+    "correct_index": 1,
+    "explanation": "Con người ghi nhớ các câu chuyện tốt hơn 22 lần so với các số liệu khô khan. Storytelling giúp thương hiệu chạm vào cảm xúc (Emotional connection) của người dùng."
+  },
+
+  {
+    "id": "ads_01",
+    "topic_id": "performance_ads",
+    "question": "ROAS (Return on Ad Spend) được tính bằng công thức nào?",
+    "options": ["Doanh thu / Chi phí quảng cáo", "Lợi nhuận / Chi phí quảng cáo", "Chi phí quảng cáo / Số click", "Số đơn hàng / Chi phí quảng cáo"],
+    "correct_index": 0,
+    "explanation": "ROAS = Revenue (Doanh thu) / Ad Spend. Khác với ROI (tính dựa trên lợi nhuận và tổng chi phí), ROAS chỉ đo lường hiệu quả trực tiếp của ngân sách quảng cáo."
+  },
+  {
+    "id": "ads_02",
+    "topic_id": "performance_ads",
+    "question": "CPM (Cost Per Mille) trong quảng cáo trả phí nghĩa là gì?",
+    "options": ["Chi phí cho 1 triệu lần nhấp chuột", "Chi phí cho 1000 lượt hiển thị (Impressions)", "Chi phí cho 1 đơn hàng thành công", "Chi phí cho 1 phút xem video"],
+    "correct_index": 1,
+    "explanation": "CPM (Cost Per Mille, mille = 1000 trong tiếng Latin). Là số tiền bạn phải trả cho nền tảng (FB/GG) mỗi khi quảng cáo hiển thị được 1.000 lần."
+  },
+  {
+    "id": "ads_03",
+    "topic_id": "performance_ads",
+    "question": "Lookalike Audience (Đối tượng tương tự) trên Facebook Ads là gì?",
+    "options": ["Tập khách hàng đã từng like fanpage", "Tập người dùng mới có chung đặc điểm, hành vi với một tệp khách hàng gốc (Seed audience)", "Tập khách hàng do đối thủ cung cấp", "Tất cả người dùng Facebook tại Việt Nam"],
+    "correct_index": 1,
+    "explanation": "Lookalike (LAL) giúp Facebook dùng AI để tìm ra những người 'giống nhất' với khách hàng hiện tại của bạn, giúp mở rộng tệp nhanh chóng với tỷ lệ chuyển đổi cao."
+  },
+  {
+    "id": "ads_04",
+    "topic_id": "performance_ads",
+    "question": "Chỉ số CPC là viết tắt của:",
+    "options": ["Cost Per Customer", "Cost Per Click", "Cost Per Conversion", "Cost Per Campaign"],
+    "correct_index": 1,
+    "explanation": "CPC (Cost Per Click) là số tiền trung bình bạn phải trả cho một lần người dùng nhấp vào quảng cáo của bạn."
+  },
+  {
+    "id": "ads_05",
+    "topic_id": "performance_ads",
+    "question": "Khi chiến dịch quảng cáo bị 'Ad Fatigue' (Kiệt sức quảng cáo), biểu hiện thường thấy là gì?",
+    "options": ["Chi phí (CPA/CPC) tăng cao, Tương tác (CTR) giảm mạnh", "Website bị sập", "Facebook tự động tặng thêm ngân sách", "Bài viết bị khóa"],
+    "correct_index": 0,
+    "explanation": "Ad Fatigue xảy ra khi cùng một tệp người dùng nhìn thấy quảng cáo của bạn quá nhiều lần (Frequency cao). Giải pháp: Đổi nội dung/hình ảnh mới (Creative refresh) hoặc đổi tệp."
+  },
+
+  {
+    "id": "seo_01",
+    "topic_id": "seo_sem",
+    "question": "Đâu là sự khác biệt cơ bản giữa SEO và SEM?",
+    "options": ["SEO là làm nội dung, SEM là làm kỹ thuật", "SEO là tối ưu hóa tự nhiên (không trả tiền click), SEM bao gồm cả trả tiền quảng cáo (Google Ads)", "SEO dùng cho Facebook, SEM dùng cho Google", "Không có khác biệt"],
+    "correct_index": 1,
+    "explanation": "Search Engine Marketing (SEM) = SEO (Tối ưu tìm kiếm tự nhiên) + PPC (Quảng cáo trả tiền như Google Ads)."
+  },
+  {
+    "id": "seo_02",
+    "topic_id": "seo_sem",
+    "question": "Backlink là gì trong SEO?",
+    "options": ["Nút quay lại trang trước trên trình duyệt", "Liên kết từ một trang web khác trỏ về trang web của bạn", "Liên kết nội bộ giữa các bài viết trên cùng một web", "Màu nền của website"],
+    "correct_index": 1,
+    "explanation": "Backlink đóng vai trò như một 'phiếu bầu' tín nhiệm. Trang web càng có nhiều backlink từ các trang uy tín (Domain Authority cao) thì thứ hạng SEO càng dễ lên TOP."
+  },
+  {
+    "id": "seo_03",
+    "topic_id": "seo_sem",
+    "question": "Keyword Stuffing (Nhồi nhét từ khóa) trong SEO là hành động:",
+    "options": ["Tuyệt vời, giúp bài viết top 1 ngay lập tức", "Hành động Black-hat SEO vi phạm chính sách Google, khiến trang web bị phạt", "Viết từ khóa bằng font chữ to", "Sử dụng các từ khóa đồng nghĩa"],
+    "correct_index": 1,
+    "explanation": "Việc cố tình lặp lại từ khóa vô tội vạ để thao túng thuật toán sẽ bị Google phạt (Google Panda update). Hiện nay Google ưu tiên semantic search và intent hơn mật độ từ khóa."
+  },
+  {
+    "id": "seo_04",
+    "topic_id": "seo_sem",
+    "question": "Thẻ Meta Description có ảnh hưởng trực tiếp đến yếu tố nào nhất?",
+    "options": ["Tốc độ load trang", "Tỷ lệ nhấp chuột (CTR) trên kết quả tìm kiếm", "Điểm chất lượng của Facebook Ads", "Bảo mật website"],
+    "correct_index": 1,
+    "explanation": "Meta Description là đoạn mô tả ngắn hiển thị dưới Title trên Google. Nó không trực tiếp là yếu tố xếp hạng (ranking factor) nhưng viết hay sẽ tăng CTR -> gián tiếp giúp lên TOP."
+  },
+  {
+    "id": "seo_05",
+    "topic_id": "seo_sem",
+    "question": "Long-tail Keyword (Từ khóa đuôi dài) có đặc điểm gì?",
+    "options": ["Lượng tìm kiếm (Volume) thấp nhưng tỷ lệ chuyển đổi (Conversion rate) rất cao", "Lượng tìm kiếm cực kỳ cao", "Chỉ gồm 1 từ duy nhất", "Rất khó SEO do cạnh tranh khốc liệt"],
+    "correct_index": 0,
+    "explanation": "VD: 'Giày' (Short-tail, khó SEO, chuyển đổi thấp) vs 'Mua giày chạy bộ Nike nam size 42 giá rẻ' (Long-tail, dễ SEO, khách đã rất sẵn sàng mua -> CVR cao)."
+  },
+
+  {
+    "id": "social_01",
+    "topic_id": "social_media",
+    "question": "Thuật toán EdgeRank của Facebook ưu tiên hiển thị nội dung dựa trên 3 yếu tố cốt lõi nào?",
+    "options": ["Time, Money, Quality", "Affinity (Mối quan hệ), Weight (Trọng số tương tác), Time Decay (Độ mới)", "Likes, Shares, Comments", "Video, Text, Image"],
+    "correct_index": 1,
+    "explanation": "Dù thuật toán đã tiến hóa thành Machine Learning phức tạp, cốt lõi của FB vẫn là: Bạn có thân với người đăng không (Affinity), Loại tương tác nào (Share có trọng số cao hơn Like), và Bài đăng có mới không (Time decay)."
+  },
+  {
+    "id": "social_02",
+    "topic_id": "social_media",
+    "question": "Tính năng 'Duet' và 'Stitch' là đặc trưng của mạng xã hội nào?",
+    "options": ["Instagram", "Twitter / X", "TikTok", "LinkedIn"],
+    "correct_index": 2,
+    "explanation": "Duet và Stitch là tính năng giúp người dùng tương tác, remix lại video của người khác trên TikTok, tạo ra các làn sóng Viral UGC mạnh mẽ."
+  },
+  {
+    "id": "social_03",
+    "topic_id": "social_media",
+    "question": "Micro-Influencer thường có đặc điểm gì nổi bật so với Macro-Influencer / Celeb?",
+    "options": ["Lượng follower lớn hơn hàng triệu người", "Tỷ lệ tương tác (Engagement Rate) cao hơn và tệp fan trung thành, ngách sâu hơn", "Phí booking đắt hơn rất nhiều", "Không bao giờ nhận quảng cáo"],
+    "correct_index": 1,
+    "explanation": "Micro-influencer (10k-100k follower) có cộng đồng rất ngách. Dù reach thấp hơn Celeb, nhưng ROI thường tốt hơn do fan tin tưởng họ như một người bạn/chuyên gia."
+  },
+  {
+    "id": "social_04",
+    "topic_id": "social_media",
+    "question": "Social Listening là công việc gì?",
+    "options": ["Đeo tai nghe lúc làm việc", "Dùng công cụ để theo dõi, thu thập dữ liệu và phân tích các thảo luận về thương hiệu/ngành trên mạng xã hội", "Gọi điện thoại telesales cho khách hàng", "Viết caption cho Fanpage"],
+    "correct_index": 1,
+    "explanation": "Social Listening giúp đo lường Sentiment (Cảm xúc: Tích cực/Tiêu cực), xử lý khủng hoảng truyền thông kịp thời và tìm ra insight khách hàng."
+  },
+  {
+    "id": "social_05",
+    "topic_id": "social_media",
+    "question": "Đâu là khung tỷ lệ khung hình (Aspect Ratio) chuẩn cho Video Short/Reels/TikTok?",
+    "options": ["16:9", "1:1", "9:16", "4:3"],
+    "correct_index": 2,
+    "explanation": "9:16 (Video dọc full màn hình điện thoại) là format định hình kỷ nguyên Short-form Video hiện tại."
+  },
+
+  {
+    "id": "email_01",
+    "topic_id": "email_crm",
+    "question": "Open Rate trong Email Marketing bị ảnh hưởng lớn nhất bởi yếu tố nào?",
+    "options": ["Nội dung dài hay ngắn", "Thiết kế nút CTA", "Tiêu đề email (Subject Line) và Tên người gửi", "Màu sắc của email"],
+    "correct_index": 2,
+    "explanation": "Nếu Subject Line không hấp dẫn, khách hàng sẽ bỏ qua hoặc xóa ngay lập tức mà không mở (Open). Tiêu đề quyết định >80% cơ hội email được đọc."
+  },
+  {
+    "id": "email_02",
+    "topic_id": "email_crm",
+    "question": "Hệ thống CRM (Customer Relationship Management) có chức năng chính là gì?",
+    "options": ["Quản lý kho hàng", "Thiết kế đồ họa", "Quản lý tập trung toàn bộ dữ liệu, lịch sử tương tác và điểm chạm với khách hàng", "Lập trình website"],
+    "correct_index": 2,
+    "explanation": "CRM (VD: Salesforce, Hubspot) lưu trữ lịch sử mua hàng, lịch sử email/call... giúp Sale và Marketing có chung một bức tranh để chăm sóc khách hàng cá nhân hóa."
+  },
+  {
+    "id": "email_03",
+    "topic_id": "email_crm",
+    "question": "Bounce Rate (Tỷ lệ dội lại) Hard Bounce trong Email Marketing nghĩa là gì?",
+    "options": ["Email bị trả về vĩnh viễn do địa chỉ không tồn tại hoặc sai định dạng", "Email bị trả về tạm thời do hòm thư đầy", "Khách hàng bấm Unsubscribe", "Khách hàng đánh dấu Spam"],
+    "correct_index": 0,
+    "explanation": "Hard Bounce là lỗi vĩnh viễn (địa chỉ giả, xóa tài khoản...). Cần dọn dẹp (clean) danh sách Hard Bounce ngay để không bị đánh tụt uy tín (Sender Reputation)."
+  },
+  {
+    "id": "email_04",
+    "topic_id": "email_crm",
+    "question": "Marketing Automation (Tự động hóa) trong Email kết hợp CRM hoạt động dựa trên cơ chế nào?",
+    "options": ["Nhân viên ngồi canh giờ để gửi", "Trigger (Hành động kích hoạt) -> Condition (Điều kiện lọc) -> Action (Gửi email/SMS)", "Gửi hàng loạt cho tất cả mọi người cùng 1 nội dung", "AI tự động đoán ý khách hàng"],
+    "correct_index": 1,
+    "explanation": "Workflow tự động: Ví dụ khách bỏ giỏ hàng (Trigger) -> Đợi 24h (Condition) -> Gửi email nhắc nhở kèm mã giảm giá (Action)."
+  },
+  {
+    "id": "email_05",
+    "topic_id": "email_crm",
+    "question": "Chỉ số RFM dùng để phân loại khách hàng trong CRM dựa trên 3 tiêu chí nào?",
+    "options": ["Region, Finance, Management", "Recency (Gần đây), Frequency (Tần suất), Monetary (Giá trị chi tiêu)", "Reach, Funnel, Metrics", "Rate, Feedback, Motivation"],
+    "correct_index": 1,
+    "explanation": "RFM model giúp tìm ra tập 'Khách hàng VIP': Mua gần đây nhất (R cao), Mua thường xuyên nhất (F cao) và Chi nhiều tiền nhất (M cao)."
+  },
+
+  {
+    "id": "growth_01",
+    "topic_id": "analytics_growth",
+    "question": "Trong mô hình Growth Hacking AARRR (Pirate Metrics), chữ R thứ 3 là gì?",
+    "options": ["Revenue (Doanh thu)", "Retention (Giữ chân)", "Referral (Giới thiệu)", "Return (Hoàn trả)"],
+    "correct_index": 2,
+    "explanation": "AARRR = Acquisition (Thu hút) -> Activation (Kích hoạt) -> Retention (Giữ chân) -> Referral (Giới thiệu) -> Revenue (Doanh thu)."
+  },
+  {
+    "id": "growth_02",
+    "topic_id": "analytics_growth",
+    "question": "North Star Metric (Chỉ số sao Bắc Đẩu) là gì?",
+    "options": ["Số lượng like trên Fanpage", "Chỉ số duy nhất, quan trọng nhất đo lường cốt lõi giá trị mà sản phẩm mang lại cho khách hàng", "Chi phí chạy Ads hàng tháng", "Mục tiêu lợi nhuận của năm"],
+    "correct_index": 1,
+    "explanation": "North Star Metric là kim chỉ nam cho toàn bộ công ty. Ví dụ: NSM của Spotify = 'Thời gian nghe nhạc', của Airbnb = 'Số đêm được đặt'."
+  },
+  {
+    "id": "growth_03",
+    "topic_id": "analytics_growth",
+    "question": "LTV (Lifetime Value) là gì?",
+    "options": ["Giá trị vòng đời - Tổng lợi nhuận ròng mà một khách hàng mang lại trong suốt thời gian họ gắn bó với doanh nghiệp", "Giá trị của công ty trên thị trường chứng khoán", "Thời gian một sản phẩm tồn tại trước khi bị hỏng", "Số lần khách hàng xem quảng cáo"],
+    "correct_index": 0,
+    "explanation": "LTV rất quan trọng trong mô hình Subscription (SaaS) hoặc F&B. LTV càng cao, doanh nghiệp càng dám chi nhiều tiền CAC để mua khách hàng."
+  },
+  {
+    "id": "growth_04",
+    "topic_id": "analytics_growth",
+    "question": "Kỹ thuật Viral Loop (Vòng lặp lan truyền) nổi tiếng nhất của Dropbox/Uber thời kỳ đầu là gì?",
+    "options": ["Chạy quảng cáo Super Bowl", "Tặng thưởng (Dung lượng/Tiền) cho cả người giới thiệu và người được giới thiệu (Referral Program)", "Mướn Celeb PR", "Đổi logo liên tục"],
+    "correct_index": 1,
+    "explanation": "Double-sided Referral. 'Mời bạn tải Dropbox: Bạn nhận 500MB, bạn của bạn nhận 500MB'. Cơ chế Win-Win tạo ra Viral Loop tự động (K-factor > 1)."
+  },
+  {
+    "id": "growth_05",
+    "topic_id": "analytics_growth",
+    "question": "Churn Rate (Tỷ lệ rời bỏ) tính như thế nào?",
+    "options": ["Số khách quay lại / Tổng số khách", "Số khách hàng ngừng sử dụng dịch vụ trong một khoảng thời gian / Tổng số khách hàng đầu kỳ", "Số nhân viên nghỉ việc", "Tỷ lệ khách hàng mua thêm sản phẩm (Upsell)"],
+    "correct_index": 1,
+    "explanation": "Churn Rate là 'Kẻ thù số 1' của Growth. Growth không có ý nghĩa nếu khách vào bao nhiêu lại rời đi bấy nhiêu (Leaky bucket - Cái xô thủng)."
+  }
+]

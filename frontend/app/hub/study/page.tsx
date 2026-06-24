@@ -1,244 +1,342 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
+import { BookOpen, CheckCircle, XCircle, ArrowRight, Lightbulb, RefreshCw, ArrowLeft, Trophy } from "lucide-react";
 
-interface Message {
-  role: "user" | "assistant";
-  content: string;
+interface Topic {
+  id: string;
+  name: string;
+  description: string;
+  total_questions: number;
 }
 
-export default function StudyPage() {
-  const router = useRouter();
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [input, setInput] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [suggestions, setSuggestions] = useState<string[]>([]);
-  
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+interface Question {
+  id: string;
+  topic_id: string;
+  question: string;
+  options: string[];
+  correct_index: number;
+  explanation: string;
+}
 
+type ViewState = "topics" | "quiz" | "result";
+
+export default function StudyLearningPlatform() {
+  const router = useRouter();
+  const [view, setView] = useState<ViewState>("topics");
+  
+  // Data state
+  const [topics, setTopics] = useState<Topic[]>([]);
+  const [questions, setQuestions] = useState<Question[]>([]);
+  const [selectedTopic, setSelectedTopic] = useState<Topic | null>(null);
+  
+  // Quiz state
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [selectedOption, setSelectedOption] = useState<number | null>(null);
+  const [isRevealed, setIsRevealed] = useState(false);
+  const [score, setScore] = useState(0);
+  
+  // Progress state (localStorage)
+  const [progress, setProgress] = useState<Record<string, {completed: number, score: number}>>({});
+
+  // 1. Load Topics on mount
   useEffect(() => {
-    // Initiate chat on first load
-    if (messages.length === 0 && !isLoading) {
-      sendMessage("", true);
+    fetch("/api/study_questions/topics")
+      .then(res => res.json())
+      .then(data => setTopics(data))
+      .catch(err => console.error("Failed to load topics", err));
+      
+    // Load progress
+    const saved = localStorage.getItem("vitba_study_progress");
+    if (saved) {
+      try {
+        setProgress(JSON.parse(saved));
+      } catch (e) {}
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Save progress when it changes
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, isLoading]);
-
-  const sendMessage = async (text: string, isInitial: boolean = false) => {
-    if (!isInitial && !text.trim()) return;
-
-    const newMessages = isInitial ? [] : [...messages, { role: "user", content: text } as Message];
-    if (!isInitial) {
-      setMessages(newMessages);
-      setInput("");
-      setSuggestions([]);
+    if (Object.keys(progress).length > 0) {
+      localStorage.setItem("vitba_study_progress", JSON.stringify(progress));
     }
+  }, [progress]);
 
-    setIsLoading(true);
-
+  // 2. Start Topic
+  const startTopic = async (topic: Topic) => {
     try {
-      const response = await fetch("/api/study/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: newMessages }),
-      });
-
-      if (!response.body) throw new Error("No response body");
-
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      
-      let aiContent = "";
-      setMessages([...newMessages, { role: "assistant", content: "" }]);
-
-      while (true) {
-        const { value, done } = await reader.read();
-        if (done) break;
-        
-        const chunk = decoder.decode(value);
-        const lines = chunk.split("\n\n");
-        
-        for (const line of lines) {
-          if (line.startsWith("data: ")) {
-            try {
-              const data = JSON.parse(line.substring(6));
-              if (data.type === "token") {
-                aiContent += data.content;
-                setMessages([...newMessages, { role: "assistant", content: aiContent }]);
-              } else if (data.type === "suggestions") {
-                setSuggestions(data.suggestions);
-              }
-            } catch (e) {
-              // ignore parse errors
-            }
-          }
-        }
+      const res = await fetch(`/api/study_questions/questions/${topic.id}`);
+      const data = await res.json();
+      if (data && data.length > 0) {
+        setQuestions(data);
+        setSelectedTopic(topic);
+        setCurrentIndex(0);
+        setSelectedOption(null);
+        setIsRevealed(false);
+        setScore(0);
+        setView("quiz");
+      } else {
+        alert("Chủ đề này hiện chưa có câu hỏi nào!");
       }
-    } catch (error) {
-      console.error(error);
-      setMessages((prev) => [...prev, { role: "assistant", content: "Xin lỗi, đã có lỗi xảy ra. Vui lòng thử lại." }]);
-    } finally {
-      setIsLoading(false);
+    } catch (err) {
+      console.error(err);
+      alert("Lỗi tải câu hỏi. Vui lòng thử lại sau.");
     }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      sendMessage(input);
+  // 3. Handle Answer Selection
+  const handleSelectOption = (index: number) => {
+    if (isRevealed) return; // Prevent changing answer
+    setSelectedOption(index);
+    setIsRevealed(true);
+    
+    if (index === questions[currentIndex].correct_index) {
+      setScore(prev => prev + 1);
     }
   };
 
-  const MarkdownContent = ({ content }: { content: string }) => {
-    // Clean up suggestion blocks if any
-    let cleaned = content.replace(/```suggestions\n[\s\S]*?\n```/g, "");
-    cleaned = cleaned.replace(/```suggestions\n[\s\S]*$/g, "").trim();
+  // 4. Next Question or Finish
+  const handleNext = () => {
+    if (currentIndex < questions.length - 1) {
+      setCurrentIndex(prev => prev + 1);
+      setSelectedOption(null);
+      setIsRevealed(false);
+    } else {
+      // Finish quiz
+      if (selectedTopic) {
+        setProgress(prev => ({
+          ...prev,
+          [selectedTopic.id]: {
+            completed: questions.length,
+            score: score + (selectedOption === questions[currentIndex].correct_index ? 1 : 0)
+          }
+        }));
+      }
+      setView("result");
+    }
+  };
 
+  const currentQ = questions[currentIndex];
+
+  // --- RENDER TOPICS ---
+  if (view === "topics") {
     return (
-      <div className="text-foreground">
-        <ReactMarkdown
-          remarkPlugins={[remarkGfm]}
-          components={{
-            p: ({ children }) => <p className="mb-3 last:mb-0 leading-relaxed text-[15px]">{children}</p>,
-            ul: ({ children }) => <ul className="mb-4 ml-6 list-disc last:mb-0 space-y-1">{children}</ul>,
-            ol: ({ children }) => <ol className="mb-4 ml-6 list-decimal last:mb-0 space-y-1">{children}</ol>,
-            li: ({ children }) => <li className="mb-1 text-[15px]">{children}</li>,
-            strong: ({ children }) => <strong className="font-semibold text-foreground">{children}</strong>,
-            code: ({ children, className }) => {
-              const isBlock = className?.includes("language-");
-              if (isBlock) {
-                return (
-                  <pre className="my-4 overflow-x-auto rounded-xl bg-muted border border-border p-4 text-[13px] text-foreground no-scrollbar shadow-inner">
-                    <code>{children}</code>
-                  </pre>
-                );
-              }
-              return <code className="rounded bg-primary/20 text-primary px-1.5 py-0.5 text-[13px] font-mono">{children}</code>;
-            },
-            h1: ({ children }) => <h1 className="mb-4 mt-6 text-2xl font-bold text-foreground">{children}</h1>,
-            h2: ({ children }) => <h2 className="mb-3 mt-6 text-xl font-bold text-foreground">{children}</h2>,
-            h3: ({ children }) => <h3 className="mb-2 mt-5 text-lg font-semibold text-foreground">{children}</h3>,
-            h4: ({ children }) => <h4 className="mb-2 mt-4 text-base font-medium text-foreground">{children}</h4>,
-            table: ({ children }) => (
-              <div className="my-4 overflow-x-auto rounded-xl border border-border shadow-sm">
-                <table className="w-full text-[13px]">{children}</table>
+      <div className="max-w-6xl mx-auto p-6 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
+              Vitba Study
+            </h1>
+            <p className="text-muted-foreground mt-2 text-lg">
+              Nền tảng rèn luyện tư duy và kiến thức Marketing thực chiến.
+            </p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {topics.map(topic => {
+            const topicProgress = progress[topic.id];
+            const isCompleted = topicProgress?.completed === topic.total_questions;
+            const percent = topicProgress ? Math.round((topicProgress.completed / topic.total_questions) * 100) : 0;
+            
+            return (
+              <div 
+                key={topic.id}
+                onClick={() => startTopic(topic)}
+                className={`p-6 rounded-2xl border transition-all duration-300 cursor-pointer flex flex-col h-full
+                  ${isCompleted 
+                    ? 'bg-green-50/50 border-green-200 hover:border-green-400 hover:shadow-md' 
+                    : 'bg-card hover:shadow-lg hover:border-blue-300 hover:-translate-y-1'
+                  }`}
+              >
+                <div className="flex justify-between items-start mb-4">
+                  <div className={`p-3 rounded-xl ${isCompleted ? 'bg-green-100 text-green-600' : 'bg-blue-100 text-blue-600'}`}>
+                    <BookOpen size={24} />
+                  </div>
+                  {isCompleted && (
+                    <span className="px-3 py-1 bg-green-100 text-green-700 text-xs font-semibold rounded-full flex items-center gap-1">
+                      <CheckCircle size={14} /> Hoàn thành
+                    </span>
+                  )}
+                </div>
+                
+                <h3 className="text-xl font-bold mb-2">{topic.name}</h3>
+                <p className="text-muted-foreground text-sm flex-grow mb-6">{topic.description}</p>
+                
+                <div className="space-y-2 mt-auto">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">{topic.total_questions} câu hỏi</span>
+                    <span className="font-medium text-blue-600">{percent}%</span>
+                  </div>
+                  <div className="w-full bg-secondary rounded-full h-2 overflow-hidden">
+                    <div 
+                      className={`h-full rounded-full transition-all duration-1000 ease-out ${isCompleted ? 'bg-green-500' : 'bg-blue-500'}`}
+                      style={{ width: `${percent}%` }}
+                    />
+                  </div>
+                </div>
               </div>
-            ),
-            thead: ({ children }) => <thead className="bg-muted/80 border-b border-border">{children}</thead>,
-            tbody: ({ children }) => <tbody className="divide-y divide-border">{children}</tbody>,
-            tr: ({ children }) => <tr className="hover:bg-muted/40 transition-colors">{children}</tr>,
-            th: ({ children }) => <th className="px-4 py-2.5 text-left font-semibold text-foreground whitespace-nowrap">{children}</th>,
-            td: ({ children }) => <td className="px-4 py-2.5 border-t border-border/50">{children}</td>,
-          }}
-        >
-          {cleaned}
-        </ReactMarkdown>
+            );
+          })}
+        </div>
       </div>
     );
-  };
+  }
 
-  return (
-    <div className="max-w-4xl mx-auto h-[calc(100vh-80px)] flex flex-col bg-background border border-border/50 rounded-2xl overflow-hidden shadow-sm">
-      {/* Header */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-border/50 bg-muted/20">
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => router.push("/hub")}
-            className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+  // --- RENDER QUIZ ---
+  if (view === "quiz" && currentQ) {
+    const isCorrect = selectedOption === currentQ.correct_index;
+    
+    return (
+      <div className="max-w-3xl mx-auto p-4 md:p-6 min-h-[80vh] flex flex-col animate-in fade-in duration-300">
+        {/* Header Progress */}
+        <div className="flex items-center gap-4 mb-8">
+          <button 
+            onClick={() => setView("topics")}
+            className="p-2 hover:bg-secondary rounded-full transition-colors text-muted-foreground"
           >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M15 18l-6-6 6-6" />
-            </svg>
+            <ArrowLeft size={24} />
           </button>
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-base font-semibold">Vitba Study</h1>
-              <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-semibold uppercase tracking-wider bg-purple-500/10 text-purple-500 border border-purple-500/20">
-                Độc quyền
-              </span>
+          <div className="flex-grow space-y-2">
+            <div className="flex justify-between text-sm font-medium">
+              <span className="text-muted-foreground">{selectedTopic?.name}</span>
+              <span>{currentIndex + 1} / {questions.length}</span>
             </div>
-            <p className="text-xs text-muted-foreground">AI Mentor & Giảng viên Marketing</p>
+            <div className="w-full bg-secondary rounded-full h-2.5 overflow-hidden">
+              <div 
+                className="bg-blue-600 h-full rounded-full transition-all duration-500"
+                style={{ width: `${((currentIndex + 1) / questions.length) * 100}%` }}
+              />
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Chat Area */}
-      <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 custom-scrollbar">
-        {messages.map((msg, i) => (
-          <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-            <div
-              className={`max-w-[85%] rounded-2xl px-5 py-4 ${
-                msg.role === "user"
-                  ? "bg-primary text-primary-foreground rounded-tr-sm"
-                  : "bg-muted/40 border border-border/50 rounded-tl-sm"
-              }`}
+        {/* Question Area */}
+        <div className="flex-grow flex flex-col justify-center">
+          <h2 className="text-2xl md:text-3xl font-bold mb-8 leading-tight">
+            {currentQ.question}
+          </h2>
+
+          <div className="space-y-4">
+            {currentQ.options.map((option, idx) => {
+              let optionClass = "border-border hover:border-blue-400 hover:bg-blue-50/50";
+              let icon = null;
+
+              if (isRevealed) {
+                if (idx === currentQ.correct_index) {
+                  optionClass = "border-green-500 bg-green-50 text-green-900 shadow-sm";
+                  icon = <CheckCircle className="text-green-500 shrink-0" size={24} />;
+                } else if (idx === selectedOption) {
+                  optionClass = "border-red-500 bg-red-50 text-red-900";
+                  icon = <XCircle className="text-red-500 shrink-0" size={24} />;
+                } else {
+                  optionClass = "border-border opacity-50";
+                }
+              } else if (selectedOption === idx) {
+                optionClass = "border-blue-500 bg-blue-50 text-blue-900";
+              }
+
+              return (
+                <button
+                  key={idx}
+                  onClick={() => handleSelectOption(idx)}
+                  disabled={isRevealed}
+                  className={`w-full p-5 md:p-6 text-left rounded-2xl border-2 transition-all duration-200 flex justify-between items-center gap-4 text-lg font-medium ${optionClass}`}
+                >
+                  <span>{option}</span>
+                  {icon}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Explanation Block */}
+          {isRevealed && (
+            <div className="mt-8 p-6 bg-amber-50 border border-amber-200 rounded-2xl text-amber-900 animate-in slide-in-from-bottom-4 fade-in duration-500 shadow-sm">
+              <div className="flex items-start gap-3">
+                <Lightbulb className="text-amber-500 shrink-0 mt-1" size={24} />
+                <div>
+                  <h4 className="font-bold mb-2 flex items-center gap-2">
+                    {isCorrect ? "Chính xác! Kiến thức cần nhớ:" : "Chưa chính xác! Kiến thức cần nhớ:"}
+                  </h4>
+                  <p className="text-amber-800/90 leading-relaxed text-lg">
+                    {currentQ.explanation}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Footer Next Button */}
+        {isRevealed && (
+          <div className="mt-8 sticky bottom-6 z-10 animate-in fade-in duration-300">
+            <button
+              onClick={handleNext}
+              className="w-full py-5 px-6 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-bold text-xl flex items-center justify-center gap-2 transition-all shadow-lg hover:shadow-xl"
             >
-              {msg.role === "user" ? (
-                <p className="text-[15px] whitespace-pre-wrap">{msg.content}</p>
-              ) : (
-                <MarkdownContent content={msg.content} />
-              )}
-            </div>
-          </div>
-        ))}
-        {isLoading && (
-          <div className="flex justify-start">
-            <div className="bg-muted/40 border border-border/50 rounded-2xl rounded-tl-sm px-5 py-4 flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-primary/60 animate-bounce" />
-              <span className="w-2 h-2 rounded-full bg-primary/60 animate-bounce" style={{ animationDelay: "0.2s" }} />
-              <span className="w-2 h-2 rounded-full bg-primary/60 animate-bounce" style={{ animationDelay: "0.4s" }} />
-            </div>
+              {currentIndex === questions.length - 1 ? "Hoàn thành chủ đề" : "Câu tiếp theo"}
+              <ArrowRight size={24} />
+            </button>
           </div>
         )}
-        <div ref={messagesEndRef} />
       </div>
+    );
+  }
 
-      {/* Input Area */}
-      <div className="p-4 border-t border-border/50 bg-background">
-        {suggestions.length > 0 && !isLoading && (
-          <div className="flex flex-wrap gap-2 mb-3">
-            {suggestions.map((s, i) => (
-              <button
-                key={i}
-                onClick={() => sendMessage(s)}
-                className="px-3 py-1.5 rounded-full border border-primary/30 bg-primary/5 text-primary text-[13px] hover:bg-primary/10 transition-colors"
-              >
-                {s}
-              </button>
-            ))}
+  // --- RENDER RESULT ---
+  if (view === "result") {
+    const accuracy = Math.round((score / questions.length) * 100);
+    let message = "";
+    if (accuracy === 100) message = "Tuyệt vời! Bạn là chuyên gia thực thụ.";
+    else if (accuracy >= 80) message = "Rất tốt! Kiến thức của bạn rất vững.";
+    else if (accuracy >= 50) message = "Khá khen! Hãy ôn tập thêm để giỏi hơn nhé.";
+    else message = "Cố gắng lên! Học hỏi từ những lỗi sai là cách tốt nhất.";
+
+    return (
+      <div className="max-w-2xl mx-auto p-6 min-h-[80vh] flex flex-col items-center justify-center text-center animate-in zoom-in-95 duration-500">
+        <div className="w-32 h-32 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mb-8 shadow-inner">
+          <Trophy size={64} />
+        </div>
+        
+        <h2 className="text-4xl font-extrabold mb-4 text-foreground">Hoàn thành xuất sắc!</h2>
+        <p className="text-xl text-muted-foreground mb-8">
+          Bạn vừa hoàn thành chủ đề <span className="font-bold text-foreground">{selectedTopic?.name}</span>
+        </p>
+
+        <div className="grid grid-cols-2 gap-6 w-full mb-10">
+          <div className="bg-card p-6 rounded-2xl border shadow-sm">
+            <p className="text-muted-foreground font-medium mb-2">Độ chính xác</p>
+            <p className="text-5xl font-black text-blue-600">{accuracy}%</p>
           </div>
-        )}
-        <div className="relative flex items-end gap-2">
-          <textarea
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Nhập câu hỏi hoặc chọn gợi ý bên trên..."
-            className="w-full max-h-32 min-h-[52px] resize-none rounded-xl border border-border/50 bg-muted/20 px-4 py-3.5 text-[15px] text-foreground focus:outline-none focus:border-primary/50 focus:bg-background custom-scrollbar"
-            rows={1}
-          />
+          <div className="bg-card p-6 rounded-2xl border shadow-sm">
+            <p className="text-muted-foreground font-medium mb-2">Số câu đúng</p>
+            <p className="text-5xl font-black text-green-500">{score}<span className="text-2xl text-muted-foreground">/{questions.length}</span></p>
+          </div>
+        </div>
+
+        <p className="text-xl font-medium mb-12 bg-secondary p-4 rounded-xl w-full">
+          {message}
+        </p>
+
+        <div className="flex flex-col sm:flex-row gap-4 w-full">
           <button
-            onClick={() => sendMessage(input)}
-            disabled={!input.trim() || isLoading}
-            className="h-[52px] w-[52px] shrink-0 flex items-center justify-center rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            onClick={() => startTopic(selectedTopic!)}
+            className="flex-1 py-4 px-6 border-2 border-border hover:bg-secondary rounded-2xl font-bold text-lg flex items-center justify-center gap-2 transition-all"
           >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="22" y1="2" x2="11" y2="13" />
-              <polygon points="22 2 15 22 11 13 2 9 22 2" />
-            </svg>
+            <RefreshCw size={20} /> Làm lại chủ đề này
+          </button>
+          <button
+            onClick={() => setView("topics")}
+            className="flex-1 py-4 px-6 bg-foreground text-background hover:opacity-90 rounded-2xl font-bold text-lg flex items-center justify-center gap-2 transition-all"
+          >
+            Về danh sách chủ đề <ArrowRight size={20} />
           </button>
         </div>
-        <p className="text-center text-[11px] text-muted-foreground mt-3">
-          Vitba Study có thể mắc lỗi. Vui lòng kiểm tra lại các thông tin quan trọng.
-        </p>
       </div>
-    </div>
-  );
+    );
+  }
+
+  return null;
 }
