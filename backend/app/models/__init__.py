@@ -12,6 +12,7 @@ from app.models.email_contact import EmailContact
 from app.models.email_list import EmailList
 from app.models.email_template import EmailTemplate
 from app.models.generation_job import GenerationJob
+from app.models.lab_history import LabHistory
 from app.models.landing_page import LandingPage
 from app.models.payment import PaymentOrder
 from app.models.project import Project
@@ -23,6 +24,6 @@ from app.models.user_template import UserTemplate
 __all__ = [
     "AuditLog", "BrandProfile", "BrandProfileHistory", "Campaign", "ContentHistory", "ContentItem",
     "Conversation", "Deployment", "Document", "EmailCampaign", "EmailContact",
-    "EmailList", "EmailTemplate", "GenerationJob", "LandingPage", "Message", "PaymentOrder",
+    "EmailList", "EmailTemplate", "GenerationJob", "LabHistory", "LandingPage", "Message", "PaymentOrder",
     "Project", "ScheduledEmail", "SeoAudit", "User", "UserTemplate",
 ]
