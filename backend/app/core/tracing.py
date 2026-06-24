@@ -1,5 +1,5 @@
 import os
-from langfuse.callback import CallbackHandler
+from langfuse.langchain import CallbackHandler
 from app.core.config import settings
 
 def get_langfuse_handler():
