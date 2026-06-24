@@ -8,7 +8,7 @@ import {
   Sparkles, ArrowRight, Check, Star,
   FileText, Search, Mail, LayoutTemplate, Video, ClipboardList,
   Users, Rocket, Building2, Briefcase,
-  MessageSquare, Cog, CheckCircle2,
+  MessageSquare, Cog, CheckCircle2, Calendar, BarChart3, Globe,
 } from "lucide-react";
 import { ParticleNetwork } from "@/components/particle-network";
 
