@@ -402,17 +402,15 @@ export default function ReportPage() {
               </div>
             </div>
             
-            <div className="flex-1 overflow-y-auto p-6 md:p-10 bg-white custom-scrollbar print:p-0 print:overflow-visible">
-              <article className="prose prose-sm md:prose-base prose-blue max-w-none 
-                prose-headings:font-bold prose-headings:text-slate-900 
+            <div className="flex-1 overflow-y-auto p-6 md:p-10 custom-scrollbar print:p-0 print:overflow-visible">
+              <article className="prose prose-sm md:prose-base max-w-none dark:prose-invert
+                prose-headings:font-bold 
                 prose-h1:text-2xl prose-h2:text-xl prose-h3:text-lg
-                prose-p:text-slate-600 prose-p:leading-relaxed
-                prose-li:text-slate-600
-                prose-strong:text-slate-900
+                prose-p:leading-relaxed
                 prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline
-                prose-blockquote:border-l-4 prose-blockquote:border-blue-500 prose-blockquote:bg-blue-50 prose-blockquote:py-2 prose-blockquote:px-4 prose-blockquote:rounded-r-lg prose-blockquote:not-italic prose-blockquote:text-slate-700
+                prose-blockquote:border-l-4 prose-blockquote:border-blue-500 prose-blockquote:bg-blue-50 dark:prose-blockquote:bg-blue-900/20 prose-blockquote:py-2 prose-blockquote:px-4 prose-blockquote:rounded-r-lg prose-blockquote:not-italic
                 prose-pre:bg-slate-900 prose-pre:text-slate-50 prose-pre:rounded-xl
-                prose-code:text-blue-600 prose-code:bg-blue-50 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded-md prose-code:before:content-none prose-code:after:content-none"
+                prose-code:text-blue-600 dark:prose-code:text-blue-400 prose-code:bg-blue-50 dark:prose-code:bg-blue-900/30 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded-md prose-code:before:content-none prose-code:after:content-none"
               >
                 <ReactMarkdown remarkPlugins={[remarkGfm]}>
                   {result.markdown_content}
