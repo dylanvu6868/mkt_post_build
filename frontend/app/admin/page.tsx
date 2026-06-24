@@ -79,7 +79,7 @@ function KPICard({ label, value, sub, icon, color }: {
       <CardContent className="p-5">
         <div className="flex items-center justify-between mb-3">
           <span className="text-[12px] font-medium text-muted-foreground uppercase tracking-wide">{label}</span>
-          <div className={cn("flex h-9 w-9 items-center justify-center rounded-[10px]", color || "bg-primary/10 text-primary")}>
+          <div className={cn("flex h-9 w-9 items-center justify-center rounded-xl", color || "bg-primary/10 text-primary")}>
             {icon}
           </div>
         </div>
@@ -290,11 +290,11 @@ export default function AdminDashboardPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
-              <div className="rounded-[10px] bg-green-500/5 border border-green-500/10 p-3 text-center">
+              <div className="rounded-xl bg-green-500/5 border border-green-500/10 p-3 text-center">
                 <p className="text-xl font-bold text-green-500">{data.jobs.done || 0}</p>
                 <p className="text-[11px] text-muted-foreground">Jobs thành công</p>
               </div>
-              <div className="rounded-[10px] bg-red-500/5 border border-red-500/10 p-3 text-center">
+              <div className="rounded-xl bg-red-500/5 border border-red-500/10 p-3 text-center">
                 <p className="text-xl font-bold text-red-500">{data.jobs.error || 0}</p>
                 <p className="text-[11px] text-muted-foreground">Jobs lỗi</p>
               </div>
@@ -373,7 +373,7 @@ export default function AdminDashboardPage() {
           <CardContent>
             <div className="space-y-2">
               {data.top_users.map((u, i) => (
-                <div key={u.id} className="flex items-center justify-between rounded-[10px] border border-border p-3 hover:bg-accent/50 transition-colors">
+                <div key={u.id} className="flex items-center justify-between rounded-xl border border-border p-3 hover:bg-accent/50 transition-colors">
                   <div className="flex items-center gap-3">
                     <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-[12px] font-bold text-primary">#{i + 1}</span>
                     <div>

@@ -71,7 +71,7 @@ function AccountTab({ onClose }: { onClose: () => void }) {
             </div>
             <button
               onClick={() => { onClose(); router.push("/pricing"); }}
-              className="rounded-[12px] bg-gradient-to-r from-yellow-400 to-amber-500 px-4 py-2 text-xs font-bold text-amber-950 hover:from-yellow-300 hover:to-amber-400 transition-all"
+              className="rounded-xl bg-gradient-to-r from-yellow-400 to-amber-500 px-4 py-2 text-xs font-bold text-amber-950 hover:from-yellow-300 hover:to-amber-400 transition-all"
             >
               Xem gói
             </button>
@@ -121,7 +121,7 @@ export function SettingsModal({ children }: { children: React.ReactNode }) {
       <DialogTrigger asChild>
         {children}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[650px] bg-background/95 backdrop-blur-3xl border-border text-foreground shadow-[0_0_40px_rgba(0,0,0,0.1)] dark:shadow-[0_0_80px_rgba(0,0,0,0.8)] p-0 overflow-hidden rounded-[24px]">
+      <DialogContent className="sm:max-w-[650px] bg-background/95 backdrop-blur-3xl border-border text-foreground shadow-[0_0_40px_rgba(0,0,0,0.1)] dark:shadow-[0_0_80px_rgba(0,0,0,0.8)] p-0 overflow-hidden rounded-3xl">
         <div className="flex h-[500px]">
           <Tabs defaultValue="account" className="flex w-full h-full" orientation="vertical">
             <div className="w-[200px] border-r border-border bg-card/40 p-5 flex flex-col">

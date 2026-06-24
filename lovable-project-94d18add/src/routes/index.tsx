@@ -1,0 +1,466 @@
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import {
+  Sparkles, ArrowRight, Check, Star, Sun, Moon, Zap,
+  FileText, Search, Mail, LayoutTemplate, Video, ClipboardList,
+  Brain, Microscope, PenTool, ShieldCheck, Wand2,
+  Users, Rocket, Building2, Briefcase, Calendar, BarChart3, Globe,
+  MessageSquare, Cog, CheckCircle2,
+} from "lucide-react";
+
+export const Route = createFileRoute("/")({
+  component: Landing,
+});
+
+const FEATURES = [
+  { icon: FileText, title: "Facebook Post", desc: "Bài viết viral với hook 3s, body storytelling, CTA chuyển đổi và hashtag tối ưu.", details: ["Hook 3 giây", "Body storytelling", "CTA chuyển đổi", "30+ hashtag"] },
+  { icon: Search, title: "SEO Blog", desc: "Bài blog chuẩn SEO 1500–3000 từ với schema, heading hierarchy và từ khoá LSI.", details: ["Chuẩn E-E-A-T", "FAQ Schema", "Internal linking", "Meta tối ưu"] },
+  { icon: Mail, title: "Email Marketing", desc: "Email sequence chuyển đổi cao với A/B subject, preheader và CTA tối ưu.", details: ["Subject A/B", "Preheader", "Responsive", "Compliant"] },
+  { icon: LayoutTemplate, title: "Landing Page", desc: "Trang đích AIDA với benefits, testimonials, FAQ và multi-step CTA, HTML sẵn deploy.", details: ["Công thức AIDA", "Social proof", "Trust signals", "Mobile-first"] },
+  { icon: Video, title: "TikTok Script", desc: "Kịch bản 15–60s với hook 3s, scene-by-scene, voiceover và CTA viral cho FYP.", details: ["Hook 3 giây", "Scene-by-scene", "Trending audio", "Caption + CTA"] },
+  { icon: ClipboardList, title: "Marketing Plan", desc: "Kế hoạch chiến lược với SWOT, persona, channel strategy và KPI tracking.", details: ["SWOT", "Persona", "Channel Mix", "KPI Dashboard"] },
+];
+
+const STEPS = [
+  { num: "01", title: "Mô tả ý tưởng", desc: "Chat tự nhiên bằng tiếng Việt — mô tả sản phẩm, đối tượng, tone of voice và mục tiêu.", icon: MessageSquare },
+  { num: "02", title: "Vitba Agents xử lý", desc: "Pipeline 5 Agents tự động: Planner → Researcher → Copywriter → Reviewer → Formatter.", icon: Cog },
+  { num: "03", title: "Nhận nội dung hoàn chỉnh", desc: "Nội dung chuyên nghiệp kèm AI Score. Copy 1 click, tải file, hoặc yêu cầu chỉnh sửa.", icon: CheckCircle2 },
+];
+
+const AGENTS = [
+  { name: "Planner", role: "Lên chiến lược", desc: "Phân tích brief, xác định mục tiêu, đề xuất approach tối ưu.", icon: Brain },
+  { name: "Researcher", role: "Nghiên cứu thị trường", desc: "Phân tích trend, keyword, audience insight.", icon: Microscope },
+  { name: "Copywriter", role: "Viết nội dung", desc: "Sáng tạo copy theo tone & style phù hợp.", icon: PenTool },
+  { name: "Reviewer", role: "Kiểm duyệt & chấm điểm", desc: "Đánh giá AI Score, gợi ý cải thiện.", icon: ShieldCheck },
+  { name: "Formatter", role: "Tối ưu định dạng & SEO", desc: "Format chuẩn platform, schema markup.", icon: Wand2 },
+];
+
+const HUB_TOOLS = [
+  { icon: Mail, title: "Email Marketing", desc: "Soạn template, quản lý liên hệ, gửi hàng loạt và lên lịch tự động.", tags: ["Template", "List", "Lên lịch"] },
+  { icon: Search, title: "SEO Tools", desc: "Audit on-page, chấm điểm 0–100, phát hiện lỗi và gợi ý cải thiện.", tags: ["Điểm 0–100", "On-page", "Keyword"] },
+  { icon: Calendar, title: "Content Calendar", desc: "Lên kế hoạch nội dung theo Kanban và lịch tháng cho cả team.", tags: ["Kanban", "Lịch tháng", "Duyệt"] },
+  { icon: BarChart3, title: "Analytics", desc: "Bảng điều khiển KPI tổng hợp marketing với biểu đồ xu hướng.", tags: ["KPI", "Trend", "Activity"] },
+  { icon: Globe, title: "Landing Page Builder", desc: "Tạo trang đích bằng AI, chỉnh sửa trực tiếp và publish 1 click.", tags: ["AI", "Editor", "Publish"] },
+];
+
+const PLANS = [
+  { name: "Free", price: "Miễn phí", period: "", highlight: "15 lượt/ngày", features: ["4 loại nội dung", "Chat AI không giới hạn", "3 dự án · 10 file KB"] },
+  { name: "Lite", price: "99K", period: "/tháng", highlight: "50 lượt/ngày", features: ["Email, SEO, Calendar", "+ Marketing Plan", "100 email/ngày"] },
+  { name: "Pro", price: "219K", period: "/tháng", highlight: "200 lượt/ngày", popular: true, features: ["Hub đầy đủ (5 tools)", "Landing Page AI · Analytics", "500 email/ngày"] },
+  { name: "Max", price: "469K", period: "/tháng", highlight: "Không giới hạn", features: ["Mọi thứ không giới hạn", "Hub & email unlimited", "Hỗ trợ dedicated"] },
+];
+
+const STATS = [
+  { v: "30s", l: "Tạo nội dung" },
+  { v: "6+", l: "Loại marketing" },
+  { v: "5", l: "AI Agents" },
+  { v: "100%", l: "Tiếng Việt" },
+];
+
+const TESTIMONIALS = [
+  { name: "Minh Anh", role: "Marketing Manager", text: "Team tôi tiết kiệm 80% thời gian viết content. Bài SEO blog tốt hơn cả agency." },
+  { name: "Hùng Nguyễn", role: "Founder Startup", text: "Không cần thuê copywriter nữa. Landing page convert rate tăng 3x." },
+  { name: "Thu Hà", role: "Freelance Marketer", text: "Pipeline 5 Agents ấn tượng. Content được review tự động, chuyên nghiệp." },
+];
+
+const USE_CASES = [
+  { icon: Users, title: "Freelancer", desc: "Tạo content cho nhiều khách hàng nhanh hơn 10x." },
+  { icon: Rocket, title: "Startup", desc: "Marketing chuyên nghiệp ngay từ ngày đầu, không cần agency." },
+  { icon: Building2, title: "Doanh nghiệp SME", desc: "Tiết kiệm 80% thời gian và chi phí marketing." },
+  { icon: Briefcase, title: "Marketing Agency", desc: "Scale content output 10x cho mọi khách hàng." },
+];
+
+function useTheme() {
+  const [theme, setTheme] = useState<"light" | "dark">("dark");
+  useEffect(() => {
+    const stored = typeof window !== "undefined" ? localStorage.getItem("theme") : null;
+    const initial = (stored as "light" | "dark") || "dark";
+    setTheme(initial);
+    document.documentElement.classList.toggle("dark", initial === "dark");
+  }, []);
+  const toggle = () => {
+    const next = theme === "dark" ? "light" : "dark";
+    setTheme(next);
+    document.documentElement.classList.toggle("dark", next === "dark");
+    localStorage.setItem("theme", next);
+  };
+  return { theme, toggle };
+}
+
+function Section({ id, children, className = "" }: { id?: string; children: React.ReactNode; className?: string }) {
+  return <section id={id} className={`relative mx-auto w-full max-w-7xl px-5 py-20 md:py-28 ${className}`}>{children}</section>;
+}
+
+function SectionHeader({ tag, title, sub }: { tag: string; title: string; sub?: string }) {
+  return (
+    <div className="mx-auto mb-14 max-w-3xl text-center">
+      <span className="pill-tag mb-4"><Sparkles className="h-3.5 w-3.5" />{tag}</span>
+      <h2 className="text-4xl font-extrabold leading-tight md:text-5xl">{title}</h2>
+      {sub && <p className="mt-4 text-base text-muted-foreground md:text-lg">{sub}</p>}
+    </div>
+  );
+}
+
+/** A "panel block": bold yellow rounded card with side rail badge (like reference image). */
+function PanelBlock({ children, label, className = "" }: { children: React.ReactNode; label?: string; className?: string }) {
+  return (
+    <div className={`panel-block p-3 md:p-4 ${className}`}>
+      <div className="relative flex gap-3">
+        <div className="flex-1">{children}</div>
+        {label && (
+          <div className="hidden md:flex w-10 shrink-0 items-center justify-center rounded-2xl bg-[color:var(--panel-foreground)]/5 border border-[color:var(--panel-foreground)]/10">
+            <span className="rotate-180 [writing-mode:vertical-rl] text-[11px] font-bold uppercase tracking-[0.25em] text-[color:var(--panel-foreground)]/70">
+              {label}
+            </span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function Landing() {
+  const { theme, toggle } = useTheme();
+
+  return (
+    <div className="min-h-screen bg-background text-foreground">
+      {/* NAV */}
+      <header className="sticky top-0 z-50 backdrop-blur-xl bg-background/70 border-b border-border/60">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-3.5">
+          <a href="#" className="flex items-center gap-2">
+            <span className="grid h-9 w-9 place-items-center rounded-xl bg-primary text-primary-foreground glow-yellow">
+              <Zap className="h-5 w-5" strokeWidth={2.5} />
+            </span>
+            <span className="text-lg font-extrabold tracking-tight">Vitba<span className="text-primary">.ai</span></span>
+          </a>
+          <nav className="hidden md:flex items-center gap-7 text-sm font-medium text-muted-foreground">
+            <a href="#features" className="hover:text-foreground transition">Tính năng</a>
+            <a href="#hub" className="hover:text-foreground transition">Marketing Hub</a>
+            <a href="#how" className="hover:text-foreground transition">Cách hoạt động</a>
+            <a href="#agents" className="hover:text-foreground transition">Agents</a>
+            <Link to="/pricing" className="hover:text-foreground transition">Bảng giá</Link>
+          </nav>
+          <div className="flex items-center gap-2">
+            <button onClick={toggle} aria-label="Toggle theme" className="grid h-9 w-9 place-items-center rounded-full border border-border hover:bg-accent transition">
+              {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            </button>
+            <Link to="/pricing" className="hidden sm:inline-flex rounded-full border border-border px-4 py-2 text-sm font-semibold hover:bg-accent transition">Đăng nhập</Link>
+            <Link to="/pricing" className="inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-sm font-bold text-primary-foreground glow-yellow hover:opacity-90 transition">
+              Dùng thử <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+        </div>
+      </header>
+      <div className="animate-page-enter">
+
+      {/* HERO — main panel block */}
+      <Section className="!pt-10 md:!pt-14">
+        <div className="absolute inset-0 -z-10 bg-grid opacity-60" />
+        <PanelBlock label="VITBA · TỐC ĐỘ · CHẤT LƯỢNG · TIẾNG VIỆT">
+          <div className="grid gap-6 md:grid-cols-[1.1fr_0.9fr]">
+            {/* Left: copy on yellow */}
+            <div className="p-6 md:p-10">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-[color:var(--panel-foreground)]/10 px-3 py-1 text-xs font-bold text-[color:var(--panel-foreground)]">
+                <Sparkles className="h-3.5 w-3.5" /> AI-POWERED MARKETING
+              </span>
+              <h1 className="mt-5 text-4xl font-black leading-[1.05] tracking-tight text-[color:var(--panel-foreground)] md:text-6xl">
+                Vitba<span className="opacity-70">.ai</span>
+              </h1>
+              <p className="mt-3 max-w-md text-[15px] font-medium text-[color:var(--panel-foreground)]/80">
+                Nền tảng AI Marketing chuyên biệt cho người Việt — tạo nội dung chuẩn chuyên gia trong 30 giây.
+              </p>
+              <div className="mt-7 flex flex-wrap gap-3">
+                <Link to="/pricing" className="inline-flex items-center gap-2 rounded-2xl bg-[color:var(--panel-foreground)] px-5 py-3 text-sm font-bold text-[color:var(--panel)] hover:opacity-90 transition">
+                  Bắt đầu miễn phí <ArrowRight className="h-4 w-4" />
+                </Link>
+                <a href="#how" className="inline-flex items-center gap-2 rounded-2xl border-2 border-[color:var(--panel-foreground)]/20 bg-[color:var(--panel-foreground)]/5 px-5 py-3 text-sm font-semibold text-[color:var(--panel-foreground)] hover:bg-[color:var(--panel-foreground)]/10 transition">
+                  Xem cách hoạt động
+                </a>
+              </div>
+            </div>
+            {/* Right: hero "device" — surface card stack with mock UI */}
+            <div className="relative p-3 md:p-4">
+              <div className="surface-card overflow-hidden p-5 md:p-6 h-full min-h-[340px] relative">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="h-2.5 w-2.5 rounded-full bg-destructive/70" />
+                    <span className="h-2.5 w-2.5 rounded-full bg-primary" />
+                    <span className="h-2.5 w-2.5 rounded-full bg-muted-foreground/40" />
+                  </div>
+                  <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">vitba.ai/chat</span>
+                </div>
+                <div className="mt-5 space-y-3">
+                  <div className="flex items-start gap-2">
+                    <span className="grid h-7 w-7 place-items-center rounded-full bg-primary/20 text-foreground"><MessageSquare className="h-3.5 w-3.5" /></span>
+                    <div className="rounded-2xl rounded-tl-sm bg-accent px-3.5 py-2 text-xs">Viết bài Facebook cho cửa hàng cà phê specialty mới mở…</div>
+                  </div>
+                  <div className="flex items-start gap-2 justify-end">
+                    <div className="rounded-2xl rounded-tr-sm bg-primary px-3.5 py-2 text-xs font-medium text-primary-foreground max-w-[80%]">
+                      ✨ Đang chạy pipeline 5 Agents… Hook + body + CTA + 30 hashtag.
+                    </div>
+                  </div>
+                  <div className="rounded-2xl border border-border bg-background/50 p-3.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">AI Score</span>
+                      <span className="text-xs font-extrabold text-primary">96/100</span>
+                    </div>
+                    <div className="mt-2 h-1.5 w-full rounded-full bg-muted">
+                      <div className="h-full w-[96%] rounded-full bg-primary" />
+                    </div>
+                    <div className="mt-3 flex flex-wrap gap-1.5">
+                      {["#caphespecialty", "#hanoi", "#latte", "#viral"].map((t) => (
+                        <span key={t} className="rounded-full bg-accent px-2 py-0.5 text-[10px] font-semibold">{t}</span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                {/* glow */}
+                <div className="absolute -bottom-10 -right-10 h-40 w-40 rounded-full bg-primary/40 blur-3xl" />
+              </div>
+            </div>
+          </div>
+          {/* stats strip */}
+          <div className="mt-3 grid grid-cols-2 gap-2 md:grid-cols-4">
+            {STATS.map((s) => (
+              <div key={s.l} className="surface-card px-4 py-3 text-center">
+                <div className="text-2xl font-extrabold text-primary md:text-3xl">{s.v}</div>
+                <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{s.l}</div>
+              </div>
+            ))}
+          </div>
+        </PanelBlock>
+      </Section>
+
+      {/* FEATURES — grid of panel blocks */}
+      <Section id="features">
+        <SectionHeader tag="Tính năng" title="6 loại nội dung, 1 nền tảng AI" sub="Từ bài Facebook viral đến kế hoạch marketing chiến lược — Agents tạo nội dung chuyên nghiệp bằng tiếng Việt." />
+        <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+          {FEATURES.map((f, i) => {
+            const Icon = f.icon;
+            return (
+              <PanelBlock key={f.title} label={`0${i + 1}`}>
+                <div className="surface-card p-6 h-full">
+                  <span className="grid h-12 w-12 place-items-center rounded-2xl bg-primary text-primary-foreground glow-yellow">
+                    <Icon className="h-6 w-6" strokeWidth={2.2} />
+                  </span>
+                  <h3 className="mt-4 text-xl font-bold">{f.title}</h3>
+                  <p className="mt-1.5 text-sm text-muted-foreground">{f.desc}</p>
+                  <ul className="mt-4 space-y-1.5">
+                    {f.details.map((d) => (
+                      <li key={d} className="flex items-center gap-2 text-xs font-medium">
+                        <Check className="h-3.5 w-3.5 text-primary" strokeWidth={3} /> {d}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </PanelBlock>
+            );
+          })}
+        </div>
+      </Section>
+
+      {/* MARKETING HUB */}
+      <Section id="hub">
+        <SectionHeader tag="Marketing Hub" title="Không chỉ tạo nội dung — vận hành cả marketing" sub="5 công cụ chuyên nghiệp trong một nơi: gửi email, tối ưu SEO, lên lịch nội dung, đo lường hiệu quả và dựng landing page." />
+        <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+          {HUB_TOOLS.map((t) => {
+            const Icon = t.icon;
+            return (
+              <PanelBlock key={t.title}>
+                <div className="surface-card p-6 h-full">
+                  <div className="flex items-center gap-3">
+                    <span className="grid h-11 w-11 place-items-center rounded-xl bg-primary/20 text-foreground">
+                      <Icon className="h-5 w-5" />
+                    </span>
+                    <h3 className="text-lg font-bold">{t.title}</h3>
+                  </div>
+                  <p className="mt-3 text-sm text-muted-foreground">{t.desc}</p>
+                  <div className="mt-4 flex flex-wrap gap-1.5">
+                    {t.tags.map((tag) => (
+                      <span key={tag} className="rounded-full bg-accent px-2.5 py-1 text-[11px] font-semibold">{tag}</span>
+                    ))}
+                  </div>
+                </div>
+              </PanelBlock>
+            );
+          })}
+          {/* CTA card matching the grid */}
+          <PanelBlock>
+            <div className="p-6 h-full flex flex-col justify-between text-[color:var(--panel-foreground)]">
+              <div>
+                <h3 className="text-xl font-extrabold">Gói Pro trở lên</h3>
+                <p className="mt-2 text-sm font-medium opacity-80">Mở khoá đầy đủ Marketing Hub. Gói Lite dùng được Email, SEO & Content Calendar.</p>
+              </div>
+              <Link to="/pricing" className="mt-5 inline-flex w-fit items-center gap-2 rounded-2xl bg-[color:var(--panel-foreground)] px-4 py-2.5 text-sm font-bold text-[color:var(--panel)]">
+                Khám phá Hub <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
+          </PanelBlock>
+        </div>
+      </Section>
+
+      {/* HOW IT WORKS */}
+      <Section id="how">
+        <SectionHeader tag="Quy trình" title="Đơn giản 3 bước" sub="Không cần kinh nghiệm marketing. Chỉ cần mô tả ý tưởng — AI lo phần còn lại." />
+        <div className="grid gap-5 md:grid-cols-3">
+          {STEPS.map((s) => {
+            const Icon = s.icon;
+            return (
+              <PanelBlock key={s.num} label={`BƯỚC ${s.num}`}>
+                <div className="surface-card p-7 h-full">
+                  <span className="grid h-14 w-14 place-items-center rounded-2xl bg-primary text-primary-foreground glow-yellow">
+                    <Icon className="h-7 w-7" strokeWidth={2} />
+                  </span>
+                  <div className="mt-5 text-xs font-bold uppercase tracking-widest text-muted-foreground">Bước {s.num}</div>
+                  <h3 className="mt-1 text-xl font-bold">{s.title}</h3>
+                  <p className="mt-2 text-sm text-muted-foreground">{s.desc}</p>
+                </div>
+              </PanelBlock>
+            );
+          })}
+        </div>
+      </Section>
+
+      {/* AGENTS */}
+      <Section id="agents">
+        <SectionHeader tag="Công nghệ" title="Đội ngũ 5 Agents chuyên biệt" sub="Không phải 1 chatbot — mà là pipeline hoàn chỉnh với 5 agents phối hợp, mỗi agent một vai trò chuyên môn." />
+        <PanelBlock label="PIPELINE · ~30 GIÂY">
+          <div className="surface-card p-6 md:p-8">
+            <div className="grid gap-4 md:grid-cols-5">
+              {AGENTS.map((a, i) => {
+                const Icon = a.icon;
+                return (
+                  <div key={a.name} className="relative rounded-2xl border border-border bg-background p-5">
+                    <div className="absolute -top-2 -left-2 grid h-7 w-7 place-items-center rounded-full bg-primary text-[11px] font-extrabold text-primary-foreground">{i + 1}</div>
+                    <span className="grid h-10 w-10 place-items-center rounded-xl bg-primary/20 text-foreground">
+                      <Icon className="h-5 w-5" />
+                    </span>
+                    <h4 className="mt-3 text-base font-bold">{a.name}</h4>
+                    <div className="text-[11px] font-semibold uppercase tracking-wider text-primary">{a.role}</div>
+                    <p className="mt-2 text-xs text-muted-foreground leading-relaxed">{a.desc}</p>
+                  </div>
+                );
+              })}
+            </div>
+            <div className="mt-6 flex items-center justify-center gap-2 rounded-2xl bg-primary/10 px-5 py-3 text-xs font-semibold">
+              <Zap className="h-4 w-4 text-primary" />
+              Planner → Researcher → Copywriter → Reviewer → Formatter
+            </div>
+          </div>
+        </PanelBlock>
+      </Section>
+
+      {/* TESTIMONIALS */}
+      <Section>
+        <SectionHeader tag="Phản hồi" title="Được tin dùng bởi marketer Việt Nam" />
+        <div className="grid gap-5 md:grid-cols-3">
+          {TESTIMONIALS.map((t) => (
+            <PanelBlock key={t.name}>
+              <div className="surface-card p-6">
+                <div className="flex gap-0.5">
+                  {[1, 2, 3, 4, 5].map((s) => <Star key={s} className="h-4 w-4 fill-primary text-primary" />)}
+                </div>
+                <p className="mt-3 text-sm leading-relaxed">"{t.text}"</p>
+                <div className="mt-5 flex items-center gap-3">
+                  <div className="grid h-10 w-10 place-items-center rounded-full bg-primary font-extrabold text-primary-foreground">
+                    {t.name.charAt(0)}
+                  </div>
+                  <div>
+                    <div className="text-sm font-bold">{t.name}</div>
+                    <div className="text-xs text-muted-foreground">{t.role}</div>
+                  </div>
+                </div>
+              </div>
+            </PanelBlock>
+          ))}
+        </div>
+      </Section>
+
+      {/* PRICING */}
+      <Section id="pricing">
+        <SectionHeader tag="Bảng giá" title="Đơn giản, minh bạch" sub="Bắt đầu miễn phí với 15 lượt/ngày và chat AI không giới hạn. Nâng cấp để mở khoá Marketing Hub." />
+        <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
+          {PLANS.map((p) => (
+            <div key={p.name} className={`relative rounded-3xl p-1 ${p.popular ? "bg-primary" : "bg-transparent"}`}>
+              {p.popular && (
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-primary px-3 py-1 text-[11px] font-extrabold uppercase tracking-wider text-primary-foreground">
+                  Phổ biến nhất
+                </div>
+              )}
+              <div className={`rounded-[1.4rem] p-6 h-full ${p.popular ? "bg-card" : "border border-border bg-card"}`}>
+                <h3 className="text-lg font-extrabold">{p.name}</h3>
+                <div className="mt-3 flex items-baseline gap-1">
+                  <span className="text-3xl font-black">{p.price}</span>
+                  {p.period && <span className="text-sm text-muted-foreground">{p.period}</span>}
+                </div>
+                <div className="mt-1 text-xs font-bold text-primary">{p.highlight}</div>
+                <ul className="mt-5 space-y-2.5">
+                  {p.features.map((f) => (
+                    <li key={f} className="flex items-start gap-2 text-sm">
+                      <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" strokeWidth={3} />
+                      <span>{f}</span>
+                    </li>
+                  ))}
+                </ul>
+                <button className={`mt-6 w-full rounded-2xl py-2.5 text-sm font-bold transition ${p.popular ? "bg-primary text-primary-foreground glow-yellow" : "border border-border hover:bg-accent"}`}>
+                  {p.price === "Miễn phí" ? "Dùng thử ngay" : "Chọn gói này"}
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </Section>
+
+      {/* USE CASES */}
+      <Section>
+        <SectionHeader tag="Đối tượng" title="Dành cho ai?" sub="Phù hợp với mọi quy mô — từ freelancer cá nhân đến agency hàng trăm khách hàng." />
+        <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
+          {USE_CASES.map((u) => {
+            const Icon = u.icon;
+            return (
+              <div key={u.title} className="rounded-3xl border border-border bg-card p-6 hover:border-primary/50 transition">
+                <span className="grid h-12 w-12 place-items-center rounded-2xl bg-primary/15 text-primary">
+                  <Icon className="h-6 w-6" />
+                </span>
+                <h3 className="mt-4 text-lg font-bold">{u.title}</h3>
+                <p className="mt-2 text-sm text-muted-foreground">{u.desc}</p>
+              </div>
+            );
+          })}
+        </div>
+      </Section>
+
+      {/* FINAL CTA — big yellow panel */}
+      <Section>
+        <PanelBlock label="VITBA · NHANH HƠN 360X">
+          <div className="p-8 md:p-14 text-center text-[color:var(--panel-foreground)]">
+            <h2 className="mx-auto max-w-3xl text-4xl font-black leading-tight md:text-6xl">
+              Sẵn sàng tạo nội dung<br />nhanh hơn 360×?
+            </h2>
+            <p className="mx-auto mt-4 max-w-xl text-sm font-medium opacity-80 md:text-base">
+              Đăng ký miễn phí ngay hôm nay. Không cần thẻ tín dụng. 15 lượt/ngày — đủ để trải nghiệm sức mạnh AI.
+            </p>
+            <Link to="/pricing" className="mt-7 inline-flex items-center gap-2 rounded-2xl bg-[color:var(--panel-foreground)] px-7 py-4 text-base font-extrabold text-[color:var(--panel)] hover:opacity-90 transition">
+              Dùng thử miễn phí <ArrowRight className="h-5 w-5" />
+            </Link>
+            <p className="mt-4 text-xs font-medium opacity-70">Miễn phí mãi mãi với gói Free. Nâng cấp bất cứ lúc nào.</p>
+          </div>
+        </PanelBlock>
+      </Section>
+
+      </div>
+      {/* FOOTER */}
+      <footer className="border-t border-border">
+        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-5 py-10 md:flex-row">
+          <div className="flex items-center gap-2">
+            <span className="grid h-8 w-8 place-items-center rounded-lg bg-primary text-primary-foreground">
+              <Zap className="h-4 w-4" strokeWidth={2.5} />
+            </span>
+            <span className="font-extrabold">Vitba<span className="text-primary">.ai</span></span>
+          </div>
+          <div className="text-xs text-muted-foreground">Founded by Vũ Hải Dương · © 2026 Vitba.ai</div>
+        </div>
+      </footer>
+    </div>
+  );
+}

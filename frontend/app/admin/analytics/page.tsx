@@ -216,15 +216,15 @@ export default function AdminAnalyticsPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-3 gap-3">
-              <div className="rounded-[10px] border border-border p-3 text-center">
+              <div className="rounded-xl border border-border p-3 text-center">
                 <p className="text-lg font-bold text-foreground">{totalJobs}</p>
                 <p className="text-[10px] text-muted-foreground">Tổng Jobs</p>
               </div>
-              <div className="rounded-[10px] bg-green-500/5 border border-green-500/10 p-3 text-center">
+              <div className="rounded-xl bg-green-500/5 border border-green-500/10 p-3 text-center">
                 <p className="text-lg font-bold text-green-500">{data.jobs.done || 0}</p>
                 <p className="text-[10px] text-muted-foreground">Thành công</p>
               </div>
-              <div className="rounded-[10px] bg-red-500/5 border border-red-500/10 p-3 text-center">
+              <div className="rounded-xl bg-red-500/5 border border-red-500/10 p-3 text-center">
                 <p className="text-lg font-bold text-red-500">{data.jobs.error || 0}</p>
                 <p className="text-[10px] text-muted-foreground">Thất bại</p>
               </div>
@@ -289,7 +289,7 @@ export default function AdminAnalyticsPage() {
           <CardContent>
             <div className="space-y-2">
               {data.top_users.map((u, i) => (
-                <div key={u.id} className="flex items-center justify-between rounded-[10px] border border-border p-3 hover:bg-accent/50 transition-colors">
+                <div key={u.id} className="flex items-center justify-between rounded-xl border border-border p-3 hover:bg-accent/50 transition-colors">
                   <div className="flex items-center gap-3">
                     <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-[12px] font-bold text-primary">#{i + 1}</span>
                     <div>

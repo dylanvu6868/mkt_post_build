@@ -228,7 +228,7 @@ export default function AdminPlansPage() {
                 <button
                   onClick={() => setBulkMode("all")}
                   className={cn(
-                    "flex-1 rounded-[10px] border px-3 py-2 text-[13px] font-medium transition-all",
+                    "flex-1 rounded-xl border px-3 py-2 text-[13px] font-medium transition-all",
                     bulkMode === "all" ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground hover:bg-accent"
                   )}
                 >
@@ -237,7 +237,7 @@ export default function AdminPlansPage() {
                 <button
                   onClick={() => setBulkMode("selected")}
                   className={cn(
-                    "flex-1 rounded-[10px] border px-3 py-2 text-[13px] font-medium transition-all",
+                    "flex-1 rounded-xl border px-3 py-2 text-[13px] font-medium transition-all",
                     bulkMode === "selected" ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground hover:bg-accent"
                   )}
                 >
@@ -252,7 +252,7 @@ export default function AdminPlansPage() {
               <select
                 value={bulkPlan}
                 onChange={(e) => setBulkPlan(e.target.value as PlanId)}
-                className="w-full rounded-[10px] border border-border bg-card px-3 py-2 text-[13px] text-foreground focus:outline-none focus:ring-1 focus:ring-primary/50"
+                className="w-full rounded-xl border border-border bg-card px-3 py-2 text-[13px] text-foreground focus:outline-none focus:ring-1 focus:ring-primary/50"
               >
                 {PLANS.map((p) => (
                   <option key={p} value={p}>{p.toUpperCase()}</option>
@@ -270,7 +270,7 @@ export default function AdminPlansPage() {
                 onChange={(e) => setBulkDays(e.target.value)}
                 placeholder="Vĩnh viễn nếu để trống"
                 disabled={bulkPlan === "free"}
-                className="w-full rounded-[10px] border border-border bg-card px-3 py-2 text-[13px] text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:ring-1 focus:ring-primary/50 disabled:opacity-50"
+                className="w-full rounded-xl border border-border bg-card px-3 py-2 text-[13px] text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:ring-1 focus:ring-primary/50 disabled:opacity-50"
               />
             </div>
 
@@ -320,7 +320,7 @@ export default function AdminPlansPage() {
                 <div
                   key={u.id}
                   className={cn(
-                    "flex items-center gap-3 rounded-[10px] border p-3 transition-all",
+                    "flex items-center gap-3 rounded-xl border p-3 transition-all",
                     selectedUsers.has(u.id) ? "border-primary/40 bg-primary/5" : "border-border hover:bg-accent/50"
                   )}
                 >
@@ -366,7 +366,7 @@ export default function AdminPlansPage() {
                     {!u.is_admin && !isEditing && (
                       <button
                         onClick={() => { setEditingUser(u.id); setEditPlan((u.plan || "free") as PlanId); setEditDays(""); }}
-                        className="rounded-[8px] border border-border p-1.5 text-muted-foreground hover:text-foreground hover:bg-accent transition-all"
+                        className="rounded-lg border border-border p-1.5 text-muted-foreground hover:text-foreground hover:bg-accent transition-all"
                         title="Chỉnh gói"
                       >
                         <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
@@ -380,7 +380,7 @@ export default function AdminPlansPage() {
                       <select
                         value={editPlan}
                         onChange={(e) => setEditPlan(e.target.value as PlanId)}
-                        className="rounded-[8px] border border-border bg-card px-2 py-1 text-[12px] text-foreground focus:outline-none focus:ring-1 focus:ring-primary/50"
+                        className="rounded-lg border border-border bg-card px-2 py-1 text-[12px] text-foreground focus:outline-none focus:ring-1 focus:ring-primary/50"
                       >
                         {PLANS.map((p) => <option key={p} value={p}>{p.toUpperCase()}</option>)}
                       </select>
@@ -391,7 +391,7 @@ export default function AdminPlansPage() {
                           value={editDays}
                           onChange={(e) => setEditDays(e.target.value)}
                           placeholder="Ngày"
-                          className="w-16 rounded-[8px] border border-border bg-card px-2 py-1 text-[12px] text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:ring-1 focus:ring-primary/50"
+                          className="w-16 rounded-lg border border-border bg-card px-2 py-1 text-[12px] text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:ring-1 focus:ring-primary/50"
                         />
                       )}
                       <Button size="sm" onClick={() => handleIndividualPlan(u.id)} className="h-7 text-[11px]">Lưu</Button>

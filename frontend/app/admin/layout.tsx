@@ -89,10 +89,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <aside className="flex w-[240px] shrink-0 flex-col border-r border-border bg-card/50 backdrop-blur-2xl">
           <div className="flex items-center gap-2.5 px-5 py-4 border-b border-border">
             <button onClick={() => router.push("/dashboard")} className="flex items-center gap-2 text-[15px] font-bold text-foreground tracking-tight hover:opacity-80 transition-opacity">
-              <img src="/logo.png" alt="Logo" className="h-5 w-5 object-contain" />
-              Vitba.ai
+              <img src="/logo.png" alt="Logo" className="h-6 w-auto object-contain" />
+              Vitba<span className="text-primary">.ai</span>
             </button>
-            <span className="rounded-md bg-red-500/10 px-1.5 py-0.5 text-[10px] font-bold text-red-500 uppercase tracking-wider">Admin</span>
+            <span className="rounded-full bg-red-500/10 px-2 py-0.5 text-[10px] font-bold text-red-500 uppercase tracking-wider">Admin</span>
           </div>
 
           <nav className="flex-1 overflow-y-auto px-3 py-3 space-y-4 custom-scrollbar">
@@ -107,7 +107,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                       key={item.href}
                       onClick={() => router.push(item.href)}
                       className={cn(
-                        "flex w-full items-center gap-3 rounded-[10px] px-3 py-2 text-[13px] font-medium transition-all",
+                        "flex w-full items-center gap-3 rounded-xl px-3 py-2 text-[13px] font-medium transition-all",
                         pathname === item.href
                           ? "bg-primary/10 text-primary"
                           : "text-muted-foreground hover:bg-accent hover:text-foreground"
@@ -125,7 +125,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <div className="border-t border-border p-3 space-y-2">
             <button
               onClick={() => router.push("/dashboard")}
-              className="flex w-full items-center gap-2 rounded-[10px] border border-border px-3 py-2 text-[12px] font-medium text-muted-foreground hover:bg-accent hover:text-foreground transition-all"
+              className="flex w-full items-center gap-2 rounded-xl border border-border px-3 py-2 text-[12px] font-medium text-muted-foreground hover:bg-accent hover:text-foreground transition-all"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
               Về Dashboard
@@ -155,13 +155,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/50"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
               <input
                 placeholder="Tìm kiếm..."
-                className="w-64 rounded-[10px] border border-border bg-card/50 pl-9 pr-4 py-2 text-[13px] text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:ring-1 focus:ring-primary/50 transition-all"
+                className="w-64 rounded-xl border border-border bg-card/50 pl-9 pr-4 py-2 text-[13px] text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:ring-1 focus:ring-primary/50 transition-all"
               />
             </div>
             <div className="relative" ref={notifRef}>
               <button
                 onClick={() => setNotifOpen((v) => !v)}
-                className="relative flex h-9 w-9 items-center justify-center rounded-[10px] text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
+                className="relative flex h-9 w-9 items-center justify-center rounded-xl text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
                 {notifications.length > 0 && (
@@ -169,7 +169,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 )}
               </button>
               {notifOpen && (
-                <div className="absolute right-0 top-full mt-2 w-80 rounded-[14px] border border-border bg-card/95 backdrop-blur-xl shadow-xl z-50 overflow-hidden">
+                <div className="absolute right-0 top-full mt-2 w-80 rounded-2xl border border-border bg-card/95 backdrop-blur-xl shadow-xl z-50 overflow-hidden">
                   <div className="flex items-center justify-between border-b border-border px-4 py-3">
                     <span className="text-[13px] font-semibold text-foreground">Thông báo</span>
                     <span className="text-[11px] text-muted-foreground">{notifications.length} mục</span>

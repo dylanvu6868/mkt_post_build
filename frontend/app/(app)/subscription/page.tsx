@@ -51,7 +51,7 @@ export default function SubscriptionPage() {
         animate={{ opacity: 1, y: 0 }}
         className="w-full max-w-lg space-y-6"
       >
-        <div className="rounded-[20px] border border-border bg-card p-6">
+        <div className="rounded-2xl border border-border bg-card p-6">
           <div className="flex items-center justify-between mb-5">
             <div>
               <p className="text-sm text-muted-foreground">Gói hiện tại</p>
@@ -62,7 +62,7 @@ export default function SubscriptionPage() {
                 </p>
               )}
             </div>
-            <div className={cn("flex h-12 w-12 items-center justify-center rounded-[16px]", plan.bgColor)}>
+            <div className={cn("flex h-12 w-12 items-center justify-center rounded-2xl", plan.bgColor)}>
               {(currentPlan === "free" || currentPlan === "lite") && (
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={plan.color}><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
               )}
@@ -113,7 +113,7 @@ export default function SubscriptionPage() {
           )}
         </div>
 
-        <div className="rounded-[20px] border border-border bg-card p-6">
+        <div className="rounded-2xl border border-border bg-card p-6">
           <h3 className="text-sm font-bold text-foreground mb-3">Loại nội dung được phép</h3>
           {contentTypes.length > 0 ? (
             <div className="flex flex-wrap gap-2">
@@ -132,21 +132,21 @@ export default function SubscriptionPage() {
         </div>
 
         {currentPlan !== "max" && (
-          <div className="rounded-[20px] border border-primary/30 bg-gradient-to-br from-primary/10 to-primary/5 p-6">
+          <div className="rounded-2xl border border-primary/30 bg-gradient-to-br from-primary/10 to-primary/5 p-6">
             <h3 className="text-sm font-bold text-foreground mb-1">Cần nhiều hơn?</h3>
             <p className="text-sm text-muted-foreground mb-4">
               Nâng gói để mở khóa thêm tính năng và tăng giới hạn sử dụng.
             </p>
             <button
               onClick={() => router.push("/pricing")}
-              className="rounded-[14px] bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 transition-all"
+              className="rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 transition-all"
             >
               Xem các gói
             </button>
           </div>
         )}
 
-        <div className="rounded-[20px] border border-border bg-card p-6">
+        <div className="rounded-2xl border border-border bg-card p-6">
           <h3 className="text-sm font-bold text-foreground mb-3">Lịch sử nội dung</h3>
           <p className="text-sm text-muted-foreground">
             {data?.limits.history_retention_days === null
@@ -155,7 +155,7 @@ export default function SubscriptionPage() {
           </p>
         </div>
 
-        <div className="rounded-[20px] border border-border bg-card p-6">
+        <div className="rounded-2xl border border-border bg-card p-6">
           <h3 className="text-sm font-bold text-foreground mb-3">Lịch sử thanh toán</h3>
           {orders.length === 0 ? (
             <p className="text-sm text-muted-foreground py-6 text-center">
@@ -166,7 +166,7 @@ export default function SubscriptionPage() {
               {orders.map((o) => {
                 const meta = ORDER_STATUS_META[o.status] ?? { label: o.status, cls: "text-muted-foreground" };
                 return (
-                  <div key={o.id} className="flex items-center justify-between rounded-[12px] bg-muted/50 px-4 py-3">
+                  <div key={o.id} className="flex items-center justify-between rounded-xl bg-muted/50 px-4 py-3">
                     <div>
                       <p className="text-sm font-semibold text-foreground capitalize">
                         Gói {o.plan} · {o.cycle === "yearly" ? "năm" : "tháng"}

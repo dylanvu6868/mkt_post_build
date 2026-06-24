@@ -33,12 +33,12 @@ function MarkdownContent({ content }: { content: string }) {
           const isBlock = className?.includes("language-");
           if (isBlock) {
             return (
-              <pre className="my-4 overflow-x-auto rounded-[12px] bg-muted border border-border p-4 text-[13px] text-foreground no-scrollbar shadow-inner">
+              <pre className="my-4 overflow-x-auto rounded-xl bg-muted border border-border p-4 text-[13px] text-foreground no-scrollbar shadow-inner">
                 <code>{children}</code>
               </pre>
             );
           }
-          return <code className="rounded-[4px] bg-primary/20 text-primary px-1.5 py-0.5 text-[13px] font-mono">{children}</code>;
+          return <code className="rounded bg-primary/20 text-primary px-1.5 py-0.5 text-[13px] font-mono">{children}</code>;
         },
         h1: ({ children }) => <h1 className="mb-4 mt-6 text-2xl font-bold text-foreground">{children}</h1>,
         h2: ({ children }) => <h2 className="mb-3 mt-6 text-xl font-bold text-foreground">{children}</h2>,

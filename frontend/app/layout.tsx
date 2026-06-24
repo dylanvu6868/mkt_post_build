@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
+import { Inter, Manrope } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/providers";
+
+const inter = Inter({ subsets: ["latin", "vietnamese"], variable: "--font-sans" });
+const manrope = Manrope({ subsets: ["latin", "vietnamese"], variable: "--font-display" });
 
 export const metadata: Metadata = {
   title: "Vitba.ai - AI Marketing Platform",
@@ -17,7 +21,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body>
+      <body className={`${inter.variable} ${manrope.variable}`}>
         <Providers>{children}</Providers>
       </body>
     </html>

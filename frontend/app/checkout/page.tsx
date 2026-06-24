@@ -193,10 +193,10 @@ function CheckoutContent() {
           >
             {/* Order Summary */}
             <div className="md:col-span-3 space-y-6">
-              <div className="rounded-[20px] border border-border bg-card p-6">
+              <div className="rounded-2xl border border-border bg-card p-6">
                 <h2 className="text-lg font-bold text-foreground mb-4">Xác nhận đơn hàng</h2>
 
-                <div className="flex items-center justify-between rounded-[14px] bg-muted/50 p-4 mb-4">
+                <div className="flex items-center justify-between rounded-xl bg-muted/50 p-4 mb-4">
                   <div>
                     <p className={cn("text-lg font-bold", plan.color)}>Gói {plan.name}</p>
                     <p className="text-sm text-muted-foreground">
@@ -219,7 +219,7 @@ function CheckoutContent() {
                 </ul>
               </div>
 
-              <div className="rounded-[20px] border border-border bg-card p-6">
+              <div className="rounded-2xl border border-border bg-card p-6">
                 <h3 className="text-sm font-semibold text-foreground mb-3">Thông tin tài khoản</h3>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
@@ -236,7 +236,7 @@ function CheckoutContent() {
 
             {/* Price Summary */}
             <div className="md:col-span-2">
-              <div className="sticky top-24 rounded-[20px] border border-border bg-card p-6">
+              <div className="sticky top-24 rounded-2xl border border-border bg-card p-6">
                 <h3 className="text-sm font-semibold text-foreground mb-4">Tóm tắt thanh toán</h3>
                 <div className="space-y-3 text-sm">
                   <div className="flex justify-between">
@@ -259,7 +259,7 @@ function CheckoutContent() {
                   onClick={handleCreateOrder}
                   disabled={creating}
                   className={cn(
-                    "w-full mt-6 rounded-[14px] py-3 text-sm font-semibold transition-all disabled:opacity-60",
+                    "w-full mt-6 rounded-xl py-3 text-sm font-semibold transition-all disabled:opacity-60",
                     planId === "max"
                       ? "bg-violet-600 text-white hover:bg-violet-700"
                       : "bg-primary text-primary-foreground hover:opacity-90"
@@ -282,14 +282,14 @@ function CheckoutContent() {
             animate={{ opacity: 1, y: 0 }}
             className="mx-auto max-w-lg"
           >
-            <div className="rounded-[20px] border border-border bg-card p-6">
+            <div className="rounded-2xl border border-border bg-card p-6">
               <h2 className="text-lg font-bold text-foreground mb-2">Quét mã QR để thanh toán</h2>
               <p className="text-sm text-muted-foreground mb-6">
                 Mở app ngân hàng, quét mã QR bên dưới. Số tiền và nội dung đã được điền sẵn — hệ thống tự xác nhận trong vài giây.
               </p>
 
               {!bank?.configured && (
-                <div className="mb-5 rounded-[14px] border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-600 dark:text-red-400">
+                <div className="mb-5 rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-600 dark:text-red-400">
                   Cổng thanh toán chưa được cấu hình. Vui lòng liên hệ quản trị viên.
                 </div>
               )}
@@ -300,13 +300,13 @@ function CheckoutContent() {
                   <img
                     src={qrUrl}
                     alt="VietQR thanh toán"
-                    className="h-60 w-60 rounded-[14px] border border-border bg-white p-2"
+                    className="h-60 w-60 rounded-xl border border-border bg-white p-2"
                   />
                   <p className="mt-2 text-xs text-muted-foreground">Quét bằng app ngân hàng bất kỳ</p>
                 </div>
               )}
 
-              <div className="space-y-4 rounded-[14px] bg-muted/50 p-5">
+              <div className="space-y-4 rounded-xl bg-muted/50 p-5">
                 {[
                   { label: "Ngân hàng", value: bank?.bank_name || "—" },
                   { label: "Số tài khoản", value: bank?.account_number || "—" },
@@ -330,7 +330,7 @@ function CheckoutContent() {
                 ))}
               </div>
 
-              <div className="mt-6 flex items-center justify-center gap-2 rounded-[14px] border border-amber-500/30 bg-amber-500/10 p-4">
+              <div className="mt-6 flex items-center justify-center gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4">
                 <svg className="h-4 w-4 animate-spin text-amber-600 dark:text-amber-400" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 0 1 8-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
                 <p className="text-sm text-amber-700 dark:text-amber-300">
                   Đang chờ xác nhận thanh toán tự động...
@@ -339,7 +339,7 @@ function CheckoutContent() {
 
               <button
                 onClick={() => setStep("review")}
-                className="w-full mt-4 rounded-[14px] py-3 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-all"
+                className="w-full mt-4 rounded-xl py-3 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-all"
               >
                 Quay lại
               </button>
@@ -353,7 +353,7 @@ function CheckoutContent() {
             animate={{ opacity: 1, scale: 1 }}
             className="mx-auto max-w-md text-center"
           >
-            <div className="rounded-[24px] border border-border bg-card p-10">
+            <div className="rounded-3xl border border-border bg-card p-10">
               <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-green-500/10">
                 <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-500"><path d="M20 6 9 17l-5-5"/></svg>
               </div>
@@ -363,7 +363,7 @@ function CheckoutContent() {
                 Gói <strong className={plan.color}>{plan.name}</strong> đã được kích hoạt cho tài khoản của bạn. Cảm ơn bạn!
               </p>
 
-              <div className="rounded-[14px] bg-muted/50 p-4 mb-6 text-sm">
+              <div className="rounded-xl bg-muted/50 p-4 mb-6 text-sm">
                 <div className="flex justify-between mb-2">
                   <span className="text-muted-foreground">Mã giao dịch</span>
                   <span className="font-mono font-semibold text-foreground">{transferCode}</span>
@@ -376,7 +376,7 @@ function CheckoutContent() {
 
               <button
                 onClick={() => router.push("/dashboard")}
-                className="w-full rounded-[14px] bg-primary py-3 text-sm font-semibold text-primary-foreground hover:opacity-90 transition-all"
+                className="w-full rounded-xl bg-primary py-3 text-sm font-semibold text-primary-foreground hover:opacity-90 transition-all"
               >
                 Về Dashboard
               </button>

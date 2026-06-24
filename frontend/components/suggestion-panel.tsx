@@ -86,7 +86,7 @@ export function SuggestionPanel() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.95 }}
             transition={{ type: "spring", stiffness: 400, damping: 30 }}
-            className="absolute bottom-16 right-0 w-[320px] max-h-[70vh] rounded-[20px] border border-primary/20 bg-card/98 backdrop-blur-2xl shadow-[0_8px_40px_-12px_rgba(0,0,0,0.15),0_0_20px_rgba(255,213,74,0.05)] dark:shadow-[0_8px_40px_-12px_rgba(0,0,0,0.6),0_0_20px_rgba(255,213,74,0.08)] overflow-hidden"
+            className="absolute bottom-16 right-0 w-[320px] max-h-[70vh] rounded-2xl border border-primary/20 bg-card/98 backdrop-blur-2xl shadow-[0_8px_40px_-12px_rgba(0,0,0,0.15),0_0_20px_rgba(255,213,74,0.05)] dark:shadow-[0_8px_40px_-12px_rgba(0,0,0,0.6),0_0_20px_rgba(255,213,74,0.08)] overflow-hidden"
           >
             {/* Header */}
             <div className="flex items-center justify-between px-5 py-3.5 border-b border-primary/10 bg-primary/5">
@@ -107,7 +107,7 @@ export function SuggestionPanel() {
               {hasSuggestions ? (
                 <div className="space-y-3">
                   {question && (
-                    <div className="rounded-[14px] bg-primary/5 border border-primary/10 p-3.5">
+                    <div className="rounded-xl bg-primary/5 border border-primary/10 p-3.5">
                       <p className="text-[13px] text-foreground leading-relaxed font-medium">{question}</p>
                     </div>
                   )}
@@ -122,7 +122,7 @@ export function SuggestionPanel() {
                         whileTap={{ scale: 0.97 }}
                         onClick={() => handleSelect(s)}
                         className={cn(
-                          "w-full flex items-center gap-2.5 rounded-[12px] px-3.5 py-3 text-left text-[13px] transition-all group border",
+                          "w-full flex items-center gap-2.5 rounded-xl px-3.5 py-3 text-left text-[13px] transition-all group border",
                           selected === s
                             ? "bg-primary/15 border-primary/30 text-primary"
                             : "border-border hover:border-primary/20 hover:bg-muted/60 text-foreground"

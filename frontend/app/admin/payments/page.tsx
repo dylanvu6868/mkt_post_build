@@ -147,15 +147,15 @@ export default function AdminPaymentsPage() {
         </CardHeader>
         <CardContent>
           <div className="grid gap-4 sm:grid-cols-3">
-            <div className="rounded-[10px] border border-border p-4 text-center">
+            <div className="rounded-xl border border-border p-4 text-center">
               <p className="text-[11px] text-muted-foreground uppercase tracking-wide">MRR (Doanh thu hàng tháng)</p>
               <p className="text-xl font-bold text-foreground mt-1">{mrr.toLocaleString("vi-VN")}₫</p>
             </div>
-            <div className="rounded-[10px] border border-border p-4 text-center">
+            <div className="rounded-xl border border-border p-4 text-center">
               <p className="text-[11px] text-muted-foreground uppercase tracking-wide">Người dùng trả phí</p>
               <p className="text-xl font-bold text-foreground mt-1">{paidUsers}</p>
             </div>
-            <div className="rounded-[10px] border border-border p-4 text-center">
+            <div className="rounded-xl border border-border p-4 text-center">
               <p className="text-[11px] text-muted-foreground uppercase tracking-wide">Tỉ lệ chuyển đổi</p>
               <p className="text-xl font-bold text-foreground mt-1">{totalUsers > 0 ? Math.round((paidUsers / totalUsers) * 100) : 0}%</p>
               <p className="text-[10px] text-muted-foreground">Free → Trả phí</p>
@@ -171,7 +171,7 @@ export default function AdminPaymentsPage() {
         <CardContent>
           <div className="grid gap-3 sm:grid-cols-3">
             {PLAN_TIERS.map((tier) => (
-              <div key={tier.key} className="rounded-[10px] border border-border p-4 space-y-2">
+              <div key={tier.key} className="rounded-xl border border-border p-4 space-y-2">
                 <div className="flex items-center gap-2">
                   <span className={cn("h-2.5 w-2.5 rounded-full", tier.color)} />
                   <span className="text-[13px] font-semibold text-foreground">{tier.label}</span>
@@ -202,7 +202,7 @@ export default function AdminPaymentsPage() {
           ) : (
             <div className="space-y-2">
               {users.map((u) => (
-                <div key={u.id} className="flex items-center justify-between rounded-[10px] border border-border p-3 hover:bg-accent/50 transition-colors">
+                <div key={u.id} className="flex items-center justify-between rounded-xl border border-border p-3 hover:bg-accent/50 transition-colors">
                   <div className="flex items-center gap-3 min-w-0">
                     <div className="shrink-0 flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-[12px] font-bold text-primary">
                       {u.name?.charAt(0)?.toUpperCase() || "?"}
@@ -262,7 +262,7 @@ export default function AdminPaymentsPage() {
         </CardContent>
       </Card>
 
-      <div className="rounded-[14px] border border-amber-500/20 bg-amber-500/5 p-4">
+      <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4">
         <div className="flex gap-2">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 mt-0.5 text-amber-500"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
           <div className="min-w-0 flex-1 text-[12px] text-muted-foreground space-y-2">
@@ -271,7 +271,7 @@ export default function AdminPaymentsPage() {
               { label: "Webhook URL", value: webhookUrl, method: "POST" },
               { label: "Success URL", value: successUrl, method: "GET" },
             ].map((item) => (
-              <div key={item.label} className="rounded-[10px] border border-border/70 bg-background/50 p-3">
+              <div key={item.label} className="rounded-xl border border-border/70 bg-background/50 p-3">
                 <div className="mb-1 flex items-center justify-between gap-3">
                   <span className="font-medium text-foreground">{item.label}</span>
                   <Button
@@ -288,7 +288,7 @@ export default function AdminPaymentsPage() {
                 </code>
               </div>
             ))}
-            <div className="rounded-[10px] border border-border/70 bg-background/50 p-3">
+            <div className="rounded-xl border border-border/70 bg-background/50 p-3">
               <p className="mb-1 font-medium text-foreground">Checkout URL theo gói</p>
               <p className="mb-3 text-[11px]">
                 Thay <code className="rounded bg-muted px-1 text-foreground">plan</code> bằng <code className="rounded bg-muted px-1 text-foreground">lite</code>, <code className="rounded bg-muted px-1 text-foreground">pro</code>, <code className="rounded bg-muted px-1 text-foreground">max</code>; thay <code className="rounded bg-muted px-1 text-foreground">cycle</code> bằng <code className="rounded bg-muted px-1 text-foreground">monthly</code> hoặc <code className="rounded bg-muted px-1 text-foreground">yearly</code>.

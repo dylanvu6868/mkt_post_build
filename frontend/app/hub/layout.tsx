@@ -87,10 +87,10 @@ export default function HubLayout({ children }: { children: React.ReactNode }) {
         <aside className="flex w-[240px] shrink-0 flex-col border-r border-border bg-card/50 backdrop-blur-2xl">
           <div className="flex items-center gap-2.5 px-5 py-4 border-b border-border">
             <button onClick={() => router.push("/dashboard")} className="flex items-center gap-2 text-[15px] font-bold text-foreground tracking-tight hover:opacity-80 transition-opacity">
-              <img src="/logo.png" alt="Logo" className="h-5 w-5 object-contain" />
-              Vitba.ai
+              <img src="/logo.png" alt="Logo" className="h-6 w-auto object-contain" />
+              Vitba<span className="text-primary">.ai</span>
             </button>
-            <span className="rounded-md bg-blue-500/10 px-1.5 py-0.5 text-[10px] font-bold text-blue-500 uppercase tracking-wider">Hub</span>
+            <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary uppercase tracking-wider">Hub</span>
           </div>
 
           <nav className="flex-1 overflow-y-auto px-3 py-3 space-y-0.5">
@@ -112,7 +112,7 @@ export default function HubLayout({ children }: { children: React.ReactNode }) {
                     }
                   }}
                   className={cn(
-                    "flex w-full items-center gap-3 rounded-[10px] px-3 py-2 text-[13px] font-medium transition-all",
+                    "flex w-full items-center gap-3 rounded-xl px-3 py-2 text-[13px] font-medium transition-all",
                     isLocked
                       ? "opacity-50 text-muted-foreground hover:bg-accent hover:opacity-70"
                       : pathname === item.href
@@ -142,7 +142,7 @@ export default function HubLayout({ children }: { children: React.ReactNode }) {
                 key={item.href}
                 onClick={() => router.push(item.href)}
                 className={cn(
-                  "group relative flex w-full items-center gap-3 rounded-[10px] px-3 py-2 text-[13px] font-medium transition-all overflow-hidden",
+                  "group relative flex w-full items-center gap-3 rounded-xl px-3 py-2 text-[13px] font-medium transition-all overflow-hidden",
                   pathname === item.href
                     ? "bg-purple-500/15 text-purple-400 border border-purple-500/30"
                     : "text-muted-foreground hover:bg-accent hover:text-purple-400 border border-transparent"
@@ -165,7 +165,7 @@ export default function HubLayout({ children }: { children: React.ReactNode }) {
           <div className="border-t border-border p-3 space-y-2">
             <button
               onClick={() => router.push("/dashboard")}
-              className="flex w-full items-center gap-2 rounded-[10px] border border-border px-3 py-2 text-[12px] font-medium text-muted-foreground hover:bg-accent hover:text-foreground transition-all"
+              className="flex w-full items-center gap-2 rounded-xl border border-border px-3 py-2 text-[12px] font-medium text-muted-foreground hover:bg-accent hover:text-foreground transition-all"
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
               Về Chat

@@ -74,7 +74,7 @@ export default function AdminSettingsPage() {
                 { plan: "Pro", price: "89.000₫/tháng", limit: "30 lượt/ngày, 5 dự án" },
                 { plan: "Max", price: "219.000₫/tháng", limit: "Không giới hạn" },
               ].map((item) => (
-                <div key={item.plan} className="flex items-center justify-between rounded-[10px] border border-border p-3">
+                <div key={item.plan} className="flex items-center justify-between rounded-xl border border-border p-3">
                   <div>
                     <p className="text-[13px] font-medium text-foreground">{item.plan}</p>
                     <p className="text-[11px] text-muted-foreground">{item.limit}</p>

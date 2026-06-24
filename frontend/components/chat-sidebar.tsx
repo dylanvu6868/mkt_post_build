@@ -127,15 +127,16 @@ export function ChatSidebar() {
           <ProjectModal>
             <button
               data-tour="project-btn"
-              className="flex w-full items-center gap-2 rounded-[16px] border border-primary/30 bg-primary/5 px-4 py-3 text-[14px] font-medium text-primary hover:bg-primary/10 hover:border-primary/50 transition-all duration-300 shadow-[0_2px_10px_rgba(0,0,0,0.2)] group"
+              className="flex w-full items-center gap-2 rounded-2xl border border-primary/30 bg-primary/5 px-4 py-3 text-[14px] font-medium text-primary hover:bg-primary/10 hover:border-primary/50 transition-all duration-300 shadow-[0_2px_10px_rgba(0,0,0,0.2)] group"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="group-hover:scale-110 transition-transform"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
               Dự án hóa
             </button>
           </ProjectModal>
           <button
+            data-tour="hub-btn"
             onClick={() => router.push("/hub")}
-            className="flex w-full items-center gap-2 rounded-[16px] border border-blue-500/30 bg-blue-500/5 px-4 py-3 text-[14px] font-medium text-blue-500 hover:bg-blue-500/10 hover:border-blue-500/50 transition-all duration-300 shadow-[0_2px_10px_rgba(0,0,0,0.2)] group"
+            className="flex w-full items-center gap-2 rounded-2xl border border-blue-500/30 bg-blue-500/5 px-4 py-3 text-[14px] font-medium text-blue-500 hover:bg-blue-500/10 hover:border-blue-500/50 transition-all duration-300 shadow-[0_2px_10px_rgba(0,0,0,0.2)] group"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="group-hover:scale-110 transition-transform"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
             Trung tâm Marketing
@@ -143,7 +144,7 @@ export function ChatSidebar() {
           <button
             data-tour="new-conv-btn"
             onClick={handleCreate}
-            className="flex w-full items-center gap-2 rounded-[16px] border border-border bg-card px-4 py-3 text-[14px] font-medium text-foreground hover:bg-accent hover:border-primary/50 transition-all duration-300 shadow-[0_2px_10px_rgba(0,0,0,0.2)] group"
+            className="flex w-full items-center gap-2 rounded-2xl border border-border bg-card px-4 py-3 text-[14px] font-medium text-foreground hover:bg-accent hover:border-primary/50 transition-all duration-300 shadow-[0_2px_10px_rgba(0,0,0,0.2)] group"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary group-hover:scale-110 transition-transform"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             Cuộc trò chuyện mới
@@ -154,11 +155,12 @@ export function ChatSidebar() {
           <div className="relative">
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute left-3.5 top-1/2 -translate-y-1/2 text-foreground/30"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
             <input
+              data-tour="search-box"
               type="text"
               placeholder="Tìm kiếm..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full rounded-[14px] border border-border bg-card/50 pl-10 pr-4 py-2 text-sm placeholder:text-foreground/30 focus:outline-none focus:ring-1 focus:ring-primary/50 focus:bg-card focus:border-primary/30 transition-all shadow-inner text-foreground"
+              className="w-full rounded-xl border border-border bg-card/50 pl-10 pr-4 py-2 text-sm placeholder:text-foreground/30 focus:outline-none focus:ring-1 focus:ring-primary/50 focus:bg-card focus:border-primary/30 transition-all shadow-inner text-foreground"
             />
           </div>
         </div>
@@ -195,12 +197,12 @@ export function ChatSidebar() {
 
         <div className="border-t border-border p-4 bg-gradient-to-t from-background to-transparent">
           {user?.is_admin && (
-            <a href="/admin" className="mb-3 flex items-center justify-center gap-2 rounded-[14px] px-3 py-2 text-[12px] font-medium text-muted-foreground hover:bg-accent border border-border hover:border-border hover:text-foreground transition-all">
+            <a href="/admin" className="mb-3 flex items-center justify-center gap-2 rounded-xl px-3 py-2 text-[12px] font-medium text-muted-foreground hover:bg-accent border border-border hover:border-border hover:text-foreground transition-all">
               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/><path d="m9 12 2 2 4-4"/></svg>
               Admin Dashboard
             </a>
           )}
-          <div className="flex items-center justify-between glass-card p-3 rounded-[16px] shadow-none border-border hover:border-border group">
+          <div data-tour="user-profile" className="flex items-center justify-between glass-card p-3 rounded-2xl shadow-none border-border hover:border-border group">
             <div className="flex items-center gap-2.5 min-w-0 flex-1">
               <div className="shrink-0 flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-yellow-400 to-amber-500 text-amber-950 text-[13px] font-bold">
                 {user?.name?.charAt(0)?.toUpperCase() || "U"}
@@ -245,11 +247,11 @@ function ConvItem({ conv, active, isRunning, editing, editTitle, menuOpen, onSel
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.95 }}
       transition={{ duration: 0.2 }}
-      className={cn("group relative rounded-[12px] transition-all duration-200", active ? "bg-primary/10 border border-primary/20 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]" : "hover:bg-accent border border-transparent")}
+      className={cn("group relative rounded-xl transition-all duration-200", active ? "bg-primary/10 border border-primary/20 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]" : "hover:bg-accent border border-transparent")}
     >
       {editing ? (
         <form onSubmit={(e) => { e.preventDefault(); onRename(); }} className="px-3 py-2">
-          <input autoFocus value={editTitle} onChange={(e) => onEditTitleChange(e.target.value)} onBlur={onRename} className="w-full rounded-[8px] border border-border bg-background px-2 py-1.5 text-[13px] text-foreground focus:outline-none focus:ring-1 focus:ring-primary/50" />
+          <input autoFocus value={editTitle} onChange={(e) => onEditTitleChange(e.target.value)} onBlur={onRename} className="w-full rounded-lg border border-border bg-background px-2 py-1.5 text-[13px] text-foreground focus:outline-none focus:ring-1 focus:ring-primary/50" />
         </form>
       ) : (
         <button onClick={onSelect} className="w-full px-3 py-2.5 text-left flex items-center gap-2">
@@ -260,7 +262,7 @@ function ConvItem({ conv, active, isRunning, editing, editTitle, menuOpen, onSel
         </button>
       )}
       {!editing && (
-        <button onClick={(e) => { e.stopPropagation(); onMenuToggle(); }} className={cn("absolute right-2 top-1/2 -translate-y-1/2 rounded-[6px] p-1.5 transition-all", menuOpen ? "opacity-100 bg-muted" : "opacity-0 group-hover:opacity-100 hover:bg-accent text-muted-foreground hover:text-foreground")}>
+        <button onClick={(e) => { e.stopPropagation(); onMenuToggle(); }} className={cn("absolute right-2 top-1/2 -translate-y-1/2 rounded-lg p-1.5 transition-all", menuOpen ? "opacity-100 bg-muted" : "opacity-0 group-hover:opacity-100 hover:bg-accent text-muted-foreground hover:text-foreground")}>
           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>
         </button>
       )}
@@ -271,7 +273,7 @@ function ConvItem({ conv, active, isRunning, editing, editTitle, menuOpen, onSel
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: -5 }}
             transition={{ duration: 0.15 }}
-            className="absolute right-0 top-full mt-1 z-20 w-40 rounded-[12px] border border-border bg-card/95 backdrop-blur-xl py-1.5 shadow-xl"
+            className="absolute right-0 top-full mt-1 z-20 w-40 rounded-xl border border-border bg-card/95 backdrop-blur-xl py-1.5 shadow-xl"
           >
             <button onClick={onStartRename} className="flex w-full items-center px-4 py-2 text-[13px] text-muted-foreground hover:text-foreground hover:bg-accent transition-colors">Đổi tên</button>
             <button onClick={onPin} className="flex w-full items-center px-4 py-2 text-[13px] text-muted-foreground hover:text-foreground hover:bg-accent transition-colors">{conv.is_pinned ? "Bỏ ghim" : "Ghim"}</button>

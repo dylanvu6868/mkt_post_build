@@ -81,7 +81,7 @@ function CheckoutSuccessContent() {
           animate={{ opacity: 1, scale: 1 }}
           className="mx-auto max-w-md text-center"
         >
-          <div className="rounded-[24px] border border-border bg-card p-10">
+          <div className="rounded-3xl border border-border bg-card p-10">
             <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-green-500/10">
               <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-500">
                 <path d="M20 6 9 17l-5-5" />
@@ -96,7 +96,7 @@ function CheckoutSuccessContent() {
               {cycle === "yearly" ? "hàng năm" : "hàng tháng"} đã được kích hoạt cho tài khoản của bạn.
             </p>
 
-            <div className="mb-6 rounded-[14px] bg-muted/50 p-4 text-sm">
+            <div className="mb-6 rounded-xl bg-muted/50 p-4 text-sm">
               {transferCode && (
                 <div className="mb-2 flex justify-between gap-4">
                   <span className="text-muted-foreground">Mã giao dịch</span>
@@ -116,14 +116,14 @@ function CheckoutSuccessContent() {
             <div className="grid gap-3 sm:grid-cols-2">
               <button
                 onClick={() => router.push("/dashboard")}
-                className="rounded-[14px] bg-primary py-3 text-sm font-semibold text-primary-foreground transition-all hover:opacity-90"
+                className="rounded-xl bg-primary py-3 text-sm font-semibold text-primary-foreground transition-all hover:opacity-90"
               >
                 Về Dashboard
               </button>
               <button
                 onClick={() => router.push("/subscription")}
                 className={cn(
-                  "rounded-[14px] border border-border py-3 text-sm font-semibold text-foreground transition-all",
+                  "rounded-xl border border-border py-3 text-sm font-semibold text-foreground transition-all",
                   "hover:bg-accent"
                 )}
               >

@@ -135,12 +135,12 @@ function MarkdownContent({ content }: { content: string }) {
           const isBlock = className?.includes("language-");
           if (isBlock) {
             return (
-              <pre className="my-4 overflow-x-auto rounded-[12px] bg-muted border border-border p-4 text-[13px] text-foreground no-scrollbar shadow-inner">
+              <pre className="my-4 overflow-x-auto rounded-xl bg-muted border border-border p-4 text-[13px] text-foreground no-scrollbar shadow-inner">
                 <code>{children}</code>
               </pre>
             );
           }
-          return <code className="rounded-[4px] bg-primary/20 text-primary px-1.5 py-0.5 text-[13px] font-mono">{children}</code>;
+          return <code className="rounded bg-primary/20 text-primary px-1.5 py-0.5 text-[13px] font-mono">{children}</code>;
         },
         pre: ({ children }) => <>{children}</>,
         a: ({ href, children }) => (
@@ -227,39 +227,39 @@ function LandingPagePreview({ html, onFullscreen }: { html: string; onFullscreen
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-1 rounded-[10px] border border-border p-0.5">
+        <div className="flex items-center gap-1 rounded-xl border border-border p-0.5">
           <button
             onClick={() => setDevice("desktop")}
-            className={cn("rounded-[8px] px-2.5 py-1 text-[11px] font-medium transition-all", device === "desktop" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground")}
+            className={cn("rounded-lg px-2.5 py-1 text-[11px] font-medium transition-all", device === "desktop" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground")}
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline mr-1"><rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/></svg>
             Desktop
           </button>
           <button
             onClick={() => setDevice("mobile")}
-            className={cn("rounded-[8px] px-2.5 py-1 text-[11px] font-medium transition-all", device === "mobile" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground")}
+            className={cn("rounded-lg px-2.5 py-1 text-[11px] font-medium transition-all", device === "mobile" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground")}
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline mr-1"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg>
             Mobile
           </button>
         </div>
         <div className="flex items-center gap-1.5">
-          <button onClick={handleCopyCode} className="flex items-center gap-1 rounded-[8px] border border-border px-2.5 py-1 text-[11px] font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-all">
+          <button onClick={handleCopyCode} className="flex items-center gap-1 rounded-lg border border-border px-2.5 py-1 text-[11px] font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-all">
             <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
             Code
           </button>
-          <button onClick={handleDownloadHtml} className="flex items-center gap-1 rounded-[8px] border border-border px-2.5 py-1 text-[11px] font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-all">
+          <button onClick={handleDownloadHtml} className="flex items-center gap-1 rounded-lg border border-border px-2.5 py-1 text-[11px] font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-all">
             <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
             Tải
           </button>
-          <button onClick={onFullscreen} className="flex items-center gap-1 rounded-[8px] border border-border px-2.5 py-1 text-[11px] font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-all">
+          <button onClick={onFullscreen} className="flex items-center gap-1 rounded-lg border border-border px-2.5 py-1 text-[11px] font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-all">
             <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
             Toàn màn hình
           </button>
         </div>
       </div>
       <div className={cn(
-        "mx-auto rounded-[12px] border border-border overflow-hidden bg-white transition-all duration-300",
+        "mx-auto rounded-xl border border-border overflow-hidden bg-white transition-all duration-300",
         device === "mobile" ? "w-[375px]" : "w-full"
       )}>
         <iframe
@@ -303,15 +303,15 @@ function LandingPageFullscreen({ html, onClose }: { html: string; onClose: () =>
           <span className="text-[14px] font-semibold text-foreground">Landing Page Preview</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="flex items-center gap-0.5 rounded-[10px] border border-border p-0.5">
-            <button onClick={() => setDevice("desktop")} className={cn("rounded-[8px] px-3 py-1.5 text-[12px] font-medium transition-all", device === "desktop" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground")}>Desktop</button>
-            <button onClick={() => setDevice("mobile")} className={cn("rounded-[8px] px-3 py-1.5 text-[12px] font-medium transition-all", device === "mobile" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground")}>Mobile</button>
+          <div className="flex items-center gap-0.5 rounded-xl border border-border p-0.5">
+            <button onClick={() => setDevice("desktop")} className={cn("rounded-lg px-3 py-1.5 text-[12px] font-medium transition-all", device === "desktop" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground")}>Desktop</button>
+            <button onClick={() => setDevice("mobile")} className={cn("rounded-lg px-3 py-1.5 text-[12px] font-medium transition-all", device === "mobile" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground")}>Mobile</button>
           </div>
-          <button onClick={() => setShowCode(!showCode)} className={cn("rounded-[10px] border px-3 py-1.5 text-[12px] font-medium transition-all", showCode ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground hover:text-foreground hover:bg-accent")}>
+          <button onClick={() => setShowCode(!showCode)} className={cn("rounded-xl border px-3 py-1.5 text-[12px] font-medium transition-all", showCode ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground hover:text-foreground hover:bg-accent")}>
             <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline mr-1"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
             Code
           </button>
-          <button onClick={handleCopyCode} className="rounded-[10px] border border-border px-3 py-1.5 text-[12px] font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-all">Copy</button>
+          <button onClick={handleCopyCode} className="rounded-xl border border-border px-3 py-1.5 text-[12px] font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-all">Copy</button>
           <button onClick={onClose} className="rounded-full p-1.5 hover:bg-muted transition-colors text-muted-foreground hover:text-foreground">
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           </button>
@@ -320,7 +320,7 @@ function LandingPageFullscreen({ html, onClose }: { html: string; onClose: () =>
       <div className="flex-1 flex overflow-hidden" onClick={(e) => e.stopPropagation()}>
         <div className={cn("flex-1 flex items-start justify-center overflow-auto p-4", showCode && "w-1/2")}>
           <div className={cn(
-            "rounded-[12px] border border-border overflow-hidden bg-white transition-all duration-300 h-full",
+            "rounded-xl border border-border overflow-hidden bg-white transition-all duration-300 h-full",
             device === "mobile" ? "w-[375px]" : "w-full"
           )}>
             <iframe srcDoc={html} sandbox="allow-scripts" className="w-full h-full border-0" title="Landing Page Preview" />
@@ -355,7 +355,7 @@ function ExpandModal({ result, onClose }: { result: Record<string, unknown>; onC
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.9, opacity: 0 }}
-        className="relative w-full max-w-4xl max-h-[90vh] rounded-[20px] border border-primary/20 bg-background overflow-hidden shadow-2xl"
+        className="relative w-full max-w-4xl max-h-[90vh] rounded-2xl border border-primary/20 bg-background overflow-hidden shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between px-6 py-4 border-b border-primary/10 bg-primary/5">
@@ -451,7 +451,7 @@ h1,h2,h3{color:#b8860b;margin-top:24px}p{margin-bottom:12px}ul,ol{margin-left:20
       initial={{ opacity: 0, y: 4 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 4 }}
-      className="absolute bottom-full left-0 mb-2 rounded-[12px] border border-border bg-card shadow-xl overflow-hidden z-50 min-w-[160px]"
+      className="absolute bottom-full left-0 mb-2 rounded-xl border border-border bg-card shadow-xl overflow-hidden z-50 min-w-[160px]"
     >
       <button onClick={downloadTxt} className="flex items-center gap-2 w-full px-4 py-2.5 text-[13px] text-foreground hover:bg-muted transition-colors">
         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
@@ -470,15 +470,27 @@ h1,h2,h3{color:#b8860b;margin-top:24px}p{margin-bottom:12px}ul,ol{margin-left:20
 }
 
 const TOUR_STEPS: { target: string | null; title: string; desc: string; placement: "bottom" | "top" | "left" | "right" | "center"; icon: JSX.Element }[] = [
-  { target: null, placement: "center", icon: GI.welcome, title: "Chào mừng đến Vitba.ai!", desc: "Hướng dẫn tương tác sẽ chỉ bạn từng bước. Hãy nhấn 'Tiếp theo' để bắt đầu!" },
-  { target: "[data-tour='project-btn']", placement: "right", icon: GI.folder, title: "Tạo Dự án", desc: "Nhấn vào đây để tạo dự án mới. Mỗi dự án chứa giọng điệu, tài liệu và mẫu cấu trúc riêng." },
-  { target: "[data-tour='project-btn']", placement: "right", icon: GI.mic, title: "Thiết lập Giọng điệu", desc: "Trong Dự án hóa → tab 'Giọng điệu', thiết lập brand name, tone, phong cách viết, từ ưu tiên & từ cấm." },
-  { target: "[data-tour='project-btn']", placement: "right", icon: GI.book, title: "Tải tài liệu nền", desc: "Tab 'Cơ sở kiến thức' — tải PDF, DOCX, TXT để AI hiểu sản phẩm/dịch vụ của bạn." },
-  { target: "[data-tour='chat-input']", placement: "top", icon: GI.chat, title: "Nhập yêu cầu", desc: "Gõ trực tiếp yêu cầu tạo nội dung vào đây. VD: 'Viết bài SEO Blog về cách chọn laptop cho sinh viên'." },
-  { target: "[data-tour='content-cards']", placement: "top", icon: GI.template, title: "Chọn loại nội dung", desc: "Hoặc nhấn vào thẻ để chọn nhanh: Facebook Post, SEO Blog, Email, Landing Page, TikTok Script..." },
-  { target: "[data-tour='content-cards']", placement: "top", icon: GI.agents, title: "Vitba Agents tự động", desc: "AI sẽ chạy pipeline 7 bước: Lên kế hoạch → Nghiên cứu → SEO → Thương hiệu → Tổng hợp → Viết → Kiểm duyệt." },
-  { target: "[data-tour='new-conv-btn']", placement: "right", icon: GI.list, title: "Quản lý trò chuyện", desc: "Tạo cuộc trò chuyện mới ở đây. Chạy song song nhiều cuộc trò chuyện — AI vẫn chạy nền khi bạn chuyển tab!" },
-  { target: "[data-tour='guide-btn']", placement: "bottom", icon: GI.rocket, title: "Sẵn sàng!", desc: "Nhấn nút (?) bất kỳ lúc nào để xem lại hướng dẫn. Chúc bạn tạo nội dung marketing hiệu quả!" },
+  { target: null, placement: "center", icon: GI.welcome, title: "Chào mừng đến Vitba.ai!", desc: "Hướng dẫn tương tác sẽ chỉ bạn từng nút, từng chức năng. Nhấn 'Tiếp theo' để bắt đầu!" },
+
+  { target: "[data-tour='project-btn']", placement: "right", icon: GI.folder, title: "Bước 1: Nút Dự án hóa", desc: "Nhấn nút này để tạo dự án mới. Mỗi dự án là một thương hiệu riêng — chứa brand voice, tài liệu nền và mẫu cấu trúc. Tạo dự án trước khi viết nội dung để AI hiểu bạn." },
+  { target: "[data-tour='project-btn']", placement: "right", icon: GI.mic, title: "Bước 2: Thiết lập giọng điệu", desc: "Khi mở Dự án hóa → tab 'Giọng điệu': điền tên thương hiệu, chọn tone (chuyên nghiệp, thân thiện, hài hước...), thêm từ ưu tiên và từ cấm. AI sẽ viết đúng phong cách của bạn." },
+  { target: "[data-tour='project-btn']", placement: "right", icon: GI.book, title: "Bước 3: Tải tài liệu nền", desc: "Tab 'Cơ sở kiến thức' → tải PDF, DOCX, TXT về sản phẩm/dịch vụ. AI dùng tài liệu này để viết chính xác hơn — không bịa thông tin." },
+
+  { target: "[data-tour='hub-btn']", placement: "right", icon: GI.star, title: "Bước 4: Nút Trung tâm Marketing", desc: "Nhấn nút này để mở Marketing Hub — nơi quản lý email marketing, SEO audit, content calendar, analytics và landing page builder. Gói Lite trở lên mới có." },
+
+  { target: "[data-tour='new-conv-btn']", placement: "right", icon: GI.list, title: "Bước 5: Nút Cuộc trò chuyện mới", desc: "Nhấn nút này để tạo cuộc chat mới. Mỗi cuộc chat là một phiên làm việc riêng. Bạn có thể chạy song song nhiều cuộc — AI vẫn xử lý nền khi bạn chuyển tab." },
+
+  { target: "[data-tour='search-box']", placement: "right", icon: GI.template, title: "Bước 6: Ô tìm kiếm", desc: "Gõ từ khoá ở đây để tìm nhanh cuộc trò chuyện cũ. Hữu ích khi bạn có nhiều bài viết và muốn tìm lại nội dung đã tạo trước đó." },
+
+  { target: "[data-tour='content-cards']", placement: "top", icon: GI.template, title: "Bước 7: Thẻ chọn loại nội dung", desc: "Nhấn vào từng thẻ để chọn nhanh loại nội dung: Facebook Post, SEO Blog, Email, Landing Page, TikTok Script, hoặc Marketing Plan. AI sẽ tự chọn pipeline phù hợp." },
+
+  { target: "[data-tour='chat-input']", placement: "top", icon: GI.chat, title: "Bước 8: Ô nhập yêu cầu", desc: "Gõ yêu cầu tạo nội dung vào đây bằng tiếng Việt tự nhiên. VD: 'Viết bài SEO Blog về cách chọn laptop cho sinh viên'. Càng mô tả chi tiết, AI viết càng chuẩn." },
+
+  { target: "[data-tour='chat-input']", placement: "top", icon: GI.agents, title: "Bước 9: Pipeline AI tự động", desc: "Sau khi gửi, 5 Vitba Agents chạy tự động: Planner lên kế hoạch → Researcher nghiên cứu → Copywriter viết → Reviewer chấm điểm → Formatter tối ưu. Toàn bộ ~30 giây." },
+
+  { target: "[data-tour='user-profile']", placement: "top", icon: GI.star, title: "Bước 10: Hồ sơ & Cài đặt", desc: "Khu vực này hiển thị tên bạn, gói hiện tại, nút đổi theme sáng/tối và nút đăng xuất. Nhấn vào avatar để mở cài đặt tài khoản." },
+
+  { target: "[data-tour='guide-btn']", placement: "bottom", icon: GI.rocket, title: "Hoàn thành!", desc: "Bạn đã nắm được toàn bộ giao diện Vitba.ai! Nhấn nút (?) bất kỳ lúc nào để xem lại hướng dẫn này. Chúc bạn tạo nội dung marketing hiệu quả!" },
 ];
 
 function SpotlightTour({ onClose }: { onClose: () => void }) {
@@ -669,7 +681,7 @@ function InlineResult({ result, onRedo }: {
   if (result.error) {
     return (
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex justify-start w-full">
-        <div className="max-w-[90%] sm:max-w-[80%] rounded-[20px] border border-red-500/30 bg-red-500/10 p-5 space-y-3">
+        <div className="max-w-[90%] sm:max-w-[80%] rounded-2xl border border-red-500/30 bg-red-500/10 p-5 space-y-3">
           <p className="text-sm text-red-400">{String(result.error)}</p>
           {(result.upgradeRequired as boolean) && (
             <button onClick={() => router.push("/pricing")} className="rounded-lg bg-gradient-to-r from-yellow-400 to-amber-500 px-4 py-2 text-xs font-bold text-amber-950">
@@ -685,7 +697,7 @@ function InlineResult({ result, onRedo }: {
     <>
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex justify-start w-full">
         <div className="max-w-[90%] sm:max-w-[85%] w-full">
-          <div className="rounded-[20px] border border-primary/20 bg-gradient-to-br from-primary/5 to-primary/[0.02] overflow-hidden shadow-[0_4px_24px_-8px_rgba(0,0,0,0.08)] dark:shadow-[0_4px_24px_-8px_rgba(0,0,0,0.3)]">
+          <div className="rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/5 to-primary/[0.02] overflow-hidden shadow-[0_4px_24px_-8px_rgba(0,0,0,0.08)] dark:shadow-[0_4px_24px_-8px_rgba(0,0,0,0.3)]">
             {/* Header */}
             <div className="flex items-center justify-between px-5 py-3 border-b border-primary/10 bg-primary/5">
               <div className="flex items-center gap-2.5">
@@ -714,12 +726,12 @@ function InlineResult({ result, onRedo }: {
             <div className="flex items-center gap-2 px-5 py-3 border-t border-primary/10 bg-background/50">
               {!isLandingPage && (
                 <>
-                  <button onClick={handleCopy} className="flex items-center gap-1.5 rounded-[10px] border border-border px-3 py-1.5 text-[12px] font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-all">
+                  <button onClick={handleCopy} className="flex items-center gap-1.5 rounded-xl border border-border px-3 py-1.5 text-[12px] font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-all">
                     <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
                     Copy
                   </button>
                   <div className="relative">
-                    <button onClick={() => setShowDownload(!showDownload)} className="flex items-center gap-1.5 rounded-[10px] border border-border px-3 py-1.5 text-[12px] font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-all">
+                    <button onClick={() => setShowDownload(!showDownload)} className="flex items-center gap-1.5 rounded-xl border border-border px-3 py-1.5 text-[12px] font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-all">
                       <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
                       Tải về
                       <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
@@ -728,13 +740,13 @@ function InlineResult({ result, onRedo }: {
                       {showDownload && <DownloadMenu result={result} onClose={() => setShowDownload(false)} />}
                     </AnimatePresence>
                   </div>
-                  <button onClick={() => setExpanded(true)} className="flex items-center gap-1.5 rounded-[10px] border border-border px-3 py-1.5 text-[12px] font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-all">
+                  <button onClick={() => setExpanded(true)} className="flex items-center gap-1.5 rounded-xl border border-border px-3 py-1.5 text-[12px] font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-all">
                     <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
                     Phóng to
                   </button>
                 </>
               )}
-              <button onClick={onRedo} className={cn("flex items-center gap-1.5 rounded-[10px] border border-border px-3 py-1.5 text-[12px] font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-all", !isLandingPage && "ml-auto")}>
+              <button onClick={onRedo} className={cn("flex items-center gap-1.5 rounded-xl border border-border px-3 py-1.5 text-[12px] font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-all", !isLandingPage && "ml-auto")}>
                 <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
                 Làm lại
               </button>
@@ -781,7 +793,7 @@ function GeneratingIndicator({ streamContent }: { streamContent: string }) {
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex justify-start w-full">
       <div className="max-w-[90%] sm:max-w-[85%] w-full">
-        <div className="rounded-[20px] border border-primary/20 bg-gradient-to-br from-primary/5 to-transparent overflow-hidden">
+        <div className="rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/5 to-transparent overflow-hidden">
           {/* Header */}
           <div className="flex items-center gap-3 px-5 py-3 border-b border-primary/10">
             {isStreaming ? (
@@ -1021,10 +1033,10 @@ export function ChatPanel() {
             Hôm nay bạn muốn thiết kế nội dung gì?
           </motion.p>
 
-          <motion.div data-tour="chat-input" initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.4 }} className="w-full max-w-2xl bg-card/80 backdrop-blur-2xl rounded-[18px] sm:rounded-[24px] p-1.5 sm:p-2 mb-6 sm:mb-10 relative shadow-[0_8px_32px_-12px_rgba(255,213,74,0.15)] border border-border focus-within:border-primary/50 focus-within:shadow-[0_8px_40px_-12px_rgba(255,213,74,0.3)] transition-all duration-500">
+          <motion.div data-tour="chat-input" initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.4 }} className="w-full max-w-2xl bg-card/80 backdrop-blur-2xl rounded-2xl sm:rounded-3xl p-1.5 sm:p-2 mb-6 sm:mb-10 relative shadow-[0_8px_32px_-12px_rgba(255,213,74,0.15)] border border-border focus-within:border-primary/50 focus-within:shadow-[0_8px_40px_-12px_rgba(255,213,74,0.3)] transition-all duration-500">
             <form onSubmit={handleSubmit} className="flex gap-1.5 sm:gap-2 w-full">
               <input value={input} onChange={(e) => setInput(e.target.value)} placeholder="Khởi tạo chiến dịch marketing..." className="flex-1 bg-transparent border-none px-4 sm:px-6 py-3 sm:py-4 text-[15px] sm:text-[16px] text-foreground placeholder:text-foreground/30 focus:outline-none focus:ring-0 min-w-0" />
-              <button type="submit" disabled={!input.trim()} className="rounded-[14px] sm:rounded-[16px] bg-primary text-primary-foreground hover:bg-primary/90 hover:scale-105 active:scale-95 h-[44px] w-[44px] sm:h-[52px] sm:w-[52px] flex items-center justify-center disabled:opacity-50 disabled:hover:scale-100 transition-all duration-300 mr-0.5 self-center shadow-[0_0_20px_rgba(255,213,74,0.4)] shrink-0">
+              <button type="submit" disabled={!input.trim()} className="rounded-xl sm:rounded-2xl bg-primary text-primary-foreground hover:bg-primary/90 hover:scale-105 active:scale-95 h-[44px] w-[44px] sm:h-[52px] sm:w-[52px] flex items-center justify-center disabled:opacity-50 disabled:hover:scale-100 transition-all duration-300 mr-0.5 self-center shadow-[0_0_20px_rgba(255,213,74,0.4)] shrink-0">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
               </button>
             </form>
@@ -1045,7 +1057,7 @@ export function ChatPanel() {
                     await sendMessage(`Tôi muốn viết ${item.title}`);
                   }}
                   className={cn(
-                    "relative flex flex-col items-start gap-2 sm:gap-3 rounded-[16px] sm:rounded-[20px] border p-3.5 sm:p-5 text-left transition-all duration-300 group",
+                    "relative flex flex-col items-start gap-2 sm:gap-3 rounded-2xl sm:rounded-2xl border p-3.5 sm:p-5 text-left transition-all duration-300 group",
                     locked
                       ? "border-border/50 bg-card/30 opacity-60 cursor-not-allowed"
                       : "border-border bg-card/60 hover:bg-muted/80 hover:border-primary/40 hover:shadow-[inset_0_0_20px_rgba(255,213,74,0.05),0_8px_20px_-8px_rgba(0,0,0,0.1)] dark:hover:shadow-[inset_0_0_20px_rgba(255,213,74,0.05),0_8px_20px_-8px_rgba(0,0,0,0.5)]"
@@ -1106,7 +1118,7 @@ export function ChatPanel() {
           </button>
           <button
             onClick={() => router.push("/pricing")}
-            className="hidden sm:block rounded-[10px] bg-primary/10 border border-primary/20 px-3 py-1.5 text-[12px] font-bold text-primary hover:bg-primary/20 transition-all"
+            className="hidden sm:block rounded-xl bg-primary/10 border border-primary/20 px-3 py-1.5 text-[12px] font-bold text-primary hover:bg-primary/20 transition-all"
           >
             Nâng cấp
           </button>
@@ -1125,8 +1137,8 @@ export function ChatPanel() {
               <div className={cn(
                 "max-w-[90%] sm:max-w-[80%] px-4 py-3 sm:px-6 sm:py-4 text-[14px] sm:text-[15px] shadow-sm overflow-hidden",
                 msg.role === "user"
-                  ? "bg-primary/10 text-foreground border border-primary/20 rounded-[20px] sm:rounded-[24px] rounded-tr-sm shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]"
-                  : "bg-card text-foreground rounded-[20px] sm:rounded-[24px] rounded-tl-sm border border-border shadow-[0_4px_24px_-8px_rgba(0,0,0,0.08)] dark:shadow-[0_4px_24px_-8px_rgba(0,0,0,0.5)]"
+                  ? "bg-primary/10 text-foreground border border-primary/20 rounded-2xl sm:rounded-3xl rounded-tr-sm shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]"
+                  : "bg-card text-foreground rounded-2xl sm:rounded-3xl rounded-tl-sm border border-border shadow-[0_4px_24px_-8px_rgba(0,0,0,0.08)] dark:shadow-[0_4px_24px_-8px_rgba(0,0,0,0.5)]"
               )}>
                 {msg.role === "assistant" ? <MarkdownContent content={msg.content} /> : <span className="whitespace-pre-wrap break-words">{msg.content}</span>}
               </div>
@@ -1137,7 +1149,7 @@ export function ChatPanel() {
         {/* Chat streaming — only when NOT in generation mode */}
         {streaming && streamContent && !contentPanel.generating && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex justify-start">
-            <div className="max-w-[90%] sm:max-w-[80%] rounded-[24px] rounded-tl-sm bg-card border border-border px-6 py-4 text-[15px] shadow-[0_4px_24px_-8px_rgba(0,0,0,0.08)] dark:shadow-[0_4px_24px_-8px_rgba(0,0,0,0.5)] overflow-hidden">
+            <div className="max-w-[90%] sm:max-w-[80%] rounded-3xl rounded-tl-sm bg-card border border-border px-6 py-4 text-[15px] shadow-[0_4px_24px_-8px_rgba(0,0,0,0.08)] dark:shadow-[0_4px_24px_-8px_rgba(0,0,0,0.5)] overflow-hidden">
               <MarkdownContent content={streamContent} />
               <span className="animate-pulse inline-block ml-1 text-primary">|</span>
             </div>
@@ -1146,7 +1158,7 @@ export function ChatPanel() {
 
         {streaming && !streamContent && !contentPanel.generating && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex justify-start">
-            <div className="rounded-[24px] rounded-tl-sm bg-card border border-border px-6 py-4 text-[15px] shadow-[0_4px_24px_-8px_rgba(0,0,0,0.08)] dark:shadow-[0_4px_24px_-8px_rgba(0,0,0,0.5)]">
+            <div className="rounded-3xl rounded-tl-sm bg-card border border-border px-6 py-4 text-[15px] shadow-[0_4px_24px_-8px_rgba(0,0,0,0.08)] dark:shadow-[0_4px_24px_-8px_rgba(0,0,0,0.5)]">
               <span className="flex items-center gap-1.5 text-primary">
                 <span className="animate-bounce" style={{ animationDelay: "0ms" }}>&#9679;</span>
                 <span className="animate-bounce" style={{ animationDelay: "150ms" }}>&#9679;</span>
@@ -1204,7 +1216,7 @@ export function ChatPanel() {
           </div>
         )}
 
-        <div className="bg-card/80 backdrop-blur-xl rounded-[18px] sm:rounded-[24px] p-1 sm:p-1.5 shadow-[0_8px_32px_-12px_rgba(0,0,0,0.1)] dark:shadow-[0_8px_32px_-12px_rgba(0,0,0,0.5)] max-w-4xl mx-auto border border-border relative focus-within:border-primary/40 focus-within:shadow-[0_8px_40px_-12px_rgba(255,213,74,0.15)] transition-all duration-300">
+        <div className="bg-card/80 backdrop-blur-xl rounded-2xl sm:rounded-3xl p-1 sm:p-1.5 shadow-[0_8px_32px_-12px_rgba(0,0,0,0.1)] dark:shadow-[0_8px_32px_-12px_rgba(0,0,0,0.5)] max-w-4xl mx-auto border border-border relative focus-within:border-primary/40 focus-within:shadow-[0_8px_40px_-12px_rgba(255,213,74,0.15)] transition-all duration-300">
           <form onSubmit={handleSubmit} className="flex gap-1 sm:gap-2 w-full">
             <input
               ref={fileInputRef}
@@ -1226,7 +1238,7 @@ export function ChatPanel() {
               type="button"
               onClick={() => fileInputRef.current?.click()}
               disabled={streaming}
-              className="rounded-[12px] sm:rounded-[16px] bg-muted hover:bg-accent text-muted-foreground hover:text-foreground h-[38px] w-[38px] sm:h-[46px] sm:w-[46px] flex items-center justify-center self-center disabled:opacity-50 transition-all duration-300 shrink-0"
+              className="rounded-xl sm:rounded-2xl bg-muted hover:bg-accent text-muted-foreground hover:text-foreground h-[38px] w-[38px] sm:h-[46px] sm:w-[46px] flex items-center justify-center self-center disabled:opacity-50 transition-all duration-300 shrink-0"
               title="Upload tài liệu"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -1235,7 +1247,7 @@ export function ChatPanel() {
               type="button"
               onClick={() => imageInputRef.current?.click()}
               disabled={streaming}
-              className="rounded-[12px] sm:rounded-[16px] bg-muted hover:bg-accent text-muted-foreground hover:text-foreground h-[38px] w-[38px] sm:h-[46px] sm:w-[46px] flex items-center justify-center self-center disabled:opacity-50 transition-all duration-300 shrink-0"
+              className="rounded-xl sm:rounded-2xl bg-muted hover:bg-accent text-muted-foreground hover:text-foreground h-[38px] w-[38px] sm:h-[46px] sm:w-[46px] flex items-center justify-center self-center disabled:opacity-50 transition-all duration-300 shrink-0"
               title="Upload ảnh để AI phân tích"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
@@ -1245,7 +1257,7 @@ export function ChatPanel() {
               <button
                 type="button"
                 onClick={stopStreaming}
-                className="rounded-[12px] sm:rounded-[16px] bg-destructive text-destructive-foreground hover:bg-destructive/90 hover:scale-105 active:scale-95 h-[38px] w-[38px] sm:h-[46px] sm:w-[46px] flex items-center justify-center mr-0.5 self-center transition-all duration-300 shadow-[0_0_15px_rgba(239,68,68,0.3)] shrink-0"
+                className="rounded-xl sm:rounded-2xl bg-destructive text-destructive-foreground hover:bg-destructive/90 hover:scale-105 active:scale-95 h-[38px] w-[38px] sm:h-[46px] sm:w-[46px] flex items-center justify-center mr-0.5 self-center transition-all duration-300 shadow-[0_0_15px_rgba(239,68,68,0.3)] shrink-0"
                 title="Dừng trả lời"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2" /></svg>
@@ -1254,7 +1266,7 @@ export function ChatPanel() {
               <button
                 type="submit"
                 disabled={!input.trim() && attachedImages.length === 0}
-                className="rounded-[12px] sm:rounded-[16px] bg-primary text-primary-foreground hover:bg-primary/90 hover:scale-105 active:scale-95 h-[38px] w-[38px] sm:h-[46px] sm:w-[46px] flex items-center justify-center mr-0.5 self-center disabled:opacity-50 disabled:hover:scale-100 transition-all duration-300 shadow-[0_0_15px_rgba(255,213,74,0.3)] shrink-0"
+                className="rounded-xl sm:rounded-2xl bg-primary text-primary-foreground hover:bg-primary/90 hover:scale-105 active:scale-95 h-[38px] w-[38px] sm:h-[46px] sm:w-[46px] flex items-center justify-center mr-0.5 self-center disabled:opacity-50 disabled:hover:scale-100 transition-all duration-300 shadow-[0_0_15px_rgba(255,213,74,0.3)] shrink-0"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
               </button>

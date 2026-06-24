@@ -205,7 +205,7 @@ export default function PricingPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: i * 0.08 }}
                 className={cn(
-                  "relative flex flex-col rounded-[24px] border p-6 transition-all duration-300 hover:shadow-[0_8px_32px_-8px_rgba(0,0,0,0.1)] dark:hover:shadow-[0_8px_32px_-8px_rgba(0,0,0,0.4)] hover:-translate-y-0.5",
+                  "relative flex flex-col rounded-3xl border p-6 transition-all duration-300 hover:shadow-[0_8px_32px_-8px_rgba(0,0,0,0.1)] dark:hover:shadow-[0_8px_32px_-8px_rgba(0,0,0,0.4)] hover:-translate-y-0.5",
                   plan.borderColor,
                   `bg-gradient-to-br ${plan.gradient}`,
                   plan.id === "pro" && "ring-2 ring-yellow-500/30 shadow-lg scale-[1.02]"
@@ -276,7 +276,7 @@ export default function PricingPage() {
                   onClick={() => handleSelectPlan(plan.id)}
                   disabled={isPlanDisabled(plan.id)}
                   className={cn(
-                    "w-full rounded-[14px] py-2.5 text-sm font-semibold transition-all duration-200",
+                    "w-full rounded-xl py-2.5 text-sm font-semibold transition-all duration-200",
                     isPlanDisabled(plan.id)
                       ? "border border-border text-muted-foreground cursor-default"
                       : plan.id === "pro"
