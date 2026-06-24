@@ -32,20 +32,10 @@ def calculate_marketing_metric(metric: str, spend: float = None, revenue: float 
     
     return f"Metric '{metric}' không được hỗ trợ. Các chỉ số hỗ trợ: roi, roas, cac, ltv."
 
-from langchain_community.tools.tavily_search import TavilySearchResults
-import os
-
-def get_search_tool():
-    """Returns Tavily search tool if API key is present."""
-    if os.getenv("TAVILY_API_KEY"):
-        return TavilySearchResults(max_results=3, search_depth="advanced")
-    
-    @tool
-    def fallback_search(query: str) -> str:
-        """Công cụ tìm kiếm giả lập (do chưa có TAVILY_API_KEY)."""
-        return f"Không thể tìm kiếm '{query}' do hệ thống chưa cấu hình TAVILY_API_KEY."
-    
-    return fallback_search
+from app.agents.tools.tavily_tools import get_tavily_advanced_tools
 
 def get_marketing_tools():
-    return [calculate_marketing_metric, get_search_tool()]
+    # Kết hợp các tool tính toán marketing và các tool tìm kiếm/nghiên cứu nâng cao từ Tavily
+    tools = [calculate_marketing_metric]
+    tools.extend(get_tavily_advanced_tools())
+    return tools

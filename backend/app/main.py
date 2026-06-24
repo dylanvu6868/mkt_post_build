@@ -6,7 +6,7 @@ from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from app.api import admin, auth, brand, chat, conversations, documents, generate, history, images, payments, projects, templates, lab, study, study_questions
+from app.api import admin, auth, brand, chat, conversations, documents, generate, history, images, payments, projects, templates, lab, study, study_questions, frame
 from app.mcp.server import router as mcp_router
 from app.core.config import settings
 from app.core.rate_limit import limiter
@@ -133,6 +133,7 @@ app.include_router(images.router)
 app.include_router(lab.router)
 app.include_router(study.router)
 app.include_router(study_questions.router, prefix="/api/study_questions", tags=["Study Questions"])
+app.include_router(frame.router)
 
 from app.api.hub_deps import require_hub_tool
 from app.mcp.email.templates import router as email_templates_router

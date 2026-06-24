@@ -394,14 +394,14 @@ export default function StudyLearningPlatform() {
           <div className="flex flex-col overflow-y-auto pr-2 custom-scrollbar">
             {isRevealed ? (
               <div className="bg-card border rounded-2xl p-5 shadow-sm flex flex-col h-full animate-in fade-in slide-in-from-right-8 duration-500">
-                <div className={`p-4 rounded-xl mb-4 ${isCorrect ? 'bg-green-50 border border-green-100' : 'bg-red-50 border border-red-100'}`}>
+                <div className={`p-4 rounded-xl mb-4 ${isCorrect ? 'bg-green-50 dark:bg-green-500/10 border border-green-100 dark:border-green-500/20' : 'bg-red-50 dark:bg-red-500/10 border border-red-100 dark:border-red-500/20'}`}>
                   <div className="flex items-center gap-2 mb-1.5">
-                    <Lightbulb className={isCorrect ? 'text-green-600' : 'text-red-600'} size={20} />
-                    <h3 className={`font-bold text-base ${isCorrect ? 'text-green-800' : 'text-red-800'}`}>
+                    <Lightbulb className={isCorrect ? 'text-green-600 dark:text-green-500' : 'text-red-600 dark:text-red-500'} size={20} />
+                    <h3 className={`font-bold text-base ${isCorrect ? 'text-green-800 dark:text-green-400' : 'text-red-800 dark:text-red-400'}`}>
                       {isCorrect ? "Chính xác!" : "Sai rồi!"}
                     </h3>
                   </div>
-                  <p className="text-foreground text-sm leading-relaxed">
+                  <p className={`text-sm leading-relaxed ${isCorrect ? 'text-green-900 dark:text-green-100' : 'text-red-900 dark:text-red-100'}`}>
                     {currentQ.explanation}
                   </p>
                 </div>
@@ -498,8 +498,8 @@ export default function StudyLearningPlatform() {
 
           {/* REVIEW INCORRECT ANSWERS */}
           {score < questions.length && (
-            <div className="w-full text-left bg-red-50 border border-red-100 rounded-2xl p-6 mb-8 shrink-0">
-              <h3 className="text-xl font-bold text-red-800 mb-4 flex items-center gap-2">
+            <div className="w-full text-left bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/20 rounded-2xl p-6 mb-8 shrink-0">
+              <h3 className="text-xl font-bold text-red-800 dark:text-red-400 mb-4 flex items-center gap-2">
                 <XCircle size={24} /> Phân tích câu trả lời sai
               </h3>
               <div className="space-y-6">
@@ -508,20 +508,20 @@ export default function StudyLearningPlatform() {
                   if (userAnswer === q.correct_index) return null; // Only show wrong
                   
                   return (
-                    <div key={q.id} className="bg-white p-4 rounded-xl shadow-sm border border-red-100/50">
+                    <div key={q.id} className="bg-white dark:bg-zinc-900 p-4 rounded-xl shadow-sm border border-red-100/50 dark:border-red-900/30">
                       <p className="font-bold text-foreground mb-3">{idx + 1}. {q.question}</p>
                       
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
-                        <div className="bg-red-50 text-red-700 p-2.5 rounded-lg text-sm border border-red-200">
+                        <div className="bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-400 p-2.5 rounded-lg text-sm border border-red-200 dark:border-red-500/20">
                           <span className="font-bold">Bạn chọn:</span> {userAnswer >= 0 ? q.options[userAnswer] : "Không trả lời (Hết giờ)"}
                         </div>
-                        <div className="bg-green-50 text-green-700 p-2.5 rounded-lg text-sm border border-green-200">
+                        <div className="bg-green-50 dark:bg-green-500/10 text-green-700 dark:text-green-400 p-2.5 rounded-lg text-sm border border-green-200 dark:border-green-500/20">
                           <span className="font-bold">Đáp án đúng:</span> {q.options[q.correct_index]}
                         </div>
                       </div>
 
-                      <div className="bg-blue-50/50 p-3 rounded-lg text-sm text-muted-foreground">
-                        <span className="font-bold text-blue-800">Giải thích: </span>
+                      <div className="bg-blue-50/50 dark:bg-blue-500/10 p-3 rounded-lg text-sm text-foreground dark:text-blue-100">
+                        <span className="font-bold text-blue-800 dark:text-blue-400">Giải thích: </span>
                         {q.explanation}
                       </div>
                     </div>
