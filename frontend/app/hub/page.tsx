@@ -95,10 +95,12 @@ export default function HubOverviewPage() {
   ];
 
   return (
-    <div className="space-y-8">
+    <div className="mx-auto max-w-6xl space-y-8 pb-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Trung tâm Marketing</h1>
-        <p className="text-sm text-muted-foreground mt-1.5">Quản lý toàn bộ hoạt động marketing từ một nơi duy nhất</p>
+        <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-2">
+          <span className="bg-gradient-to-r from-blue-600 to-indigo-600 text-transparent bg-clip-text">Trung tâm Marketing</span>
+        </h1>
+        <p className="mt-2 text-muted-foreground text-lg">Quản lý toàn bộ hoạt động marketing từ một nơi duy nhất</p>
       </div>
 
       {analyticsLocked && !analyticsOverviewLoading ? (

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Loader2, Image as ImageIcon, Video, Download, RefreshCcw, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
+import { api } from "@/services/api";
 
 interface GeneratedImage {
   id: number;
@@ -37,6 +38,40 @@ export default function VitbaFramePage() {
   const [videoStatusText, setVideoStatusText] = useState("");
   const [videoHistory, setVideoHistory] = useState<GeneratedVideo[]>([]);
 
+  useEffect(() => {
+    // Load image history
+    api.get<any[]>("/api/lab/history?tool_name=frame_image")
+      .then(data => {
+        const mapped = data.map(item => ({
+          id: item.id,
+          prompt: item.input_data?.prompt || "Image",
+          base64: `data:image/png;base64,${item.output_data?.b64_json}`,
+          timestamp: new Date(item.created_at).getTime()
+        }));
+        setHistory(mapped);
+      })
+      .catch(console.error);
+
+    // Load video history
+    api.get<any[]>("/api/lab/history?tool_name=frame_video")
+      .then(data => {
+        const mapped = data.map(item => {
+          let finalUrl = item.output_data?.b64_video;
+          if (finalUrl && !finalUrl.startsWith("http") && !finalUrl.startsWith("data:")) {
+            finalUrl = `data:video/mp4;base64,${finalUrl}`;
+          }
+          return {
+            id: item.id,
+            prompt: item.input_data?.prompt || item.input_data?.operation_name || "Video",
+            url: finalUrl,
+            timestamp: new Date(item.created_at).getTime()
+          };
+        });
+        setVideoHistory(mapped);
+      })
+      .catch(console.error);
+  }, []);
+
   const handleGenerateImage = async () => {
     if (!prompt.trim()) {
       toast.error("Vui lòng nhập mô tả ảnh.");
@@ -45,24 +80,11 @@ export default function VitbaFramePage() {
 
     setIsGenerating(true);
     try {
-      const res = await fetch("/api/frame/generate", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          prompt,
-          size,
-          model: "gpt-image-2"
-        }),
+      const data = await api.post<any>("/api/frame/generate", {
+        prompt,
+        size,
+        model: "gpt-image-2"
       });
-
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.detail || "Có lỗi xảy ra khi tạo ảnh.");
-      }
-
-      const data = await res.json();
       
       const newImage: GeneratedImage = {
         id: Date.now(),
@@ -89,32 +111,21 @@ export default function VitbaFramePage() {
     setIsVideoGenerating(true);
     setVideoStatusText("Đang khởi tạo tiến trình...");
     try {
-      const res = await fetch("/api/frame/video/generate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          prompt: videoPrompt,
-          aspectRatio: videoRatio,
-          model: videoModel
-        }),
+      const data = await api.post<any>("/api/frame/video/generate", {
+        prompt: videoPrompt,
+        aspectRatio: videoRatio,
+        model: videoModel
       });
 
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.detail || "Có lỗi xảy ra khi tạo tiến trình video.");
-      }
-
-      const { operation_name } = await res.json();
+      const { operation_name } = data;
       
       setVideoStatusText("Đang render (có thể mất 1-3 phút)...");
       
       const poll = setInterval(async () => {
         try {
-          const statusRes = await fetch(`/api/frame/video/status/${encodeURIComponent(operation_name)}`);
-          if (statusRes.ok) {
-            const data = await statusRes.json();
-            if (data.status === "completed") {
-              clearInterval(poll);
+          const statusData = await api.get<any>(`/api/frame/video/status/${encodeURIComponent(operation_name)}`);
+          if (statusData.status === "completed") {
+            clearInterval(poll);
               
               let finalUrl = data.b64_video;
               if (data.b64_video && !data.b64_video.startsWith("http")) {
@@ -133,17 +144,12 @@ export default function VitbaFramePage() {
               setVideoStatusText("");
               toast.success("Tạo video thành công!");
             }
-          } else {
-             // If error occurs during polling, we should probably stop
-             const errData = await statusRes.json();
-             console.error("Lỗi polling:", errData);
-             clearInterval(poll);
-             setIsVideoGenerating(false);
-             setVideoStatusText("");
-             toast.error(errData.detail || "Lỗi khi kiểm tra trạng thái video.");
-          }
-        } catch (e) {
+        } catch (e: any) {
           console.error("Polling error", e);
+          clearInterval(poll);
+          setIsVideoGenerating(false);
+          setVideoStatusText("");
+          toast.error(e.message || "Lỗi khi kiểm tra trạng thái video.");
         }
       }, 15000); // 15 seconds
 

@@ -1,10 +1,15 @@
 import os
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from openai import OpenAI
 import logging
 import base64
 from typing import Optional
+
+from app.api.deps import get_current_user
+from app.models.user import User
+from app.core.db import async_session_maker
+from app.models.lab_history import LabHistory
 
 try:
     from google import genai
@@ -26,7 +31,7 @@ class GenerateImageResponse(BaseModel):
     b64_json: str
 
 @router.post("/generate", response_model=GenerateImageResponse)
-async def generate_image(request: GenerateImageRequest):
+async def generate_image(request: GenerateImageRequest, current_user: User = Depends(get_current_user)):
     api_key = os.getenv("ZENMUX_API_KEY")
     if not api_key:
         logger.error("Missing ZENMUX_API_KEY")
@@ -49,6 +54,16 @@ async def generate_image(request: GenerateImageRequest):
         if not b64_json:
             raise Exception("No b64_json returned from ZenMux API")
             
+        async with async_session_maker() as session:
+            history_entry = LabHistory(
+                user_id=current_user.id,
+                tool_name="frame_image",
+                input_data=request.model_dump(),
+                output_data={"b64_json": b64_json}
+            )
+            session.add(history_entry)
+            await session.commit()
+            
         return GenerateImageResponse(b64_json=b64_json)
     except Exception as e:
         logger.error(f"Image generation error: {e}")
@@ -67,7 +82,7 @@ class VideoStatusResponse(BaseModel):
     b64_video: Optional[str] = None
 
 @router.post("/video/generate", response_model=GenerateVideoResponse)
-async def generate_video(request: GenerateVideoRequest):
+async def generate_video(request: GenerateVideoRequest, current_user: User = Depends(get_current_user)):
     if not genai:
         raise HTTPException(status_code=500, detail="google-genai SDK is not installed")
         
@@ -99,7 +114,7 @@ async def generate_video(request: GenerateVideoRequest):
         raise HTTPException(status_code=500, detail=f"Video generation failed: {str(e)}")
 
 @router.get("/video/status/{operation_name}", response_model=VideoStatusResponse)
-async def check_video_status(operation_name: str):
+async def check_video_status(operation_name: str, current_user: User = Depends(get_current_user)):
     if not genai:
         raise HTTPException(status_code=500, detail="google-genai SDK is not installed")
 
@@ -139,6 +154,30 @@ async def check_video_status(operation_name: str):
             b64_video = base64.b64encode(video.bytes).decode('utf-8')
         else:
             raise Exception("Unable to extract video data from response")
+
+        from sqlalchemy import select
+        async with async_session_maker() as session:
+            # Check if we already saved this video to prevent duplicates
+            stmt = select(LabHistory).where(
+                LabHistory.user_id == current_user.id,
+                LabHistory.tool_name == "frame_video",
+                # Note: cannot query jsonb directly without cast, so we just check python side if needed
+                # Actually, operation_name is unique enough, but let's just fetch all frame_video of user to see if it's there
+                # Or just save it if not found by checking first.
+            )
+            result = await session.execute(stmt)
+            histories = result.scalars().all()
+            exists = any(h.input_data.get("operation_name") == operation_name for h in histories if h.input_data)
+            
+            if not exists:
+                history_entry = LabHistory(
+                    user_id=current_user.id,
+                    tool_name="frame_video",
+                    input_data={"operation_name": operation_name},
+                    output_data={"b64_video": b64_video}
+                )
+                session.add(history_entry)
+                await session.commit()
 
         return VideoStatusResponse(status="completed", b64_video=b64_video)
     except Exception as e:

@@ -9,6 +9,7 @@ from sqlalchemy import select
 from app.core.db import get_session
 from app.models.user import User
 from app.models.study_bookmark import StudyBookmark
+from app.models.study_progress import StudyProgress
 from app.api.deps import get_current_user
 
 router = APIRouter()
@@ -99,3 +100,44 @@ async def get_questions_by_topic(topic_id: str):
     if not topic_questions:
         raise HTTPException(status_code=404, detail="Topic not found or has no questions")
     return topic_questions
+
+@router.get("/progress")
+async def get_study_progress(
+    current_user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session)
+):
+    query = select(StudyProgress).where(StudyProgress.user_id == current_user.id)
+    result = await session.execute(query)
+    progress_list = result.scalars().all()
+    
+    return {p.topic_id: p.progress_data for p in progress_list}
+
+class ProgressUpdateReq(BaseModel):
+    topic_id: str
+    progress_data: dict
+
+@router.post("/progress")
+async def update_study_progress(
+    req: ProgressUpdateReq,
+    current_user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session)
+):
+    query = select(StudyProgress).where(
+        StudyProgress.user_id == current_user.id,
+        StudyProgress.topic_id == req.topic_id
+    )
+    result = await session.execute(query)
+    progress = result.scalar_one_or_none()
+    
+    if progress:
+        progress.progress_data = req.progress_data
+    else:
+        progress = StudyProgress(
+            user_id=current_user.id,
+            topic_id=req.topic_id,
+            progress_data=req.progress_data
+        )
+        session.add(progress)
+        
+    await session.commit()
+    return {"status": "success", "topic_id": req.topic_id}

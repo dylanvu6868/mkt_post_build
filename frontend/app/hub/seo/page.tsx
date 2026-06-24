@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import { Search } from "lucide-react";
 
 /* ------------------------------------------------------------------ */
 /*  Shared style constants                                              */
@@ -215,7 +216,8 @@ function AnalyzeTab() {
 
   return (
     <div className="space-y-6">
-      <Card>
+      <Card className="border-border/50 bg-card/50 backdrop-blur-sm overflow-hidden">
+        <div className="h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500"></div>
         <CardHeader>
           <CardTitle>Phân tích SEO</CardTitle>
         </CardHeader>
@@ -242,7 +244,8 @@ function AnalyzeTab() {
       </Card>
 
       {seoAnalyzing && (
-        <Card>
+        <Card className="border-border/50 bg-card/50 backdrop-blur-sm overflow-hidden">
+          <div className="h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500"></div>
           <CardContent className="pt-6 space-y-3">
             <Skeleton className="h-32 w-32 rounded-full mx-auto" />
             <div className="grid grid-cols-3 gap-2">
@@ -257,7 +260,8 @@ function AnalyzeTab() {
       )}
 
       {!seoAnalyzing && seoResult && (
-        <Card>
+        <Card className="border-border/50 bg-card/50 backdrop-blur-sm overflow-hidden">
+          <div className="h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500"></div>
           <CardHeader>
             <CardTitle className="flex items-center gap-3">
               <span>Điểm SEO</span>
@@ -298,7 +302,8 @@ function KeywordsTab() {
 
   return (
     <div className="space-y-6">
-      <Card>
+      <Card className="border-border/50 bg-card/50 backdrop-blur-sm overflow-hidden">
+        <div className="h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500"></div>
         <CardHeader>
           <CardTitle>Phân tích từ khóa</CardTitle>
         </CardHeader>
@@ -320,7 +325,8 @@ function KeywordsTab() {
       </Card>
 
       {keywordsLoading && (
-        <Card>
+        <Card className="border-border/50 bg-card/50 backdrop-blur-sm overflow-hidden">
+          <div className="h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500"></div>
           <CardContent className="pt-6 space-y-2">
             {[1, 2, 3, 4, 5].map((i) => (
               <Skeleton key={i} className="h-8 w-full" />
@@ -330,7 +336,8 @@ function KeywordsTab() {
       )}
 
       {!keywordsLoading && keywords.length > 0 && (
-        <Card>
+        <Card className="border-border/50 bg-card/50 backdrop-blur-sm overflow-hidden">
+          <div className="h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500"></div>
           <CardHeader>
             <CardTitle>Mật độ từ khóa</CardTitle>
           </CardHeader>
@@ -437,7 +444,8 @@ function HistoryTab() {
 
   return (
     <div className="space-y-6">
-      <Card>
+      <Card className="border-border/50 bg-card/50 backdrop-blur-sm overflow-hidden">
+        <div className="h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500"></div>
         <CardHeader>
           <CardTitle>Lịch sử phân tích</CardTitle>
         </CardHeader>
@@ -501,14 +509,22 @@ function HistoryTab() {
 /* ------------------------------------------------------------------ */
 export default function SeoPage() {
   return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Công cụ SEO</h1>
+    <div className="mx-auto max-w-6xl space-y-8 pb-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-2">
+          <Search className="h-8 w-8 text-blue-500" />
+          <span className="bg-gradient-to-r from-blue-600 to-indigo-600 text-transparent bg-clip-text">SEO Tools</span>
+        </h1>
+        <p className="mt-2 text-muted-foreground text-lg">
+          Tối ưu hóa SEO cho website và phân tích hiệu quả từ khóa.
+        </p>
+      </div>
 
-      <Tabs defaultValue="analyze">
-        <TabsList>
-          <TabsTrigger value="analyze">Phân tích</TabsTrigger>
-          <TabsTrigger value="keywords">Từ khóa</TabsTrigger>
-          <TabsTrigger value="history">Lịch sử</TabsTrigger>
+      <Tabs defaultValue="analyze" className="space-y-6">
+        <TabsList className="bg-muted/50 p-1 flex-wrap gap-1">
+          <TabsTrigger value="analyze" className="rounded-lg data-[state=active]:bg-background data-[state=active]:text-blue-600 data-[state=active]:shadow-sm">Phân tích</TabsTrigger>
+          <TabsTrigger value="keywords" className="rounded-lg data-[state=active]:bg-background data-[state=active]:text-blue-600 data-[state=active]:shadow-sm">Từ khóa</TabsTrigger>
+          <TabsTrigger value="history" className="rounded-lg data-[state=active]:bg-background data-[state=active]:text-blue-600 data-[state=active]:shadow-sm">Lịch sử</TabsTrigger>
         </TabsList>
 
         <TabsContent value="analyze">

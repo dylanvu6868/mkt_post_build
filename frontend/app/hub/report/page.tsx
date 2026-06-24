@@ -5,10 +5,19 @@ import { useRouter } from "next/navigation";
 import { useLabTool } from "@/hooks/use-lab-tool";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { ArrowRight, ArrowLeft, Check, Sparkles, Edit2, FileDown } from "lucide-react";
+import { ArrowRight, ArrowLeft, Check, Sparkles, Edit2, FileDown, History, Calendar } from "lucide-react";
+import { api } from "@/services/api";
 
 interface ReportResult {
   markdown_content: string;
+}
+
+interface ReportHistoryItem {
+  id: string;
+  tool_name: string;
+  input_data: any;
+  output_data: any;
+  created_at: string;
 }
 
 const SUGGESTIONS = {
@@ -53,6 +62,17 @@ export default function ReportPage() {
   const reportRef = useRef<HTMLDivElement>(null);
   const [copied, setCopied] = useState(false);
   const [isWizardCollapsed, setIsWizardCollapsed] = useState(false);
+  const [history, setHistory] = useState<ReportHistoryItem[]>([]);
+  const [showHistory, setShowHistory] = useState(false);
+  const [historyResult, setHistoryResult] = useState<ReportResult | null>(null);
+
+  useEffect(() => {
+    if (showHistory) {
+      api.get<ReportHistoryItem[]>("/api/lab/history?tool_name=report")
+        .then(data => setHistory(data))
+        .catch(err => console.error("Lỗi tải lịch sử", err));
+    }
+  }, [showHistory]);
 
   // Auto-save & load from localStorage
   useEffect(() => {
@@ -71,8 +91,12 @@ export default function ReportPage() {
   useEffect(() => {
     if (result) {
       setIsWizardCollapsed(true);
+      setShowHistory(false);
+      setHistoryResult(null);
     }
   }, [result]);
+
+  const displayResult = historyResult || result;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -274,25 +298,69 @@ export default function ReportPage() {
         </div>
 
         <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600 inline-block">
-              Vitba Report
-            </h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              Báo cáo chiến lược & marketing toàn diện
-            </p>
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-2">
+                <span className="bg-gradient-to-r from-blue-600 to-purple-600 text-transparent bg-clip-text">Vitba Report</span>
+              </h1>
+              <p className="mt-2 text-muted-foreground">Báo cáo chiến lược & marketing toàn diện</p>
+            </div>
+            <button 
+              onClick={() => setShowHistory(!showHistory)}
+              className="flex items-center gap-2 px-4 py-2 bg-secondary hover:bg-secondary/80 rounded-xl font-medium text-sm transition-colors"
+            >
+              <History size={16} /> {showHistory ? "Đóng Lịch sử" : "Lịch sử báo cáo"}
+            </button>
           </div>
         </div>
       </div>
 
-      {/* Main Content Area (Flexible & Scrollable) */}
-      <div className="flex-1 overflow-hidden flex flex-col gap-6">
-        
-        {/* WIZARD CONTAINER */}
-        {!isWizardCollapsed ? (
-          <div className="bg-card border-2 border-border/60 rounded-[1.5rem] shadow-xl shadow-blue-900/5 flex flex-col flex-1 min-h-0 overflow-hidden">
-            
-            {/* Progress Bar (Fixed in wizard) */}
+      <div className={`relative flex flex-col gap-6 transition-all duration-500 ease-in-out ${displayResult || showHistory ? "h-[calc(100vh-180px)]" : "h-auto"}`}>
+
+        {showHistory ? (
+          <div className="flex-1 min-h-0 bg-card border-2 border-border/80 rounded-[1.5rem] overflow-y-auto p-6 md:p-10 shadow-xl custom-scrollbar animate-in fade-in slide-in-from-bottom-8 duration-500">
+            <h2 className="text-2xl font-bold mb-6 flex items-center gap-2"><History className="text-blue-500"/> Lịch sử Báo Cáo</h2>
+            {history.length === 0 ? (
+              <p className="text-muted-foreground text-center py-10">Chưa có báo cáo nào được tạo.</p>
+            ) : (
+              <div className="grid gap-4 md:grid-cols-2">
+                {history.map(item => (
+                  <div 
+                    key={item.id} 
+                    onClick={() => {
+                      setHistoryResult(item.output_data);
+                      setFormData(item.input_data || formData);
+                      setShowHistory(false);
+                      setIsWizardCollapsed(true);
+                    }}
+                    className="p-5 border-2 rounded-2xl bg-secondary/20 hover:bg-secondary/60 hover:border-blue-500/50 cursor-pointer transition-all text-left flex flex-col gap-3 group"
+                  >
+                    <div className="flex justify-between items-start gap-2">
+                      <h3 className="font-bold text-lg line-clamp-1 group-hover:text-blue-500 transition-colors">
+                        {item.input_data?.name || "Dự án không tên"}
+                      </h3>
+                      <span className="text-xs font-medium px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg whitespace-nowrap">
+                        {item.input_data?.industry || "Marketing"}
+                      </span>
+                    </div>
+                    <p className="text-sm text-muted-foreground line-clamp-2">
+                      {item.input_data?.product || "Chưa có mô tả sản phẩm"}
+                    </p>
+                    <div className="flex items-center gap-2 mt-auto pt-2 text-xs text-muted-foreground border-t border-border/50">
+                      <Calendar size={12} />
+                      {new Date(item.created_at).toLocaleString('vi-VN')}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        ) : (
+          <>
+        <div 
+          className={`bg-card border-2 border-border/80 rounded-[1.5rem] shadow-sm flex flex-col md:flex-row overflow-hidden transition-all duration-700 ease-in-out origin-top
+            ${isWizardCollapsed ? "h-0 md:h-[72px] opacity-0 md:opacity-100 flex-none overflow-hidden" : "h-[650px] opacity-100 flex-none"}`}
+        >
             <div className="p-6 md:px-8 shrink-0 border-b border-border/50 bg-card z-10">
               <div className="flex justify-between text-sm font-medium text-muted-foreground mb-3">
                 <span>Bước {currentStep} / {totalSteps}</span>
@@ -306,12 +374,10 @@ export default function ReportPage() {
               </div>
             </div>
 
-            {/* Step Content (Scrollable) */}
             <div className="flex-1 overflow-y-auto p-6 md:p-8 custom-scrollbar">
               {renderStepContent()}
             </div>
 
-            {/* Navigation Buttons (Fixed bottom in wizard) */}
             <div className="p-6 md:px-8 shrink-0 border-t border-border bg-card/95 backdrop-blur z-10 flex items-center justify-between">
               <button
                 onClick={prevStep}
@@ -347,21 +413,23 @@ export default function ReportPage() {
               )}
             </div>
           </div>
-        ) : (
-          // Collapsed Wizard Summary
-          <div className="bg-card border-2 border-border/60 rounded-2xl p-4 px-6 shrink-0 flex items-center justify-between shadow-sm animate-in fade-in slide-in-from-top-4 duration-500">
-            <div>
-              <h3 className="font-bold text-lg">{formData.name || "Dự án mới"}</h3>
-              <p className="text-sm text-muted-foreground">{formData.industry || "Chưa chọn ngành nghề"}</p>
+          
+          {/* Collapsed Wizard Summary */}
+          {isWizardCollapsed && !showHistory && (
+            <div className="bg-card border-2 border-border/60 rounded-2xl p-4 px-6 shrink-0 flex items-center justify-between shadow-sm animate-in fade-in slide-in-from-top-4 duration-500">
+              <div>
+                <h3 className="font-bold text-lg">{formData.name || "Dự án mới"}</h3>
+                <p className="text-sm text-muted-foreground">{formData.industry || "Chưa chọn ngành nghề"}</p>
+              </div>
+              <button 
+                onClick={() => setIsWizardCollapsed(false)}
+                className="flex items-center gap-2 text-sm font-medium text-blue-600 hover:bg-blue-50 px-4 py-2 rounded-lg transition-colors"
+              >
+                <Edit2 size={16} /> Chỉnh sửa thông tin
+              </button>
             </div>
-            <button 
-              onClick={() => setIsWizardCollapsed(false)}
-              className="flex items-center gap-2 text-sm font-medium text-blue-600 hover:bg-blue-50 px-4 py-2 rounded-lg transition-colors"
-            >
-              <Edit2 size={16} /> Chỉnh sửa thông tin
-            </button>
-          </div>
-        )}
+          )}
+
 
         {error && (
           <div className="shrink-0 bg-red-50 text-red-600 p-4 rounded-xl border border-red-200 flex items-center justify-center">
@@ -369,8 +437,7 @@ export default function ReportPage() {
           </div>
         )}
 
-        {/* REPORT RESULT CONTAINER (Takes remaining height when wizard is collapsed) */}
-        {result && (
+        {displayResult && (
           <div className="flex-1 min-h-0 bg-card border-2 border-border/80 rounded-[1.5rem] overflow-hidden shadow-xl flex flex-col animate-in fade-in slide-in-from-bottom-8 duration-700">
             <div className="shrink-0 bg-gradient-to-r from-blue-50 to-purple-50 border-b border-border p-5 flex items-center justify-between gap-4">
               <div className="flex items-center gap-3">
@@ -391,7 +458,7 @@ export default function ReportPage() {
                 </button>
                 <button
                   onClick={() => {
-                    navigator.clipboard.writeText(result.markdown_content);
+                    navigator.clipboard.writeText(displayResult.markdown_content);
                     setCopied(true);
                     setTimeout(() => setCopied(false), 2000);
                   }}
@@ -413,11 +480,13 @@ export default function ReportPage() {
                 prose-code:text-blue-600 dark:prose-code:text-blue-400 prose-code:bg-blue-50 dark:prose-code:bg-blue-900/30 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded-md prose-code:before:content-none prose-code:after:content-none"
               >
                 <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                  {result.markdown_content}
+                  {displayResult.markdown_content}
                 </ReactMarkdown>
               </article>
             </div>
           </div>
+        )}
+          </>
         )}
       </div>
     </div>

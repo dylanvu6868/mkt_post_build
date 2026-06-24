@@ -19,6 +19,7 @@ from app.models.project import Project
 from app.models.scheduled_email import ScheduledEmail
 from app.models.seo_audit import SeoAudit
 from app.models.study_bookmark import StudyBookmark
+from app.models.study_progress import StudyProgress
 from app.models.user import User
 from app.models.user_template import UserTemplate
 
@@ -26,5 +27,5 @@ __all__ = [
     "AuditLog", "BrandProfile", "BrandProfileHistory", "Campaign", "ContentHistory", "ContentItem",
     "Conversation", "Deployment", "Document", "EmailCampaign", "EmailContact",
     "EmailList", "EmailTemplate", "GenerationJob", "LabHistory", "LandingPage", "Message", "PaymentOrder",
-    "Project", "ScheduledEmail", "SeoAudit", "StudyBookmark", "User", "UserTemplate",
+    "Project", "ScheduledEmail", "SeoAudit", "StudyBookmark", "StudyProgress", "User", "UserTemplate",
 ]

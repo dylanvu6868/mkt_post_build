@@ -65,21 +65,13 @@ export default function StudyLearningPlatform() {
       .then(res => setBookmarkedIds(new Set(res.bookmarks)))
       .catch(err => console.error("Failed to load bookmarks", err));
       
-    // Load progress
-    const saved = localStorage.getItem("vitba_study_progress");
-    if (saved) {
-      try {
-        setProgress(JSON.parse(saved));
-      } catch (e) {}
-    }
+    // Load progress from DB
+    api.get<Record<string, {completed: number, score: number}>>("/api/study_questions/progress")
+      .then(res => {
+        if (res) setProgress(res);
+      })
+      .catch(err => console.error("Failed to load progress", err));
   }, []);
-
-  // Save progress when it changes
-  useEffect(() => {
-    if (Object.keys(progress).length > 0) {
-      localStorage.setItem("vitba_study_progress", JSON.stringify(progress));
-    }
-  }, [progress]);
 
   // 2. Start Topic
   const startTopic = async (topic: Topic) => {
@@ -158,13 +150,21 @@ export default function StudyLearningPlatform() {
     } else {
       // Finish quiz
       if (selectedTopic) {
+        const finalScore = score + (selectedOption === questions[currentIndex].correct_index ? 1 : 0);
+        const newProgressData = {
+          completed: questions.length,
+          score: finalScore
+        };
         setProgress(prev => ({
           ...prev,
-          [selectedTopic.id]: {
-            completed: questions.length,
-            score: score + (selectedOption === questions[currentIndex].correct_index ? 1 : 0)
-          }
+          [selectedTopic.id]: newProgressData
         }));
+        
+        // Sync progress to DB
+        api.post("/api/study_questions/progress", {
+          topic_id: selectedTopic.id,
+          progress_data: newProgressData
+        }).catch(err => console.error("Failed to save progress", err));
       }
       setView("result");
     }

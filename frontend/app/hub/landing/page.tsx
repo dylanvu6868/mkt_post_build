@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import { Layout } from "lucide-react";
 
 /* ------------------------------------------------------------------ */
 /*  Constants & Styles                                                 */
@@ -710,7 +711,8 @@ function EditorTab({ initialPage, initialHtml }: {
   return (
     <div className="space-y-4">
       {/* Toolbar */}
-      <Card>
+      <Card className="border-border/50 bg-card/50 backdrop-blur-sm overflow-hidden">
+        <div className="h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500"></div>
         <CardContent className="p-4">
           <div className="flex flex-wrap items-end gap-3">
             <div className="flex-1 min-w-[200px]">
@@ -755,8 +757,8 @@ function EditorTab({ initialPage, initialHtml }: {
 
       {/* Editor + Preview split */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-        <Card className="overflow-hidden">
-          <div className="flex items-center border-b border-border">
+        <Card className="border-border/50 bg-card/50 backdrop-blur-sm overflow-hidden">
+          <div className="flex items-center border-b border-border bg-muted/20">
             {(["html", "css"] as const).map((t) => (
               <button key={t} onClick={() => setCodeTab(t)}
                 className={`px-4 py-2.5 text-sm font-medium transition-all border-b-2 ${
@@ -777,8 +779,8 @@ function EditorTab({ initialPage, initialHtml }: {
           </CardContent>
         </Card>
 
-        <Card className="overflow-hidden">
-          <div className="flex items-center justify-between px-4 py-2.5 border-b border-border">
+        <Card className="border-border/50 bg-card/50 backdrop-blur-sm overflow-hidden">
+          <div className="flex items-center justify-between px-4 py-2.5 border-b border-border bg-muted/20">
             <span className="text-sm font-medium">Xem trước</span>
             <button onClick={() => setFullscreenOpen(true)}
               className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs text-muted-foreground hover:bg-accent hover:text-foreground transition">
@@ -847,23 +849,26 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="mx-auto max-w-6xl space-y-8 pb-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div>
-        <h1 className="text-2xl font-bold">Landing Pages</h1>
-        <p className="text-sm text-muted-foreground mt-1">Tạo trang đích chuyên nghiệp bằng AI trong vài giây</p>
+        <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-2">
+          <Layout className="h-8 w-8 text-blue-500" />
+          <span className="bg-gradient-to-r from-blue-600 to-indigo-600 text-transparent bg-clip-text">Landing Pages</span>
+        </h1>
+        <p className="mt-2 text-muted-foreground text-lg">Tạo trang đích chuyên nghiệp bằng AI trong vài giây</p>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="bg-muted/50">
-          <TabsTrigger value="pages" className="gap-1.5">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <TabsList className="bg-muted/50 p-1 flex-wrap gap-1">
+          <TabsTrigger value="pages" className="gap-1.5 rounded-lg data-[state=active]:bg-background data-[state=active]:text-blue-600 data-[state=active]:shadow-sm">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
             Danh sách
           </TabsTrigger>
-          <TabsTrigger value="create" className="gap-1.5">
+          <TabsTrigger value="create" className="gap-1.5 rounded-lg data-[state=active]:bg-background data-[state=active]:text-blue-600 data-[state=active]:shadow-sm">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
             Tạo trang
           </TabsTrigger>
-          <TabsTrigger value="editor" className="gap-1.5">
+          <TabsTrigger value="editor" className="gap-1.5 rounded-lg data-[state=active]:bg-background data-[state=active]:text-blue-600 data-[state=active]:shadow-sm">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
             Trình chỉnh sửa
           </TabsTrigger>

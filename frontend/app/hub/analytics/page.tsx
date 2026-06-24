@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import { BarChart2 } from "lucide-react";
 import {
   BarChart,
   Bar,
@@ -141,7 +142,7 @@ function KpiCard({
   colorClass?: string;
 }) {
   return (
-    <Card>
+    <Card className="border-border/50 bg-card/50 backdrop-blur-sm overflow-hidden">
       <CardContent className="pt-5">
         {loading ? (
           <div className="space-y-2">
@@ -224,7 +225,8 @@ function EmailSection({ period }: { period: AnalyticsPeriod }) {
     : [];
 
   return (
-    <Card>
+    <Card className="border-border/50 bg-card/50 backdrop-blur-sm overflow-hidden">
+      <div className="h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500"></div>
       <CardHeader>
         <CardTitle>Phân tích Email</CardTitle>
       </CardHeader>
@@ -295,7 +297,8 @@ function ContentSection({ period }: { period: AnalyticsPeriod }) {
     : [];
 
   return (
-    <Card>
+    <Card className="border-border/50 bg-card/50 backdrop-blur-sm overflow-hidden">
+      <div className="h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500"></div>
       <CardHeader>
         <CardTitle>
           Phân tích Nội dung
@@ -381,7 +384,8 @@ function SeoSection({ period }: { period: AnalyticsPeriod }) {
   })) ?? [];
 
   return (
-    <Card>
+    <Card className="border-border/50 bg-card/50 backdrop-blur-sm overflow-hidden">
+      <div className="h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500"></div>
       <CardHeader>
         <CardTitle>Phân tích SEO</CardTitle>
       </CardHeader>
@@ -453,7 +457,8 @@ function ActivitySection() {
   }, [loadActivity]);
 
   return (
-    <Card>
+    <Card className="border-border/50 bg-card/50 backdrop-blur-sm overflow-hidden">
+      <div className="h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500"></div>
       <CardHeader>
         <CardTitle>Hoạt động gần đây</CardTitle>
       </CardHeader>
@@ -513,10 +518,18 @@ export default function AnalyticsPage() {
   const [period, setPeriod] = useState<AnalyticsPeriod>("30d");
 
   return (
-    <div className="space-y-8">
+    <div className="mx-auto max-w-6xl space-y-8 pb-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <h1 className="text-2xl font-bold">Phân tích & Báo cáo</h1>
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-2">
+            <BarChart2 className="h-8 w-8 text-blue-500" />
+            <span className="bg-gradient-to-r from-blue-600 to-indigo-600 text-transparent bg-clip-text">Analytics</span>
+          </h1>
+          <p className="mt-2 text-muted-foreground text-lg">
+            Đo lường và theo dõi hiệu suất chiến dịch, email, SEO và nội dung của bạn.
+          </p>
+        </div>
         <PeriodSelector value={period} onChange={setPeriod} />
       </div>
 

@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import { Mail } from "lucide-react";
 
 /* ------------------------------------------------------------------ */
 /*  Shared style constants (reuse existing idiom)                      */
@@ -79,8 +80,9 @@ function ComposeTab() {
   };
 
   return (
-    <Card>
-      <CardHeader><CardTitle>Gửi Email</CardTitle></CardHeader>
+    <Card className="border-border/50 bg-card/50 backdrop-blur-sm overflow-hidden">
+      <div className="h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500"></div>
+      <CardHeader><CardTitle className="flex items-center gap-2"><Mail size={18} className="text-blue-500"/> Gửi Email</CardTitle></CardHeader>
       <CardContent className="space-y-4">
         <div className="flex gap-2">
           <button onClick={() => setMode("single")} className={mode === "single" ? btn : btn2}>Email đơn</button>
@@ -190,7 +192,8 @@ function TemplatesTab() {
   };
 
   return (
-    <Card>
+    <Card className="border-border/50 bg-card/50 backdrop-blur-sm overflow-hidden">
+      <div className="h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500"></div>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Mẫu Email</CardTitle>
         <button className={btn} onClick={openCreate}>Tạo mẫu</button>
@@ -379,7 +382,8 @@ function ContactsTab() {
   };
 
   return (
-    <Card>
+    <Card className="border-border/50 bg-card/50 backdrop-blur-sm overflow-hidden">
+      <div className="h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500"></div>
       <CardHeader className="flex flex-row items-center justify-between flex-wrap gap-2">
         <CardTitle>Liên hệ</CardTitle>
         <div className="flex gap-2 flex-wrap">
@@ -556,7 +560,8 @@ function ScheduledTab() {
   const listMap = new Map(lists.map((l) => [l.id, l.name]));
 
   return (
-    <Card>
+    <Card className="border-border/50 bg-card/50 backdrop-blur-sm overflow-hidden">
+      <div className="h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500"></div>
       <CardHeader><CardTitle>Lên lịch gửi email</CardTitle></CardHeader>
       <CardContent className="space-y-6">
         {/* Form lên lịch */}
@@ -635,7 +640,8 @@ function StatsTab() {
   useEffect(() => { loadEmailStats(); }, [loadEmailStats]);
 
   return (
-    <Card>
+    <Card className="border-border/50 bg-card/50 backdrop-blur-sm overflow-hidden">
+      <div className="h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500"></div>
       <CardHeader><CardTitle className="text-sm">Thống kê Email</CardTitle></CardHeader>
       <CardContent>
         {emailStatsLoading ? (
@@ -698,7 +704,8 @@ function ListsSection() {
   };
 
   return (
-    <Card>
+    <Card className="border-border/50 bg-card/50 backdrop-blur-sm overflow-hidden">
+      <div className="h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500"></div>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Danh sách gửi</CardTitle>
         <button className={btn} onClick={() => setDialogOpen(true)}>Tạo danh sách</button>
@@ -758,17 +765,25 @@ function ListsSection() {
 /* ------------------------------------------------------------------ */
 export default function EmailPage() {
   return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Email Marketing</h1>
+    <div className="mx-auto max-w-6xl space-y-8 pb-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-2">
+          <Mail className="h-8 w-8 text-blue-500" />
+          <span className="bg-gradient-to-r from-blue-600 to-indigo-600 text-transparent bg-clip-text">Email Marketing</span>
+        </h1>
+        <p className="mt-2 text-muted-foreground text-lg">
+          Quản lý chiến dịch email, danh bạ và tự động hóa chuỗi gửi email của bạn.
+        </p>
+      </div>
 
-      <Tabs defaultValue="compose">
-        <TabsList className="flex-wrap">
-          <TabsTrigger value="compose">Gửi email</TabsTrigger>
-          <TabsTrigger value="templates">Mẫu email</TabsTrigger>
-          <TabsTrigger value="contacts">Liên hệ</TabsTrigger>
-          <TabsTrigger value="lists">Danh sách</TabsTrigger>
-          <TabsTrigger value="scheduled">Lên lịch</TabsTrigger>
-          <TabsTrigger value="stats">Thống kê</TabsTrigger>
+      <Tabs defaultValue="compose" className="space-y-6">
+        <TabsList className="bg-muted/50 p-1 flex-wrap gap-1">
+          <TabsTrigger value="compose" className="rounded-lg data-[state=active]:bg-background data-[state=active]:text-blue-600 data-[state=active]:shadow-sm">Gửi email</TabsTrigger>
+          <TabsTrigger value="templates" className="rounded-lg data-[state=active]:bg-background data-[state=active]:text-blue-600 data-[state=active]:shadow-sm">Mẫu email</TabsTrigger>
+          <TabsTrigger value="contacts" className="rounded-lg data-[state=active]:bg-background data-[state=active]:text-blue-600 data-[state=active]:shadow-sm">Liên hệ</TabsTrigger>
+          <TabsTrigger value="lists" className="rounded-lg data-[state=active]:bg-background data-[state=active]:text-blue-600 data-[state=active]:shadow-sm">Danh sách</TabsTrigger>
+          <TabsTrigger value="scheduled" className="rounded-lg data-[state=active]:bg-background data-[state=active]:text-blue-600 data-[state=active]:shadow-sm">Lên lịch</TabsTrigger>
+          <TabsTrigger value="stats" className="rounded-lg data-[state=active]:bg-background data-[state=active]:text-blue-600 data-[state=active]:shadow-sm">Thống kê</TabsTrigger>
         </TabsList>
 
         <TabsContent value="compose"><ComposeTab /></TabsContent>

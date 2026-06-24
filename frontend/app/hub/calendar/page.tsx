@@ -7,6 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import { Calendar } from "lucide-react";
 
 /* ------------------------------------------------------------------ */
 /*  Shared style constants                                              */
@@ -449,9 +450,17 @@ export default function CalendarPage() {
   useEffect(() => { reload(); }, [view, filterType, filterStatus, currentMonth]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <div className="space-y-6">
+    <div className="mx-auto max-w-6xl space-y-8 pb-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="flex items-center justify-between flex-wrap gap-3">
-        <h1 className="text-2xl font-bold">Lịch nội dung</h1>
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-2">
+            <Calendar className="h-8 w-8 text-blue-500" />
+            <span className="bg-gradient-to-r from-blue-600 to-indigo-600 text-transparent bg-clip-text">Content Calendar</span>
+          </h1>
+          <p className="mt-2 text-muted-foreground text-lg">
+            Lên lịch và quản lý nội dung đăng tải trên các nền tảng của bạn.
+          </p>
+        </div>
         <button className={btn} onClick={() => setCreateOpen(true)}>Tạo nội dung</button>
       </div>
 
@@ -459,7 +468,8 @@ export default function CalendarPage() {
       <OverviewStrip />
 
       {/* Filter bar + view toggle */}
-      <Card>
+      <Card className="border-border/50 bg-card/50 backdrop-blur-sm overflow-hidden">
+        <div className="h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500"></div>
         <CardContent className="pt-4">
           <div className="flex items-center gap-3 flex-wrap">
             <select className={inp + " max-w-[180px]"} value={filterType} onChange={(e) => setFilterType(e.target.value)}>
@@ -483,7 +493,8 @@ export default function CalendarPage() {
       </Card>
 
       {/* Views */}
-      <Card>
+      <Card className="border-border/50 bg-card/50 backdrop-blur-sm overflow-hidden">
+        <div className="h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500"></div>
         <CardHeader>
           <CardTitle>{view === "kanban" ? "Bảng Kanban" : "Lịch tháng"}</CardTitle>
         </CardHeader>
