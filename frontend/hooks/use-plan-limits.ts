@@ -10,6 +10,10 @@ export function usePlanLimits() {
     queryKey: ["plan-limits"],
     queryFn: () => api.get<PlanLimitsResponse>("/auth/me/limits"),
     enabled: !!token,
-    staleTime: 30_000,
+    // Plan rarely changes mid-session; cache longer so the Hub gate never
+    // refetches/flashes on navigation between tools.
+    staleTime: 5 * 60_000,
+    gcTime: 30 * 60_000,
+    refetchOnWindowFocus: false,
   });
 }
