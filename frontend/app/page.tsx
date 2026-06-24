@@ -78,24 +78,60 @@ const AGENTS = [
 const PLANS_PREVIEW = [
   {
     name: "Free", price: "Miễn phí", period: "",
-    highlight: "3 lượt/ngày",
-    features: ["6 loại nội dung", "AI Score đánh giá", "Copy & Download"],
+    highlight: "15 lượt/ngày",
+    features: ["4 loại nội dung", "Chat AI không giới hạn", "3 dự án · 10 file KB"],
   },
   {
     name: "Lite", price: "99.000đ", period: "/tháng",
-    highlight: "15 lượt/ngày",
-    features: ["Tất cả tính năng Free", "Ưu tiên xử lý", "Lịch sử không giới hạn"],
+    highlight: "50 lượt/ngày",
+    features: ["Marketing Hub: Email, SEO, Calendar", "+ Marketing Plan", "Gửi 100 email/ngày"],
   },
   {
     name: "Pro", price: "219.000đ", period: "/tháng",
-    highlight: "50 lượt/ngày", popular: true,
-    features: ["Tất cả tính năng Lite", "Pipeline Reviewer + Formatter", "Hỗ trợ ưu tiên"],
+    highlight: "200 lượt/ngày", popular: true,
+    features: ["Marketing Hub đầy đủ (5 công cụ)", "Landing Page AI · Analytics", "Gửi 500 email/ngày"],
   },
   {
     name: "Max", price: "469.000đ", period: "/tháng",
     highlight: "Không giới hạn",
-    features: ["Tất cả tính năng Pro", "API access", "Dedicated support"],
+    features: ["Mọi thứ không giới hạn", "Hub & email không giới hạn", "Hỗ trợ riêng (dedicated)"],
   },
+];
+
+const HUB_TOOLS = [
+  {
+    title: "Email Marketing",
+    desc: "Soạn template, quản lý danh sách liên hệ, gửi hàng loạt và lên lịch chiến dịch email tự động. Theo dõi tỷ lệ mở, click theo thời gian thực.",
+    tags: ["Template", "Danh bạ & List", "Gửi theo lịch"],
+  },
+  {
+    title: "SEO Tools",
+    desc: "Phân tích on-page SEO cho URL bất kỳ: chấm điểm 0-100, phát hiện lỗi title/meta/heading/alt, gợi ý cải thiện và phân tích mật độ từ khóa.",
+    tags: ["Điểm SEO 0-100", "Audit on-page", "Mật độ từ khóa"],
+  },
+  {
+    title: "Content Calendar",
+    desc: "Lên kế hoạch nội dung theo Kanban và lịch tháng. Quản lý quy trình duyệt Nháp → Review → Duyệt → Xuất bản cho cả team.",
+    tags: ["Kanban", "Lịch tháng", "Quy trình duyệt"],
+  },
+  {
+    title: "Analytics",
+    desc: "Bảng điều khiển tổng hợp toàn bộ hoạt động marketing: email, nội dung, SEO trên cùng một nơi với biểu đồ xu hướng và dòng hoạt động.",
+    tags: ["KPI tổng hợp", "Biểu đồ xu hướng", "Hoạt động gần đây"],
+  },
+  {
+    title: "Landing Page Builder",
+    desc: "Tạo trang đích bằng AI từ mô tả ngắn, chỉnh sửa trực tiếp, publish và phục vụ ngay tại vitba.ai/p/{slug} — không cần deploy.",
+    tags: ["AI tạo trang", "Editor trực tiếp", "Publish 1-click"],
+  },
+];
+
+const HUB_TOOL_ICONS = [
+  <svg key="h-email" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={GOLD} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>,
+  <svg key="h-seo" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={GOLD} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>,
+  <svg key="h-cal" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={GOLD} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>,
+  <svg key="h-an" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={GOLD} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>,
+  <svg key="h-lp" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={GOLD} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>,
 ];
 
 const STATS = [
@@ -150,6 +186,7 @@ export default function LandingPage() {
           </div>
           <div className="hidden md:flex items-center gap-8 text-[14px] text-white/60">
             <button onClick={() => scrollTo("features")} className="hover:text-[#FFD54A] transition-colors cursor-pointer">Tính năng</button>
+            <button onClick={() => scrollTo("hub")} className="hover:text-[#FFD54A] transition-colors cursor-pointer">Marketing Hub</button>
             <button onClick={() => scrollTo("how-it-works")} className="hover:text-[#FFD54A] transition-colors cursor-pointer">Cách hoạt động</button>
             <button onClick={() => scrollTo("agents")} className="hover:text-[#FFD54A] transition-colors cursor-pointer">Vitba Agents</button>
             <button onClick={() => scrollTo("pricing")} className="hover:text-[#FFD54A] transition-colors cursor-pointer">Bảng giá</button>
@@ -255,6 +292,59 @@ export default function LandingPage() {
                 </motion.div>
               </AnimatedSection>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ========== MARKETING HUB ========== */}
+      <section id="hub" className="py-20 sm:py-28 px-6 scroll-mt-20">
+        <div className="max-w-6xl mx-auto">
+          <AnimatedSection className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 rounded-full border border-[#FFD54A]/20 bg-[#FFD54A]/5 px-4 py-1.5 text-[12px] font-bold text-[#FFD54A]/70 tracking-widest uppercase mb-4">
+              Marketing Hub
+            </div>
+            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4 text-white">
+              Không chỉ tạo nội dung — <span className="text-[#FFD54A]">vận hành cả marketing</span>
+            </h2>
+            <p className="text-white/50 text-lg max-w-2xl mx-auto">
+              5 công cụ chuyên nghiệp trong một nơi: gửi email, tối ưu SEO, lên lịch nội dung, đo lường hiệu quả và dựng landing page bằng AI.
+            </p>
+          </AnimatedSection>
+
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {HUB_TOOLS.map((t, i) => (
+              <AnimatedSection key={t.title}>
+                <motion.div
+                  whileHover={{ y: -4, scale: 1.02 }}
+                  transition={{ type: "spring", stiffness: 300 }}
+                  className="rounded-[20px] border border-[#FFD54A]/15 bg-[#FFD54A]/[0.03] p-6 hover:border-[#FFD54A]/30 hover:bg-[#FFD54A]/[0.06] transition-all hover:shadow-[0_8px_30px_-12px_rgba(255,213,74,0.15)] h-full flex flex-col"
+                >
+                  <div className="w-12 h-12 rounded-[14px] bg-[#FFD54A]/10 border border-[#FFD54A]/20 flex items-center justify-center mb-4">
+                    {HUB_TOOL_ICONS[i]}
+                  </div>
+                  <h3 className="text-[17px] font-bold text-white mb-2">{t.title}</h3>
+                  <p className="text-[14px] text-white/50 leading-relaxed mb-4 flex-1">{t.desc}</p>
+                  <div className="flex flex-wrap gap-2">
+                    {t.tags.map((d) => (
+                      <span key={d} className="text-[11px] font-medium text-[#FFD54A]/70 bg-[#FFD54A]/10 rounded-full px-2.5 py-1 border border-[#FFD54A]/15">
+                        {d}
+                      </span>
+                    ))}
+                  </div>
+                </motion.div>
+              </AnimatedSection>
+            ))}
+            <AnimatedSection>
+              <div className="rounded-[20px] border border-[#FFD54A]/20 bg-gradient-to-br from-[#FFD54A]/[0.08] to-transparent p-6 h-full flex flex-col justify-center text-center">
+                <div className="text-[13px] font-bold text-[#FFD54A]/80 uppercase tracking-wider mb-2">Gói Pro trở lên</div>
+                <p className="text-[14px] text-white/60 leading-relaxed mb-5">
+                  Mở khóa đầy đủ Marketing Hub. Gói Lite dùng được Email, SEO &amp; Content Calendar.
+                </p>
+                <button onClick={ctaClick} className="rounded-full bg-[#FFD54A] px-6 py-2.5 text-sm font-bold text-[#0a0a0a] hover:bg-[#ffe07a] transition-colors mx-auto">
+                  Khám phá Hub
+                </button>
+              </div>
+            </AnimatedSection>
           </div>
         </div>
       </section>
@@ -381,7 +471,7 @@ export default function LandingPage() {
               Bảng giá <span className="text-[#FFD54A]">đơn giản, minh bạch</span>
             </h2>
             <p className="text-white/50 text-lg max-w-xl mx-auto">
-              Bắt đầu miễn phí với 3 lượt mỗi ngày. Nâng cấp bất cứ lúc nào khi bạn cần thêm sức mạnh AI.
+              Bắt đầu miễn phí với 15 lượt mỗi ngày và chat AI không giới hạn. Nâng cấp để mở khóa Marketing Hub.
             </p>
           </AnimatedSection>
 
@@ -484,7 +574,7 @@ export default function LandingPage() {
                 Sẵn sàng tạo nội dung<br /><span className="text-[#FFD54A]">nhanh hơn 360x?</span>
               </h2>
               <p className="text-white/50 text-lg mb-8 max-w-lg mx-auto">
-                Đăng ký miễn phí ngay hôm nay. Không cần thẻ tín dụng. 3 lượt tạo content mỗi ngày — đủ để bạn trải nghiệm sức mạnh AI.
+                Đăng ký miễn phí ngay hôm nay. Không cần thẻ tín dụng. 15 lượt tạo content mỗi ngày — đủ để bạn trải nghiệm sức mạnh AI.
               </p>
               <button onClick={ctaClick} className="rounded-full bg-[#FFD54A] px-10 py-4 text-[17px] font-bold text-[#0a0a0a] hover:bg-[#ffe07a] transition-all shadow-[0_0_40px_rgba(255,213,74,0.4)] hover:shadow-[0_0_50px_rgba(255,213,74,0.5)] hover:scale-105 active:scale-95">
                 Dùng thử miễn phí ngay
