@@ -275,9 +275,9 @@ export default function LandingPage() {
                 <motion.div
                   whileHover={{ y: -4, scale: 1.02 }}
                   transition={{ type: "spring", stiffness: 300 }}
-                  className="rounded-[20px] border border-[#FFD54A]/15 bg-[#FFD54A]/[0.03] p-6 hover:border-[#FFD54A]/30 hover:bg-[#FFD54A]/[0.06] transition-all hover:shadow-[0_8px_30px_-12px_rgba(255,213,74,0.15)] h-full flex flex-col"
+                  className="rounded-[24px] border border-[#FFD54A]/10 bg-[#FFD54A]/[0.02] p-7 hover:border-[#FFD54A]/25 hover:bg-[#FFD54A]/[0.05] transition-all duration-300 hover:shadow-[0_8px_32px_-12px_rgba(255,213,74,0.12)] h-full flex flex-col"
                 >
-                  <div className="w-12 h-12 rounded-[14px] bg-[#FFD54A]/10 border border-[#FFD54A]/20 flex items-center justify-center mb-4">
+                  <div className="w-12 h-12 rounded-2xl bg-[#FFD54A]/8 border border-[#FFD54A]/15 flex items-center justify-center mb-4">
                     {FEATURE_ICONS[i]}
                   </div>
                   <h3 className="text-[17px] font-bold text-white mb-2">{f.title}</h3>
@@ -317,9 +317,9 @@ export default function LandingPage() {
                 <motion.div
                   whileHover={{ y: -4, scale: 1.02 }}
                   transition={{ type: "spring", stiffness: 300 }}
-                  className="rounded-[20px] border border-[#FFD54A]/15 bg-[#FFD54A]/[0.03] p-6 hover:border-[#FFD54A]/30 hover:bg-[#FFD54A]/[0.06] transition-all hover:shadow-[0_8px_30px_-12px_rgba(255,213,74,0.15)] h-full flex flex-col"
+                  className="rounded-[24px] border border-[#FFD54A]/10 bg-[#FFD54A]/[0.02] p-7 hover:border-[#FFD54A]/25 hover:bg-[#FFD54A]/[0.05] transition-all duration-300 hover:shadow-[0_8px_32px_-12px_rgba(255,213,74,0.12)] h-full flex flex-col"
                 >
-                  <div className="w-12 h-12 rounded-[14px] bg-[#FFD54A]/10 border border-[#FFD54A]/20 flex items-center justify-center mb-4">
+                  <div className="w-12 h-12 rounded-2xl bg-[#FFD54A]/8 border border-[#FFD54A]/15 flex items-center justify-center mb-4">
                     {HUB_TOOL_ICONS[i]}
                   </div>
                   <h3 className="text-[17px] font-bold text-white mb-2">{t.title}</h3>
@@ -335,7 +335,7 @@ export default function LandingPage() {
               </AnimatedSection>
             ))}
             <AnimatedSection>
-              <div className="rounded-[20px] border border-[#FFD54A]/20 bg-gradient-to-br from-[#FFD54A]/[0.08] to-transparent p-6 h-full flex flex-col justify-center text-center">
+              <div className="rounded-[24px] border border-[#FFD54A]/15 bg-gradient-to-br from-[#FFD54A]/[0.06] to-transparent p-7 h-full flex flex-col justify-center text-center">
                 <div className="text-[13px] font-bold text-[#FFD54A]/80 uppercase tracking-wider mb-2">Gói Pro trở lên</div>
                 <p className="text-[14px] text-white/60 leading-relaxed mb-5">
                   Mở khóa đầy đủ Marketing Hub. Gói Lite dùng được Email, SEO &amp; Content Calendar.
@@ -400,14 +400,14 @@ export default function LandingPage() {
           </AnimatedSection>
 
           <AnimatedSection>
-            <div className="relative rounded-[24px] border border-[#FFD54A]/15 bg-[#FFD54A]/[0.02] p-8 sm:p-10 overflow-hidden">
+            <div className="relative rounded-[32px] border border-[#FFD54A]/10 bg-[#FFD54A]/[0.02] p-8 sm:p-10 overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-br from-[#FFD54A]/5 to-transparent pointer-events-none" />
               <div className="relative grid gap-6 sm:grid-cols-2 lg:grid-cols-5">
                 {AGENTS.map((agent) => (
                   <motion.div
                     key={agent.name}
                     whileHover={{ scale: 1.05 }}
-                    className="flex flex-col items-center text-center p-5 rounded-[16px] bg-[#0a0a0a]/60 border border-white/10 hover:border-[#FFD54A]/30 transition-all"
+                    className="flex flex-col items-center text-center p-5 rounded-[20px] bg-[#0a0a0a]/60 border border-white/8 hover:border-[#FFD54A]/25 transition-all duration-300"
                   >
                     <div className="w-12 h-12 rounded-full bg-[#FFD54A]/10 flex items-center justify-center mb-3">
                       {agent.icon}
@@ -442,7 +442,7 @@ export default function LandingPage() {
           <AnimatedSection>
             <div className="grid gap-6 md:grid-cols-3">
               {TESTIMONIALS.map((t) => (
-                <div key={t.name} className="rounded-[20px] border border-white/10 bg-white/[0.02] p-6 hover:border-[#FFD54A]/20 transition-all">
+                <div key={t.name} className="rounded-[24px] border border-white/8 bg-white/[0.02] p-7 hover:border-[#FFD54A]/20 transition-all duration-300">
                   <div className="flex gap-1 mb-4">
                     {[1,2,3,4,5].map((s) => (
                       <svg key={s} xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="#FFD54A" stroke="#FFD54A" strokeWidth="1"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
@@ -481,10 +481,10 @@ export default function LandingPage() {
                 <motion.div
                   key={plan.name}
                   whileHover={{ y: -4 }}
-                  className={`relative rounded-[20px] border p-6 transition-all hover:shadow-xl flex flex-col ${
+                  className={`relative rounded-[24px] border p-7 transition-all duration-300 flex flex-col ${
                     plan.popular
-                      ? "border-[#FFD54A]/40 bg-[#FFD54A]/[0.06] ring-2 ring-[#FFD54A]/30 shadow-lg scale-[1.02]"
-                      : "border-white/10 bg-white/[0.02] hover:border-[#FFD54A]/20"
+                      ? "border-[#FFD54A]/30 bg-[#FFD54A]/[0.05] ring-2 ring-[#FFD54A]/20 shadow-[0_8px_32px_-8px_rgba(255,213,74,0.15)] scale-[1.02]"
+                      : "border-white/8 bg-white/[0.02] hover:border-[#FFD54A]/20 hover:shadow-[0_4px_24px_-8px_rgba(255,213,74,0.08)]"
                   }`}
                 >
                   {plan.popular && (
@@ -551,7 +551,7 @@ export default function LandingPage() {
                 { title: "Doanh nghiệp SME", desc: "Tiết kiệm 80% thời gian và chi phí marketing. Content nhất quán trên mọi kênh.", icon: <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#FFD54A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/></svg> },
                 { title: "Marketing Agency", desc: "Scale content output lên 10x cho tất cả khách hàng. Giảm chi phí, tăng margin.", icon: <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#FFD54A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg> },
               ].map((uc) => (
-                <motion.div key={uc.title} whileHover={{ y: -3 }} className="rounded-[20px] border border-white/10 bg-white/[0.02] p-6 text-center hover:border-[#FFD54A]/30 hover:bg-[#FFD54A]/[0.03] transition-all">
+                <motion.div key={uc.title} whileHover={{ y: -3 }} className="rounded-[24px] border border-white/8 bg-white/[0.02] p-7 text-center hover:border-[#FFD54A]/25 hover:bg-[#FFD54A]/[0.03] transition-all duration-300">
                   <div className="w-14 h-14 rounded-full bg-[#FFD54A]/10 flex items-center justify-center mx-auto mb-4">
                     {uc.icon}
                   </div>
@@ -568,8 +568,8 @@ export default function LandingPage() {
       <section className="py-20 sm:py-28 px-6">
         <AnimatedSection>
           <div className="max-w-3xl mx-auto text-center relative">
-            <div className="absolute inset-0 rounded-[32px] bg-[#FFD54A]/10 blur-3xl pointer-events-none" />
-            <div className="relative rounded-[32px] border border-[#FFD54A]/20 bg-[#0a0a0a]/80 backdrop-blur-xl p-10 sm:p-16">
+            <div className="absolute inset-0 rounded-[40px] bg-[#FFD54A]/8 blur-3xl pointer-events-none" />
+            <div className="relative rounded-[40px] border border-[#FFD54A]/15 bg-[#0a0a0a]/80 backdrop-blur-xl p-12 sm:p-20">
               <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4 text-white">
                 Sẵn sàng tạo nội dung<br /><span className="text-[#FFD54A]">nhanh hơn 360x?</span>
               </h2>
@@ -600,7 +600,7 @@ export default function LandingPage() {
       </footer>
 
       {/* Background grid */}
-      <div className="fixed inset-0 bg-[linear-gradient(to_right,rgba(255,213,74,0.03)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,213,74,0.03)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none -z-10" />
+      <div className="fixed inset-0 bg-[linear-gradient(to_right,rgba(255,213,74,0.015)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,213,74,0.015)_1px,transparent_1px)] bg-[size:48px_48px] pointer-events-none -z-10" />
     </div>
   );
 }

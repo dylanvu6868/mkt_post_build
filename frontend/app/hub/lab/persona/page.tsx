@@ -41,8 +41,8 @@ export default function PersonaPage() {
           className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors"
         >
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M10 2v7.31"/><path d="M14 9.3V1.99"/><path d="M8.5 2h7"/>
-            <path d="M14 9.3a6.5 6.5 0 1 1-4 0"/><path d="M5.52 16h12.96"/>
+            <path d="M10 2v7.31" /><path d="M14 9.3V1.99" /><path d="M8.5 2h7" />
+            <path d="M14 9.3a6.5 6.5 0 1 1-4 0" /><path d="M5.52 16h12.96" />
           </svg>
           Vitba Lab
         </button>
@@ -80,11 +80,10 @@ export default function PersonaPage() {
                 <button
                   key={v.id}
                   onClick={() => setVoice(v.id)}
-                  className={`w-full flex items-start gap-3 rounded-lg border px-3 py-2.5 text-left transition-all ${
-                    voice === v.id
+                  className={`w-full flex items-start gap-3 rounded-lg border px-3 py-2.5 text-left transition-all ${voice === v.id
                       ? "border-foreground/30 bg-foreground/5"
                       : "border-border/50 hover:border-border hover:bg-muted/30"
-                  }`}
+                    }`}
                 >
                   <div className={`mt-0.5 w-3 h-3 rounded-full border-2 shrink-0 transition-all ${voice === v.id ? "border-foreground bg-foreground" : "border-muted-foreground/40"}`} />
                   <div>
@@ -117,8 +116,8 @@ export default function PersonaPage() {
             {loading ? (
               <>
                 <svg className="animate-spin w-3.5 h-3.5" viewBox="0 0 24 24" fill="none">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                 </svg>
                 Đang xử lý...
               </>
@@ -151,9 +150,9 @@ export default function PersonaPage() {
                     className="flex items-center gap-1.5 text-[11px] text-muted-foreground hover:text-foreground transition-colors"
                   >
                     {copied ? (
-                      <><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M20 6 9 17l-5-5"/></svg>Đã sao chép</>
+                      <><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M20 6 9 17l-5-5" /></svg>Đã sao chép</>
                     ) : (
-                      <><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>Sao chép</>
+                      <><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect width="14" height="14" x="8" y="8" rx="2" /><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" /></svg>Sao chép</>
                     )}
                   </button>
                 </div>
@@ -179,8 +178,8 @@ export default function PersonaPage() {
           ) : (
             <div className="h-full min-h-[320px] rounded-lg border border-dashed border-border/40 flex flex-col items-center justify-center gap-2.5 text-muted-foreground/30">
               <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.25">
-                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
-                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" />
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" />
               </svg>
               <p className="text-xs">Nội dung đã chuyển đổi sẽ xuất hiện tại đây</p>
             </div>

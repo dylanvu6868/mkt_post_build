@@ -205,7 +205,7 @@ export default function PricingPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: i * 0.08 }}
                 className={cn(
-                  "relative flex flex-col rounded-[20px] border p-5 transition-all duration-300 hover:shadow-xl hover:-translate-y-0.5",
+                  "relative flex flex-col rounded-[24px] border p-6 transition-all duration-300 hover:shadow-[0_8px_32px_-8px_rgba(0,0,0,0.1)] dark:hover:shadow-[0_8px_32px_-8px_rgba(0,0,0,0.4)] hover:-translate-y-0.5",
                   plan.borderColor,
                   `bg-gradient-to-br ${plan.gradient}`,
                   plan.id === "pro" && "ring-2 ring-yellow-500/30 shadow-lg scale-[1.02]"
@@ -223,7 +223,7 @@ export default function PricingPage() {
                 )}
 
                 <div className="flex items-center gap-3 mb-3">
-                  <div className={cn("flex h-9 w-9 items-center justify-center rounded-[12px]", plan.iconBg)}>
+                  <div className={cn("flex h-10 w-10 items-center justify-center rounded-xl", plan.iconBg)}>
                     {plan.id === "free" && (
                       <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-zinc-600 dark:text-zinc-400"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
                     )}

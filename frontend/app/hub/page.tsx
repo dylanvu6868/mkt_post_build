@@ -97,8 +97,8 @@ export default function HubOverviewPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold">Trung tâm Marketing</h1>
-        <p className="text-sm text-muted-foreground mt-1">Quản lý toàn bộ hoạt động marketing từ một nơi duy nhất</p>
+        <h1 className="text-2xl font-bold tracking-tight">Trung tâm Marketing</h1>
+        <p className="text-sm text-muted-foreground mt-1.5">Quản lý toàn bộ hoạt động marketing từ một nơi duy nhất</p>
       </div>
 
       {analyticsLocked && !analyticsOverviewLoading ? (
@@ -133,7 +133,7 @@ export default function HubOverviewPage() {
       )}
 
       <div>
-        <h2 className="text-base font-semibold mb-4">Công cụ Marketing</h2>
+        <h2 className="text-base font-semibold mb-5 tracking-tight">Công cụ Marketing</h2>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
           {TOOLS.map((tool) => {
             const isLocked = !limitsLoading && !allowed.includes(tool.key);

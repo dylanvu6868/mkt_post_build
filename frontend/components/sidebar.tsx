@@ -29,11 +29,11 @@ export function Sidebar() {
   const activeProject = useProjectStore((s) => s.activeProject);
 
   return (
-    <aside className="flex h-screen w-64 flex-col border-r bg-card p-4">
-      <div className="mb-6">
-        <h1 className="text-lg font-bold">AI Marketing</h1>
+    <aside className="flex h-screen w-64 flex-col border-r border-border/50 bg-card/50 backdrop-blur-sm p-5">
+      <div className="mb-8">
+        <h1 className="text-lg font-bold tracking-tight">AI Marketing</h1>
         {activeProject && (
-          <p className="mt-1 text-xs text-muted-foreground truncate">
+          <p className="mt-1.5 text-xs text-muted-foreground truncate">
             {activeProject.name}
           </p>
         )}
@@ -45,10 +45,10 @@ export function Sidebar() {
             key={item.href}
             href={item.href}
             className={cn(
-              "block rounded-md px-3 py-2 text-sm transition-colors",
+              "flex items-center rounded-xl px-3.5 py-2.5 text-sm font-medium transition-all duration-200",
               pathname === item.href
-                ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                ? "bg-primary/10 text-primary shadow-sm"
+                : "text-muted-foreground hover:bg-accent hover:text-foreground",
             )}
           >
             {item.label}
@@ -56,8 +56,8 @@ export function Sidebar() {
         ))}
         {user?.is_admin && (
           <>
-            <div className="pt-3 pb-1">
-              <span className="px-3 text-xs font-semibold uppercase text-muted-foreground">
+            <div className="pt-5 pb-2">
+              <span className="px-3.5 text-[11px] font-bold uppercase tracking-widest text-muted-foreground/60">
                 Admin
               </span>
             </div>
@@ -66,10 +66,10 @@ export function Sidebar() {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "block rounded-md px-3 py-2 text-sm transition-colors",
+                  "flex items-center rounded-xl px-3.5 py-2.5 text-sm font-medium transition-all duration-200",
                   pathname === item.href
-                    ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                    ? "bg-primary/10 text-primary shadow-sm"
+                    : "text-muted-foreground hover:bg-accent hover:text-foreground",
                 )}
               >
                 {item.label}
@@ -79,16 +79,16 @@ export function Sidebar() {
         )}
       </nav>
 
-      <div className="mt-auto space-y-2 border-t pt-4">
+      <div className="mt-auto space-y-3 border-t border-border/50 pt-5">
         <div className="flex items-center justify-between">
-          <span className="text-xs text-muted-foreground truncate">
+          <span className="text-xs text-muted-foreground truncate max-w-[160px]">
             {user?.email}
           </span>
           <ThemeToggle />
         </div>
         <button
           onClick={logout}
-          className="w-full rounded-md px-3 py-2 text-left text-sm text-muted-foreground hover:bg-muted"
+          className="w-full rounded-xl px-3.5 py-2.5 text-left text-sm font-medium text-muted-foreground hover:bg-accent hover:text-foreground transition-all duration-200"
         >
           Logout
         </button>
