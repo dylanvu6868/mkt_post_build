@@ -89,17 +89,17 @@ export function ParticleNetwork() {
       draw() {
         // Draw trail
         for (let i = 0; i < this.trail.length; i++) {
-          const alpha = (i / this.trail.length) * 0.3;
+          const alpha = (i / this.trail.length) * 0.4;
           ctx!.beginPath();
           ctx!.arc(this.trail[i].x, this.trail[i].y, this.radius * (i / this.trail.length), 0, Math.PI * 2);
-          ctx!.fillStyle = `rgba(255, 255, 255, ${alpha})`;
+          ctx!.fillStyle = `rgba(0, 0, 0, ${alpha})`;
           ctx!.fill();
         }
 
         // Draw particle
         ctx!.beginPath();
         ctx!.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-        ctx!.fillStyle = "rgba(255, 255, 255, 0.8)";
+        ctx!.fillStyle = "rgba(0, 0, 0, 0.9)";
         ctx!.fill();
       }
     }
@@ -110,7 +110,7 @@ export function ParticleNetwork() {
     }
 
     const animate = () => {
-      ctx!.fillStyle = "rgba(0, 0, 0, 0.05)";
+      ctx!.fillStyle = "hsl(var(--primary))";
       ctx!.fillRect(0, 0, canvas!.offsetWidth, canvas!.offsetHeight);
 
       // Update and draw particles
@@ -127,11 +127,11 @@ export function ParticleNetwork() {
           const distance = Math.sqrt(dx * dx + dy * dy);
 
           if (distance < connectionDistance) {
-            const alpha = (1 - distance / connectionDistance) * 0.3;
+            const alpha = (1 - distance / connectionDistance) * 0.4;
             ctx!.beginPath();
             ctx!.moveTo(particles[i].x, particles[i].y);
             ctx!.lineTo(particles[j].x, particles[j].y);
-            ctx!.strokeStyle = `rgba(255, 255, 255, ${alpha})`;
+            ctx!.strokeStyle = `rgba(0, 0, 0, ${alpha})`;
             ctx!.lineWidth = 0.5;
             ctx!.stroke();
           }
@@ -143,7 +143,7 @@ export function ParticleNetwork() {
         const randomParticle = particles[Math.floor(Math.random() * particles.length)];
         ctx!.beginPath();
         ctx!.arc(randomParticle.x, randomParticle.y, randomParticle.radius * 3, 0, Math.PI * 2);
-        ctx!.fillStyle = "rgba(255, 255, 255, 0.5)";
+        ctx!.fillStyle = "rgba(0, 0, 0, 0.6)";
         ctx!.fill();
       }
 

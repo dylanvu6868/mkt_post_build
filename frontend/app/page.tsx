@@ -175,7 +175,7 @@ export default function LandingPage() {
                 </div>
               </div>
               <div className="relative p-3 md:p-4">
-                <div className="surface-card overflow-hidden h-full min-h-[340px] relative flex items-center justify-center bg-black">
+                <div className="surface-card overflow-hidden h-full min-h-[340px] relative flex items-center justify-center">
                   <ParticleNetwork />
                 </div>
               </div>
