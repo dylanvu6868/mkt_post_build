@@ -215,7 +215,7 @@ export default function VitbaLabPage() {
                   <path d="M14 9.3a6.5 6.5 0 1 1-4 0" /><path d="M5.52 16h12.96" />
                 </svg>
               </div>
-              <h1 className="text-xl font-semibold tracking-tight">Vitba Lab</h1>
+              <h1 className="text-xl font-semibold tracking-tight">Vitba Tool</h1>
               <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider bg-foreground/5 border border-border/50 text-muted-foreground">
                 Độc quyền
               </span>

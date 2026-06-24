@@ -1,5 +1,10 @@
 from pydantic import BaseModel, Field
 from app.agents.base import generate_structured
+from langgraph.prebuilt import create_react_agent
+from langchain_core.messages import HumanMessage
+from app.llm.factory import get_chat_model
+from app.agents.tools.marketing_tools import get_search_tool
+from app.core.tracing import langfuse_handler
 
 STRICT_RULES = """
 
@@ -232,3 +237,66 @@ Nhiệm vụ:
 4. Xuất kịch bản hoàn chỉnh sẵn sàng paste vào ElevenLabs/Azure TTS.""" + STRICT_RULES
     user = f"Kịch bản cần tối ưu cho voiceover (nhạc nền BPM {music_bpm}):\n\n{content}"
     return await generate_structured("smart", system, user, AudioHookResponse)
+
+
+# --- REPORT AGENT ---
+
+class ReportResponse(BaseModel):
+    markdown_content: str = Field(..., description="Toàn bộ nội dung báo cáo Vitba Report trình bày bằng Markdown tuyệt đẹp")
+
+async def run_report_agent(project_info: dict) -> ReportResponse:
+    system = """Bạn là chuyên gia tư vấn chiến lược doanh nghiệp, marketing, growth, branding, MVP và vận hành agency.
+
+Nhiệm vụ của bạn là xây dựng một bản **Vitba Report** hoàn chỉnh cho doanh nghiệp/dự án dựa trên thông tin được cung cấp. Báo cáo cần đủ chi tiết để founder, agency hoặc team marketing có thể dùng làm tài liệu chiến lược, lập kế hoạch triển khai, gọi vốn, bán dịch vụ hoặc vận hành nội bộ.
+
+YÊU CẦU ĐẦU RA:
+Hãy tạo một bản **Vitba Report** chuyên nghiệp, có cấu trúc rõ ràng, dễ đọc, CÓ BẢNG BIỂU KHI CẦN. Báo cáo cần bao gồm đầy đủ 17 phần sau (từ A đến Q):
+A. Executive Summary
+B. Business Diagnosis
+C. Market & Customer Analysis
+D. Competitor Analysis
+E. Positioning & Branding Strategy
+F. Product / Service Strategy
+G. MVP Plan
+H. Marketing Strategy
+I. Content Plan
+J. Sales Strategy
+K. Growth & Experiment Plan
+L. Operations Plan
+M. Financial Plan
+N. Roadmap 30–60–90 Days
+O. KPI Dashboard
+P. Risk Analysis
+Q. Final Recommendation & Action Checklist 7 ngày
+
+YÊU CẦU VỀ PHONG CÁCH VIẾT:
+- Viết bằng tiếng Việt 100%.
+- Văn phong chuyên nghiệp, rõ ràng, thực chiến. Không viết chung chung, luôn đưa ra đề xuất cụ thể, có thể hành động được.
+- Khi thiếu dữ liệu, hãy nêu rõ giả định và tiếp tục xây dựng phương án dựa trên giả định hợp lý.
+- Ưu tiên trình bày bằng bảng, bullet, roadmap, checklist và framework dễ triển khai.
+- TOÀN BỘ output phải nằm trong trường `markdown_content` dưới định dạng Markdown chuẩn.""" + STRICT_RULES
+
+    user = "THÔNG TIN DỰ ÁN:\n\n"
+    for k, v in project_info.items():
+        if v and str(v).strip():
+            user += f"- {k}: {v}\n"
+            
+    # --- PHASE 1: RESEARCHER AGENT ---
+    model = get_chat_model("fast")
+    tools = [get_search_tool()]
+    researcher_system = "Bạn là Chuyên gia Nghiên cứu Thị trường. Nhiệm vụ của bạn là tìm kiếm thông tin mới nhất trên mạng về ngành hàng, đối thủ cạnh tranh, và xu hướng dựa trên thông tin dự án. Trả về một bản tóm tắt ngắn gọn các insight quan trọng tìm được."
+    researcher = create_react_agent(model, tools, state_modifier=researcher_system)
+    
+    config = {"callbacks": [langfuse_handler]} if langfuse_handler else {}
+    research_query = f"Tìm kiếm thông tin thị trường, đối thủ cạnh tranh và xu hướng nổi bật cho dự án sau: {user}"
+    
+    try:
+        research_result = await researcher.ainvoke({"messages": [HumanMessage(content=research_query)]}, config=config)
+        research_data = research_result["messages"][-1].content
+    except Exception as e:
+        research_data = f"Không thể lấy dữ liệu nghiên cứu thị trường. Lỗi: {e}"
+
+    # --- PHASE 2: WRITER AGENT ---
+    user += f"\n\nTHÔNG TIN NGHIÊN CỨU THỊ TRƯỜNG THỰC TẾ (Dùng để bổ sung vào báo cáo):\n{research_data}\n\nTiến hành phân tích và tạo Vitba Report chi tiết."
+    
+    return await generate_structured("smart", system, user, ReportResponse)

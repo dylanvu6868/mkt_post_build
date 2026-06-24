@@ -14,6 +14,7 @@ from app.agents.lab import (
     run_dna_agent, run_simulator_agent, run_cinematic_agent,
     run_reverse_agent, run_hexbreaker_agent, run_trendjack_agent,
     run_blindspot_agent, run_evergreen_agent, run_audiohook_agent,
+    run_report_agent,
 )
 
 logger = logging.getLogger(__name__)
@@ -69,6 +70,24 @@ class EvergreenRequest(BaseModel):
 class AudioHookRequest(BaseModel):
     content: str = Field(..., max_length=MAX_CONTENT)
     music_bpm: int = Field(120, ge=60, le=200)
+
+class ReportRequest(BaseModel):
+    name: str = Field("", max_length=200)
+    industry: str = Field("", max_length=200)
+    product: str = Field("", max_length=1000)
+    business_model: str = Field("", max_length=200)
+    target_market: str = Field("", max_length=500)
+    target_customer: str = Field("", max_length=1000)
+    price: str = Field("", max_length=200)
+    stage: str = Field("", max_length=200)
+    goal_3m: str = Field("", max_length=1000)
+    goal_6m: str = Field("", max_length=1000)
+    goal_12m: str = Field("", max_length=1000)
+    budget: str = Field("", max_length=200)
+    resources: str = Field("", max_length=1000)
+    competitors: str = Field("", max_length=1000)
+    strengths: str = Field("", max_length=1000)
+    weaknesses: str = Field("", max_length=1000)
 
 
 # --- Helpers ---
@@ -163,3 +182,8 @@ async def evergreen_endpoint(request: Request, req: EvergreenRequest, current_us
 @limiter.limit("5/minute")
 async def audiohook_endpoint(request: Request, req: AudioHookRequest, current_user: User = Depends(get_current_user)):
     return await _run_tool("audiohook", lambda: run_audiohook_agent(req.content, req.music_bpm), current_user, request)
+
+@router.post("/report")
+@limiter.limit("2/minute")
+async def report_endpoint(request: Request, req: ReportRequest, current_user: User = Depends(get_current_user)):
+    return await _run_tool("report", lambda: run_report_agent(req.model_dump()), current_user, request)

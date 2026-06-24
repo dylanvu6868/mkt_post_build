@@ -24,7 +24,7 @@ export default function AudioHookPage() {
       <div className="flex items-center gap-2 text-sm">
         <button onClick={() => router.push("/hub/lab")} className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M10 2v7.31" /><path d="M14 9.3V1.99" /><path d="M8.5 2h7" /><path d="M14 9.3a6.5 6.5 0 1 1-4 0" /><path d="M5.52 16h12.96" /></svg>
-          Vitba Lab
+          Vitba Tool
         </button>
         <span className="text-border">/</span>
         <span className="text-foreground font-medium">Voiceover Script Optimizer</span>

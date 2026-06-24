@@ -16,6 +16,8 @@ langchain==0.3.14
 langchain-openai==0.2.14
 langchain-anthropic==0.3.1
 langgraph==0.2.62
+langfuse>=2.54.0
+tavily-python>=0.5.0
 fastembed==0.4.2
 qdrant-client==1.12.1
 pypdf==5.1.0

@@ -3,6 +3,7 @@ from typing import Any
 from langchain.chat_models import init_chat_model
 
 from app.core.config import settings
+from app.core.tracing import langfuse_handler
 
 
 def provider_available() -> bool:
@@ -28,7 +29,7 @@ def get_chat_model(tier: str) -> Any:
 
     if provider == "deepseek":
         from langchain_openai import ChatOpenAI
-        return ChatOpenAI(
+        chat_model = ChatOpenAI(
             model=model,
             api_key=settings.deepseek_api_key,
             base_url="https://api.deepseek.com",
@@ -36,7 +37,12 @@ def get_chat_model(tier: str) -> Any:
             timeout=90,
             max_tokens=4096,
         )
-
-    return init_chat_model(
-        model, model_provider=provider, temperature=temperature
-    )
+    else:
+        chat_model = init_chat_model(
+            model, model_provider=provider, temperature=temperature
+        )
+        
+    if langfuse_handler:
+        chat_model = chat_model.with_config({"callbacks": [langfuse_handler]})
+        
+    return chat_model

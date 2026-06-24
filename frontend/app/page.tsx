@@ -217,9 +217,9 @@ export default function LandingPage() {
           </div>
         </Section>
 
-        {/* MARKETING HUB */}
+        {/* VITBA LAB */}
         <Section id="hub">
-          <SectionHeader tag="Marketing Hub" title="Không chỉ tạo nội dung — vận hành cả marketing" sub="5 công cụ chuyên nghiệp trong một nơi." />
+          <SectionHeader tag="Vitba Lab" title="Không chỉ tạo nội dung — vận hành cả marketing" sub="5 công cụ chuyên nghiệp trong một nơi." />
           <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
             {HUB_TOOLS.map((t) => {
               const Icon = t.icon;
@@ -246,7 +246,7 @@ export default function LandingPage() {
               <div className="p-6 h-full flex flex-col justify-between" style={{ color: "hsl(var(--panel-foreground))" }}>
                 <div>
                   <h3 className="text-xl font-extrabold">Gói Pro trở lên</h3>
-                  <p className="mt-2 text-sm font-medium opacity-80">Mở khoá đầy đủ Marketing Hub. Gói Lite dùng được Email, SEO & Content Calendar.</p>
+                  <p className="mt-2 text-sm font-medium opacity-80">Mở khoá đầy đủ Vitba Lab. Gói Lite dùng được Email, SEO & Content Calendar.</p>
                 </div>
                 <button onClick={ctaClick} className="mt-5 inline-flex w-fit items-center gap-2 rounded-2xl px-4 py-2.5 text-sm font-bold" style={{ background: "hsl(var(--panel-foreground))", color: "hsl(var(--panel))" }}>
                   Khám phá Hub <ArrowRight className="h-4 w-4" />
@@ -306,7 +306,7 @@ export default function LandingPage() {
 
         {/* PRICING */}
         <Section id="pricing">
-          <SectionHeader tag="Bảng giá" title="Đơn giản, minh bạch" sub="Bắt đầu miễn phí với 15 lượt/ngày. Nâng cấp để mở khoá Marketing Hub." />
+          <SectionHeader tag="Bảng giá" title="Đơn giản, minh bạch" sub="Bắt đầu miễn phí với 15 lượt/ngày. Nâng cấp để mở khoá Vitba Lab." />
           <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
             {PLANS.map((p) => (
               <div key={p.name} className={`relative rounded-3xl p-1 ${p.popular ? "bg-primary" : "bg-transparent"}`}>
@@ -400,7 +400,7 @@ export default function LandingPage() {
               <h4 className="text-sm font-bold mb-4">Sản phẩm</h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
                 <li><a href="#features" className="hover:text-foreground transition">Tính năng</a></li>
-                <li><a href="#hub" className="hover:text-foreground transition">Marketing Hub</a></li>
+                <li><a href="#hub" className="hover:text-foreground transition">Vitba Lab</a></li>
                 <li><a href="#pricing" className="hover:text-foreground transition">Bảng giá</a></li>
                 <li><a href="/pricing" className="hover:text-foreground transition">Gói Pro</a></li>
               </ul>

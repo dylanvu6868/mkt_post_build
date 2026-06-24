@@ -476,7 +476,7 @@ const TOUR_STEPS: { target: string | null; title: string; desc: string; placemen
   { target: "[data-tour='project-btn']", placement: "right", icon: GI.mic, title: "Bước 2: Thiết lập giọng điệu", desc: "Khi mở Dự án hóa → tab 'Giọng điệu': điền tên thương hiệu, chọn tone (chuyên nghiệp, thân thiện, hài hước...), thêm từ ưu tiên và từ cấm. AI sẽ viết đúng phong cách của bạn." },
   { target: "[data-tour='project-btn']", placement: "right", icon: GI.book, title: "Bước 3: Tải tài liệu nền", desc: "Tab 'Cơ sở kiến thức' → tải PDF, DOCX, TXT về sản phẩm/dịch vụ. AI dùng tài liệu này để viết chính xác hơn — không bịa thông tin." },
 
-  { target: "[data-tour='hub-btn']", placement: "right", icon: GI.star, title: "Bước 4: Nút Trung tâm Marketing", desc: "Nhấn nút này để mở Marketing Hub — nơi quản lý email marketing, SEO audit, content calendar, analytics và landing page builder. Gói Lite trở lên mới có." },
+  { target: "[data-tour='hub-btn']", placement: "right", icon: GI.star, title: "Bước 4: Nút Trung tâm Marketing", desc: "Nhấn nút này để mở Vitba Lab — nơi quản lý email marketing, SEO audit, content calendar, analytics và landing page builder. Gói Lite trở lên mới có." },
 
   { target: "[data-tour='new-conv-btn']", placement: "right", icon: GI.list, title: "Bước 5: Nút Cuộc trò chuyện mới", desc: "Nhấn nút này để tạo cuộc chat mới. Mỗi cuộc chat là một phiên làm việc riêng. Bạn có thể chạy song song nhiều cuộc — AI vẫn xử lý nền khi bạn chuyển tab." },
 
