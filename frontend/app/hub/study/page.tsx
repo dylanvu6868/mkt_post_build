@@ -42,6 +42,11 @@ export default function StudyLearningPlatform() {
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
   const [isRevealed, setIsRevealed] = useState(false);
   const [score, setScore] = useState(0);
+  const [userAnswers, setUserAnswers] = useState<number[]>([]);
+  
+  // Timer state
+  const [useTimer, setUseTimer] = useState(false);
+  const [timeLeft, setTimeLeft] = useState<number | null>(null);
   
   // Progress state (localStorage)
   const [progress, setProgress] = useState<Record<string, {completed: number, score: number}>>({});
@@ -92,6 +97,8 @@ export default function StudyLearningPlatform() {
         setSelectedOption(null);
         setIsRevealed(false);
         setScore(0);
+        setUserAnswers([]);
+        if (useTimer) setTimeLeft(60);
         setView("quiz");
       } else {
         alert(showOnlyBookmarked ? "Bạn chưa lưu câu hỏi nào trong chủ đề này!" : "Chủ đề này hiện chưa có câu hỏi nào!");
@@ -102,12 +109,40 @@ export default function StudyLearningPlatform() {
     }
   };
 
+  // Timer Logic
+  useEffect(() => {
+    if (view === "quiz" && useTimer && timeLeft !== null && !isRevealed) {
+      if (timeLeft === 0) {
+        // Time's up -> auto reveal as wrong
+        setSelectedOption(-1); // -1 means timeout/no answer
+        setIsRevealed(true);
+        setUserAnswers(prev => {
+          const newAnswers = [...prev];
+          newAnswers[currentIndex] = -1;
+          return newAnswers;
+        });
+        return;
+      }
+      
+      const timer = setInterval(() => {
+        setTimeLeft(prev => (prev !== null && prev > 0 ? prev - 1 : 0));
+      }, 1000);
+      return () => clearInterval(timer);
+    }
+  }, [view, useTimer, timeLeft, isRevealed, currentIndex]);
+
   // 3. Handle Answer Selection
   const handleSelectOption = (index: number) => {
     if (isRevealed) return; // Prevent changing answer
     setSelectedOption(index);
     setIsRevealed(true);
     
+    setUserAnswers(prev => {
+      const newAnswers = [...prev];
+      newAnswers[currentIndex] = index;
+      return newAnswers;
+    });
+
     if (index === questions[currentIndex].correct_index) {
       setScore(prev => prev + 1);
     }
@@ -119,6 +154,7 @@ export default function StudyLearningPlatform() {
       setCurrentIndex(prev => prev + 1);
       setSelectedOption(null);
       setIsRevealed(false);
+      if (useTimer) setTimeLeft(60);
     } else {
       // Finish quiz
       if (selectedTopic) {
@@ -173,15 +209,32 @@ export default function StudyLearningPlatform() {
             </p>
           </div>
           
-          <div className="flex items-center gap-3 bg-card border rounded-2xl p-3 px-5 shadow-sm">
-            <Bookmark className={showOnlyBookmarked ? "text-yellow-500 fill-yellow-500" : "text-muted-foreground"} size={20} />
-            <span className="text-sm font-semibold">Chỉ ôn tập câu đã lưu</span>
-            <button 
-              onClick={() => setShowOnlyBookmarked(!showOnlyBookmarked)}
-              className={`w-12 h-6 rounded-full transition-colors relative ml-2 ${showOnlyBookmarked ? 'bg-yellow-500' : 'bg-secondary'}`}
-            >
-              <div className={`w-4 h-4 rounded-full bg-white absolute top-1 transition-transform ${showOnlyBookmarked ? 'translate-x-7' : 'translate-x-1'}`} />
-            </button>
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center gap-3 bg-card border rounded-2xl p-3 px-5 shadow-sm justify-between">
+              <div className="flex items-center gap-2">
+                <Bookmark className={showOnlyBookmarked ? "text-yellow-500 fill-yellow-500" : "text-muted-foreground"} size={20} />
+                <span className="text-sm font-semibold">Chỉ ôn tập câu đã lưu</span>
+              </div>
+              <button 
+                onClick={() => setShowOnlyBookmarked(!showOnlyBookmarked)}
+                className={`w-12 h-6 rounded-full transition-colors relative ml-2 ${showOnlyBookmarked ? 'bg-yellow-500' : 'bg-secondary'}`}
+              >
+                <div className={`w-4 h-4 rounded-full bg-white absolute top-1 transition-transform ${showOnlyBookmarked ? 'translate-x-7' : 'translate-x-1'}`} />
+              </button>
+            </div>
+
+            <div className="flex items-center gap-3 bg-card border rounded-2xl p-3 px-5 shadow-sm justify-between">
+              <div className="flex items-center gap-2">
+                <RefreshCw className={useTimer ? "text-red-500" : "text-muted-foreground"} size={20} />
+                <span className="text-sm font-semibold text-red-500">Áp lực thời gian (60s)</span>
+              </div>
+              <button 
+                onClick={() => setUseTimer(!useTimer)}
+                className={`w-12 h-6 rounded-full transition-colors relative ml-2 ${useTimer ? 'bg-red-500' : 'bg-secondary'}`}
+              >
+                <div className={`w-4 h-4 rounded-full bg-white absolute top-1 transition-transform ${useTimer ? 'translate-x-7' : 'translate-x-1'}`} />
+              </button>
+            </div>
           </div>
         </div>
 
@@ -240,10 +293,10 @@ export default function StudyLearningPlatform() {
     const isCorrect = selectedOption === currentQ.correct_index;
     
     return (
-      <div className="max-w-[1400px] mx-auto p-4 md:p-6 min-h-[calc(100vh-80px)] flex flex-col animate-in fade-in duration-300">
+      <div className="max-w-[1400px] mx-auto p-4 md:p-6 h-[calc(100vh-4rem)] flex flex-col animate-in fade-in duration-300">
         
         {/* Header Progress (Spans full width) */}
-        <div className="flex items-center gap-4 mb-8">
+        <div className="flex items-center gap-4 mb-6 shrink-0">
           <button 
             onClick={() => setView("topics")}
             className="p-2 hover:bg-secondary rounded-full transition-colors text-muted-foreground"
@@ -262,20 +315,28 @@ export default function StudyLearningPlatform() {
               />
             </div>
           </div>
+          
+          {useTimer && (
+            <div className={`ml-4 px-4 py-1.5 rounded-full font-mono font-bold text-lg border-2 ${
+              timeLeft !== null && timeLeft <= 10 ? 'border-red-500 text-red-600 animate-pulse' : 'border-blue-500 text-blue-600'
+            }`}>
+              {timeLeft !== null ? `00:${timeLeft.toString().padStart(2, '0')}` : '00:60'}
+            </div>
+          )}
         </div>
 
         {/* 2-Column Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 flex-grow">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 flex-1 min-h-0">
           
           {/* LEFT PANE: Question & Options */}
-          <div className="flex flex-col">
-            <div className="flex items-start justify-between gap-4 mb-8">
-              <h2 className="text-2xl md:text-3xl font-bold leading-tight flex-grow">
+          <div className="flex flex-col overflow-y-auto pr-2 custom-scrollbar">
+            <div className="flex items-start justify-between gap-4 mb-6">
+              <h2 className="text-xl md:text-2xl font-bold leading-tight flex-grow">
                 {currentQ.question}
               </h2>
               <button 
                 onClick={() => toggleBookmark(currentQ.id)}
-                className={`p-3 rounded-full transition-all flex-shrink-0 ${bookmarkedIds.has(currentQ.id) ? 'bg-yellow-100 text-yellow-600 shadow-sm' : 'bg-secondary text-muted-foreground hover:bg-secondary/80'}`}
+                className={`p-2.5 rounded-full transition-all flex-shrink-0 ${bookmarkedIds.has(currentQ.id) ? 'bg-yellow-100 text-yellow-600 shadow-sm' : 'bg-secondary text-muted-foreground hover:bg-secondary/80'}`}
                 title="Lưu câu hỏi này"
               >
                 <Bookmark className={bookmarkedIds.has(currentQ.id) ? "fill-current" : ""} size={24} />
@@ -306,7 +367,7 @@ export default function StudyLearningPlatform() {
                     key={idx}
                     onClick={() => handleSelectOption(idx)}
                     disabled={isRevealed}
-                    className={`w-full p-4 md:p-5 text-left rounded-2xl border-2 transition-all duration-200 flex justify-between items-center gap-4 text-base font-medium ${optionClass}`}
+                    className={`w-full p-3 md:p-4 text-left rounded-xl border-2 transition-all duration-200 flex justify-between items-center gap-3 text-sm md:text-base font-medium ${optionClass}`}
                   >
                     <span>{option}</span>
                     {icon}
@@ -317,10 +378,10 @@ export default function StudyLearningPlatform() {
             
             {/* Action Button */}
             {isRevealed && (
-              <div className="mt-8">
+              <div className="mt-6">
                 <button
                   onClick={handleNext}
-                  className="w-full py-4 bg-primary text-primary-foreground rounded-2xl font-bold text-lg hover:bg-primary/90 flex items-center justify-center gap-2 shadow-lg transition-transform hover:-translate-y-1"
+                  className="w-full py-3 bg-primary text-primary-foreground rounded-xl font-bold text-base hover:bg-primary/90 flex items-center justify-center gap-2 shadow-sm transition-transform hover:-translate-y-0.5"
                 >
                   {currentIndex < questions.length - 1 ? "Câu tiếp theo" : "Xem kết quả"}
                   <ArrowRight size={20} />
@@ -330,17 +391,17 @@ export default function StudyLearningPlatform() {
           </div>
 
           {/* RIGHT PANE: Explanation & References */}
-          <div className="flex flex-col">
+          <div className="flex flex-col overflow-y-auto pr-2 custom-scrollbar">
             {isRevealed ? (
-              <div className="bg-card border rounded-3xl p-6 shadow-sm flex flex-col h-full animate-in fade-in slide-in-from-right-8 duration-500">
-                <div className={`p-5 rounded-2xl mb-6 ${isCorrect ? 'bg-green-50 border border-green-100' : 'bg-red-50 border border-red-100'}`}>
-                  <div className="flex items-center gap-2 mb-2">
-                    <Lightbulb className={isCorrect ? 'text-green-600' : 'text-red-600'} size={24} />
-                    <h3 className={`font-bold text-lg ${isCorrect ? 'text-green-800' : 'text-red-800'}`}>
+              <div className="bg-card border rounded-2xl p-5 shadow-sm flex flex-col h-full animate-in fade-in slide-in-from-right-8 duration-500">
+                <div className={`p-4 rounded-xl mb-4 ${isCorrect ? 'bg-green-50 border border-green-100' : 'bg-red-50 border border-red-100'}`}>
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <Lightbulb className={isCorrect ? 'text-green-600' : 'text-red-600'} size={20} />
+                    <h3 className={`font-bold text-base ${isCorrect ? 'text-green-800' : 'text-red-800'}`}>
                       {isCorrect ? "Chính xác!" : "Sai rồi!"}
                     </h3>
                   </div>
-                  <p className="text-foreground leading-relaxed">
+                  <p className="text-foreground text-sm leading-relaxed">
                     {currentQ.explanation}
                   </p>
                 </div>
@@ -348,8 +409,8 @@ export default function StudyLearningPlatform() {
                 {/* Render Reference if available */}
                 {currentQ.reference_type === "youtube" && currentQ.reference_url && (
                   <div className="flex-grow flex flex-col">
-                    <div className="flex items-center gap-2 mb-3 text-muted-foreground font-medium">
-                      <Video size={18} />
+                    <div className="flex items-center gap-2 mb-2 text-muted-foreground font-medium text-sm">
+                      <Video size={16} />
                       <span>Video bài học liên quan</span>
                     </div>
                     <div className="w-full aspect-video rounded-xl overflow-hidden bg-black border shadow-inner flex-grow">
@@ -365,12 +426,12 @@ export default function StudyLearningPlatform() {
 
                 {currentQ.reference_type === "article" && currentQ.reference_content && (
                   <div className="flex-grow flex flex-col overflow-hidden">
-                    <div className="flex items-center gap-2 mb-3 text-muted-foreground font-medium">
-                      <FileText size={18} />
+                    <div className="flex items-center gap-2 mb-2 text-muted-foreground font-medium text-sm">
+                      <FileText size={16} />
                       <span>Tài liệu tham khảo</span>
                     </div>
-                    <div className="bg-muted/30 p-5 rounded-xl border border-dashed border-muted-foreground/20 overflow-y-auto flex-grow max-h-[400px]">
-                      <article className="prose prose-sm dark:prose-invert max-w-none">
+                    <div className="bg-muted/30 p-4 rounded-xl border border-dashed border-muted-foreground/20 overflow-y-auto flex-grow max-h-[350px]">
+                      <article className="prose prose-sm dark:prose-invert max-w-none text-[13px]">
                         <ReactMarkdown remarkPlugins={[remarkGfm]}>
                           {currentQ.reference_content}
                         </ReactMarkdown>
@@ -409,44 +470,81 @@ export default function StudyLearningPlatform() {
     else message = "Cố gắng lên! Học hỏi từ những lỗi sai là cách tốt nhất.";
 
     return (
-      <div className="max-w-2xl mx-auto p-6 min-h-[80vh] flex flex-col items-center justify-center text-center animate-in zoom-in-95 duration-500">
-        <div className="w-32 h-32 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mb-8 shadow-inner">
-          <Trophy size={64} />
-        </div>
-        
-        <h2 className="text-4xl font-extrabold mb-4 text-foreground">Hoàn thành xuất sắc!</h2>
-        <p className="text-xl text-muted-foreground mb-8">
-          Bạn vừa hoàn thành chủ đề <span className="font-bold text-foreground">{selectedTopic?.name}</span>
-        </p>
-
-        <div className="grid grid-cols-2 gap-6 w-full mb-10">
-          <div className="bg-card p-6 rounded-2xl border shadow-sm">
-            <p className="text-muted-foreground font-medium mb-2">Độ chính xác</p>
-            <p className="text-5xl font-black text-blue-600">{accuracy}%</p>
+      <div className="max-w-4xl mx-auto p-6 h-[calc(100vh-4rem)] flex flex-col items-center animate-in zoom-in-95 duration-500 py-10 overflow-hidden">
+        <div className="flex-1 w-full overflow-y-auto custom-scrollbar flex flex-col items-center pr-4">
+          <div className="w-24 h-24 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mb-6 shadow-inner shrink-0">
+            <Trophy size={48} />
           </div>
-          <div className="bg-card p-6 rounded-2xl border shadow-sm">
-            <p className="text-muted-foreground font-medium mb-2">Số câu đúng</p>
-            <p className="text-5xl font-black text-green-500">{score}<span className="text-2xl text-muted-foreground">/{questions.length}</span></p>
+          
+          <h2 className="text-3xl font-extrabold mb-2 text-foreground shrink-0">Hoàn thành xuất sắc!</h2>
+          <p className="text-lg text-muted-foreground mb-8 shrink-0">
+            Bạn vừa hoàn thành chủ đề <span className="font-bold text-foreground">{selectedTopic?.name}</span>
+          </p>
+
+          <div className="grid grid-cols-2 gap-6 w-full max-w-2xl mb-8 shrink-0">
+            <div className="bg-card p-6 rounded-2xl border shadow-sm text-center">
+              <p className="text-muted-foreground font-medium mb-2">Độ chính xác</p>
+              <p className="text-5xl font-black text-blue-600">{accuracy}%</p>
+            </div>
+            <div className="bg-card p-6 rounded-2xl border shadow-sm text-center">
+              <p className="text-muted-foreground font-medium mb-2">Số câu đúng</p>
+              <p className="text-5xl font-black text-green-500">{score}<span className="text-2xl text-muted-foreground">/{questions.length}</span></p>
+            </div>
           </div>
-        </div>
 
-        <p className="text-xl font-medium mb-12 bg-secondary p-4 rounded-xl w-full">
-          {message}
-        </p>
+          <p className="text-lg font-medium mb-8 bg-secondary p-4 rounded-xl w-full max-w-2xl text-center shrink-0">
+            {message}
+          </p>
 
-        <div className="flex flex-col sm:flex-row gap-4 w-full">
-          <button
-            onClick={() => startTopic(selectedTopic!)}
-            className="flex-1 py-4 px-6 border-2 border-border hover:bg-secondary rounded-2xl font-bold text-lg flex items-center justify-center gap-2 transition-all"
-          >
-            <RefreshCw size={20} /> Làm lại chủ đề này
-          </button>
-          <button
-            onClick={() => setView("topics")}
-            className="flex-1 py-4 px-6 bg-foreground text-background hover:opacity-90 rounded-2xl font-bold text-lg flex items-center justify-center gap-2 transition-all"
-          >
-            Về danh sách chủ đề <ArrowRight size={20} />
-          </button>
+          {/* REVIEW INCORRECT ANSWERS */}
+          {score < questions.length && (
+            <div className="w-full text-left bg-red-50 border border-red-100 rounded-2xl p-6 mb-8 shrink-0">
+              <h3 className="text-xl font-bold text-red-800 mb-4 flex items-center gap-2">
+                <XCircle size={24} /> Phân tích câu trả lời sai
+              </h3>
+              <div className="space-y-6">
+                {questions.map((q, idx) => {
+                  const userAnswer = userAnswers[idx];
+                  if (userAnswer === q.correct_index) return null; // Only show wrong
+                  
+                  return (
+                    <div key={q.id} className="bg-white p-4 rounded-xl shadow-sm border border-red-100/50">
+                      <p className="font-bold text-foreground mb-3">{idx + 1}. {q.question}</p>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                        <div className="bg-red-50 text-red-700 p-2.5 rounded-lg text-sm border border-red-200">
+                          <span className="font-bold">Bạn chọn:</span> {userAnswer >= 0 ? q.options[userAnswer] : "Không trả lời (Hết giờ)"}
+                        </div>
+                        <div className="bg-green-50 text-green-700 p-2.5 rounded-lg text-sm border border-green-200">
+                          <span className="font-bold">Đáp án đúng:</span> {q.options[q.correct_index]}
+                        </div>
+                      </div>
+
+                      <div className="bg-blue-50/50 p-3 rounded-lg text-sm text-muted-foreground">
+                        <span className="font-bold text-blue-800">Giải thích: </span>
+                        {q.explanation}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          <div className="flex flex-col sm:flex-row gap-4 w-full max-w-2xl mt-auto shrink-0 pb-10">
+            <button
+              onClick={() => startTopic(selectedTopic!)}
+              className="flex-1 py-3 px-6 border-2 border-border hover:bg-secondary rounded-2xl font-bold flex items-center justify-center gap-2 transition-all"
+            >
+              <RefreshCw size={18} /> Làm lại chủ đề
+            </button>
+            <button
+              onClick={() => setView("topics")}
+              className="flex-1 py-3 px-6 bg-foreground text-background hover:opacity-90 rounded-2xl font-bold flex items-center justify-center gap-2 transition-all"
+            >
+              Về danh sách <ArrowRight size={18} />
+            </button>
+          </div>
         </div>
       </div>
     );
