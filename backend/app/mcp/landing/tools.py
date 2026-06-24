@@ -39,6 +39,13 @@ class GenerateReq(BaseModel):
     product: str
     tone: str = "professional"
     cta: str = "Sign up"
+    color_scheme: str = "blue"
+    style: str = "modern"
+    sections: list[str] | None = None
+    hero_image_url: str | None = None
+    logo_url: str | None = None
+    additional_images: list[str] | None = None
+    template: str | None = None
 
 class PreviewReq(BaseModel):
     html_content: str
@@ -74,14 +81,34 @@ async def generate_page(body: GenerateReq, user: User = Depends(get_current_user
     if not provider_available():
         raise HTTPException(503, "LLM provider not configured")
     llm = get_chat_model("fast")
+    sections_str = ", ".join(body.sections) if body.sections else "hero, features, CTA"
+    images_str = ""
+    if body.hero_image_url:
+        images_str += f"\nHero image URL: {body.hero_image_url}"
+    if body.logo_url:
+        images_str += f"\nLogo URL: {body.logo_url}"
+    if body.additional_images:
+        images_str += f"\nAdditional images: {', '.join(body.additional_images)}"
+    template_str = f"\nTemplate style reference: {body.template}" if body.template else ""
     prompt = (
         f"Generate a complete, responsive HTML landing page with inline CSS.\n"
         f"Purpose: {body.purpose}\n"
         f"Product: {body.product}\n"
         f"Tone: {body.tone}\n"
-        f"CTA: {body.cta}\n"
-        f"Requirements: modern design, mobile-responsive, single HTML file with inline <style>, "
-        f"professional color scheme, hero section, features section, CTA button. "
+        f"CTA button text: {body.cta}\n"
+        f"Color scheme: {body.color_scheme}\n"
+        f"Design style: {body.style}\n"
+        f"Sections to include: {sections_str}\n"
+        f"{images_str}{template_str}\n"
+        f"Requirements:\n"
+        f"- Mobile-responsive with media queries\n"
+        f"- Single HTML file with inline <style>\n"
+        f"- Use the specified color scheme as primary color\n"
+        f"- Include all requested sections with proper spacing\n"
+        f"- If image URLs are provided, use them with <img> tags (object-fit: cover)\n"
+        f"- If no image URLs, use CSS gradient/pattern backgrounds instead\n"
+        f"- Professional typography with system font stack\n"
+        f"- Smooth hover transitions on buttons and links\n"
         f"Return ONLY the HTML code, no markdown fences."
     )
     response = await llm.ainvoke(prompt)

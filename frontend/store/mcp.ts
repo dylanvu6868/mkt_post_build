@@ -227,6 +227,13 @@ export interface LandingPageGenerateReq {
   product: string;
   tone?: string;
   cta?: string;
+  color_scheme?: string;
+  style?: string;
+  sections?: string[];
+  hero_image_url?: string;
+  logo_url?: string;
+  additional_images?: string[];
+  template?: string;
 }
 
 export interface LandingPageGenerateResult {
