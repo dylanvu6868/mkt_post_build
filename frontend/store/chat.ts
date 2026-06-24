@@ -314,6 +314,7 @@ export const useChatStore = create<ChatState>()(
         const decoder = new TextDecoder();
         let fullContent = "";
         let buffer = "";
+        let receivedDone = false;
 
         while (true) {
           let done: boolean, value: Uint8Array | undefined;
@@ -338,6 +339,7 @@ export const useChatStore = create<ChatState>()(
               } else if (data.type === "suggestions") {
                 if (isFg()) set({ suggestions: data.suggestions ?? [] });
               } else if (data.type === "done") {
+                receivedDone = true;
                 fullContent = data.content;
                 const generateMatch = fullContent.match(/```generate\n([\s\S]*?)\n```/);
                 if (generateMatch) {
@@ -372,8 +374,16 @@ export const useChatStore = create<ChatState>()(
         _controllers.delete(targetConvId);
         if (controller.signal.aborted) return;
 
-        const hasGenerate = fullContent.includes("```generate\n");
+        let hasGenerate = fullContent.includes("```generate\n");
         const wasNew = get().conversations.find((c) => c.id === targetConvId)?.title === "New conversation";
+
+        // Handle network timeouts/disconnects where the stream didn't finish properly
+        if (!receivedDone) {
+          hasGenerate = false; // Force it to show the partial message
+          if (fullContent) {
+            fullContent += "\n\n*(Kết nối bị gián đoạn do phản hồi dài. Bạn có thể reload trang để xem bản lưu đầy đủ nếu AI vẫn đang viết ngầm)*";
+          }
+        }
 
         // Only add assistant message if there's no generate block
         // (generation result will be saved separately by _saveGenerationResult)

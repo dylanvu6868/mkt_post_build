@@ -110,8 +110,7 @@ export function ParticleNetwork() {
     }
 
     const animate = () => {
-      ctx!.fillStyle = "hsl(var(--primary))";
-      ctx!.fillRect(0, 0, canvas!.offsetWidth, canvas!.offsetHeight);
+      ctx!.clearRect(0, 0, canvas!.offsetWidth, canvas!.offsetHeight);
 
       // Update and draw particles
       particles.forEach((particle) => {

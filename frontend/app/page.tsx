@@ -3,11 +3,11 @@
 import { useAuthStore } from "@/store/auth";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useCallback } from "react";
+import { motion } from "framer-motion";
 import {
-  Sparkles, ArrowRight, Check, Star, Zap,
+  Sparkles, ArrowRight, Check, Star,
   FileText, Search, Mail, LayoutTemplate, Video, ClipboardList,
-  Brain, Microscope, PenTool, ShieldCheck, Wand2,
-  Users, Rocket, Building2, Briefcase, Calendar, BarChart3, Globe,
+  Users, Rocket, Building2, Briefcase,
   MessageSquare, Cog, CheckCircle2,
 } from "lucide-react";
 import { ParticleNetwork } from "@/components/particle-network";
@@ -23,16 +23,8 @@ const FEATURES = [
 
 const STEPS = [
   { num: "01", title: "Mô tả ý tưởng", desc: "Chat tự nhiên bằng tiếng Việt — mô tả sản phẩm, đối tượng, tone of voice và mục tiêu.", icon: MessageSquare },
-  { num: "02", title: "Vitba Agents xử lý", desc: "Pipeline 5 Agents tự động: Planner → Researcher → Copywriter → Reviewer → Formatter.", icon: Cog },
+  { num: "02", title: "AI xử lý tự động", desc: "Hệ thống AI phân tích, nghiên cứu và tạo nội dung chuyên nghiệp trong 30 giây.", icon: Cog },
   { num: "03", title: "Nhận nội dung hoàn chỉnh", desc: "Nội dung chuyên nghiệp kèm AI Score. Copy 1 click, tải file, hoặc yêu cầu chỉnh sửa.", icon: CheckCircle2 },
-];
-
-const AGENTS = [
-  { name: "Planner", role: "Lên chiến lược", desc: "Phân tích brief, xác định mục tiêu, đề xuất approach tối ưu.", icon: Brain },
-  { name: "Researcher", role: "Nghiên cứu thị trường", desc: "Phân tích trend, keyword, audience insight.", icon: Microscope },
-  { name: "Copywriter", role: "Viết nội dung", desc: "Sáng tạo copy theo tone & style phù hợp.", icon: PenTool },
-  { name: "Reviewer", role: "Kiểm duyệt & chấm điểm", desc: "Đánh giá AI Score, gợi ý cải thiện.", icon: ShieldCheck },
-  { name: "Formatter", role: "Tối ưu định dạng & SEO", desc: "Format chuẩn platform, schema markup.", icon: Wand2 },
 ];
 
 const HUB_TOOLS = [
@@ -53,14 +45,14 @@ const PLANS = [
 const STATS = [
   { v: "30s", l: "Tạo nội dung" },
   { v: "6+", l: "Loại marketing" },
-  { v: "5", l: "AI Agents" },
+  { v: "99%", l: "Tự động hóa" },
   { v: "100%", l: "Tiếng Việt" },
 ];
 
 const TESTIMONIALS = [
   { name: "Minh Anh", role: "Marketing Manager", text: "Team tôi tiết kiệm 80% thời gian viết content. Bài SEO blog tốt hơn cả agency." },
   { name: "Hùng Nguyễn", role: "Founder Startup", text: "Không cần thuê copywriter nữa. Landing page convert rate tăng 3x." },
-  { name: "Thu Hà", role: "Freelance Marketer", text: "Pipeline 5 Agents ấn tượng. Content được review tự động, chuyên nghiệp." },
+  { name: "Thu Hà", role: "Freelance Marketer", text: "Hệ thống tự động cực kỳ ấn tượng. Content được tối ưu và viết rất chuyên nghiệp." },
 ];
 
 const USE_CASES = [
@@ -76,17 +68,24 @@ function Section({ id, children, className = "" }: { id?: string; children: Reac
 
 function SectionHeader({ tag, title, sub }: { tag: string; title: string; sub?: string }) {
   return (
-    <div className="mx-auto mb-14 max-w-3xl text-center">
+    <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-50px" }} transition={{ duration: 0.5 }} className="mx-auto mb-14 max-w-3xl text-center">
       <span className="pill-tag mb-4"><Sparkles className="h-3.5 w-3.5" />{tag}</span>
       <h2 className="text-4xl font-extrabold leading-tight md:text-5xl">{title}</h2>
       {sub && <p className="mt-4 text-base text-muted-foreground md:text-lg">{sub}</p>}
-    </div>
+    </motion.div>
   );
 }
 
-function PanelBlock({ children, label, className = "" }: { children: React.ReactNode; label?: string; className?: string }) {
+function PanelBlock({ children, label, className = "", delay = 0 }: { children: React.ReactNode; label?: string; className?: string; delay?: number }) {
   return (
-    <div className={`panel-block p-3 md:p-4 ${className}`}>
+    <motion.div 
+      initial={{ opacity: 0, y: 30 }} 
+      whileInView={{ opacity: 1, y: 0 }} 
+      viewport={{ once: true, margin: "-50px" }} 
+      transition={{ duration: 0.5, delay }}
+      whileHover={{ y: -5, scale: 1.02 }}
+      className={`panel-block p-3 md:p-4 hover:shadow-xl transition-all duration-300 ${className}`}
+    >
       <div className="relative flex gap-3">
         <div className="flex-1">{children}</div>
         {label && (
@@ -97,7 +96,7 @@ function PanelBlock({ children, label, className = "" }: { children: React.React
           </div>
         )}
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -125,10 +124,9 @@ export default function LandingPage() {
           </div>
           <nav className="hidden md:flex items-center gap-7 text-sm font-medium text-muted-foreground">
             <a href="#features" className="hover:text-foreground transition">Tính năng</a>
-            <a href="#hub" className="hover:text-foreground transition">Marketing Hub</a>
-            <a href="#how" className="hover:text-foreground transition">Cách hoạt động</a>
-            <a href="#agents" className="hover:text-foreground transition">Agents</a>
             <a href="#pricing" className="hover:text-foreground transition">Bảng giá</a>
+            <a href="/privacy" className="hover:text-foreground transition">Bảo mật</a>
+            <a href="/terms" className="hover:text-foreground transition">Điều khoản</a>
           </nav>
           <div className="flex items-center gap-2">
             {token ? (
@@ -155,7 +153,7 @@ export default function LandingPage() {
           <div className="absolute inset-0 -z-10 bg-grid opacity-60" />
           <PanelBlock label="VITBA · TỐC ĐỘ · CHẤT LƯỢNG · TIẾNG VIỆT">
             <div className="grid gap-6 md:grid-cols-[1.1fr_0.9fr]">
-              <div className="p-6 md:p-10">
+              <motion.div initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.8 }} className="p-6 md:p-10">
                 <span className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold" style={{ background: "hsl(var(--panel-foreground) / 0.1)", color: "hsl(var(--panel-foreground))" }}>
                   <Sparkles className="h-3.5 w-3.5" /> AI-POWERED MARKETING
                 </span>
@@ -173,12 +171,12 @@ export default function LandingPage() {
                     Xem cách hoạt động
                   </a>
                 </div>
-              </div>
-              <div className="relative p-3 md:p-4">
+              </motion.div>
+              <motion.div initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.8 }} className="relative p-3 md:p-4">
                 <div className="surface-card overflow-hidden h-full min-h-[340px] relative flex items-center justify-center">
                   <ParticleNetwork />
                 </div>
-              </div>
+              </motion.div>
             </div>
             <div className="mt-3 grid grid-cols-2 gap-2 md:grid-cols-4">
               {STATS.map((s) => (
@@ -193,7 +191,7 @@ export default function LandingPage() {
 
         {/* FEATURES */}
         <Section id="features">
-          <SectionHeader tag="Tính năng" title="6 loại nội dung, 1 nền tảng AI" sub="Từ bài Facebook viral đến kế hoạch marketing chiến lược — Agents tạo nội dung chuyên nghiệp bằng tiếng Việt." />
+          <SectionHeader tag="Tính năng" title="6 loại nội dung, 1 nền tảng AI" sub="Từ bài Facebook viral đến kế hoạch marketing chiến lược — Nền tảng tạo nội dung chuyên nghiệp bằng tiếng Việt." />
           <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
             {FEATURES.map((f, i) => {
               const Icon = f.icon;
@@ -278,35 +276,6 @@ export default function LandingPage() {
               );
             })}
           </div>
-        </Section>
-
-        {/* AGENTS */}
-        <Section id="agents">
-          <SectionHeader tag="Công nghệ" title="Đội ngũ 5 Agents chuyên biệt" sub="Pipeline hoàn chỉnh với 5 agents phối hợp, mỗi agent một vai trò chuyên môn." />
-          <PanelBlock label="PIPELINE · ~30 GIÂY">
-            <div className="surface-card p-6 md:p-8">
-              <div className="grid gap-4 md:grid-cols-5">
-                {AGENTS.map((a, i) => {
-                  const Icon = a.icon;
-                  return (
-                    <div key={a.name} className="relative rounded-2xl border border-border bg-background p-5">
-                      <div className="absolute -top-2 -left-2 grid h-7 w-7 place-items-center rounded-full bg-primary text-[11px] font-extrabold text-primary-foreground">{i + 1}</div>
-                      <span className="grid h-10 w-10 place-items-center rounded-xl bg-primary/20 text-foreground">
-                        <Icon className="h-5 w-5" />
-                      </span>
-                      <h4 className="mt-3 text-base font-bold">{a.name}</h4>
-                      <div className="text-[11px] font-semibold uppercase tracking-wider text-primary">{a.role}</div>
-                      <p className="mt-2 text-xs text-muted-foreground leading-relaxed">{a.desc}</p>
-                    </div>
-                  );
-                })}
-              </div>
-              <div className="mt-6 flex items-center justify-center gap-2 rounded-2xl bg-primary/10 px-5 py-3 text-xs font-semibold">
-                <Zap className="h-4 w-4 text-primary" />
-                Planner &rarr; Researcher &rarr; Copywriter &rarr; Reviewer &rarr; Formatter
-              </div>
-            </div>
-          </PanelBlock>
         </Section>
 
         {/* TESTIMONIALS */}
@@ -409,13 +378,67 @@ export default function LandingPage() {
       </div>
 
       {/* FOOTER */}
-      <footer className="border-t border-border">
-        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-5 py-10 md:flex-row">
-          <div className="flex items-center gap-2">
-            <img src="/logo.png" alt="Vitba.ai" className="h-6 w-auto object-contain" />
-            <span className="font-extrabold">Vitba<span className="text-primary">.ai</span></span>
+      <footer className="border-t border-border bg-muted/30">
+        <div className="mx-auto max-w-7xl px-5 py-12 md:py-16">
+          <div className="grid gap-10 md:grid-cols-4">
+            {/* Brand */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <img src="/logo.png" alt="Vitba.ai" className="h-7 w-auto object-contain" />
+                <span className="text-lg font-extrabold tracking-tight">Vitba<span className="text-primary">.ai</span></span>
+              </div>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Nền tảng AI Marketing chuyên biệt cho người Việt — tạo nội dung chuẩn chuyên gia trong 30 giây.
+              </p>
+              <div className="text-xs text-muted-foreground">
+                Founded by Vũ Hải Dương · &copy; 2026 Vitba.ai
+              </div>
+            </div>
+
+            {/* Product */}
+            <div>
+              <h4 className="text-sm font-bold mb-4">Sản phẩm</h4>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li><a href="#features" className="hover:text-foreground transition">Tính năng</a></li>
+                <li><a href="#hub" className="hover:text-foreground transition">Marketing Hub</a></li>
+                <li><a href="#pricing" className="hover:text-foreground transition">Bảng giá</a></li>
+                <li><a href="/pricing" className="hover:text-foreground transition">Gói Pro</a></li>
+              </ul>
+            </div>
+
+            {/* Company */}
+            <div>
+              <h4 className="text-sm font-bold mb-4">Công ty</h4>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li><a href="#" className="hover:text-foreground transition">Về chúng tôi</a></li>
+                <li><a href="#" className="hover:text-foreground transition">Blog</a></li>
+                <li><a href="#" className="hover:text-foreground transition">Tuyển dụng</a></li>
+                <li><a href="#" className="hover:text-foreground transition">Liên hệ</a></li>
+              </ul>
+            </div>
+
+            {/* Legal */}
+            <div>
+              <h4 className="text-sm font-bold mb-4">Pháp lý</h4>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li><a href="/terms" className="hover:text-foreground transition">Điều khoản sử dụng</a></li>
+                <li><a href="/privacy" className="hover:text-foreground transition">Chính sách bảo mật</a></li>
+                <li><a href="/data-deletion" className="hover:text-foreground transition">Xóa dữ liệu</a></li>
+                <li><a href="#" className="hover:text-foreground transition">Chính sách Cookie</a></li>
+              </ul>
+            </div>
           </div>
-          <div className="text-xs text-muted-foreground">Founded by Vũ Hải Dương · &copy; 2026 Vitba.ai</div>
+
+          <div className="mt-10 pt-8 border-t border-border/60">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-muted-foreground">
+              <div>&copy; 2026 Vitba.ai. All rights reserved.</div>
+              <div className="flex items-center gap-4">
+                <a href="#" className="hover:text-foreground transition">Twitter</a>
+                <a href="#" className="hover:text-foreground transition">LinkedIn</a>
+                <a href="#" className="hover:text-foreground transition">Facebook</a>
+              </div>
+            </div>
+          </div>
         </div>
       </footer>
     </div>
