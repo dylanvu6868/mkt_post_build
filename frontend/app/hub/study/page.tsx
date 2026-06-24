@@ -2,8 +2,10 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { BookOpen, CheckCircle, XCircle, ArrowRight, Lightbulb, RefreshCw, ArrowLeft, Trophy } from "lucide-react";
+import { BookOpen, CheckCircle, XCircle, ArrowRight, Lightbulb, RefreshCw, ArrowLeft, Trophy, Video, FileText } from "lucide-react";
 import { api } from "@/services/api";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 interface Topic {
   id: string;
@@ -19,6 +21,9 @@ interface Question {
   options: string[];
   correct_index: number;
   explanation: string;
+  reference_type?: "youtube" | "article" | "none";
+  reference_url?: string;
+  reference_content?: string;
 }
 
 type ViewState = "topics" | "quiz" | "result";
@@ -188,8 +193,9 @@ export default function StudyLearningPlatform() {
     const isCorrect = selectedOption === currentQ.correct_index;
     
     return (
-      <div className="max-w-3xl mx-auto p-4 md:p-6 min-h-[80vh] flex flex-col animate-in fade-in duration-300">
-        {/* Header Progress */}
+      <div className="max-w-[1400px] mx-auto p-4 md:p-6 min-h-[calc(100vh-80px)] flex flex-col animate-in fade-in duration-300">
+        
+        {/* Header Progress (Spans full width) */}
         <div className="flex items-center gap-4 mb-8">
           <button 
             onClick={() => setView("topics")}
@@ -197,7 +203,7 @@ export default function StudyLearningPlatform() {
           >
             <ArrowLeft size={24} />
           </button>
-          <div className="flex-grow space-y-2">
+          <div className="flex-grow space-y-2 max-w-3xl">
             <div className="flex justify-between text-sm font-medium">
               <span className="text-muted-foreground">{selectedTopic?.name}</span>
               <span>{currentIndex + 1} / {questions.length}</span>
@@ -211,75 +217,128 @@ export default function StudyLearningPlatform() {
           </div>
         </div>
 
-        {/* Question Area */}
-        <div className="flex-grow flex flex-col justify-center">
-          <h2 className="text-2xl md:text-3xl font-bold mb-8 leading-tight">
-            {currentQ.question}
-          </h2>
+        {/* 2-Column Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 flex-grow">
+          
+          {/* LEFT PANE: Question & Options */}
+          <div className="flex flex-col">
+            <h2 className="text-2xl md:text-3xl font-bold mb-8 leading-tight">
+              {currentQ.question}
+            </h2>
 
-          <div className="space-y-4">
-            {currentQ.options.map((option, idx) => {
-              let optionClass = "border-border hover:border-blue-400 hover:bg-blue-50/50";
-              let icon = null;
+            <div className="space-y-3">
+              {currentQ.options.map((option, idx) => {
+                let optionClass = "border-border hover:border-blue-400 hover:bg-blue-50/50";
+                let icon = null;
 
-              if (isRevealed) {
-                if (idx === currentQ.correct_index) {
-                  optionClass = "border-green-500 bg-green-50 text-green-900 shadow-sm";
-                  icon = <CheckCircle className="text-green-500 shrink-0" size={24} />;
-                } else if (idx === selectedOption) {
-                  optionClass = "border-red-500 bg-red-50 text-red-900";
-                  icon = <XCircle className="text-red-500 shrink-0" size={24} />;
-                } else {
-                  optionClass = "border-border opacity-50";
+                if (isRevealed) {
+                  if (idx === currentQ.correct_index) {
+                    optionClass = "border-green-500 bg-green-50 text-green-900 shadow-sm";
+                    icon = <CheckCircle className="text-green-500 shrink-0" size={20} />;
+                  } else if (idx === selectedOption) {
+                    optionClass = "border-red-500 bg-red-50 text-red-900";
+                    icon = <XCircle className="text-red-500 shrink-0" size={20} />;
+                  } else {
+                    optionClass = "border-border opacity-50";
+                  }
+                } else if (selectedOption === idx) {
+                  optionClass = "border-blue-500 bg-blue-50 text-blue-900";
                 }
-              } else if (selectedOption === idx) {
-                optionClass = "border-blue-500 bg-blue-50 text-blue-900";
-              }
 
-              return (
+                return (
+                  <button
+                    key={idx}
+                    onClick={() => handleSelectOption(idx)}
+                    disabled={isRevealed}
+                    className={`w-full p-4 md:p-5 text-left rounded-2xl border-2 transition-all duration-200 flex justify-between items-center gap-4 text-base font-medium ${optionClass}`}
+                  >
+                    <span>{option}</span>
+                    {icon}
+                  </button>
+                );
+              })}
+            </div>
+            
+            {/* Action Button */}
+            {isRevealed && (
+              <div className="mt-8">
                 <button
-                  key={idx}
-                  onClick={() => handleSelectOption(idx)}
-                  disabled={isRevealed}
-                  className={`w-full p-5 md:p-6 text-left rounded-2xl border-2 transition-all duration-200 flex justify-between items-center gap-4 text-lg font-medium ${optionClass}`}
+                  onClick={handleNext}
+                  className="w-full py-4 bg-primary text-primary-foreground rounded-2xl font-bold text-lg hover:bg-primary/90 flex items-center justify-center gap-2 shadow-lg transition-transform hover:-translate-y-1"
                 >
-                  <span>{option}</span>
-                  {icon}
+                  {currentIndex < questions.length - 1 ? "Câu tiếp theo" : "Xem kết quả"}
+                  <ArrowRight size={20} />
                 </button>
-              );
-            })}
+              </div>
+            )}
           </div>
 
-          {/* Explanation Block */}
-          {isRevealed && (
-            <div className="mt-8 p-6 bg-amber-50 border border-amber-200 rounded-2xl text-amber-900 animate-in slide-in-from-bottom-4 fade-in duration-500 shadow-sm">
-              <div className="flex items-start gap-3">
-                <Lightbulb className="text-amber-500 shrink-0 mt-1" size={24} />
-                <div>
-                  <h4 className="font-bold mb-2 flex items-center gap-2">
-                    {isCorrect ? "Chính xác! Kiến thức cần nhớ:" : "Chưa chính xác! Kiến thức cần nhớ:"}
-                  </h4>
-                  <p className="text-amber-800/90 leading-relaxed text-lg">
+          {/* RIGHT PANE: Explanation & References */}
+          <div className="flex flex-col">
+            {isRevealed ? (
+              <div className="bg-card border rounded-3xl p-6 shadow-sm flex flex-col h-full animate-in fade-in slide-in-from-right-8 duration-500">
+                <div className={`p-5 rounded-2xl mb-6 ${isCorrect ? 'bg-green-50 border border-green-100' : 'bg-red-50 border border-red-100'}`}>
+                  <div className="flex items-center gap-2 mb-2">
+                    <Lightbulb className={isCorrect ? 'text-green-600' : 'text-red-600'} size={24} />
+                    <h3 className={`font-bold text-lg ${isCorrect ? 'text-green-800' : 'text-red-800'}`}>
+                      {isCorrect ? "Chính xác!" : "Sai rồi!"}
+                    </h3>
+                  </div>
+                  <p className="text-foreground leading-relaxed">
                     {currentQ.explanation}
                   </p>
                 </div>
-              </div>
-            </div>
-          )}
-        </div>
 
-        {/* Footer Next Button */}
-        {isRevealed && (
-          <div className="mt-8 sticky bottom-6 z-10 animate-in fade-in duration-300">
-            <button
-              onClick={handleNext}
-              className="w-full py-5 px-6 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-bold text-xl flex items-center justify-center gap-2 transition-all shadow-lg hover:shadow-xl"
-            >
-              {currentIndex === questions.length - 1 ? "Hoàn thành chủ đề" : "Câu tiếp theo"}
-              <ArrowRight size={24} />
-            </button>
+                {/* Render Reference if available */}
+                {currentQ.reference_type === "youtube" && currentQ.reference_url && (
+                  <div className="flex-grow flex flex-col">
+                    <div className="flex items-center gap-2 mb-3 text-muted-foreground font-medium">
+                      <Video size={18} />
+                      <span>Video bài học liên quan</span>
+                    </div>
+                    <div className="w-full aspect-video rounded-xl overflow-hidden bg-black border shadow-inner flex-grow">
+                      <iframe 
+                        src={currentQ.reference_url} 
+                        className="w-full h-full" 
+                        allowFullScreen
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {currentQ.reference_type === "article" && currentQ.reference_content && (
+                  <div className="flex-grow flex flex-col overflow-hidden">
+                    <div className="flex items-center gap-2 mb-3 text-muted-foreground font-medium">
+                      <FileText size={18} />
+                      <span>Tài liệu tham khảo</span>
+                    </div>
+                    <div className="bg-muted/30 p-5 rounded-xl border border-dashed border-muted-foreground/20 overflow-y-auto flex-grow max-h-[400px]">
+                      <article className="prose prose-sm dark:prose-invert max-w-none">
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                          {currentQ.reference_content}
+                        </ReactMarkdown>
+                      </article>
+                    </div>
+                  </div>
+                )}
+                
+                {(!currentQ.reference_type || currentQ.reference_type === "none") && (
+                  <div className="flex-grow flex flex-col items-center justify-center text-muted-foreground/50 border-2 border-dashed border-border rounded-xl p-8 text-center bg-muted/10">
+                    <BookOpen size={48} className="mb-4 opacity-20" />
+                    <p>Không có tài liệu tham khảo bổ sung cho câu hỏi này.</p>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="hidden lg:flex flex-col items-center justify-center h-full bg-muted/30 rounded-3xl border-2 border-dashed border-muted-foreground/20 text-muted-foreground/50 p-8 text-center">
+                <Lightbulb size={64} className="mb-6 opacity-20" />
+                <h3 className="text-xl font-semibold mb-2">Chờ đáp án</h3>
+                <p>Hãy chọn một đáp án bên trái, hệ thống sẽ hiển thị lời giải chi tiết và tài liệu/video hướng dẫn tại đây.</p>
+              </div>
+            )}
           </div>
-        )}
+        </div>
       </div>
     );
   }

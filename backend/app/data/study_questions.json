@@ -5,7 +5,9 @@
     "question": "Marketing Mix 4P bao gồm những yếu tố nào?",
     "options": ["Product, Price, Place, Promotion", "People, Process, Physical Evidence, Performance", "Planning, Production, Pricing, Placing", "Product, Positioning, Packaging, Pricing"],
     "correct_index": 0,
-    "explanation": "Marketing Mix 4P gồm: Product (Sản phẩm), Price (Giá), Place (Phân phối), Promotion (Xúc tiến). Đây là framework nền tảng cốt lõi nhất của Marketing truyền thống."
+    "explanation": "Marketing Mix 4P gồm: Product (Sản phẩm), Price (Giá), Place (Phân phối), Promotion (Xúc tiến). Đây là framework nền tảng cốt lõi nhất của Marketing truyền thống.",
+    "reference_type": "youtube",
+    "reference_url": "https://www.youtube.com/embed/Mh-E9_I8Dnk?start=45"
   },
   {
     "id": "mkt_basic_02",
@@ -13,7 +15,9 @@
     "question": "Đâu là định nghĩa đúng nhất về Marketing theo Philip Kotler?",
     "options": ["Là nghệ thuật bán hàng và chốt sale", "Là quá trình tạo ra giá trị cho khách hàng và xây dựng mối quan hệ để nhận lại giá trị", "Là các hoạt động quảng cáo trên Facebook và Google", "Là quá trình làm cho sản phẩm trở nên đẹp và bắt mắt hơn"],
     "correct_index": 1,
-    "explanation": "Theo Philip Kotler: 'Marketing là quá trình mà qua đó các cá nhân và tổ chức có được những gì họ cần và muốn thông qua việc tạo ra và trao đổi giá trị với người khác.'"
+    "explanation": "Theo Philip Kotler: 'Marketing là quá trình mà qua đó các cá nhân và tổ chức có được những gì họ cần và muốn thông qua việc tạo ra và trao đổi giá trị với người khác.'",
+    "reference_type": "article",
+    "reference_content": "### Định nghĩa Marketing theo Philip Kotler\n\n**Philip Kotler**, người được mệnh danh là cha đẻ của Marketing hiện đại, định nghĩa Marketing không chỉ là bán hàng, mà là một quá trình trao đổi giá trị.\n\n> *\"Marketing là nghệ thuật tạo ra giá trị, truyền đạt và phân phối những giá trị đó nhằm thỏa mãn vấn đề của khách hàng mục tiêu để đem lại lợi nhuận tối ưu của doanh nghiệp.\"*\n\nBản chất của Marketing là **Tạo ra giá trị (Value Creation)** chứ không phải lừa gạt khách hàng mua sản phẩm."
   },
   {
     "id": "mkt_basic_03",
