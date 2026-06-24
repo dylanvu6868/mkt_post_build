@@ -68,13 +68,127 @@ const SECTION_OPTIONS = [
   { value: "cta", label: "Kêu gọi hành động", default: true },
 ];
 
-const TEMPLATES = [
-  { value: "travel-blog", label: "Blog Du lịch", desc: "Hero lớn, grid điểm đến, bài viết", preview: "🌍" },
-  { value: "saas-landing", label: "SaaS / Ứng dụng", desc: "Hero + demo, tính năng, bảng giá", preview: "🚀" },
-  { value: "portfolio", label: "Portfolio", desc: "Giới thiệu, dự án, kỹ năng", preview: "🎨" },
-  { value: "ecommerce", label: "E-commerce", desc: "Sản phẩm nổi bật, ưu đãi", preview: "🛒" },
-  { value: "event", label: "Sự kiện", desc: "Countdown, lịch trình, đăng ký", preview: "🎉" },
-  { value: "restaurant", label: "Nhà hàng", desc: "Menu, đặt bàn, hình ảnh", preview: "🍽️" },
+import { ReactNode } from "react";
+
+const TEMPLATES: { value: string; label: string; desc: string; preview: ReactNode }[] = [
+  { 
+    value: "travel-blog", 
+    label: "Blog Du lịch", 
+    desc: "Hero lớn, grid điểm đến, bài viết", 
+    preview: (
+      <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="travelGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#38bdf8" />
+            <stop offset="100%" stopColor="#0284c7" />
+          </linearGradient>
+          <linearGradient id="travelGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#a7f3d0" />
+            <stop offset="100%" stopColor="#10b981" />
+          </linearGradient>
+        </defs>
+        <circle cx="24" cy="24" r="18" fill="url(#travelGrad)" opacity="0.2"/>
+        <circle cx="24" cy="24" r="14" fill="url(#travelGrad)"/>
+        <path d="M24 10C27 15 27 33 24 38C21 33 21 15 24 10Z" fill="url(#travelGrad2)"/>
+        <path d="M10 24H38" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+        <path d="M14 14L34 34" stroke="white" strokeWidth="2" strokeLinecap="round" strokeOpacity="0.5"/>
+      </svg>
+    ) 
+  },
+  { 
+    value: "saas-landing", 
+    label: "SaaS / Ứng dụng", 
+    desc: "Hero + demo, tính năng, bảng giá", 
+    preview: (
+      <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="saasGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#818cf8" />
+            <stop offset="100%" stopColor="#4f46e5" />
+          </linearGradient>
+        </defs>
+        <rect x="8" y="8" width="32" height="32" rx="10" fill="url(#saasGrad)" opacity="0.15"/>
+        <path d="M28 14L16 26H22L20 34L32 22H26L28 14Z" fill="url(#saasGrad)"/>
+      </svg>
+    ) 
+  },
+  { 
+    value: "portfolio", 
+    label: "Portfolio", 
+    desc: "Giới thiệu, dự án, kỹ năng", 
+    preview: (
+      <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="portGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#f472b6" />
+            <stop offset="100%" stopColor="#db2777" />
+          </linearGradient>
+        </defs>
+        <circle cx="24" cy="24" r="16" fill="url(#portGrad)" opacity="0.15"/>
+        <path d="M24 12C17.3726 12 12 17.3726 12 24C12 30.6274 17.3726 36 24 36C27.3137 36 30 33.3137 30 30V28C30 26.8954 29.1046 26 28 26H24C22.8954 26 22 25.1046 22 24C22 22.8954 22.8954 22 24 22H33C34.6569 22 36 20.6569 36 19C36 15.134 30.6274 12 24 12Z" fill="url(#portGrad)"/>
+        <circle cx="18" cy="24" r="2" fill="white"/>
+        <circle cx="20" cy="18" r="2" fill="white"/>
+        <circle cx="26" cy="16" r="2" fill="white"/>
+      </svg>
+    ) 
+  },
+  { 
+    value: "ecommerce", 
+    label: "E-commerce", 
+    desc: "Sản phẩm nổi bật, ưu đãi", 
+    preview: (
+      <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="ecoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#fb923c" />
+            <stop offset="100%" stopColor="#ea580c" />
+          </linearGradient>
+        </defs>
+        <rect x="8" y="10" width="32" height="28" rx="8" fill="url(#ecoGrad)" opacity="0.15"/>
+        <path d="M16 16H32L34 26H14L16 16Z" fill="url(#ecoGrad)"/>
+        <path d="M20 16V12C20 9.79086 21.7909 8 24 8C26.2091 8 28 9.79086 28 12V16" stroke="url(#ecoGrad)" strokeWidth="3" strokeLinecap="round"/>
+        <circle cx="19" cy="32" r="3" fill="url(#ecoGrad)"/>
+        <circle cx="29" cy="32" r="3" fill="url(#ecoGrad)"/>
+      </svg>
+    ) 
+  },
+  { 
+    value: "event", 
+    label: "Sự kiện", 
+    desc: "Countdown, lịch trình, đăng ký", 
+    preview: (
+      <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="eventGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#34d399" />
+            <stop offset="100%" stopColor="#059669" />
+          </linearGradient>
+        </defs>
+        <rect x="10" y="12" width="28" height="26" rx="6" fill="url(#eventGrad)" opacity="0.15"/>
+        <path d="M10 20H38V32C38 35.3137 35.3137 38 32 38H16C12.6863 38 10 35.3137 10 32V20Z" fill="url(#eventGrad)"/>
+        <path d="M16 8V12M32 8V12" stroke="url(#eventGrad)" strokeWidth="3" strokeLinecap="round"/>
+        <circle cx="24" cy="28" r="4" fill="white"/>
+      </svg>
+    ) 
+  },
+  { 
+    value: "restaurant", 
+    label: "Nhà hàng", 
+    desc: "Menu, đặt bàn, hình ảnh", 
+    preview: (
+      <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="restGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#f87171" />
+            <stop offset="100%" stopColor="#dc2626" />
+          </linearGradient>
+        </defs>
+        <circle cx="24" cy="24" r="16" fill="url(#restGrad)" opacity="0.15"/>
+        <path d="M18 14V24C18 26 19 26 19 28V34M22 14V24C22 26 21 26 21 28V34M14 14V24C14 26 15 26 15 28V34" stroke="url(#restGrad)" strokeWidth="2" strokeLinecap="round"/>
+        <path d="M30 14V34M30 14C34 14 34 22 30 24" stroke="url(#restGrad)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+    ) 
+  },
 ];
 
 /* ------------------------------------------------------------------ */
@@ -324,15 +438,15 @@ function CreateTab({ onGenerated }: { onGenerated: (html: string) => void }) {
           {TEMPLATES.map((t) => (
             <button key={t.value}
               onClick={() => setSelectedTemplate(selectedTemplate === t.value ? null : t.value)}
-              className={`relative flex flex-col items-center gap-2 rounded-xl border-2 p-4 transition-all hover:shadow-md ${
-                selectedTemplate === t.value ? "border-primary bg-primary/5 shadow-md" : "border-border hover:border-primary/30"
+              className={`relative flex flex-col items-center gap-2 rounded-2xl border-2 p-5 transition-all duration-300 hover:shadow-lg ${
+                selectedTemplate === t.value ? "border-primary bg-primary/5 shadow-md scale-[1.02]" : "border-border hover:border-primary/40 hover:bg-accent/50"
               }`}>
-              <span className="text-2xl">{t.preview}</span>
-              <span className="text-xs font-semibold text-center leading-tight">{t.label}</span>
-              <span className="text-[10px] text-muted-foreground text-center leading-tight">{t.desc}</span>
+              <div className="mb-2 transition-transform duration-300 group-hover:scale-110 drop-shadow-sm">{t.preview}</div>
+              <span className="text-sm font-bold text-center leading-tight">{t.label}</span>
+              <span className="text-[11px] text-muted-foreground text-center leading-relaxed px-1">{t.desc}</span>
               {selectedTemplate === t.value && (
-                <div className="absolute top-1.5 right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-white">
-                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M20 6 9 17l-5-5"/></svg>
+                <div className="absolute top-2.5 right-2.5 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm animate-in zoom-in duration-200">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
                 </div>
               )}
             </button>
