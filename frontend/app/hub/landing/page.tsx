@@ -43,7 +43,7 @@ const COLOR_SCHEMES = [
   { value: "orange", label: "Cam", color: "#F97316" },
   { value: "pink", label: "Hồng", color: "#EC4899" },
   { value: "cyan", label: "Xanh ngọc", color: "#06B6D4" },
-  { value: "amber", label: "Vàng", color: "#F59E0B" },
+  { value: "amber", label: "Vàng", color: "#FACC15" },
   { value: "slate", label: "Xám đen", color: "#475569" },
 ];
 

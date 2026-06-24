@@ -34,7 +34,7 @@ interface Analytics {
 const TYPE_COLORS: Record<string, string> = {
   facebook_post: "#3b82f6",
   seo_blog: "#22c55e",
-  email: "#f59e0b",
+  email: "#FACC15",
   landing_page: "#a855f7",
   tiktok_script: "#ef4444",
 };
@@ -228,15 +228,15 @@ export default function AdminDashboardPage() {
                 <AreaChart data={data.content_daily} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                   <defs>
                     <linearGradient id="gContent" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.3} />
-                      <stop offset="95%" stopColor="#f59e0b" stopOpacity={0} />
+                      <stop offset="5%" stopColor="#FACC15" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#FACC15" stopOpacity={0} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
                   <XAxis dataKey="date" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} tickFormatter={formatDate} />
                   <YAxis tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} width={30} allowDecimals={false} />
                   <Tooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 10, fontSize: 12 }} labelFormatter={formatDate} />
-                  <Area type="monotone" dataKey="count" name="Số lượng" stroke="#f59e0b" fill="url(#gContent)" strokeWidth={2} />
+                  <Area type="monotone" dataKey="count" name="Số lượng" stroke="#FACC15" fill="url(#gContent)" strokeWidth={2} />
                   <Area type="monotone" dataKey="avg_score" name="Điểm TB" stroke="#22c55e" fill="transparent" strokeWidth={1.5} strokeDasharray="4 4" />
                 </AreaChart>
               </ResponsiveContainer>
