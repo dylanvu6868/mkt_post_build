@@ -115,14 +115,18 @@ async def _analyze_images(image_data: list[dict]) -> str:
     """Use a vision-capable model to describe images, fallback to metadata."""
     from PIL import Image
 
-    if settings.openai_api_key:
+    import os
+    zenmux_key = os.getenv("ZENMUX_API_KEY")
+
+    if zenmux_key or settings.openai_api_key:
         try:
             from langchain_openai import ChatOpenAI
             from langchain_core.messages import HumanMessage as HMsg
 
             vision_model = ChatOpenAI(
                 model="gpt-4o-mini",
-                api_key=settings.openai_api_key,
+                api_key=zenmux_key or settings.openai_api_key,
+                base_url="https://zenmux.ai/api/v1" if zenmux_key else None,
                 max_tokens=1024,
                 timeout=30,
             )
