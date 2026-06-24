@@ -3,7 +3,12 @@
     "id": "mkt_basic_01",
     "topic_id": "marketing_basics",
     "question": "Marketing Mix 4P bao gồm những yếu tố nào?",
-    "options": ["Product, Price, Place, Promotion", "People, Process, Physical Evidence, Performance", "Planning, Production, Pricing, Placing", "Product, Positioning, Packaging, Pricing"],
+    "options": [
+      "Product, Price, Place, Promotion",
+      "People, Process, Physical Evidence, Performance",
+      "Planning, Production, Pricing, Placing",
+      "Product, Positioning, Packaging, Pricing"
+    ],
     "correct_index": 0,
     "explanation": "Marketing Mix 4P gồm: Product (Sản phẩm), Price (Giá), Place (Phân phối), Promotion (Xúc tiến). Đây là framework nền tảng cốt lõi nhất của Marketing truyền thống.",
     "reference_type": "youtube",
@@ -13,7 +18,12 @@
     "id": "mkt_basic_02",
     "topic_id": "marketing_basics",
     "question": "Đâu là định nghĩa đúng nhất về Marketing theo Philip Kotler?",
-    "options": ["Là nghệ thuật bán hàng và chốt sale", "Là quá trình tạo ra giá trị cho khách hàng và xây dựng mối quan hệ để nhận lại giá trị", "Là các hoạt động quảng cáo trên Facebook và Google", "Là quá trình làm cho sản phẩm trở nên đẹp và bắt mắt hơn"],
+    "options": [
+      "Là nghệ thuật bán hàng và chốt sale",
+      "Là quá trình tạo ra giá trị cho khách hàng và xây dựng mối quan hệ để nhận lại giá trị",
+      "Là các hoạt động quảng cáo trên Facebook và Google",
+      "Là quá trình làm cho sản phẩm trở nên đẹp và bắt mắt hơn"
+    ],
     "correct_index": 1,
     "explanation": "Theo Philip Kotler: 'Marketing là quá trình mà qua đó các cá nhân và tổ chức có được những gì họ cần và muốn thông qua việc tạo ra và trao đổi giá trị với người khác.'",
     "reference_type": "article",
@@ -23,7 +33,12 @@
     "id": "mkt_basic_03",
     "topic_id": "marketing_basics",
     "question": "B2B Marketing khác B2C Marketing chủ yếu ở điểm nào?",
-    "options": ["B2B sử dụng nhiều quảng cáo truyền hình hơn", "B2B tập trung vào khách hàng cá nhân", "Quy trình ra quyết định của B2B thường phức tạp và có nhiều bên tham gia hơn", "B2B không cần quan tâm đến xây dựng thương hiệu"],
+    "options": [
+      "B2B sử dụng nhiều quảng cáo truyền hình hơn",
+      "B2B tập trung vào khách hàng cá nhân",
+      "Quy trình ra quyết định của B2B thường phức tạp và có nhiều bên tham gia hơn",
+      "B2B không cần quan tâm đến xây dựng thương hiệu"
+    ],
     "correct_index": 2,
     "explanation": "B2B (Business to Business) bán hàng cho doanh nghiệp, nên quy trình ra quyết định thường dài hơn, lý tính hơn và liên quan đến nhiều người (Purchasing, Manager, User...) hơn B2C."
   },
@@ -31,7 +46,12 @@
     "id": "mkt_basic_04",
     "topic_id": "marketing_basics",
     "question": "Mô hình SWOT dùng để phân tích những yếu tố nào?",
-    "options": ["Sales, Wealth, Opportunities, Threats", "Strengths, Weaknesses, Opportunities, Threats", "Strategies, Wants, Objectives, Tactics", "Systems, Workflows, Operations, Technologies"],
+    "options": [
+      "Sales, Wealth, Opportunities, Threats",
+      "Strengths, Weaknesses, Opportunities, Threats",
+      "Strategies, Wants, Objectives, Tactics",
+      "Systems, Workflows, Operations, Technologies"
+    ],
     "correct_index": 1,
     "explanation": "SWOT là viết tắt của Strengths (Điểm mạnh), Weaknesses (Điểm yếu), Opportunities (Cơ hội), Threats (Thách thức). Trong đó S, W là yếu tố nội vi; O, T là yếu tố ngoại vi."
   },
@@ -39,16 +59,25 @@
     "id": "mkt_basic_05",
     "topic_id": "marketing_basics",
     "question": "Thị trường ngách (Niche Market) là gì?",
-    "options": ["Thị trường có quy mô lớn nhất", "Một phân khúc thị trường nhỏ, hẹp với nhu cầu cụ thể chưa được phục vụ tốt", "Thị trường dành riêng cho các sản phẩm giá rẻ", "Thị trường bán lẻ truyền thống"],
+    "options": [
+      "Thị trường có quy mô lớn nhất",
+      "Một phân khúc thị trường nhỏ, hẹp với nhu cầu cụ thể chưa được phục vụ tốt",
+      "Thị trường dành riêng cho các sản phẩm giá rẻ",
+      "Thị trường bán lẻ truyền thống"
+    ],
     "correct_index": 1,
     "explanation": "Niche market (Thị trường ngách) là một phân đoạn nhỏ của thị trường lớn, có những đặc điểm và nhu cầu rất cụ thể mà các thương hiệu lớn thường bỏ qua."
   },
-
   {
     "id": "cb_01",
     "topic_id": "consumer_behavior",
     "question": "Trong tháp nhu cầu Maslow, nhu cầu nào nằm ở vị trí cao nhất?",
-    "options": ["Nhu cầu sinh lý (Physiological)", "Nhu cầu an toàn (Safety)", "Nhu cầu được tôn trọng (Esteem)", "Nhu cầu thể hiện bản thân (Self-actualization)"],
+    "options": [
+      "Nhu cầu sinh lý (Physiological)",
+      "Nhu cầu an toàn (Safety)",
+      "Nhu cầu được tôn trọng (Esteem)",
+      "Nhu cầu thể hiện bản thân (Self-actualization)"
+    ],
     "correct_index": 3,
     "explanation": "Tháp Maslow từ dưới lên: Sinh lý -> An toàn -> Xã hội -> Tôn trọng -> Thể hiện bản thân (Self-actualization). Apple thường đánh vào nhu cầu Tôn trọng và Thể hiện bản thân."
   },
@@ -56,7 +85,12 @@
     "id": "cb_02",
     "topic_id": "consumer_behavior",
     "question": "FOMO (Fear Of Missing Out) trong Marketing thường được sử dụng để làm gì?",
-    "options": ["Xây dựng lòng trung thành dài hạn", "Tạo sự khan hiếm và thúc đẩy khách hàng ra quyết định nhanh", "Giảm giá thành sản phẩm", "Tăng cường chất lượng dịch vụ khách hàng"],
+    "options": [
+      "Xây dựng lòng trung thành dài hạn",
+      "Tạo sự khan hiếm và thúc đẩy khách hàng ra quyết định nhanh",
+      "Giảm giá thành sản phẩm",
+      "Tăng cường chất lượng dịch vụ khách hàng"
+    ],
     "correct_index": 1,
     "explanation": "FOMO là nỗi sợ bị bỏ lỡ. Các Marketer thường dùng Flash Sale, 'Chỉ còn 2 sản phẩm', 'Đồng hồ đếm ngược' để kích hoạt FOMO, thúc đẩy chuyển đổi tức thì."
   },
@@ -64,7 +98,12 @@
     "id": "cb_03",
     "topic_id": "consumer_behavior",
     "question": "Khái niệm 'Customer Journey' (Hành trình khách hàng) thường bao gồm các giai đoạn nào?",
-    "options": ["Sản xuất - Phân phối - Bán lẻ - Tiêu dùng", "Nhận thức - Cân nhắc - Mua hàng - Giữ chân - Ủng hộ", "Lên kế hoạch - Chạy Ads - Đo lường - Tối ưu", "Nghiên cứu - Thiết kế - Lập trình - Ra mắt"],
+    "options": [
+      "Sản xuất - Phân phối - Bán lẻ - Tiêu dùng",
+      "Nhận thức - Cân nhắc - Mua hàng - Giữ chân - Ủng hộ",
+      "Lên kế hoạch - Chạy Ads - Đo lường - Tối ưu",
+      "Nghiên cứu - Thiết kế - Lập trình - Ra mắt"
+    ],
     "correct_index": 1,
     "explanation": "Customer Journey cơ bản gồm 5 giai đoạn: Awareness (Nhận thức) -> Consideration (Cân nhắc) -> Purchase (Mua hàng) -> Retention (Giữ chân) -> Advocacy (Ủng hộ)."
   },
@@ -72,7 +111,12 @@
     "id": "cb_04",
     "topic_id": "consumer_behavior",
     "question": "Cognitive Dissonance (Sự bất hòa nhận thức) sau khi mua hàng là gì?",
-    "options": ["Khách hàng hài lòng và giới thiệu cho người khác", "Cảm giác hối hận, nghi ngờ hoặc lo lắng sau khi đưa ra quyết định mua hàng", "Sự không đồng ý giữa người mua và người bán về giá cả", "Lỗi kỹ thuật trên website khi thanh toán"],
+    "options": [
+      "Khách hàng hài lòng và giới thiệu cho người khác",
+      "Cảm giác hối hận, nghi ngờ hoặc lo lắng sau khi đưa ra quyết định mua hàng",
+      "Sự không đồng ý giữa người mua và người bán về giá cả",
+      "Lỗi kỹ thuật trên website khi thanh toán"
+    ],
     "correct_index": 1,
     "explanation": "Buyer's remorse hay Cognitive Dissonance là cảm giác băn khoăn 'Mình mua cái này có đúng không nhỉ?' sau khi mua. Email cảm ơn hoặc thẻ bảo hành xịn giúp giảm cảm giác này."
   },
@@ -80,16 +124,25 @@
     "id": "cb_05",
     "topic_id": "consumer_behavior",
     "question": "Hiệu ứng Chim mồi (Decoy Effect) có mục đích gì?",
-    "options": ["Lừa khách hàng mua hàng giả", "Đưa ra một lựa chọn thứ 3 (kém hấp dẫn) để hướng khách hàng chọn sản phẩm mục tiêu (thường là đắt hơn)", "Giảm giá liên tục để thu hút khách", "Tặng quà miễn phí để lấy data"],
+    "options": [
+      "Lừa khách hàng mua hàng giả",
+      "Đưa ra một lựa chọn thứ 3 (kém hấp dẫn) để hướng khách hàng chọn sản phẩm mục tiêu (thường là đắt hơn)",
+      "Giảm giá liên tục để thu hút khách",
+      "Tặng quà miễn phí để lấy data"
+    ],
     "correct_index": 1,
     "explanation": "VD: Bắp rang bơ Nhỏ 3$, Vừa 6.5$, Lớn 7$. Size Vừa chính là chim mồi để khách hàng thấy Size Lớn 'rẻ hơn, hời hơn' và chọn Size Lớn."
   },
-
   {
     "id": "brand_01",
     "topic_id": "branding",
     "question": "Brand Positioning (Định vị thương hiệu) là gì?",
-    "options": ["Vị trí đặt logo trên bao bì sản phẩm", "Vị trí của cửa hàng trên bản đồ", "Quá trình tạo ra một vị trí độc tôn và rõ ràng trong tâm trí khách hàng mục tiêu", "Số lượng người theo dõi trên fanpage"],
+    "options": [
+      "Vị trí đặt logo trên bao bì sản phẩm",
+      "Vị trí của cửa hàng trên bản đồ",
+      "Quá trình tạo ra một vị trí độc tôn và rõ ràng trong tâm trí khách hàng mục tiêu",
+      "Số lượng người theo dõi trên fanpage"
+    ],
     "correct_index": 2,
     "explanation": "Định vị (Positioning) không phải là những gì bạn làm với sản phẩm, mà là những gì bạn làm với TÂM TRÍ của khách hàng. Ví dụ: Volvo = An toàn."
   },
@@ -97,7 +150,12 @@
     "id": "brand_02",
     "topic_id": "branding",
     "question": "Brand Equity (Tài sản thương hiệu) được cấu thành từ yếu tố nào sau đây?",
-    "options": ["Lợi nhuận ròng của công ty", "Số lượng nhân viên", "Nhận biết thương hiệu, Chất lượng cảm nhận, Lòng trung thành và Liên tưởng thương hiệu", "Số lượng cửa hàng bán lẻ"],
+    "options": [
+      "Lợi nhuận ròng của công ty",
+      "Số lượng nhân viên",
+      "Nhận biết thương hiệu, Chất lượng cảm nhận, Lòng trung thành và Liên tưởng thương hiệu",
+      "Số lượng cửa hàng bán lẻ"
+    ],
     "correct_index": 2,
     "explanation": "Theo mô hình của David Aaker, Brand Equity gồm: Brand Awareness, Perceived Quality, Brand Loyalty, và Brand Associations."
   },
@@ -105,7 +163,12 @@
     "id": "brand_03",
     "topic_id": "branding",
     "question": "Brand Archetype (Hình mẫu thương hiệu) dựa trên lý thuyết của nhà tâm lý học nào?",
-    "options": ["Sigmund Freud", "Carl Jung", "Ivan Pavlov", "B.F. Skinner"],
+    "options": [
+      "Sigmund Freud",
+      "Carl Jung",
+      "Ivan Pavlov",
+      "B.F. Skinner"
+    ],
     "correct_index": 1,
     "explanation": "Carl Jung đưa ra lý thuyết về 12 Hình mẫu (Archetypes) đại diện cho các tính cách chung của nhân loại (Hero, Outlaw, Magician, Lover...). Ví dụ: Nike là The Hero."
   },
@@ -113,7 +176,12 @@
     "id": "brand_04",
     "topic_id": "branding",
     "question": "Logo, màu sắc, font chữ, bao bì được gọi chung là gì trong Branding?",
-    "options": ["Brand Strategy (Chiến lược thương hiệu)", "Brand Identity (Nhận diện thương hiệu)", "Brand Image (Hình ảnh thương hiệu)", "Brand Personality (Tính cách thương hiệu)"],
+    "options": [
+      "Brand Strategy (Chiến lược thương hiệu)",
+      "Brand Identity (Nhận diện thương hiệu)",
+      "Brand Image (Hình ảnh thương hiệu)",
+      "Brand Personality (Tính cách thương hiệu)"
+    ],
     "correct_index": 1,
     "explanation": "Brand Identity (Nhận diện) là những yếu tố hữu hình mà chúng ta có thể nhìn thấy, nghe thấy. Còn Brand Image là hình ảnh hiện lên trong đầu khách hàng."
   },
@@ -121,16 +189,25 @@
     "id": "brand_05",
     "topic_id": "branding",
     "question": "USP (Unique Selling Proposition) khác với USP (Unique Value Proposition - UVP) ở điểm nào?",
-    "options": ["Không có sự khác biệt", "USP tập trung vào tính năng nổi bật của sản phẩm, UVP tập trung vào giá trị tổng thể khách hàng nhận được", "USP dành cho B2B, UVP dành cho B2C", "USP chỉ dùng trong quảng cáo Facebook"],
+    "options": [
+      "Không có sự khác biệt",
+      "USP tập trung vào tính năng nổi bật của sản phẩm, UVP tập trung vào giá trị tổng thể khách hàng nhận được",
+      "USP dành cho B2B, UVP dành cho B2C",
+      "USP chỉ dùng trong quảng cáo Facebook"
+    ],
     "correct_index": 1,
     "explanation": "USP thường nói về 'Sản phẩm của tôi có gì độc nhất' (VD: Bánh pizza giao trong 30p). UVP nói về 'Khách hàng nhận được giá trị độc nhất gì' (Sự tiện lợi, không phải chờ đợi)."
   },
-
   {
     "id": "digi_01",
     "topic_id": "digital_marketing",
     "question": "Phễu Marketing (Marketing Funnel) TOFU, MOFU, BOFU viết tắt của từ gì?",
-    "options": ["Top, Middle, Bottom of the Funnel", "Target, Market, Brand of the Future", "Testing, Measuring, Boosting of Facebook", "Traffic, Money, Business of Funnel"],
+    "options": [
+      "Top, Middle, Bottom of the Funnel",
+      "Target, Market, Brand of the Future",
+      "Testing, Measuring, Boosting of Facebook",
+      "Traffic, Money, Business of Funnel"
+    ],
     "correct_index": 0,
     "explanation": "TOFU (Top): Nhận thức, thu hút traffic. MOFU (Middle): Cân nhắc, nuôi dưỡng lead. BOFU (Bottom): Quyết định, chốt sale."
   },
@@ -138,7 +215,12 @@
     "id": "digi_02",
     "topic_id": "digital_marketing",
     "question": "Chỉ số CTR (Click-Through Rate) được tính như thế nào?",
-    "options": ["Số lần nhấp chuột / Số lượt hiển thị (Clicks / Impressions)", "Số đơn hàng / Số lượt hiển thị", "Chi phí / Số lần nhấp chuột", "Số lần nhấp chuột / Dân số mục tiêu"],
+    "options": [
+      "Số lần nhấp chuột / Số lượt hiển thị (Clicks / Impressions)",
+      "Số đơn hàng / Số lượt hiển thị",
+      "Chi phí / Số lần nhấp chuột",
+      "Số lần nhấp chuột / Dân số mục tiêu"
+    ],
     "correct_index": 0,
     "explanation": "CTR = (Clicks / Impressions) * 100%. Đo lường mức độ hấp dẫn của quảng cáo/tiêu đề đối với người xem."
   },
@@ -146,7 +228,12 @@
     "id": "digi_03",
     "topic_id": "digital_marketing",
     "question": "A/B Testing trong Digital Marketing là gì?",
-    "options": ["Kiểm tra xem website có bị lỗi 404 không", "So sánh 2 phiên bản (A và B) của một chiến dịch/trang web để xem phiên bản nào hiệu quả hơn", "Cách đánh giá nhân viên Marketing loại A hay B", "Mua 2 gói quảng cáo trên Facebook và Google"],
+    "options": [
+      "Kiểm tra xem website có bị lỗi 404 không",
+      "So sánh 2 phiên bản (A và B) của một chiến dịch/trang web để xem phiên bản nào hiệu quả hơn",
+      "Cách đánh giá nhân viên Marketing loại A hay B",
+      "Mua 2 gói quảng cáo trên Facebook và Google"
+    ],
     "correct_index": 1,
     "explanation": "A/B Testing (Split testing) là phương pháp chia nhỏ traffic cho 2 biến thể (đổi màu nút, đổi tiêu đề...) để đo lường xem cái nào mang lại tỷ lệ chuyển đổi (CVR) cao hơn."
   },
@@ -154,7 +241,12 @@
     "id": "digi_04",
     "topic_id": "digital_marketing",
     "question": "Retargeting / Remarketing (Tiếp thị lại) hoạt động dựa trên công nghệ nào?",
-    "options": ["Blockchain", "Cookies / Pixels", "Trí tuệ nhân tạo (AI)", "Cloud Computing"],
+    "options": [
+      "Blockchain",
+      "Cookies / Pixels",
+      "Trí tuệ nhân tạo (AI)",
+      "Cloud Computing"
+    ],
     "correct_index": 1,
     "explanation": "Retargeting sử dụng đoạn mã (Pixel, Tag) hoặc Cookies lưu trên trình duyệt của người dùng để 'bám đuôi' và hiển thị lại quảng cáo cho những người đã từng truy cập website."
   },
@@ -162,16 +254,25 @@
     "id": "digi_05",
     "topic_id": "digital_marketing",
     "question": "CAC (Customer Acquisition Cost) là gì?",
-    "options": ["Chi phí chăm sóc khách hàng", "Doanh thu trung bình trên mỗi khách hàng", "Chi phí để có được một khách hàng mới", "Tỷ lệ hủy đơn hàng"],
+    "options": [
+      "Chi phí chăm sóc khách hàng",
+      "Doanh thu trung bình trên mỗi khách hàng",
+      "Chi phí để có được một khách hàng mới",
+      "Tỷ lệ hủy đơn hàng"
+    ],
     "correct_index": 2,
     "explanation": "CAC = Tổng chi phí Sales & Marketing / Số khách hàng mới thu được trong cùng kỳ. CAC phải nhỏ hơn LTV (Lifetime Value) thì doanh nghiệp mới có lãi."
   },
-
   {
     "id": "content_01",
     "topic_id": "content_marketing",
     "question": "Evergreen Content là loại nội dung gì?",
-    "options": ["Nội dung chuyên nói về cây xanh và môi trường", "Nội dung luôn giữ được giá trị và tính liên quan trong thời gian dài (không bị lỗi thời)", "Nội dung bắt trend, chỉ hot trong 1-2 ngày", "Nội dung do AI tự động tạo ra"],
+    "options": [
+      "Nội dung chuyên nói về cây xanh và môi trường",
+      "Nội dung luôn giữ được giá trị và tính liên quan trong thời gian dài (không bị lỗi thời)",
+      "Nội dung bắt trend, chỉ hot trong 1-2 ngày",
+      "Nội dung do AI tự động tạo ra"
+    ],
     "correct_index": 1,
     "explanation": "Evergreen Content (Nội dung xanh mãi) là những bài viết như 'Hướng dẫn chi tiết', 'Cách làm...', 'FAQ'. Chúng liên tục mang lại SEO traffic trong nhiều năm."
   },
@@ -179,7 +280,12 @@
     "id": "content_02",
     "topic_id": "content_marketing",
     "question": "UGC (User-Generated Content) có nghĩa là gì?",
-    "options": ["Nội dung do đội ngũ agency chuyên nghiệp tạo ra", "Nội dung được tạo ra bằng ChatGPT", "Nội dung do chính người dùng, khách hàng tạo ra (ví dụ: review, ảnh feedback)", "Nội dung bị cấm trên mạng xã hội"],
+    "options": [
+      "Nội dung do đội ngũ agency chuyên nghiệp tạo ra",
+      "Nội dung được tạo ra bằng ChatGPT",
+      "Nội dung do chính người dùng, khách hàng tạo ra (ví dụ: review, ảnh feedback)",
+      "Nội dung bị cấm trên mạng xã hội"
+    ],
     "correct_index": 2,
     "explanation": "UGC (User-Generated Content) cực kỳ quyền lực vì nó mang tính xác thực (Authenticity) cao hơn nhiều so với quảng cáo từ thương hiệu. (Review Shopee là một dạng UGC)."
   },
@@ -187,7 +293,12 @@
     "id": "content_03",
     "topic_id": "content_marketing",
     "question": "Trong Copywriting, công thức AIDA viết tắt của:",
-    "options": ["Action, Interest, Desire, Awareness", "Attention, Interest, Desire, Action", "Always, Inspire, Direct, Act", "Analysis, Insight, Data, Action"],
+    "options": [
+      "Action, Interest, Desire, Awareness",
+      "Attention, Interest, Desire, Action",
+      "Always, Inspire, Direct, Act",
+      "Analysis, Insight, Data, Action"
+    ],
     "correct_index": 1,
     "explanation": "AIDA: Attention (Thu hút sự chú ý) -> Interest (Tạo sự thích thú) -> Desire (Khơi gợi khát khao) -> Action (Kêu gọi hành động). Là công thức kinh điển nhất."
   },
@@ -195,7 +306,12 @@
     "id": "content_04",
     "topic_id": "content_marketing",
     "question": "CTA (Call To Action) có vai trò gì trong bài viết?",
-    "options": ["Làm cho bài viết dài hơn", "Giải thích thuật ngữ khó hiểu", "Kêu gọi, thúc giục người đọc thực hiện một hành động cụ thể (Mua ngay, Đăng ký, Chia sẻ...)", "Trang trí cho đẹp"],
+    "options": [
+      "Làm cho bài viết dài hơn",
+      "Giải thích thuật ngữ khó hiểu",
+      "Kêu gọi, thúc giục người đọc thực hiện một hành động cụ thể (Mua ngay, Đăng ký, Chia sẻ...)",
+      "Trang trí cho đẹp"
+    ],
     "correct_index": 2,
     "explanation": "Mọi bài content hướng đến chuyển đổi (Conversion) đều bắt buộc phải có CTA rõ ràng để dẫn dắt user thực hiện bước tiếp theo."
   },
@@ -203,16 +319,25 @@
     "id": "content_05",
     "topic_id": "content_marketing",
     "question": "Kỹ thuật Storytelling trong Marketing mang lại lợi ích lớn nhất là gì?",
-    "options": ["Giúp bài viết chuẩn SEO hơn", "Kết nối cảm xúc với khách hàng, làm cho thông điệp dễ nhớ hơn", "Bắt buộc khách hàng phải mua đồ", "Giảm chi phí chạy ads"],
+    "options": [
+      "Giúp bài viết chuẩn SEO hơn",
+      "Kết nối cảm xúc với khách hàng, làm cho thông điệp dễ nhớ hơn",
+      "Bắt buộc khách hàng phải mua đồ",
+      "Giảm chi phí chạy ads"
+    ],
     "correct_index": 1,
     "explanation": "Con người ghi nhớ các câu chuyện tốt hơn 22 lần so với các số liệu khô khan. Storytelling giúp thương hiệu chạm vào cảm xúc (Emotional connection) của người dùng."
   },
-
   {
     "id": "ads_01",
     "topic_id": "performance_ads",
     "question": "ROAS (Return on Ad Spend) được tính bằng công thức nào?",
-    "options": ["Doanh thu / Chi phí quảng cáo", "Lợi nhuận / Chi phí quảng cáo", "Chi phí quảng cáo / Số click", "Số đơn hàng / Chi phí quảng cáo"],
+    "options": [
+      "Doanh thu / Chi phí quảng cáo",
+      "Lợi nhuận / Chi phí quảng cáo",
+      "Chi phí quảng cáo / Số click",
+      "Số đơn hàng / Chi phí quảng cáo"
+    ],
     "correct_index": 0,
     "explanation": "ROAS = Revenue (Doanh thu) / Ad Spend. Khác với ROI (tính dựa trên lợi nhuận và tổng chi phí), ROAS chỉ đo lường hiệu quả trực tiếp của ngân sách quảng cáo."
   },
@@ -220,7 +345,12 @@
     "id": "ads_02",
     "topic_id": "performance_ads",
     "question": "CPM (Cost Per Mille) trong quảng cáo trả phí nghĩa là gì?",
-    "options": ["Chi phí cho 1 triệu lần nhấp chuột", "Chi phí cho 1000 lượt hiển thị (Impressions)", "Chi phí cho 1 đơn hàng thành công", "Chi phí cho 1 phút xem video"],
+    "options": [
+      "Chi phí cho 1 triệu lần nhấp chuột",
+      "Chi phí cho 1000 lượt hiển thị (Impressions)",
+      "Chi phí cho 1 đơn hàng thành công",
+      "Chi phí cho 1 phút xem video"
+    ],
     "correct_index": 1,
     "explanation": "CPM (Cost Per Mille, mille = 1000 trong tiếng Latin). Là số tiền bạn phải trả cho nền tảng (FB/GG) mỗi khi quảng cáo hiển thị được 1.000 lần."
   },
@@ -228,7 +358,12 @@
     "id": "ads_03",
     "topic_id": "performance_ads",
     "question": "Lookalike Audience (Đối tượng tương tự) trên Facebook Ads là gì?",
-    "options": ["Tập khách hàng đã từng like fanpage", "Tập người dùng mới có chung đặc điểm, hành vi với một tệp khách hàng gốc (Seed audience)", "Tập khách hàng do đối thủ cung cấp", "Tất cả người dùng Facebook tại Việt Nam"],
+    "options": [
+      "Tập khách hàng đã từng like fanpage",
+      "Tập người dùng mới có chung đặc điểm, hành vi với một tệp khách hàng gốc (Seed audience)",
+      "Tập khách hàng do đối thủ cung cấp",
+      "Tất cả người dùng Facebook tại Việt Nam"
+    ],
     "correct_index": 1,
     "explanation": "Lookalike (LAL) giúp Facebook dùng AI để tìm ra những người 'giống nhất' với khách hàng hiện tại của bạn, giúp mở rộng tệp nhanh chóng với tỷ lệ chuyển đổi cao."
   },
@@ -236,7 +371,12 @@
     "id": "ads_04",
     "topic_id": "performance_ads",
     "question": "Chỉ số CPC là viết tắt của:",
-    "options": ["Cost Per Customer", "Cost Per Click", "Cost Per Conversion", "Cost Per Campaign"],
+    "options": [
+      "Cost Per Customer",
+      "Cost Per Click",
+      "Cost Per Conversion",
+      "Cost Per Campaign"
+    ],
     "correct_index": 1,
     "explanation": "CPC (Cost Per Click) là số tiền trung bình bạn phải trả cho một lần người dùng nhấp vào quảng cáo của bạn."
   },
@@ -244,16 +384,25 @@
     "id": "ads_05",
     "topic_id": "performance_ads",
     "question": "Khi chiến dịch quảng cáo bị 'Ad Fatigue' (Kiệt sức quảng cáo), biểu hiện thường thấy là gì?",
-    "options": ["Chi phí (CPA/CPC) tăng cao, Tương tác (CTR) giảm mạnh", "Website bị sập", "Facebook tự động tặng thêm ngân sách", "Bài viết bị khóa"],
+    "options": [
+      "Chi phí (CPA/CPC) tăng cao, Tương tác (CTR) giảm mạnh",
+      "Website bị sập",
+      "Facebook tự động tặng thêm ngân sách",
+      "Bài viết bị khóa"
+    ],
     "correct_index": 0,
     "explanation": "Ad Fatigue xảy ra khi cùng một tệp người dùng nhìn thấy quảng cáo của bạn quá nhiều lần (Frequency cao). Giải pháp: Đổi nội dung/hình ảnh mới (Creative refresh) hoặc đổi tệp."
   },
-
   {
     "id": "seo_01",
     "topic_id": "seo_sem",
     "question": "Đâu là sự khác biệt cơ bản giữa SEO và SEM?",
-    "options": ["SEO là làm nội dung, SEM là làm kỹ thuật", "SEO là tối ưu hóa tự nhiên (không trả tiền click), SEM bao gồm cả trả tiền quảng cáo (Google Ads)", "SEO dùng cho Facebook, SEM dùng cho Google", "Không có khác biệt"],
+    "options": [
+      "SEO là làm nội dung, SEM là làm kỹ thuật",
+      "SEO là tối ưu hóa tự nhiên (không trả tiền click), SEM bao gồm cả trả tiền quảng cáo (Google Ads)",
+      "SEO dùng cho Facebook, SEM dùng cho Google",
+      "Không có khác biệt"
+    ],
     "correct_index": 1,
     "explanation": "Search Engine Marketing (SEM) = SEO (Tối ưu tìm kiếm tự nhiên) + PPC (Quảng cáo trả tiền như Google Ads)."
   },
@@ -261,7 +410,12 @@
     "id": "seo_02",
     "topic_id": "seo_sem",
     "question": "Backlink là gì trong SEO?",
-    "options": ["Nút quay lại trang trước trên trình duyệt", "Liên kết từ một trang web khác trỏ về trang web của bạn", "Liên kết nội bộ giữa các bài viết trên cùng một web", "Màu nền của website"],
+    "options": [
+      "Nút quay lại trang trước trên trình duyệt",
+      "Liên kết từ một trang web khác trỏ về trang web của bạn",
+      "Liên kết nội bộ giữa các bài viết trên cùng một web",
+      "Màu nền của website"
+    ],
     "correct_index": 1,
     "explanation": "Backlink đóng vai trò như một 'phiếu bầu' tín nhiệm. Trang web càng có nhiều backlink từ các trang uy tín (Domain Authority cao) thì thứ hạng SEO càng dễ lên TOP."
   },
@@ -269,7 +423,12 @@
     "id": "seo_03",
     "topic_id": "seo_sem",
     "question": "Keyword Stuffing (Nhồi nhét từ khóa) trong SEO là hành động:",
-    "options": ["Tuyệt vời, giúp bài viết top 1 ngay lập tức", "Hành động Black-hat SEO vi phạm chính sách Google, khiến trang web bị phạt", "Viết từ khóa bằng font chữ to", "Sử dụng các từ khóa đồng nghĩa"],
+    "options": [
+      "Tuyệt vời, giúp bài viết top 1 ngay lập tức",
+      "Hành động Black-hat SEO vi phạm chính sách Google, khiến trang web bị phạt",
+      "Viết từ khóa bằng font chữ to",
+      "Sử dụng các từ khóa đồng nghĩa"
+    ],
     "correct_index": 1,
     "explanation": "Việc cố tình lặp lại từ khóa vô tội vạ để thao túng thuật toán sẽ bị Google phạt (Google Panda update). Hiện nay Google ưu tiên semantic search và intent hơn mật độ từ khóa."
   },
@@ -277,7 +436,12 @@
     "id": "seo_04",
     "topic_id": "seo_sem",
     "question": "Thẻ Meta Description có ảnh hưởng trực tiếp đến yếu tố nào nhất?",
-    "options": ["Tốc độ load trang", "Tỷ lệ nhấp chuột (CTR) trên kết quả tìm kiếm", "Điểm chất lượng của Facebook Ads", "Bảo mật website"],
+    "options": [
+      "Tốc độ load trang",
+      "Tỷ lệ nhấp chuột (CTR) trên kết quả tìm kiếm",
+      "Điểm chất lượng của Facebook Ads",
+      "Bảo mật website"
+    ],
     "correct_index": 1,
     "explanation": "Meta Description là đoạn mô tả ngắn hiển thị dưới Title trên Google. Nó không trực tiếp là yếu tố xếp hạng (ranking factor) nhưng viết hay sẽ tăng CTR -> gián tiếp giúp lên TOP."
   },
@@ -285,16 +449,25 @@
     "id": "seo_05",
     "topic_id": "seo_sem",
     "question": "Long-tail Keyword (Từ khóa đuôi dài) có đặc điểm gì?",
-    "options": ["Lượng tìm kiếm (Volume) thấp nhưng tỷ lệ chuyển đổi (Conversion rate) rất cao", "Lượng tìm kiếm cực kỳ cao", "Chỉ gồm 1 từ duy nhất", "Rất khó SEO do cạnh tranh khốc liệt"],
+    "options": [
+      "Lượng tìm kiếm (Volume) thấp nhưng tỷ lệ chuyển đổi (Conversion rate) rất cao",
+      "Lượng tìm kiếm cực kỳ cao",
+      "Chỉ gồm 1 từ duy nhất",
+      "Rất khó SEO do cạnh tranh khốc liệt"
+    ],
     "correct_index": 0,
     "explanation": "VD: 'Giày' (Short-tail, khó SEO, chuyển đổi thấp) vs 'Mua giày chạy bộ Nike nam size 42 giá rẻ' (Long-tail, dễ SEO, khách đã rất sẵn sàng mua -> CVR cao)."
   },
-
   {
     "id": "social_01",
     "topic_id": "social_media",
     "question": "Thuật toán EdgeRank của Facebook ưu tiên hiển thị nội dung dựa trên 3 yếu tố cốt lõi nào?",
-    "options": ["Time, Money, Quality", "Affinity (Mối quan hệ), Weight (Trọng số tương tác), Time Decay (Độ mới)", "Likes, Shares, Comments", "Video, Text, Image"],
+    "options": [
+      "Time, Money, Quality",
+      "Affinity (Mối quan hệ), Weight (Trọng số tương tác), Time Decay (Độ mới)",
+      "Likes, Shares, Comments",
+      "Video, Text, Image"
+    ],
     "correct_index": 1,
     "explanation": "Dù thuật toán đã tiến hóa thành Machine Learning phức tạp, cốt lõi của FB vẫn là: Bạn có thân với người đăng không (Affinity), Loại tương tác nào (Share có trọng số cao hơn Like), và Bài đăng có mới không (Time decay)."
   },
@@ -302,7 +475,12 @@
     "id": "social_02",
     "topic_id": "social_media",
     "question": "Tính năng 'Duet' và 'Stitch' là đặc trưng của mạng xã hội nào?",
-    "options": ["Instagram", "Twitter / X", "TikTok", "LinkedIn"],
+    "options": [
+      "Instagram",
+      "Twitter / X",
+      "TikTok",
+      "LinkedIn"
+    ],
     "correct_index": 2,
     "explanation": "Duet và Stitch là tính năng giúp người dùng tương tác, remix lại video của người khác trên TikTok, tạo ra các làn sóng Viral UGC mạnh mẽ."
   },
@@ -310,7 +488,12 @@
     "id": "social_03",
     "topic_id": "social_media",
     "question": "Micro-Influencer thường có đặc điểm gì nổi bật so với Macro-Influencer / Celeb?",
-    "options": ["Lượng follower lớn hơn hàng triệu người", "Tỷ lệ tương tác (Engagement Rate) cao hơn và tệp fan trung thành, ngách sâu hơn", "Phí booking đắt hơn rất nhiều", "Không bao giờ nhận quảng cáo"],
+    "options": [
+      "Lượng follower lớn hơn hàng triệu người",
+      "Tỷ lệ tương tác (Engagement Rate) cao hơn và tệp fan trung thành, ngách sâu hơn",
+      "Phí booking đắt hơn rất nhiều",
+      "Không bao giờ nhận quảng cáo"
+    ],
     "correct_index": 1,
     "explanation": "Micro-influencer (10k-100k follower) có cộng đồng rất ngách. Dù reach thấp hơn Celeb, nhưng ROI thường tốt hơn do fan tin tưởng họ như một người bạn/chuyên gia."
   },
@@ -318,7 +501,12 @@
     "id": "social_04",
     "topic_id": "social_media",
     "question": "Social Listening là công việc gì?",
-    "options": ["Đeo tai nghe lúc làm việc", "Dùng công cụ để theo dõi, thu thập dữ liệu và phân tích các thảo luận về thương hiệu/ngành trên mạng xã hội", "Gọi điện thoại telesales cho khách hàng", "Viết caption cho Fanpage"],
+    "options": [
+      "Đeo tai nghe lúc làm việc",
+      "Dùng công cụ để theo dõi, thu thập dữ liệu và phân tích các thảo luận về thương hiệu/ngành trên mạng xã hội",
+      "Gọi điện thoại telesales cho khách hàng",
+      "Viết caption cho Fanpage"
+    ],
     "correct_index": 1,
     "explanation": "Social Listening giúp đo lường Sentiment (Cảm xúc: Tích cực/Tiêu cực), xử lý khủng hoảng truyền thông kịp thời và tìm ra insight khách hàng."
   },
@@ -326,16 +514,25 @@
     "id": "social_05",
     "topic_id": "social_media",
     "question": "Đâu là khung tỷ lệ khung hình (Aspect Ratio) chuẩn cho Video Short/Reels/TikTok?",
-    "options": ["16:9", "1:1", "9:16", "4:3"],
+    "options": [
+      "16:9",
+      "1:1",
+      "9:16",
+      "4:3"
+    ],
     "correct_index": 2,
     "explanation": "9:16 (Video dọc full màn hình điện thoại) là format định hình kỷ nguyên Short-form Video hiện tại."
   },
-
   {
     "id": "email_01",
     "topic_id": "email_crm",
     "question": "Open Rate trong Email Marketing bị ảnh hưởng lớn nhất bởi yếu tố nào?",
-    "options": ["Nội dung dài hay ngắn", "Thiết kế nút CTA", "Tiêu đề email (Subject Line) và Tên người gửi", "Màu sắc của email"],
+    "options": [
+      "Nội dung dài hay ngắn",
+      "Thiết kế nút CTA",
+      "Tiêu đề email (Subject Line) và Tên người gửi",
+      "Màu sắc của email"
+    ],
     "correct_index": 2,
     "explanation": "Nếu Subject Line không hấp dẫn, khách hàng sẽ bỏ qua hoặc xóa ngay lập tức mà không mở (Open). Tiêu đề quyết định >80% cơ hội email được đọc."
   },
@@ -343,7 +540,12 @@
     "id": "email_02",
     "topic_id": "email_crm",
     "question": "Hệ thống CRM (Customer Relationship Management) có chức năng chính là gì?",
-    "options": ["Quản lý kho hàng", "Thiết kế đồ họa", "Quản lý tập trung toàn bộ dữ liệu, lịch sử tương tác và điểm chạm với khách hàng", "Lập trình website"],
+    "options": [
+      "Quản lý kho hàng",
+      "Thiết kế đồ họa",
+      "Quản lý tập trung toàn bộ dữ liệu, lịch sử tương tác và điểm chạm với khách hàng",
+      "Lập trình website"
+    ],
     "correct_index": 2,
     "explanation": "CRM (VD: Salesforce, Hubspot) lưu trữ lịch sử mua hàng, lịch sử email/call... giúp Sale và Marketing có chung một bức tranh để chăm sóc khách hàng cá nhân hóa."
   },
@@ -351,7 +553,12 @@
     "id": "email_03",
     "topic_id": "email_crm",
     "question": "Bounce Rate (Tỷ lệ dội lại) Hard Bounce trong Email Marketing nghĩa là gì?",
-    "options": ["Email bị trả về vĩnh viễn do địa chỉ không tồn tại hoặc sai định dạng", "Email bị trả về tạm thời do hòm thư đầy", "Khách hàng bấm Unsubscribe", "Khách hàng đánh dấu Spam"],
+    "options": [
+      "Email bị trả về vĩnh viễn do địa chỉ không tồn tại hoặc sai định dạng",
+      "Email bị trả về tạm thời do hòm thư đầy",
+      "Khách hàng bấm Unsubscribe",
+      "Khách hàng đánh dấu Spam"
+    ],
     "correct_index": 0,
     "explanation": "Hard Bounce là lỗi vĩnh viễn (địa chỉ giả, xóa tài khoản...). Cần dọn dẹp (clean) danh sách Hard Bounce ngay để không bị đánh tụt uy tín (Sender Reputation)."
   },
@@ -359,7 +566,12 @@
     "id": "email_04",
     "topic_id": "email_crm",
     "question": "Marketing Automation (Tự động hóa) trong Email kết hợp CRM hoạt động dựa trên cơ chế nào?",
-    "options": ["Nhân viên ngồi canh giờ để gửi", "Trigger (Hành động kích hoạt) -> Condition (Điều kiện lọc) -> Action (Gửi email/SMS)", "Gửi hàng loạt cho tất cả mọi người cùng 1 nội dung", "AI tự động đoán ý khách hàng"],
+    "options": [
+      "Nhân viên ngồi canh giờ để gửi",
+      "Trigger (Hành động kích hoạt) -> Condition (Điều kiện lọc) -> Action (Gửi email/SMS)",
+      "Gửi hàng loạt cho tất cả mọi người cùng 1 nội dung",
+      "AI tự động đoán ý khách hàng"
+    ],
     "correct_index": 1,
     "explanation": "Workflow tự động: Ví dụ khách bỏ giỏ hàng (Trigger) -> Đợi 24h (Condition) -> Gửi email nhắc nhở kèm mã giảm giá (Action)."
   },
@@ -367,16 +579,25 @@
     "id": "email_05",
     "topic_id": "email_crm",
     "question": "Chỉ số RFM dùng để phân loại khách hàng trong CRM dựa trên 3 tiêu chí nào?",
-    "options": ["Region, Finance, Management", "Recency (Gần đây), Frequency (Tần suất), Monetary (Giá trị chi tiêu)", "Reach, Funnel, Metrics", "Rate, Feedback, Motivation"],
+    "options": [
+      "Region, Finance, Management",
+      "Recency (Gần đây), Frequency (Tần suất), Monetary (Giá trị chi tiêu)",
+      "Reach, Funnel, Metrics",
+      "Rate, Feedback, Motivation"
+    ],
     "correct_index": 1,
     "explanation": "RFM model giúp tìm ra tập 'Khách hàng VIP': Mua gần đây nhất (R cao), Mua thường xuyên nhất (F cao) và Chi nhiều tiền nhất (M cao)."
   },
-
   {
     "id": "growth_01",
     "topic_id": "analytics_growth",
     "question": "Trong mô hình Growth Hacking AARRR (Pirate Metrics), chữ R thứ 3 là gì?",
-    "options": ["Revenue (Doanh thu)", "Retention (Giữ chân)", "Referral (Giới thiệu)", "Return (Hoàn trả)"],
+    "options": [
+      "Revenue (Doanh thu)",
+      "Retention (Giữ chân)",
+      "Referral (Giới thiệu)",
+      "Return (Hoàn trả)"
+    ],
     "correct_index": 2,
     "explanation": "AARRR = Acquisition (Thu hút) -> Activation (Kích hoạt) -> Retention (Giữ chân) -> Referral (Giới thiệu) -> Revenue (Doanh thu)."
   },
@@ -384,7 +605,12 @@
     "id": "growth_02",
     "topic_id": "analytics_growth",
     "question": "North Star Metric (Chỉ số sao Bắc Đẩu) là gì?",
-    "options": ["Số lượng like trên Fanpage", "Chỉ số duy nhất, quan trọng nhất đo lường cốt lõi giá trị mà sản phẩm mang lại cho khách hàng", "Chi phí chạy Ads hàng tháng", "Mục tiêu lợi nhuận của năm"],
+    "options": [
+      "Số lượng like trên Fanpage",
+      "Chỉ số duy nhất, quan trọng nhất đo lường cốt lõi giá trị mà sản phẩm mang lại cho khách hàng",
+      "Chi phí chạy Ads hàng tháng",
+      "Mục tiêu lợi nhuận của năm"
+    ],
     "correct_index": 1,
     "explanation": "North Star Metric là kim chỉ nam cho toàn bộ công ty. Ví dụ: NSM của Spotify = 'Thời gian nghe nhạc', của Airbnb = 'Số đêm được đặt'."
   },
@@ -392,7 +618,12 @@
     "id": "growth_03",
     "topic_id": "analytics_growth",
     "question": "LTV (Lifetime Value) là gì?",
-    "options": ["Giá trị vòng đời - Tổng lợi nhuận ròng mà một khách hàng mang lại trong suốt thời gian họ gắn bó với doanh nghiệp", "Giá trị của công ty trên thị trường chứng khoán", "Thời gian một sản phẩm tồn tại trước khi bị hỏng", "Số lần khách hàng xem quảng cáo"],
+    "options": [
+      "Giá trị vòng đời - Tổng lợi nhuận ròng mà một khách hàng mang lại trong suốt thời gian họ gắn bó với doanh nghiệp",
+      "Giá trị của công ty trên thị trường chứng khoán",
+      "Thời gian một sản phẩm tồn tại trước khi bị hỏng",
+      "Số lần khách hàng xem quảng cáo"
+    ],
     "correct_index": 0,
     "explanation": "LTV rất quan trọng trong mô hình Subscription (SaaS) hoặc F&B. LTV càng cao, doanh nghiệp càng dám chi nhiều tiền CAC để mua khách hàng."
   },
@@ -400,7 +631,12 @@
     "id": "growth_04",
     "topic_id": "analytics_growth",
     "question": "Kỹ thuật Viral Loop (Vòng lặp lan truyền) nổi tiếng nhất của Dropbox/Uber thời kỳ đầu là gì?",
-    "options": ["Chạy quảng cáo Super Bowl", "Tặng thưởng (Dung lượng/Tiền) cho cả người giới thiệu và người được giới thiệu (Referral Program)", "Mướn Celeb PR", "Đổi logo liên tục"],
+    "options": [
+      "Chạy quảng cáo Super Bowl",
+      "Tặng thưởng (Dung lượng/Tiền) cho cả người giới thiệu và người được giới thiệu (Referral Program)",
+      "Mướn Celeb PR",
+      "Đổi logo liên tục"
+    ],
     "correct_index": 1,
     "explanation": "Double-sided Referral. 'Mời bạn tải Dropbox: Bạn nhận 500MB, bạn của bạn nhận 500MB'. Cơ chế Win-Win tạo ra Viral Loop tự động (K-factor > 1)."
   },
@@ -408,8 +644,757 @@
     "id": "growth_05",
     "topic_id": "analytics_growth",
     "question": "Churn Rate (Tỷ lệ rời bỏ) tính như thế nào?",
-    "options": ["Số khách quay lại / Tổng số khách", "Số khách hàng ngừng sử dụng dịch vụ trong một khoảng thời gian / Tổng số khách hàng đầu kỳ", "Số nhân viên nghỉ việc", "Tỷ lệ khách hàng mua thêm sản phẩm (Upsell)"],
+    "options": [
+      "Số khách quay lại / Tổng số khách",
+      "Số khách hàng ngừng sử dụng dịch vụ trong một khoảng thời gian / Tổng số khách hàng đầu kỳ",
+      "Số nhân viên nghỉ việc",
+      "Tỷ lệ khách hàng mua thêm sản phẩm (Upsell)"
+    ],
     "correct_index": 1,
     "explanation": "Churn Rate là 'Kẻ thù số 1' của Growth. Growth không có ý nghĩa nếu khách vào bao nhiêu lại rời đi bấy nhiêu (Leaky bucket - Cái xô thủng)."
+  },
+  {
+    "id": "marketing_basics_001",
+    "topic_id": "marketing_basics",
+    "question": "Một công ty sản xuất nước giải khát mới ra mắt sản phẩm trà xanh đóng chai. Họ quyết định tập trung toàn bộ ngân sách marketing vào việc tạo ra những quảng cáo truyền hình cảm xúc nhấn mạnh 'sự thanh lọc cơ thể và tâm hồn', nhưng bỏ qua việc phân tích đối thủ cạnh tranh, kênh phân phối và giá cả. Theo lý thuyết Marketing Mix (4P), sai lầm chiến lược nghiêm trọng nhất của công ty này là gì?",
+    "options": [
+      "Họ đang mắc kẹt trong 'tư duy lấy sản phẩm làm trung tâm' (Product-centric mindset) thay vì 'tư duy lấy thị trường làm trung tâm' (Market-centric mindset), dẫn đến việc 4P bị méo mó.",
+      "Họ đã quá tập trung vào Promotion (Xúc tiến) mà bỏ qua 3P còn lại (Product, Price, Place), khiến chiến lược marketing mất cân bằng nghiêm trọng.",
+      "Họ đã không áp dụng mô hình STP (Segmentation, Targeting, Positioning) trước khi triển khai 4P, dẫn đến thông điệp không đúng đối tượng.",
+      "Họ đã vi phạm nguyên tắc 'Integrated Marketing Communications' (IMC) khi chỉ sử dụng một kênh truyền thông duy nhất."
+    ],
+    "correct_index": 1,
+    "explanation": "Marketing Mix (4P) là một tổng thể thống nhất. Việc chỉ tập trung vào Promotion (quảng cáo) mà bỏ qua Product (chất lượng sản phẩm), Price (chiến lược giá), Place (kênh phân phối) khiến cho nỗ lực quảng cáo trở nên vô ích. Dù các đáp án khác cũng có lý, nhưng sai lầm cốt lõi và trực tiếp nhất là đã phá vỡ sự cân bằng của 4P.",
+    "reference_type": "article",
+    "reference_content": "## **Marketing Mix (4P) - Nền Tảng Của Mọi Chiến Lược**\n\n**Marketing Mix** hay **4P** (Product, Price, Place, Promotion) là một trong những khung lý thuyết nền tảng nhất của marketing hiện đại, được E. Jerome McCarthy giới thiệu lần đầu vào năm 1960. Tuy nhiên, một sai lầm phổ biến của các doanh nghiệp mới là chỉ tập trung vào *Promotion* (quảng cáo, khuyến mãi) mà quên mất rằng nó chỉ là một phần của tổng thể.\n\nThực tế, *Product* (Chất lượng, bao bì, thương hiệu) là nền móng. *Price* (Giá cả) không chỉ là con số mà còn là tín hiệu định vị thương hiệu. *Place* (Kênh phân phối) quyết định khách hàng có thể mua sản phẩm ở đâu và như thế nào. Nếu 3P này yếu, mọi nỗ lực *Promotion* sẽ đổ sông đổ biển.\n\n*\"Marketing không phải là nghệ thuật bán những thứ bạn có, mà là nghệ thuật tạo ra thứ mà thị trường cần\"* - Philip Kotler. Việc bỏ qua phân tích thị trường và đối thủ để chạy theo quảng cáo cảm xúc là minh chứng rõ ràng cho một chiến lược **thiếu cân bằng và phiến diện**."
+  },
+  {
+    "id": "marketing_basics_002",
+    "topic_id": "marketing_basics",
+    "question": "Một thương hiệu thời trang cao cấp (luxury fashion) quyết định giảm giá 70% toàn bộ sản phẩm trong 1 tuần để thu hút khách hàng mới. Theo các nguyên lý marketing cơ bản về định vị thương hiệu (Brand Positioning) và tâm lý khách hàng, hậu quả chiến lược dài hạn nghiêm trọng nhất của hành động này là gì?",
+    "options": [
+      "Doanh thu ngắn hạn tăng vọt nhưng chi phí sản xuất không đủ để đáp ứng nhu cầu, dẫn đến thiếu hàng và mất uy tín.",
+      "Khách hàng trung thành hiện tại cảm thấy bị phản bội vì đã mua hàng với giá đắt, dẫn đến tỷ lệ rời bỏ (churn rate) tăng cao.",
+      "Thương hiệu bị 'hàng hóa hóa' (commoditization) và mất đi sự khan hiếm (scarcity) - giá trị cốt lõi của định vị xa xỉ, gần như không thể khôi phục.",
+      "Các đối thủ cạnh tranh sẽ phải giảm giá theo, gây ra một cuộc chiến tranh giá (price war) làm tổn hại toàn ngành."
+    ],
+    "correct_index": 2,
+    "explanation": "Đối với thương hiệu xa xỉ, giá trị cốt lõi nằm ở sự khan hiếm, đẳng cấp và độc quyền. Giảm giá sâu là hành động tự sát thương hiệu vì nó phá hủy ngay lập tức 'giá trị cảm nhận' (perceived value). Một khi khách hàng cho rằng thương hiệu 'rẻ', việc quay lại định vị cao cấp là cực kỳ khó khăn, thậm chí bất khả thi.",
+    "reference_type": "youtube",
+    "reference_url": "https://www.youtube.com/embed/0X6z2wC0Q5M?start=120"
+  },
+  {
+    "id": "marketing_basics_003",
+    "topic_id": "marketing_basics",
+    "question": "Một công ty khởi nghiệp (startup) về ứng dụng học ngoại ngữ có ngân sách marketing rất hạn chế. Họ quyết định không chạy quảng cáo trả phí mà thay vào đó xây dựng một chương trình 'mời bạn bè - nhận tháng học miễn phí' (Referral Program) và tập trung tối ưu hóa App Store (ASO). Theo mô hình 'Flywheel' (Bánh đà) trong Inbound Marketing, chiến lược này đang tập trung khai thác giai đoạn nào?",
+    "options": [
+      "Giai đoạn 'Delight' (làm hài lòng) để biến khách hàng thành người giới thiệu, và giai đoạn 'Attract' (thu hút) thông qua ASO.",
+      "Giai đoạn 'Engage' (tương tác) bằng cách tạo ra nội dung học tập hấp dẫn trên App Store.",
+      "Giai đoạn 'Convert' (chuyển đổi) thông qua ưu đãi dùng thử miễn phí kết hợp với quảng cáo truyền thống.",
+      "Giai đoạn 'Analyze' (phân tích) dữ liệu người dùng để tối ưu chiến dịch remarketing."
+    ],
+    "correct_index": 0,
+    "explanation": "Mô hình Flywheel của HubSpot gồm 3 giai đoạn: Attract (Thu hút) -> Engage (Tương tác) -> Delight (Làm hài lòng). ASO giúp thu hút người dùng mới (Attract). Referral Program biến khách hàng hiện tại thành người quảng bá (Delight -> Attract), tạo ra vòng quay bánh đà tự duy trì mà không cần chi phí quảng cáo lớn.",
+    "reference_type": "article",
+    "reference_content": "## **Inbound Marketing & Mô Hình Flywheel**\n\n**Inbound Marketing** là phương pháp thu hút khách hàng thông qua việc tạo ra nội dung giá trị và trải nghiệm tích cực, thay vì làm phiền họ bằng quảng cáo. **Mô hình Flywheel** (Bánh đà) của HubSpot đã thay thế tư duy cũ về *Marketing Funnel* (Phễu marketing).\n\nThay vì xem khách hàng là điểm cuối của phễu, Flywheel coi họ là nguồn năng lượng để quay bánh đà. Ba giai đoạn chính là:\n\n1. **Attract (Thu hút)**: Kéo đúng người về phía bạn bằng nội dung hữu ích (SEO, blog, ASO...).\n2. **Engage (Tương tác)**: Xây dựng mối quan hệ bằng cách giải quyết vấn đề của họ (email cá nhân hóa, demo...).\n3. **Delight (Làm hài lòng)**: Cung cấp trải nghiệm tuyệt vời để họ trở thành người ủng hộ thương hiệu (referral, review...).\n\n*\"Doanh nghiệp tăng trưởng nhanh nhất là doanh nghiệp có khách hàng hài lòng nhất\"* - Brian Halligan. Chiến lược kết hợp **Referral Program** (Delight) và **ASO** (Attract) là cách tận dụng tối đa năng lượng từ khách hàng hiện tại để thu hút khách hàng mới, tạo vòng quay bền vững."
+  },
+  {
+    "id": "marketing_basics_004",
+    "topic_id": "marketing_basics",
+    "question": "Một sinh viên marketing đang phân tích hành vi mua sắm của nhóm người tiêu dùng khi chọn mua điện thoại thông minh. Cô ấy nhận thấy một nhóm khách hàng luôn mua phiên bản iPhone mới nhất ngay khi vừa ra mắt, bất kể giá cao. Nhóm khác lại chỉ mua điện thoại tầm trung, đợi đến dịp khuyến mãi lớn. Theo lý thuyết 'Vòng đời chấp nhận sản phẩm' (Diffusion of Innovations) của Everett Rogers, yếu tố nào quyết định sự khác biệt căn bản giữa hai nhóm này?",
+    "options": [
+      "Sự khác biệt về thu nhập cá nhân (Income level) là yếu tố quyết định duy nhất.",
+      "Mức độ 'sẵn sàng chấp nhận rủi ro' (Risk tolerance) và 'tính đổi mới cá nhân' (innovativeness) của mỗi người là khác nhau.",
+      "Nhóm thứ nhất bị ảnh hưởng bởi quảng cáo nhiều hơn nhóm thứ hai.",
+      "Nhóm thứ hai có kiến thức về công nghệ thấp hơn nên không dám mua sản phẩm cao cấp."
+    ],
+    "correct_index": 1,
+    "explanation": "Lý thuyết Diffusion of Innovations phân loại người tiêu dùng dựa trên 'tính đổi mới' (innovativeness). Nhóm đầu là 'Innovators' (Nhà đổi mới) - chấp nhận rủi ro cao, muốn thử công nghệ mới. Nhóm sau là 'Late Majority' hoặc 'Laggards' - chỉ mua khi sản phẩm đã được kiểm chứng và giá rẻ. Sự khác biệt cốt lõi nằm ở tâm lý chấp nhận rủi ro và mức độ đổi mới, không chỉ đơn thuần là thu nhập.",
+    "reference_type": "article",
+    "reference_content": "## **Diffusion of Innovations - Vòng Đời Chấp Nhận Sản Phẩm**\n\n**Diffusion of Innovations** là lý thuyết kinh điển của Everett Rogers (1962), giải thích cách thức, lý do và tốc độ một ý tưởng hay sản phẩm mới lan truyền trong xã hội. Rogers phân loại người tiêu dùng thành 5 nhóm dựa trên **mức độ đổi mới (innovativeness)**:\n\n1. **Innovators (2.5%)**: Thích phiêu lưu, chấp nhận rủi ro cao, sẵn sàng thử nghiệm.\n2. **Early Adopters (13.5%)**: Có uy tín trong cộng đồng, là 'người dẫn dắt xu hướng'.\n3. **Early Majority (34%)**: Thận trọng nhưng chấp nhận đổi mới nhanh hơn trung bình.\n4. **Late Majority (34%)**: Hoài nghi, chỉ chấp nhận khi đa số đã dùng.\n5. **Laggards (16%)**: Bảo thủ, chỉ đổi mới khi không còn lựa chọn khác.\n\nĐiều quan trọng là **yếu tố tâm lý** (risk tolerance, social status, FOMO) đóng vai trò lớn hơn nhiều so với yếu tố nhân khẩu học như thu nhập. Một người giàu có thể vẫn là *Late Majority* nếu họ không quan tâm đến công nghệ. *\"Các nhóm này được xác định bởi thái độ, không phải túi tiền\"* - Everett Rogers."
+  },
+  {
+    "id": "marketing_basics_005",
+    "topic_id": "marketing_basics",
+    "question": "Một doanh nghiệp sản xuất sữa tươi muốn thâm nhập thị trường mới. Họ phát hiện ra rằng: (1) Người tiêu dùng ở thị trường này rất nhạy cảm về giá, (2) Có ít nhất 5 đối thủ cạnh tranh mạnh đã chiếm lĩnh kệ hàng siêu thị, (3) Chi phí vận chuyển và bảo quản lạnh rất cao. Theo chiến lược 'Đại dương xanh' (Blue Ocean Strategy), công ty nên làm gì?",
+    "options": [
+      "Chấp nhận cạnh tranh trực diện bằng cách giảm giá sâu hơn đối thủ để chiếm thị phần (Price war).",
+      "Tập trung vào một phân khúc nhỏ (niche market) như sữa organic cao cấp để tránh cạnh tranh.",
+      "Từ bỏ thị trường sữa tươi truyền thống và tái định nghĩa sản phẩm, ví dụ: tạo ra 'sữa hạt dinh dưỡng dạng bột tiện lợi' cho giới văn phòng - một không gian thị trường hoàn toàn mới.",
+      "Đầu tư mạnh vào quảng cáo thương hiệu để xây dựng lòng trung thành, bất chấp giá cao."
+    ],
+    "correct_index": 2,
+    "explanation": "Blue Ocean Strategy khuyên doanh nghiệp không nên cạnh tranh trong 'đại dương đỏ' (thị trường đông đúc, cạnh tranh khốc liệt) mà hãy tạo ra 'đại dương xanh' - một không gian thị trường mới không có đối thủ. Việc chuyển từ sữa tươi (cạnh tranh cao) sang sữa hạt dinh dưỡng dạng bột (thị trường mới, khác biệt) là minh họa điển hình cho chiến lược này.",
+    "reference_type": "youtube",
+    "reference_url": "https://www.youtube.com/embed/rU9dY0LmhTA?start=300"
+  },
+  {
+    "id": "consumer_behavior_1",
+    "topic_id": "consumer_behavior",
+    "question": "Trong mô hình 'Elaboration Likelihood Model' (ELM) của Petty và Cacioppo, yếu tố nào quyết định việc người tiêu dùng sẽ đi theo con đường trung tâm (central route) hay con đường ngoại vi (peripheral route) để xử lý thông tin quảng cáo?",
+    "options": [
+      "Mức độ cảm xúc tích cực của người tiêu dùng đối với thương hiệu",
+      "Mức độ liên quan cá nhân (personal relevance) và khả năng nhận thức (cognitive ability) của người tiêu dùng",
+      "Số lượng hình ảnh và màu sắc trong quảng cáo",
+      "Thời gian tiếp xúc với quảng cáo"
+    ],
+    "correct_index": 1,
+    "explanation": "ELM cho rằng khi người tiêu dùng có mức độ liên quan cá nhân cao và có khả năng nhận thức đầy đủ, họ sẽ xử lý thông tin qua central route (dựa trên lập luận logic). Ngược lại, khi liên quan thấp hoặc khả năng hạn chế, họ sẽ dùng peripheral route (dựa trên yếu tố bề ngoài như hình ảnh, người nổi tiếng).",
+    "reference_type": "article",
+    "reference_content": "**Elaboration Likelihood Model (ELM)** là một lý thuyết nền tảng trong tâm lý học thuyết phục, do Petty và Cacioppo phát triển. Mô hình này giải thích cách con người xử lý thông tin quảng cáo thông qua hai con đường: *central route* và *peripheral route*. Khi người tiêu dùng có *động lực cao* (ví dụ: sản phẩm liên quan trực tiếp đến nhu cầu cá nhân) và *khả năng nhận thức tốt* (ví dụ: kiến thức chuyên môn, thời gian suy nghĩ), họ sẽ phân tích kỹ lưỡng các lập luận trong thông điệp. Ngược lại, nếu động lực hoặc khả năng thấp, họ dựa vào các tín hiệu ngoại vi như hình ảnh bắt mắt, âm nhạc, hoặc sự chứng thực của người nổi tiếng. Hiểu được điều này, marketer có thể thiết kế thông điệp phù hợp: dùng *lập luận mạnh mẽ* cho đối tượng có liên quan cao, và *yếu tố cảm xúc, trực quan* cho đối tượng có liên quan thấp."
+  },
+  {
+    "id": "consumer_behavior_2",
+    "topic_id": "consumer_behavior",
+    "question": "Khái niệm 'chênh lệch nhận thức' (cognitive dissonance) thường xuất hiện mạnh nhất trong giai đoạn nào của quá trình ra quyết định mua hàng?",
+    "options": [
+      "Giai đoạn nhận biết nhu cầu",
+      "Giai đoạn tìm kiếm thông tin",
+      "Giai đoạn sau khi mua (post-purchase)",
+      "Giai đoạn đánh giá các lựa chọn thay thế"
+    ],
+    "correct_index": 2,
+    "explanation": "Cognitive dissonance là sự căng thẳng tâm lý xảy ra khi niềm tin hoặc hành vi của một người mâu thuẫn với nhau. Trong hành vi tiêu dùng, nó thường xuất hiện *sau khi mua* (post-purchase dissonance) khi người mua nghi ngờ quyết định của mình, đặc biệt với các sản phẩm đắt tiền hoặc có nhiều lựa chọn thay thế.",
+    "reference_type": "youtube",
+    "reference_url": "https://www.youtube.com/embed/8d6I5X1H0xI?start=30"
+  },
+  {
+    "id": "consumer_behavior_3",
+    "topic_id": "consumer_behavior",
+    "question": "Trong lý thuyết 'Hành vi có kế hoạch' (Theory of Planned Behavior - TPB) của Ajzen, yếu tố nào dưới đây được thêm vào so với mô hình 'Hành vi hợp lý' (Theory of Reasoned Action - TRA) để giải thích các hành vi không hoàn toàn tự nguyện?",
+    "options": [
+      "Thái độ đối với hành vi (attitude toward the behavior)",
+      "Chuẩn chủ quan (subjective norm)",
+      "Nhận thức kiểm soát hành vi (perceived behavioral control)",
+      "Ý định hành vi (behavioral intention)"
+    ],
+    "correct_index": 2,
+    "explanation": "TPB mở rộng TRA bằng cách thêm yếu tố 'perceived behavioral control' - niềm tin của cá nhân về khả năng thực hiện hành vi (ví dụ: nguồn lực, cơ hội, rào cản). Yếu tố này giúp giải thích các hành vi không hoàn toàn dưới sự kiểm soát ý chí, như mua hàng online khi thiếu kỹ năng công nghệ.",
+    "reference_type": "article",
+    "reference_content": "**Theory of Planned Behavior (TPB)** là sự phát triển của **Theory of Reasoned Action (TRA)** do Icek Ajzen đề xuất. Trong khi TRA cho rằng ý định hành vi được quyết định bởi thái độ và chuẩn chủ quan, TPB bổ sung thêm *nhận thức kiểm soát hành vi* (PBC). PBC phản ánh mức độ dễ dàng hoặc khó khăn mà người tiêu dùng cảm nhận khi thực hiện hành vi, dựa trên các yếu tố như thời gian, tiền bạc, kỹ năng, và sự hợp tác từ người khác. Ví dụ, một người có thái độ tích cực với việc mua thực phẩm hữu cơ và chịu ảnh hưởng từ bạn bè, nhưng nếu họ cảm thấy khó tìm mua hoặc giá quá cao (PBC thấp), ý định mua sẽ giảm. Do đó, marketer cần tác động vào cả ba yếu tố: *thái độ* (lợi ích sản phẩm), *chuẩn chủ quan* (xu hướng xã hội), và *PBC* (giảm rào cản, tăng khả năng tiếp cận)."
+  },
+  {
+    "id": "consumer_behavior_4",
+    "topic_id": "consumer_behavior",
+    "question": "Trong bối cảnh marketing, 'hiệu ứng mỏ neo' (anchoring effect) ảnh hưởng đến hành vi người tiêu dùng như thế nào khi họ đánh giá giá trị của một sản phẩm?",
+    "options": [
+      "Người tiêu dùng luôn so sánh sản phẩm với sản phẩm đắt nhất trong cùng danh mục",
+      "Người tiêu dùng dựa vào thông tin đầu tiên (ví dụ: giá gốc) làm điểm tham chiếu để đánh giá các thông tin sau (ví dụ: giá khuyến mãi)",
+      "Người tiêu dùng chỉ mua sản phẩm khi giá thấp hơn giá trị cảm nhận trung bình của thị trường",
+      "Người tiêu dùng bị ảnh hưởng bởi số lượng người đã mua sản phẩm trước đó"
+    ],
+    "correct_index": 1,
+    "explanation": "Anchoring effect là một thiên kiến nhận thức (cognitive bias) trong đó con người quá phụ thuộc vào thông tin đầu tiên (mỏ neo) khi đưa ra quyết định. Trong marketing, ví dụ điển hình là hiển thị giá gốc cao bên cạnh giá khuyến mãi, khiến người tiêu dùng cảm thấy mình đang được lợi.",
+    "reference_type": "none"
+  },
+  {
+    "id": "consumer_behavior_5",
+    "topic_id": "consumer_behavior",
+    "question": "Trong mô hình 'Vòng đời gia đình' (Family Life Cycle - FLC), giai đoạn nào thường có nhu cầu cao nhất về các sản phẩm tài chính dài hạn như bảo hiểm nhân thọ và đầu tư cho giáo dục đại học?",
+    "options": [
+      "Giai đoạn độc thân trẻ (young single)",
+      "Giai đoạn 'tổ ấm đầy đủ' (full nest) - gia đình có con nhỏ và thanh thiếu niên",
+      "Giai đoạn 'tổ ấm trống rỗng' (empty nest) - con cái đã trưởng thành và rời nhà",
+      "Giai đoạn hưu trí (retirement)"
+    ],
+    "correct_index": 2,
+    "explanation": "Giai đoạn 'empty nest' thường là lúc cha mẹ có thu nhập ổn định, chi phí nuôi con giảm, và họ bắt đầu tập trung vào kế hoạch tài chính dài hạn như bảo hiểm nhân thọ, đầu tư hưu trí, và hỗ trợ học phí đại học cho con. Đây là giai đoạn 'tích lũy tài sản' mạnh mẽ.",
+    "reference_type": "article",
+    "reference_content": "**Family Life Cycle (FLC)** là mô hình phân khúc thị trường dựa trên các giai đoạn thay đổi của gia đình theo thời gian. Mỗi giai đoạn có đặc điểm tài chính, nhu cầu và hành vi tiêu dùng riêng. Giai đoạn *full nest* (con nhỏ) thường chi tiêu nhiều cho nhà ở, thực phẩm, quần áo trẻ em và dịch vụ chăm sóc. Ngược lại, giai đoạn *empty nest* (con cái đã lớn và rời nhà) thường có thu nhập khả dụng cao hơn, ít gánh nặng tài chính hàng ngày, và bắt đầu quan tâm đến các sản phẩm tài chính dài hạn như *bảo hiểm nhân thọ, quỹ hưu trí, đầu tư chứng khoán*. Đây cũng là lúc họ có xu hướng mua sắm các sản phẩm xa xỉ hoặc du lịch. Marketer cần nhắm đúng thông điệp: an toàn tài chính và tích lũy cho tương lai cho nhóm empty nest, trong khi với full nest là tiết kiệm và tiện ích cho gia đình."
+  },
+  {
+    "id": "branding_01",
+    "topic_id": "branding",
+    "question": "Khi một thương hiệu cao cấp như Louis Vuitton quyết định ra mắt dòng sản phẩm giá rẻ để tiếp cận phân khúc trung cấp, theo lý thuyết positioning, điều gì sẽ xảy ra với cấu trúc thương hiệu?",
+    "options": [
+      "Brand sẽ mở rộng được thị phần và tăng doanh thu nhờ hiệu ứng halo từ thương hiệu mẹ",
+      "Brand equity của thương hiệu mẹ sẽ bị suy giảm do hiệu ứng dilution và mâu thuẫn trong perceptual map",
+      "Thương hiệu sẽ thành công nếu sản phẩm mới được đặt dưới một sub-brand riêng biệt không gắn tên mẹ",
+      "Không có tác động gì đáng kể vì khách hàng cao cấp và trung cấp là hai nhóm riêng biệt"
+    ],
+    "correct_index": 1,
+    "explanation": "Khi một thương hiệu xa xỉ mở rộng xuống phân khúc thấp hơn, nó tạo ra sự mâu thuẫn trong perceptual map của người tiêu dùng. Hiệu ứng dilution làm giảm giá trị cảm nhận của thương hiệu mẹ vì tính độc quyền và đẳng cấp bị phá vỡ. Đây là lý do các thương hiệu xa xỉ thường chọn chiến lược house of brands thay vì branded house.",
+    "reference_type": "article",
+    "reference_content": "## Nguyên lý Dilution trong Brand Extension\n\nKhi một thương hiệu cao cấp mở rộng xuống phân khúc thấp hơn, **hiệu ứng dilution** (phai loãng) là rủi ro lớn nhất. Theo nghiên cứu của Keller & Aaker (1992), *brand extension xuống phân khúc thấp hơn* gây tổn hại đến brand equity nhiều hơn so với mở rộng lên phân khúc cao hơn.\n\nCốt lõi vấn đề nằm ở **perceptual map** – bản đồ nhận thức của người tiêu dùng. Một thương hiệu xa xỉ như Louis Vuitton chiếm vị trí 'độc quyền – đẳng cấp cao' trong tâm trí khách hàng. Khi xuất hiện sản phẩm giá rẻ, *sự mâu thuẫn về nhận thức* khiến khách hàng cao cấp cảm thấy thương hiệu không còn đặc biệt, trong khi khách hàng mới lại nghi ngờ chất lượng.\n\nGiải pháp tối ưu là chiến lược **house of brands** – tạo thương hiệu hoàn toàn mới cho phân khúc thấp hơn (ví dụ: Toyota tạo Lexus cho phân khúc cao cấp thay vì mở rộng Toyota lên). Điều này bảo vệ **brand architecture** và tránh xung đột positioning."
+  },
+  {
+    "id": "branding_02",
+    "topic_id": "branding",
+    "question": "Một startup công nghệ muốn định vị thương hiệu là 'đối thủ phá vỡ thị trường' (market disruptor). Theo lý thuyết Positioning của Ries & Trout, chiến lược nào sau đây là phù hợp nhất để thiết lập vị thế này?",
+    "options": [
+      "Tập trung quảng cáo so sánh trực tiếp với đối thủ dẫn đầu để tạo sự chú ý",
+      "Tìm một khoảng trống (gap) trong tâm trí khách hàng mà đối thủ chưa chiếm giữ và chiếm lấy nó",
+      "Xây dựng thương hiệu dựa trên đặc tính sản phẩm vượt trội nhất để cạnh tranh trực diện",
+      "Sử dụng chiến lược giá thấp nhất thị trường để thu hút khách hàng từ đối thủ"
+    ],
+    "correct_index": 1,
+    "explanation": "Ries & Trout nhấn mạnh rằng positioning không phải là tạo ra thứ gì mới mẻ, mà là thao túng những gì đã có trong tâm trí khách hàng. Chiến lược đúng là tìm một khoảng trống (gap) trong tâm trí khách hàng – một vị trí mà chưa ai chiếm giữ – và chiếm lấy nó. Đây là cách để 'leo lên bậc thang' trong tâm trí khách hàng thay vì cố gắng đẩy đối thủ xuống.",
+    "reference_type": "youtube",
+    "reference_url": "https://www.youtube.com/embed/3jSgP7Uq7kE?start=120"
+  },
+  {
+    "id": "branding_03",
+    "topic_id": "branding",
+    "question": "Trong mô hình Brand Resonance của Keller, một thương hiệu đạt được 'cộng hưởng thương hiệu' (brand resonance) ở cấp độ cao nhất khi người tiêu dùng có cảm giác 'đồng nhất với thương hiệu' (identification). Tuy nhiên, nếu một thương hiệu chỉ dừng lại ở mức độ 'cảm xúc tích cực' (positive feelings) mà không đạt được 'cộng đồng thương hiệu' (brand community), điều này cho thấy vấn đề gì?",
+    "options": [
+      "Thương hiệu đã thành công vì cảm xúc tích cực là nền tảng của brand resonance",
+      "Thương hiệu thiếu yếu tố 'behavioral loyalty' và 'active engagement' – hai trụ cột để đạt được resonance đích thực",
+      "Thương hiệu cần tập trung vào brand salience trước khi nghĩ đến resonance",
+      "Điều này là bình thường vì không phải thương hiệu nào cũng cần brand community"
+    ],
+    "correct_index": 1,
+    "explanation": "Trong mô hình Brand Resonance Pyramid của Keller, cấp độ cao nhất (Resonance) đòi hỏi cả bốn yếu tố: Behavioral Loyalty, Attitudinal Attachment, Sense of Community, và Active Engagement. Nếu chỉ có cảm xúc tích cực (thuộc cấp độ 3 - Response) mà thiếu Sense of Community và Active Engagement, thương hiệu chưa thực sự đạt được resonance. Đây là lý do nhiều thương hiệu lớn đầu tư xây dựng cộng đồng người dùng.",
+    "reference_type": "article",
+    "reference_content": "## Brand Resonance Pyramid – Cấp độ cao nhất của Branding\n\nKevin Lane Keller định nghĩa **Brand Resonance** là đỉnh cao của xây dựng thương hiệu, nơi khách hàng có sự kết nối tâm lý sâu sắc với thương hiệu. Mô hình này có 6 khối xây dựng (brand building blocks) chia làm 4 cấp độ:\n\n1. **Salience** – Nhận biết thương hiệu\n2. **Performance & Imagery** – Hiệu suất và hình ảnh\n3. **Judgments & Feelings** – Đánh giá và cảm xúc\n4. **Resonance** – Cộng hưởng\n\nĐiểm quan trọng: *Resonance không chỉ là cảm xúc tích cực*. Nó đòi hỏi **hành vi chủ động** (active engagement) như tham gia cộng đồng, chia sẻ nội dung, bảo vệ thương hiệu. Các thương hiệu như Harley-Davidson, Apple hay LEGO thành công vì họ xây dựng được **brand community** nơi khách hàng tự nguyện kết nối với nhau thông qua thương hiệu.\n\nThiếu yếu tố này, thương hiệu chỉ dừng ở mức 'được yêu thích' chứ chưa 'được tôn thờ'."
+  },
+  {
+    "id": "branding_04",
+    "topic_id": "branding",
+    "question": "Một thương hiệu FMCG đang sở hữu hai sản phẩm: (1) dầu gội trị gàu chiếm 40% thị phần và (2) dầu gội dưỡng tóc mới ra mắt. Khi thực hiện research, nhóm marketing phát hiện rằng khách hàng mua dầu gội dưỡng tóc chủ yếu vì 'tin tưởng thương hiệu từ dòng trị gàu'. Theo lý thuyết Brand Extension, hiện tượng này được gọi là gì và có rủi ro gì?",
+    "options": [
+      "Category Extension – rủi ro là khách hàng mới không hiểu thương hiệu đang làm gì",
+      "Line Extension – rủi ro là làm loãng thương hiệu nếu hai dòng sản phẩm có positioning mâu thuẫn",
+      "Brand Stretching – rủi ro là thương hiệu mất focus và không được coi là chuyên gia ở lĩnh vực nào",
+      "Ingredient Branding – rủi ro là phụ thuộc vào thành phần của dòng sản phẩm cũ"
+    ],
+    "correct_index": 1,
+    "explanation": "Đây là Line Extension – mở rộng thêm chủng loại trong cùng ngành hàng (dầu gội). Rủi ro chính là sự mâu thuẫn về positioning: dầu gội trị gàu (functional/medical) vs dầu gội dưỡng tóc (beauty/luxury). Nếu không quản lý tốt, khách hàng có thể bối rối về bản sắc thương hiệu, dẫn đến dilution. Đây là lý do Pantene tách biệt rõ ràng giữa các dòng sản phẩm.",
+    "reference_type": "article",
+    "reference_content": "## Line Extension vs Brand Dilution\n\n**Line Extension** là chiến lược mở rộng thêm biến thể sản phẩm trong cùng ngành hàng (ví dụ: cùng là dầu gội nhưng thêm hương vị, công dụng mới). Đây là chiến lược phổ biến nhất trong FMCG vì chi phí thấp và tận dụng được **brand equity** sẵn có.\n\nTuy nhiên, *rủi ro lớn nhất là brand dilution* – sự phai loãng thương hiệu. Khi một thương hiệu vốn nổi tiếng với 'trị gàu' (positioning functional) tung ra dòng 'dưỡng tóc' (positioning beauty), người tiêu dùng có thể *hoang mang về bản sắc thương hiệu*. Nghiên cứu của John, Loken & Joiner (1998) chỉ ra rằng line extension có thể làm suy yếu niềm tin vào thương hiệu mẹ nếu các dòng sản phẩm có **perceived fit** thấp.\n\nGiải pháp: Sử dụng **sub-branding** với tên riêng và bao bì khác biệt, hoặc tạo **master brand** đủ rộng để bao hàm cả hai positioning."
+  },
+  {
+    "id": "branding_05",
+    "topic_id": "branding",
+    "question": "Trong bối cảnh thị trường bão hòa, một thương hiệu mới quyết định sử dụng chiến lược 'repositioning đối thủ cạnh tranh' thay vì tự repositioning bản thân. Theo Ries & Trout, điều kiện tiên quyết để chiến lược này thành công là gì?",
+    "options": [
+      "Đối thủ phải có thị phần nhỏ hơn thương hiệu mới",
+      "Thương hiệu mới phải có ngân sách quảng cáo lớn hơn đối thủ",
+      "Phải có một 'lỗ hổng' (gap) trong định vị hiện tại của đối thủ mà thương hiệu mới có thể khai thác và gắn chặt vào nhận thức của công chúng",
+      "Đối thủ phải đang trong giai đoạn suy thoái hoặc khủng hoảng truyền thông"
+    ],
+    "correct_index": 2,
+    "explanation": "Ries & Trout nổi tiếng với chiến lược 'repositioning the competition' – thay vì cố gắng định vị lại bản thân, hãy định vị lại đối thủ trong tâm trí khách hàng. Điều kiện tiên quyết là phải tìm ra một điểm yếu thực sự trong định vị của đối thủ (một 'lỗ hổng' thực tế) và gắn chặt nó vào họ. Ví dụ kinh điển: 7Up định vị lại cola là 'uncolas' – khai thác lỗ hổng 'cola có caffeine và màu nhân tạo'.",
+    "reference_type": "youtube",
+    "reference_url": "https://www.youtube.com/embed/3jSgP7Uq7kE?start=600"
+  },
+  {
+    "id": "digital_marketing_1",
+    "topic_id": "digital_marketing",
+    "question": "Trong mô hình Marketing Funnel (AIDA), nếu một chiến dịch Facebook Ads có CTR (Click-Through Rate) cao bất thường (>15%) nhưng Conversion Rate cực kỳ thấp (<0.1%), vấn đề cốt lõi thường nằm ở đâu?",
+    "options": [
+      "Chiến dịch đang nhắm đúng đối tượng nhưng landing page tải quá chậm",
+      "Có sự mismatch nghiêm trọng giữa nội dung quảng cáo (Ad Creative) và nội dung Landing Page (Message-Match Gap), dẫn đến click ảo do tò mò nhưng không có ý định chuyển đổi thực sự",
+      "Vấn đề đến từ việc chọn sai mục tiêu chiến dịch (Campaign Objective) trên Facebook",
+      "Do tần suất hiển thị quảng cáo (Frequency) quá cao khiến người dùng bức xúc click nhưng không mua"
+    ],
+    "correct_index": 1,
+    "explanation": "CTR cao nhưng Conversion Rate thấp là dấu hiệu kinh điển của Message-Match Gap: quảng cáo hứa hẹn một điều (gây tò mò, giật tít) nhưng landing page lại nói điều khác, khiến user cảm thấy bị lừa và thoát ngay lập tức.",
+    "reference_type": "article",
+    "reference_content": "### Message-Match Gap trong Digital Marketing\n\n**Message-Match Gap** là một trong những nguyên nhân hàng đầu khiến chiến dịch quảng cáo thất bại, dù có CTR cao. Nguyên lý hoạt động như sau: Khi người dùng click vào quảng cáo, họ đã có một *kỳ vọng nhất định* về nội dung sẽ thấy. Nếu landing page không đáp ứng đúng kỳ vọng đó (ví dụ: quảng cáo nói 'Giảm 50%' nhưng landing page lại yêu cầu đăng ký tư vấn trước), người dùng sẽ *lập tức rời đi*.\n\nĐể khắc phục, cần đảm bảo **sự nhất quán tuyệt đối** giữa 3 yếu tố: **Headline** (tiêu đề quảng cáo), **Visual** (hình ảnh/video), và **CTA** (lời kêu gọi hành động) trên cả Ad và Landing Page. Công cụ như **Heatmap** (bản đồ nhiệt) và **Session Recording** có thể giúp phát hiện hành vi 'click rồi thoát ngay' (bounce) một cách trực quan."
+  },
+  {
+    "id": "digital_marketing_2",
+    "topic_id": "digital_marketing",
+    "question": "Khi phân tích dữ liệu Google Analytics 4 (GA4), chỉ số 'Engaged Sessions per User' tăng mạnh nhưng 'Average Engagement Time' lại giảm. Điều này phản ánh hiện tượng gì về hành vi người dùng?",
+    "options": [
+      "Người dùng đang tương tác nhiều phiên hơn nhưng mỗi phiên rất ngắn - dấu hiệu của 'Micro-Interaction' hoặc nội dung dạng snackable",
+      "Dữ liệu đang bị nhiễu do bot traffic hoặc spam",
+      "Website đang có vấn đề về tốc độ tải trang khiến người dùng thoát nhanh",
+      "Chiến lược nội dung đang thất bại vì không giữ chân được người dùng lâu"
+    ],
+    "correct_index": 0,
+    "explanation": "Engaged Sessions tăng + Engagement Time giảm = người dùng quay lại nhiều lần nhưng mỗi lần chỉ xử lý nhanh một tác vụ nhỏ. Đây là hành vi điển hình của nội dung dạng snackable (video ngắn, câu hỏi nhanh, checklist) hoặc các micro-interaction trên web/app.",
+    "reference_type": "youtube",
+    "reference_url": "https://www.youtube.com/embed/0jFzQ4T6Xdw?start=320"
+  },
+  {
+    "id": "digital_marketing_3",
+    "topic_id": "digital_marketing",
+    "question": "Trong chiến lược SEO, khái niệm 'Topical Authority' (Thẩm quyền chủ đề) khác biệt cơ bản thế nào so với 'Page Authority' truyền thống?",
+    "options": [
+      "Topical Authority chỉ áp dụng cho Google Scholar, không ảnh hưởng đến SEO thương mại",
+      "Topical Authority là tổng hợp điểm số từ nhiều Page Authority cộng lại",
+      "Topical Authority đo lường mức độ bao phủ toàn diện và chiều sâu kiến thức về một chủ đề cụ thể trên toàn bộ website, thay vì chỉ đo sức mạnh của từng trang riêng lẻ",
+      "Topical Authority là thuật toán mới thay thế hoàn toàn Page Authority trong năm 2024"
+    ],
+    "correct_index": 2,
+    "explanation": "Topical Authority là khái niệm 'rộng' hơn: Google đánh giá toàn bộ website có thực sự là chuyên gia về một lĩnh vực hay không (thông qua các pillar pages, cluster content, internal linking), thay vì chỉ nhìn vào backlink của một trang đơn lẻ.",
+    "reference_type": "article",
+    "reference_content": "### Topical Authority vs Page Authority\n\n**Topical Authority** là bước tiến hóa của SEO hiện đại dựa trên **Entity-Based Search** và **Knowledge Graph** của Google. Thay vì chỉ đánh giá từng URL riêng lẻ qua backlink (Page Authority truyền thống), Google nay đánh giá *toàn bộ hệ thống nội dung* của website xoay quanh một chủ đề.\n\nVí dụ: Một website về 'Digital Marketing' có 100 bài viết rải rác về nhiều chủ đề khác nhau sẽ có *Topical Authority thấp* hơn một website chỉ tập trung viết 50 bài chuyên sâu về 'Email Marketing' với đầy đủ: *Pillar Page* tổng quan, *Cluster Content* cho từng khía cạnh nhỏ, và *Internal Links* kết nối chặt chẽ.\n\nĐể xây dựng Topical Authority, cần áp dụng mô hình **Topic Cluster**: 1 Pillar Page trung tâm + nhiều Blog Posts vệ tinh liên quan, tất cả cùng linked về nhau. Đây là chiến lược được khuyến nghị bởi các chuyên gia SEO hàng đầu."
+  },
+  {
+    "id": "digital_marketing_4",
+    "topic_id": "digital_marketing",
+    "question": "Trong Email Marketing, chỉ số 'List Churn Rate' hàng tháng là 8% và 'New Subscriber Rate' là 5%. Nếu duy trì tốc độ này trong 12 tháng, điều gì sẽ xảy ra với danh sách email?",
+    "options": [
+      "Danh sách sẽ tăng trưởng ổn định vì có cả người mới vào và người cũ rời đi",
+      "Danh sách sẽ giảm dần đều khoảng 3% mỗi tháng, dẫn đến mất gần 1/3 danh sách sau 12 tháng",
+      "Danh sách sẽ giảm mạnh trong 3 tháng đầu rồi tự cân bằng",
+      "Không thể xác định được vì còn phụ thuộc vào kích thước danh sách ban đầu"
+    ],
+    "correct_index": 1,
+    "explanation": "Churn Rate (8%) > New Subscriber Rate (5%) => Net Churn = -3%/tháng. Sau 12 tháng, danh sách giảm: (1 - 0.03)^12 ≈ 0.69, tức mất khoảng 31% danh sách. Đây là bài toán 'cái thùng bị thủng' kinh điển trong Email Marketing.",
+    "reference_type": "article",
+    "reference_content": "### Email List Churn - Cái bẫy chết người\n\n**List Churn Rate** (tỷ lệ rời bỏ danh sách) là chỉ số sống còn trong Email Marketing. Nó bao gồm: *unsubscribes* (hủy đăng ký), *hard bounces* (email không tồn tại), *spam complaints* (báo cáo spam), và *inactive subscribers* (người dùng không mở email trong 90 ngày).\n\nCông thức tính: **Net Growth Rate = New Subscriber Rate - Churn Rate**. Nếu kết quả âm, danh sách của bạn đang *chết dần*. Một danh sách 10,000 email với churn 8%/tháng sẽ mất 800 người/tháng - tương đương 9,600 người/năm nếu không có subscriber mới.\n\n**Nguyên nhân chính** của churn cao thường đến từ: (1) *Tần suất gửi email quá dày* gây phiền nhiễu, (2) *Nội dung không personalization* (cá nhân hóa kém), (3) *Không có chiến lược re-engagement* cho người dùng không mở email. Giải pháp là áp dụng **Sunset Policy**: tự động xóa những người dùng không tương tác sau 6 tháng để bảo vệ sender reputation."
+  },
+  {
+    "id": "digital_marketing_5",
+    "topic_id": "digital_marketing",
+    "question": "Khi chạy chiến dịch Google Ads với chiến lược đấu thầu 'Target CPA' (Cost Per Acquisition), bạn nhận thấy hệ thống đang chi tiêu rất ít vào đầu tháng nhưng lại 'bung' mạnh vào cuối tháng để đạt mục tiêu. Hiện tượng này được gọi là gì và nguyên nhân cốt lõi?",
+    "options": [
+      "Đây là lỗi của thuật toán Google do thiết lập sai ngân sách chiến dịch",
+      "Hiện tượng 'Budget Pacing' bình thường, không có vấn đề gì",
+      "Hiện tượng 'Learning Phase Delay' - thuật toán cần thời gian học trước khi tối ưu",
+      "Hiện tượng 'Target CPA Overshoot' - thuật toán ưu tiên 'an toàn' đầu tháng bằng cách đặt giá thầu thấp, sau đó tăng tốc vào cuối tháng để đạt KPI, gây ra sự phân bổ ngân sách không đồng đều"
+    ],
+    "correct_index": 3,
+    "explanation": "Target CPA Overshoot xảy ra khi thuật toán Smart Bidding quá thận trọng đầu tháng (sợ vượt CPA mục tiêu), dẫn đến chi tiêu thấp. Đến cuối tháng, để 'hoàn thành chỉ tiêu', nó phải đẩy giá thầu cao hơn, gây ra chi phí không hiệu quả và phân bổ ngân sách lệch.",
+    "reference_type": "youtube",
+    "reference_url": "https://www.youtube.com/embed/8H3QJ3s7G0M?start=180"
+  },
+  {
+    "id": "content_marketing_1",
+    "topic_id": "content_marketing",
+    "question": "Trong bối cảnh Content Marketing, khái niệm 'Content Atomization' (Phân tách nội dung) khác biệt cơ bản với 'Content Repurposing' (Tái sử dụng nội dung) ở điểm nào?",
+    "options": [
+      "Atomization tập trung vào việc thay đổi định dạng nội dung, còn Repurposing là chia nhỏ nội dung thành các phần nhỏ hơn.",
+      "Atomization là chiến lược chia nhỏ một nội dung lớn thành nhiều mảnh nhỏ, có chủ đích và độc lập, trong khi Repurposing là điều chỉnh nội dung hiện có sang định dạng mới mà không thay đổi cấu trúc cốt lõi.",
+      "Atomization chỉ áp dụng cho video, còn Repurposing áp dụng cho bài viết blog.",
+      "Atomization là quá trình tạo nội dung mới từ đầu, còn Repurposing là sao chép nguyên văn nội dung cũ."
+    ],
+    "correct_index": 1,
+    "explanation": "Content Atomization là chia nhỏ một nội dung gốc (ví dụ: sách trắng) thành nhiều phần nội dung độc lập (ví dụ: blog post, infographic, video ngắn) có thể đứng riêng rẽ, trong khi Repurposing chỉ thay đổi định dạng mà giữ nguyên cấu trúc và thông điệp cốt lõi.",
+    "reference_type": "article",
+    "reference_content": "**Content Atomization vs. Content Repurposing** là hai chiến lược thường bị nhầm lẫn. *Atomization* đòi hỏi tư duy chiến lược ngay từ đầu: bạn thiết kế một nội dung 'mẹ' (như ebook) với ý định sẽ tách nó thành các nội dung 'con' có giá trị độc lập. Mỗi phần nhỏ phải *tự thân vận động* và thu hút đúng đối tượng mục tiêu. Ngược lại, *Repurposing* thường là hành động sau khi nội dung đã tồn tại, như chuyển một bài blog thành video YouTube. **Sự khác biệt cốt lõi** nằm ở *chủ đích* và *tính độc lập* của từng phần nội dung. Atomization giúp tối ưu hóa nguồn lực và tăng phạm vi tiếp cận mà không làm loãng thông điệp."
+  },
+  {
+    "id": "content_marketing_2",
+    "topic_id": "content_marketing",
+    "question": "Trong mô hình 'Content Funnel' (Phễu nội dung), việc sử dụng 'Bottom-of-Funnel (BOFU) Content' không hiệu quả nhất trong tình huống nào?",
+    "options": [
+      "Khi khách hàng tiềm năng đã có nhu cầu rõ ràng và đang so sánh các giải pháp.",
+      "Khi nội dung BOFU được thiết kế quá chung chung, thiếu thông tin cụ thể về sản phẩm/dịch vụ.",
+      "Khi nội dung BOFU tập trung quá nhiều vào chứng thực khách hàng (case studies).",
+      "Khi nội dung BOFU được phân phối qua email cá nhân hóa."
+    ],
+    "correct_index": 1,
+    "explanation": "Nội dung BOFU (ví dụ: demo, bảng giá, so sánh) cần cụ thể và hướng đến quyết định mua hàng. Nếu nội dung quá chung chung, nó không giải quyết được sự do dự cuối cùng của khách hàng, dẫn đến mất cơ hội chuyển đổi.",
+    "reference_type": "youtube",
+    "reference_url": "https://www.youtube.com/embed/4Z9lMl7e6Hk?start=120"
+  },
+  {
+    "id": "content_marketing_3",
+    "topic_id": "content_marketing",
+    "question": "Khi áp dụng nguyên tắc 'Halo Effect' (Hiệu ứng Hào quang) vào Content Marketing, điều gì là quan trọng nhất để tránh tác dụng ngược?",
+    "options": [
+      "Luôn tập trung vào việc khen ngợi đối thủ cạnh tranh để tăng tính khách quan.",
+      "Đảm bảo nội dung có chất lượng đồng đều trên tất cả các kênh, vì một nội dung yếu kém có thể làm giảm uy tín của toàn bộ thương hiệu.",
+      "Sử dụng hình ảnh người nổi tiếng để tạo hiệu ứng hào quang ngay lập tức.",
+      "Tạo nội dung dài nhất có thể để gây ấn tượng với người đọc."
+    ],
+    "correct_index": 1,
+    "explanation": "Hiệu ứng Hào quang trong Content Marketing có nghĩa là ấn tượng tích cực từ một nội dung tốt sẽ lan tỏa sang các nội dung khác của thương hiệu. Ngược lại, một nội dung kém chất lượng sẽ làm xấu đi nhận thức về toàn bộ thương hiệu. Do đó, duy trì chất lượng đồng đều là yếu tố sống còn.",
+    "reference_type": "article",
+    "reference_content": "**Hiệu ứng Hào quang (Halo Effect)** là một thiên kiến nhận thức, nơi ấn tượng tích cực về một khía cạnh nào đó (ví dụ: một bài blog xuất sắc) lan tỏa sang các khía cạnh khác (ví dụ: chất lượng sản phẩm). Trong Content Marketing, điều này có thể là 'con dao hai lưỡi'. Một *nội dung viral* có thể nâng tầm thương hiệu, nhưng một *sai sót nhỏ* (như lỗi chính tả, thông tin sai lệch) cũng đủ để làm giảm lòng tin. **Chiến lược khôn ngoan** là đầu tư vào *kiểm soát chất lượng* nghiêm ngặt và xây dựng hệ thống nội dung nhất quán, thay vì chỉ tập trung vào một vài 'viên ngọc' rồi bỏ quên phần còn lại. Sự đồng đều về chất lượng chính là nền tảng của uy tín bền vững."
+  },
+  {
+    "id": "content_marketing_4",
+    "topic_id": "content_marketing",
+    "question": "Trong Content Marketing, 'Topic Clusters' (Cụm chủ đề) khác với 'Pillar Pages' (Trang trụ cột) ở điểm cốt lõi nào?",
+    "options": [
+      "Topic Clusters là tập hợp các bài viết ngắn, còn Pillar Pages là bài viết dài duy nhất.",
+      "Pillar Pages là một trang tổng quan về chủ đề rộng, liên kết đến các bài viết chi tiết hơn (cluster content), trong khi Topic Clusters là toàn bộ hệ thống bao gồm cả Pillar Page và các bài viết liên kết.",
+      "Topic Clusters chỉ dành cho SEO, còn Pillar Pages dành cho quảng cáo.",
+      "Pillar Pages không chứa liên kết nội bộ, còn Topic Clusters thì có."
+    ],
+    "correct_index": 1,
+    "explanation": "Pillar Page là một trang 'mẹ' bao quát một chủ đề rộng, và nó liên kết đến nhiều bài viết 'con' (cluster content) chuyên sâu về các khía cạnh cụ thể. Topic Clusters chính là cấu trúc tổng thể bao gồm cả Pillar Page và các cluster content, tạo thành một mạng lưới nội dung có tổ chức.",
+    "reference_type": "youtube",
+    "reference_url": "https://www.youtube.com/embed/8g5e6f7d9k0?start=45"
+  },
+  {
+    "id": "content_marketing_5",
+    "topic_id": "content_marketing",
+    "question": "Khi đánh giá hiệu quả Content Marketing, chỉ số 'Share of Voice' (Thị phần tiếng nói) khác với 'Engagement Rate' (Tỷ lệ tương tác) ở khía cạnh chiến lược nào?",
+    "options": [
+      "Share of Voice đo lường mức độ nổi bật của thương hiệu so với đối thủ trong một thị trường cụ thể, còn Engagement Rate đo lường mức độ tương tác của người dùng với nội dung cụ thể.",
+      "Share of Voice chỉ áp dụng cho mạng xã hội, còn Engagement Rate áp dụng cho website.",
+      "Share of Voice là chỉ số định tính, còn Engagement Rate là định lượng.",
+      "Share of Voice quan trọng hơn Engagement Rate trong mọi trường hợp."
+    ],
+    "correct_index": 0,
+    "explanation": "Share of Voice (SOV) là thước đo cạnh tranh, cho biết thương hiệu của bạn chiếm bao nhiêu 'không gian' trong các cuộc trò chuyện của ngành so với đối thủ (ví dụ: % đề cập trên mạng xã hội). Engagement Rate là thước đo hiệu suất nội dung, tập trung vào hành vi của người dùng (like, share, comment). Cả hai đều quan trọng nhưng phục vụ mục đích chiến lược khác nhau.",
+    "reference_type": "none"
+  },
+  {
+    "id": "performance_ads_1",
+    "topic_id": "performance_ads",
+    "question": "Trong chiến dịch Performance Max, nếu một nhà quảng cáo thấy rằng tỷ lệ chuyển đổi (CVR) giảm đột ngột nhưng chi phí mỗi chuyển đổi (CPA) lại tăng, điều gì là nguyên nhân sâu xa nhất thường gặp?",
+    "options": [
+      "Do đối thủ cạnh tranh tăng giá thầu",
+      "Do thuật toán tối ưu hóa đang học lại từ đầu sau khi thay đổi tài sản quảng cáo",
+      "Do ngân sách hàng ngày bị giới hạn quá thấp",
+      "Do thiếu tín hiệu đối tượng mục tiêu (audience signals)"
+    ],
+    "correct_index": 1,
+    "explanation": "Khi thay đổi tài sản (hình ảnh, tiêu đề, v.v.) trong Performance Max, thuật toán cần thời gian để học lại và tối ưu hóa, gây ra biến động CVR và CPA.",
+    "reference_type": "article",
+    "reference_content": "**Nguyên nhân sâu xa của biến động hiệu suất trong Performance Max**\n\nKhi bạn thay đổi *tài sản quảng cáo* (assets) trong chiến dịch Performance Max, thuật toán *deep learning* của Google sẽ coi đó là một tín hiệu để reset quá trình học. Điều này dẫn đến giai đoạn *'learning phase'* mới, nơi hệ thống thử nghiệm các tổ hợp khác nhau. Trong giai đoạn này, *CVR* thường giảm và *CPA* tăng do chi phí thử nghiệm cao. Để giảm thiểu rủi ro, bạn nên *thay đổi dần dần* và theo dõi sát sao trong ít nhất 7-14 ngày. Ngoài ra, việc *thiếu tín hiệu đối tượng* (audience signals) cũng có thể làm chậm quá trình hội tụ, nhưng nguyên nhân chính vẫn là sự gián đoạn do thay đổi tài sản."
+  },
+  {
+    "id": "performance_ads_2",
+    "topic_id": "performance_ads",
+    "question": "Khi tối ưu hóa quảng cáo trên Facebook cho mục tiêu 'Chuyển đổi', một marketer nhận thấy rằng tần suất (frequency) tăng lên 4.5 nhưng tỷ lệ nhấp (CTR) vẫn ổn định. Theo lý thuyết quảng cáo hiệu suất, hành động nào là phù hợp nhất?",
+    "options": [
+      "Tăng ngân sách để mở rộng phạm vi tiếp cận",
+      "Giảm giá thầu (bid) để giảm tần suất",
+      "Thay đổi nội dung quảng cáo để làm mới đối tượng",
+      "Tăng tần suất mục tiêu lên 6 để tối đa hóa chuyển đổi"
+    ],
+    "correct_index": 2,
+    "explanation": "Tần suất cao (trên 3-4) thường gây mệt mỏi quảng cáo, dù CTR giữ nguyên. Thay đổi nội dung (creative refresh) giúp tái kích thích sự chú ý và duy trì hiệu suất.",
+    "reference_type": "youtube",
+    "reference_url": "https://www.youtube.com/watch?v=9aH3Uo8e0wI?start=120"
+  },
+  {
+    "id": "performance_ads_3",
+    "topic_id": "performance_ads",
+    "question": "Trong mô hình phân bổ đa điểm chạm (multi-touch attribution), nếu một chiến dịch quảng cáo hiển thị (display) có tỷ lệ chuyển đổi thấp nhưng đóng vai trò 'touchpoint' đầu tiên trong hành trình khách hàng, thì chiến dịch đó nên được đánh giá như thế nào dưới góc độ hiệu suất?",
+    "options": [
+      "Loại bỏ vì không hiệu quả về mặt CPA",
+      "Giữ lại vì nó hỗ trợ giai đoạn nhận thức (awareness)",
+      "Tăng ngân sách vì nó tạo ra nhiều chuyển đổi cuối cùng",
+      "Chuyển đổi mục tiêu thành 'Lượt xem trang' để đo lường chính xác"
+    ],
+    "correct_index": 1,
+    "explanation": "Quảng cáo hiển thị thường có CVR thấp nhưng đóng vai trò quan trọng trong việc tạo nhận thức và khởi tạo hành trình, cần được đánh giá qua các chỉ số thương hiệu như brand lift.",
+    "reference_type": "article",
+    "reference_content": "**Đánh giá hiệu suất quảng cáo hiển thị trong mô hình đa điểm chạm**\n\nQuảng cáo hiển thị (display ads) thường bị đánh giá thấp khi chỉ dựa vào *CPA* hoặc *CVR* cuối cùng. Trong thực tế, chúng đóng vai trò *touchpoint đầu tiên* (first-click) trong hành trình khách hàng, giúp xây dựng *nhận thức* và *sự quen thuộc* với thương hiệu. Theo mô hình *multi-touch attribution*, các touchpoint này có giá trị *indirect* cao. Nếu loại bỏ chúng, các kênh khác như search có thể mất hiệu quả do thiếu *top-of-mind*. Do đó, bạn nên *giữ lại* và đo lường qua các chỉ số như *brand lift*, *view-through conversions* thay vì chỉ dựa vào CPA."
+  },
+  {
+    "id": "performance_ads_4",
+    "topic_id": "performance_ads",
+    "question": "Khi chạy quảng cáo trên TikTok với mục tiêu 'Lượt cài đặt ứng dụng', bạn thấy rằng chi phí mỗi lượt cài đặt (CPI) thấp nhưng tỷ lệ giữ chân người dùng (retention) sau 7 ngày rất thấp. Vấn đề cốt lõi nằm ở đâu?",
+    "options": [
+      "Do đối tượng mục tiêu không chính xác",
+      "Do nội dung quảng cáo không đồng nhất với trải nghiệm ứng dụng",
+      "Do ngân sách quá thấp dẫn đến chất lượng người dùng kém",
+      "Do thời gian quảng cáo chạy vào khung giờ không phù hợp"
+    ],
+    "correct_index": 1,
+    "explanation": "TikTok thu hút người dùng bằng nội dung giải trí, nếu quảng cáo hứa hẹn một trải nghiệm khác với thực tế trong app, người dùng sẽ rời bỏ nhanh chóng, dẫn đến retention thấp.",
+    "reference_type": "youtube",
+    "reference_url": "https://www.youtube.com/watch?v=6SJ7bEtLmio?start=300"
+  },
+  {
+    "id": "performance_ads_5",
+    "topic_id": "performance_ads",
+    "question": "Trong quảng cáo tìm kiếm Google Ads, nếu bạn sử dụng chiến lược giá thầu 'Target CPA' nhưng thấy rằng lưu lượng truy cập (traffic) giảm mạnh sau một tuần, nguyên nhân sâu xa thường là gì?",
+    "options": [
+      "Do điểm chất lượng (Quality Score) giảm",
+      "Do mục tiêu CPA quá thấp so với lịch sử chuyển đổi",
+      "Do đối thủ cạnh tranh tăng giá thầu",
+      "Do từ khóa bị vô hiệu hóa bởi chính sách Google"
+    ],
+    "correct_index": 1,
+    "explanation": "Target CPA quá thấp khiến thuật toán hạn chế hiển thị quảng cáo để duy trì mục tiêu, dẫn đến giảm lưu lượng. Cần kiểm tra và điều chỉnh mục tiêu phù hợp với dữ liệu lịch sử.",
+    "reference_type": "none"
+  },
+  {
+    "id": "seo_sem_1",
+    "topic_id": "seo_sem",
+    "question": "Khi Google triển khai thuật toán BERT (Bidirectional Encoder Representations from Transformers) vào năm 2019, nó đã thay đổi căn bản cách hiểu ngữ nghĩa của truy vấn tìm kiếm. Điều nào sau đây là hệ quả CHIẾN LƯỢC quan trọng nhất mà một chuyên gia SEO cần áp dụng để thích nghi với BERT?",
+    "options": [
+      "Tập trung tối đa vào việc tối ưu mật độ từ khóa chính xác (exact match keywords) trong nội dung.",
+      "Xây dựng nội dung theo chủ đề (topic cluster) với ngữ cảnh tự nhiên, tập trung vào ý định tìm kiếm (search intent) thay vì từ khóa đơn lẻ.",
+      "Chỉ sử dụng các từ khóa đuôi dài (long-tail keywords) có độ dài trên 5 từ để tránh cạnh tranh.",
+      "Giảm độ dài bài viết xuống dưới 300 từ để BERT dễ dàng xử lý ngữ nghĩa."
+    ],
+    "correct_index": 1,
+    "explanation": "BERT là mô hình xử lý ngôn ngữ tự nhiên hai chiều, hiểu ngữ nghĩa dựa trên ngữ cảnh xung quanh. Do đó, chiến lược tối ưu là xây dựng nội dung theo cụm chủ đề (topic cluster) với ngữ cảnh phong phú, thay vì nhồi nhét từ khóa chính xác.",
+    "reference_type": "article",
+    "reference_content": "## BERT và Cuộc Cách Mạng Ngữ Nghĩa trong SEO\n\n**Google BERT** (Bidirectional Encoder Representations from Transformers) ra mắt năm 2019 được xem là bước ngoặt lớn nhất trong lịch sử xử lý ngôn ngữ tự nhiên của công cụ tìm kiếm. Khác với các mô hình trước đó chỉ đọc văn bản theo một chiều (trái sang phải hoặc phải sang trái), *BERT có khả năng đọc đồng thời cả hai chiều*, giúp hiểu được sắc thái và ngữ cảnh của từng từ dựa trên các từ xung quanh nó.\n\n**Hệ quả chiến lược:** Chuyên gia SEO không còn có thể dựa vào kỹ thuật tối ưu từ khóa đơn thuần. Thay vào đó, cần tập trung vào **search intent** (ý định tìm kiếm) và xây dựng nội dung theo mô hình *topic cluster* – một trang pillar (trụ cột) bao quát chủ đề chính kết nối với nhiều bài viết cluster (vệ tinh) chuyên sâu. BERT đánh giá cao nội dung được viết tự nhiên, có chiều sâu và giải quyết trọn vẹn nhu cầu của người dùng, thay vì nội dung nông cạn chỉ nhằm mục đích nhồi nhét từ khóa."
+  },
+  {
+    "id": "seo_sem_2",
+    "topic_id": "seo_sem",
+    "question": "Trong chiến dịch Google Ads, bạn có hai chiến dịch riêng biệt: Campaign A sử dụng chiến lược đấu thầu 'Target CPA' (Chi phí mục tiêu trên mỗi chuyển đổi) và Campaign B sử dụng 'Maximize Conversions' (Tối đa hóa chuyển đổi). Cả hai đều đang chạy được 30 ngày với dữ liệu lịch sử đầy đủ. Bạn nhận thấy Campaign A có CPA trung bình thấp hơn 15% so với Campaign B, nhưng Campaign B lại có tổng số chuyển đổi cao hơn gấp 3 lần. Điều nào sau đây GIẢI THÍCH CHÍNH XÁC NHẤT cho sự khác biệt này?",
+    "options": [
+      "Campaign A đang sử dụng từ khóa chất lượng cao hơn nên CPA thấp hơn, còn Campaign B đang bị lãng phí ngân sách vào các từ khóa không liên quan.",
+      "Target CPA hoạt động như một 'phanh' (brake) kìm hãm chi tiêu khi chi phí vượt ngưỡng mục tiêu, trong khi Maximize Conversions sẽ chi tiêu toàn bộ ngân sách để đạt được nhiều chuyển đổi nhất có thể, bất chấp CPA có thể cao hơn.",
+      "Campaign B chắc chắn đang chạy quảng cáo mạng hiển thị (Display Network) còn Campaign A chỉ chạy tìm kiếm (Search Network).",
+      "Maximize Conversions luôn tự động đặt giá thầu thấp hơn Target CPA để tối ưu chi phí."
+    ],
+    "correct_index": 1,
+    "explanation": "Target CPA đặt giới hạn chi phí mục tiêu, nếu chi phí vượt ngưỡng, hệ thống sẽ giảm tốc độ chi tiêu (hoạt động như phanh). Ngược lại, Maximize Conversions cố gắng dùng hết ngân sách để thu về nhiều chuyển đổi nhất, chấp nhận CPA cao hơn miễn là nằm trong ngân sách cho phép.",
+    "reference_type": "youtube",
+    "reference_url": "https://www.youtube.com/embed/t9kF2Q7P_xA?start=320"
+  },
+  {
+    "id": "seo_sem_3",
+    "topic_id": "seo_sem",
+    "question": "Một website thương mại điện tử bị mất hoàn toàn thứ hạng tìm kiếm hữu cơ sau bản cập nhật Google Core Update tháng 9/2023 (Helpful Content Update). Phân tích log file và dữ liệu Google Search Console cho thấy số lượng URL bị Googlebot thu thập (crawl) giảm 80% và tỷ lệ lập chỉ mục (indexing rate) giảm 60%. Đâu là NGUYÊN NHÂN GỐC RỄ và giải pháp CHIẾN LƯỢC phù hợp nhất?",
+    "options": [
+      "Nguyên nhân: Website bị phạt vì mua backlink kém chất lượng. Giải pháp: Gửi yêu cầu xem xét lại (reconsideration request) qua Google Search Console.",
+      "Nguyên nhân: Google đã đánh giá website là 'nội dung không hữu ích, được tạo ra chủ yếu để xếp hạng' (content primarily for ranking). Giải pháp: Xóa toàn bộ nội dung có giá trị thấp, tập trung viết nội dung chuyên sâu dựa trên chuyên môn thực tế (first-hand expertise), và cải thiện trải nghiệm người dùng (UX).",
+      "Nguyên nhân: Website bị tấn công SEO tiêu cực (negative SEO) từ đối thủ. Giải pháp: Sử dụng Google Disavow Tool để từ chối tất cả backlink.",
+      "Nguyên nhân: Thuật toán PageRank đã bị loại bỏ hoàn toàn. Giải pháp: Chuyển toàn bộ ngân sách sang Google Ads."
+    ],
+    "correct_index": 1,
+    "explanation": "Helpful Content Update tập trung phạt các website có nội dung 'people-first' thấp, tức là nội dung được viết chủ yếu để xếp hạng chứ không phải để giúp ích người dùng. Dấu hiệu giảm crawl và indexing mạnh cho thấy Google đã giảm tín nhiệm với toàn bộ domain. Giải pháp là xóa nội dung kém chất lượng và xây dựng lại nội dung dựa trên chuyên môn thực tế.",
+    "reference_type": "article",
+    "reference_content": "## Core Update & Helpful Content: Khi Google 'Phạt' Cả Domain\n\nBản cập nhật **Helpful Content Update** tháng 9/2023 đánh dấu sự thay đổi triết lý lớn của Google: từ đánh giá từng trang riêng lẻ sang đánh giá *toàn bộ website* dựa trên mức độ 'hữu ích' tổng thể. Google sử dụng một **tín hiệu cấp site (site-wide signal)** để xác định xem website có đang sản xuất nội dung chủ yếu nhằm mục đích xếp hạng (search engine-first) hay thực sự vì lợi ích người dùng (people-first).\n\n**Dấu hiệu nhận biết:** Khi một website bị ảnh hưởng nặng, Googlebot sẽ giảm tần suất thu thập dữ liệu (crawl budget giảm mạnh) vì hệ thống đánh giá rằng *không cần thiết phải thu thập nhiều nội dung từ một nguồn kém tin cậy*. Tỷ lệ lập chỉ mục cũng giảm tương ứng.\n\n**Giải pháp chiến lược:** Không có cách 'phục hồi nhanh'. Cần thực hiện *audit nội dung toàn diện*, xóa hoặc cải thiện các trang có giá trị thấp, và quan trọng nhất là thay đổi triết lý sản xuất nội dung sang **E-E-A-T** (Experience, Expertise, Authoritativeness, Trustworthiness). Việc này có thể mất từ 3-6 tháng để Google ghi nhận sự thay đổi."
+  },
+  {
+    "id": "seo_sem_4",
+    "topic_id": "seo_sem",
+    "question": "Trong mô hình marketing hỗn hợp (Marketing Mix Modeling - MMM), một doanh nghiệp nhận thấy ROI từ SEO hữu cơ gấp 5 lần ROI từ SEM trả phí. Tuy nhiên, khi họ cắt giảm 100% ngân sách SEM và chuyển toàn bộ sang SEO, tổng doanh thu từ tìm kiếm giảm 40% sau 3 tháng. Điều nào GIẢI THÍCH HỢP LÝ NHẤT cho hiện tượng này?",
+    "options": [
+      "SEM có tác dụng 'bảo vệ thương hiệu' (brand defense) và chiếm không gian quảng cáo, ngăn đối thủ chiếm lĩnh kết quả tìm kiếm. Khi ngừng SEM, đối thủ chiếm lĩnh cả khu vực trả phí lẫn hữu cơ, làm giảm thị phần tổng thể.",
+      "Doanh nghiệp đã tối ưu SEO sai cách sau khi cắt SEM.",
+      "Google đã thay đổi thuật toán ngay sau khi doanh nghiệp cắt giảm ngân sách.",
+      "Mô hình MMM tính toán ROI không chính xác vì không bao gồm chi phí cơ hội (opportunity cost)."
+    ],
+    "correct_index": 0,
+    "explanation": "SEM đóng vai trò 'bảo vệ thương hiệu' (brand defense) – khi bạn chiếm cả kết quả trả phí (top) và hữu cơ, đối thủ bị đẩy xuống dưới. Khi ngừng SEM, đối thủ có thể mua quảng cáo vào vị trí trống, chiếm lĩnh không gian và làm giảm tổng thị phần tìm kiếm của bạn. Đây là hiệu ứng cộng hưởng (omnipresence effect).",
+    "reference_type": "article",
+    "reference_content": "## Hiệu Ứng Omnipresence: Tại Sao SEO + SEM > SEO Hay SEM Đơn Lẻ\n\nNhiều doanh nghiệp mắc sai lầm khi xem SEO và SEM là hai kênh riêng biệt cần 'cân bằng' ngân sách. Trên thực tế, chúng có **hiệu ứng cộng hưởng (synergy effect)** mạnh mẽ. Khi một thương hiệu xuất hiện đồng thời ở cả kết quả trả phí (top) và kết quả hữu cơ (ngay bên dưới), tỷ lệ nhấp chuột (CTR) tổng thể tăng đột biến – hiện tượng này được gọi là *Omnipresence* hoặc *Double Indexing Effect*.\n\n**Tác dụng của SEM trong chiến lược tổng thể:**\n1. **Brand Defense:** Chiếm không gian quảng cáo ngăn đối thủ xuất hiện ở vị trí đầu tiên.\n2. **Data Generation:** Dữ liệu từ SEM (từ khóa nào chuyển đổi tốt) có thể được sử dụng để định hướng chiến lược nội dung SEO.\n3. **Remarketing:** Người dùng click vào quảng cáo SEM có thể được remarketing, trong khi người dùng hữu cơ thì khó hơn.\n\n**Kết luận:** ROI cao không có nghĩa là nên dồn toàn bộ ngân sách vào kênh đó. *MMM cần được hiểu trong bối cảnh tương tác giữa các kênh*, không phải là chỉ số tuyệt đối để phân bổ ngân sách."
+  },
+  {
+    "id": "seo_sem_5",
+    "topic_id": "seo_sem",
+    "question": "Một trang web có Core Web Vitals đạt tất cả các ngưỡng 'Good' (LCP < 2.5s, FID < 100ms, CLS < 0.1). Tuy nhiên, tỷ lệ thoát (bounce rate) vẫn rất cao (85%) và thời gian phiên trung bình chỉ 12 giây. Phân tích bản đồ nhiệt (heatmap) cho thấy phần lớn người dùng rời đi ngay sau khi nhìn thấy phần 'hero section' đầu trang. Đâu là vấn đề CỐT LÕI mà chuyên gia SEO cần giải quyết TRƯỚC TIÊN?",
+    "options": [
+      "Tối ưu thêm tốc độ tải trang bằng cách nén hình ảnh và giảm JavaScript để LCP xuống dưới 1.5s.",
+      "Thay đổi nội dung và thông điệp của hero section (tiêu đề, mô tả, CTA) để khớp với ý định tìm kiếm (search intent) của người dùng, vì vấn đề nằm ở sự không khớp giữa kỳ vọng và trải nghiệm thực tế.",
+      "Thêm hiệu ứng animation và video nền vào hero section để tăng tính tương tác.",
+      "Chuyển toàn bộ sang AMP (Accelerated Mobile Pages) để cải thiện trải nghiệm di động."
+    ],
+    "correct_index": 1,
+    "explanation": "Core Web Vitals tốt nhưng bounce rate cao là dấu hiệu kinh điển của 'search intent mismatch' – nội dung không đáp ứng đúng những gì người dùng kỳ vọng khi click vào kết quả tìm kiếm. Vấn đề cốt lõi là thông điệp trên hero section (tiêu đề, meta description) không khớp với nội dung thực tế hoặc ý định tìm kiếm, khiến người dùng rời đi ngay lập tức.",
+    "reference_type": "none"
+  },
+  {
+    "id": "social_media_1",
+    "topic_id": "social_media",
+    "question": "Khi một thương hiệu sử dụng chiến lược \"Dark Social\" (chia sẻ tối) trên các nền tảng mạng xã hội, đâu là thách thức lớn nhất mà nhà tiếp thị phải đối mặt?",
+    "options": [
+      "Không thể chạy quảng cáo trả phí trên các nền tảng này",
+      "Không thể đo lường chính xác ROI và attribution của các lượt chia sẻ qua tin nhắn riêng tư, email, hoặc clipboard",
+      "Nội dung bị giới hạn ở định dạng văn bản thuần túy, không hỗ trợ hình ảnh hoặc video",
+      "Chỉ hoạt động được trên nền tảng WhatsApp và WeChat"
+    ],
+    "correct_index": 1,
+    "explanation": "Dark Social là các lượt chia sẻ không thể track được bằng analytics truyền thống (ví dụ: copy link gửi qua Messenger, WhatsApp, email). Thách thức lớn nhất là không thể đo lường chính xác hiệu quả của nội dung vì các công cụ như Google Analytics không ghi nhận được nguồn traffic này.",
+    "reference_type": "article",
+    "reference_content": "## Dark Social: Kẻ Thù Vô Hình Của Marketing Attribution\n\n**Dark Social** là thuật ngữ được đặt ra bởi Alexis C. Madrigal (The Atlantic, 2012) để chỉ các hoạt động chia sẻ nội dung diễn ra *ngoài phạm vi đo lường* của các công cụ phân tích web tiêu chuẩn. Cụ thể, khi người dùng **copy-paste URL** và gửi qua tin nhắn riêng tư (iMessage, WhatsApp, Messenger), email, Slack, hoặc thậm chí nhập trực tiếp vào trình duyệt, các nền tảng analytics sẽ ghi nhận traffic này là *'Direct Traffic'* — gây ra hiện tượng *misattribution* nghiêm trọng.\n\n*Theo nghiên cứu của RadiumOne (2016), có tới **84% tổng số lượt chia sẻ ngoài** diễn ra qua Dark Social.* Điều này tạo ra một *'lỗ đen dữ liệu'* khiến các nhà tiếp thị không thể biết nội dung nào thực sự lan truyền, ai là người chia sẻ, và đâu là điểm chạm cuối cùng dẫn đến chuyển đổi. Các giải pháp khắc phục bao gồm sử dụng **UTM parameters** được mã hóa sẵn trong link, triển khai *share-tracking SDK* trong ứng dụng, hoặc dùng các nền tảng *Social Listening* chuyên sâu để phát hiện các cuộc hội thoại riêng tư có đề cập đến thương hiệu."
+  },
+  {
+    "id": "social_media_2",
+    "topic_id": "social_media",
+    "question": "Trong bối cảnh thuật toán của Instagram và TikTok ngày càng ưu tiên nội dung từ \"Người lạ\" (unconnected content) thay vì chỉ từ bạn bè, chiến lược nào sau đây là PHÙ HỢP NHẤT cho một thương hiệu muốn tối ưu hóa organic reach?",
+    "options": [
+      "Tập trung hoàn toàn vào việc đăng bài theo lịch cố định hàng ngày để tạo thói quen cho người theo dõi",
+      "Xây dựng nội dung có tính lan truyền cao (viral hooks) và tận dụng tối đa các xu hướng âm thanh, hashtag đang thịnh hành",
+      "Giảm tần suất đăng bài và chỉ tập trung vào tương tác trực tiếp với người theo dõi cũ qua phần comment",
+      "Chuyển toàn bộ ngân sách sang quảng cáo trả phí vì organic reach đã 'chết' hoàn toàn"
+    ],
+    "correct_index": 1,
+    "explanation": "Thuật toán khám phá (Discovery Algorithm) của TikTok và Instagram hiện ưu tiên nội dung hấp dẫn từ người lạ. Chiến lược tối ưu là tạo nội dung có tính viral cao, bắt kịp trend, dùng âm thanh và hashtag thịnh hành để 'cưỡi sóng' thuật toán, thay vì chỉ phục vụ người theo dõi cũ.",
+    "reference_type": "youtube",
+    "reference_url": "https://www.youtube.com/embed/6W6N9nF6VxY?start=120"
+  },
+  {
+    "id": "social_media_3",
+    "topic_id": "social_media",
+    "question": "Khái niệm \"Context Collapse\" (Sụp đổ Ngữ cảnh) trên mạng xã hội đề cập đến hiện tượng gì và tại sao nó là một thách thức đối với chiến lược nội dung thương hiệu?",
+    "options": [
+      "Hiện tượng các bài đăng cũ của thương hiệu bị thuật toán 'chôn vùi' và không ai nhìn thấy",
+      "Sự xung đột giữa các nhóm đối tượng khác nhau (khách hàng, đối thủ, nhân viên, nhà đầu tư) cùng tiếp nhận một thông điệp, dẫn đến hiểu lầm hoặc phản ứng tiêu cực",
+      "Việc giảm chất lượng hình ảnh khi tải lên do thuật toán nén của nền tảng",
+      "Hiện tượng người dùng xóa tài khoản hàng loạt khi thương hiệu thay đổi chiến lược nội dung"
+    ],
+    "correct_index": 1,
+    "explanation": "Context Collapse là khi các 'khán giả' từ nhiều bối cảnh xã hội khác nhau (gia đình, bạn bè, đồng nghiệp, khách hàng) cùng nhìn thấy một nội dung trên cùng một nền tảng. Với thương hiệu, điều này gây khó khăn khi một thông điệp hài hước dành cho Gen Z có thể bị nhà đầu tư hiểu sai là thiếu chuyên nghiệp.",
+    "reference_type": "article",
+    "reference_content": "## Context Collapse: Khi Mọi Khán Giả Của Bạn Ngồi Chung Một Phòng\n\nThuật ngữ **Context Collapse** được nhà nhân chủng học kỹ thuật số **danah boyd** (Microsoft Research) phổ biến vào năm 2010. Nó mô tả hiện tượng các *'bối cảnh xã hội'* (social contexts) vốn tách biệt trong đời thực — như gia đình, bạn bè thân, đồng nghiệp, cấp trên, đối tác — *sụp đổ vào cùng một không gian* trên mạng xã hội.\n\nTrong marketing, đây là một *cạm bẫy chiến lược* nguy hiểm. Một thương hiệu thời trang có thể muốn tạo nội dung *'meme hài hước'* để tiếp cận Gen Z, nhưng vô tình làm mất lòng các khách hàng trung niên hoặc nhà đầu tư tổ chức vì cho rằng thương hiệu thiếu *'brand sophistication'*. *Erving Goffman* trong lý thuyết về *'The Presentation of Self in Everyday Life'* đã chỉ ra rằng con người thay đổi 'mặt nạ' theo từng ngữ cảnh — nhưng mạng xã hội đã phá vỡ ranh giới đó. Giải pháp là thương hiệu cần xây dựng **'nguyên tắc giọng điệu'** (Tone of Voice Guidelines) thật chặt chẽ và hiểu rõ *audience segmentation* trên từng nền tảng."
+  },
+  {
+    "id": "social_media_4",
+    "topic_id": "social_media",
+    "question": "Trong lý thuyết \"Network Effects\" (Hiệu ứng Mạng) áp dụng cho Social Media, khái niệm \"Same-Side Network Effects\" (Hiệu ứng mạng cùng phía) và \"Cross-Side Network Effects\" (Hiệu ứng mạng chéo) khác nhau như thế nào? Ví dụ nào sau đây là của Cross-Side Network Effects?",
+    "options": [
+      "Người dùng Facebook ở lại vì bạn bè của họ cũng đang dùng Facebook (User ↔ User)",
+      "Người dùng YouTube đăng ký kênh vì thấy bạn bè của họ cũng đang theo dõi kênh đó (User ↔ User)",
+      "Nhà quảng cáo chi nhiều tiền cho Instagram vì có nhiều người dùng hoạt động, và người dùng được hưởng lợi từ nội dung được tài trợ chất lượng cao (Advertiser ↔ User)",
+      "Người dùng TikTok tạo nhiều nội dung hơn vì thấy người khác kiếm được tiền từ quỹ sáng tạo (Creator ↔ Creator)"
+    ],
+    "correct_index": 2,
+    "explanation": "Cross-Side Network Effects xảy ra khi sự gia tăng giá trị của một nhóm (ví dụ: nhà quảng cáo) làm tăng giá trị cho nhóm khác (người dùng) và ngược lại. Đây là mối quan hệ hai chiều giữa các nhóm khác nhau. Same-Side là giữa các thành viên cùng nhóm (user-user, advertiser-advertiser).",
+    "reference_type": "article",
+    "reference_content": "## Network Effects Trên Social Media: Vòng Xoáy Giá Trị\n\n**Network Effects** là khái niệm cốt lõi giải thích tại sao các nền tảng như Facebook, TikTok, LinkedIn trở nên *bất khả chiến bại*. Có hai loại chính:\n\n**1. Same-Side Network Effects (Hiệu ứng cùng phía):** Giá trị của nền tảng tăng lên khi có nhiều người dùng *cùng loại* hơn tham gia. Ví dụ: WhatsApp càng có nhiều bạn bè của bạn dùng thì nó càng có giá trị với bạn. Đây là lý do các mạng xã hội *khó bị thay thế* — chi phí chuyển đổi (switching cost) quá cao vì bạn bè bạn không chuyển cùng.\n\n**2. Cross-Side Network Effects (Hiệu ứng chéo):** Đây là *'mỏ vàng'* của các nền tảng quảng cáo. Khi có nhiều **người dùng** (User) hơn, nền tảng thu hút nhiều **nhà quảng cáo** (Advertiser) hơn — và ngược lại, quảng cáo được cá nhân hóa tốt hơn nhờ dữ liệu người dùng, tạo ra trải nghiệm tốt hơn cho chính người dùng. *Theo lý thuyết của Carl Shapiro và Hal Varian (Information Rules, 1999)*, các nền tảng có cross-side network effects mạnh thường dẫn đến *'winner-takes-most'* (người thắng chiếm phần lớn) vì vòng phản hồi tích cực này rất khó bị phá vỡ."
+  },
+  {
+    "id": "social_media_5",
+    "topic_id": "social_media",
+    "question": "Trong các chiến lược Social Media Marketing, khái niệm \"Echo Chamber\" (Buồng vọng âm) và \"Filter Bubble\" (Bong bóng lọc) thường bị nhầm lẫn. Điểm khác biệt CỐT LÕI giữa hai khái niệm này là gì?",
+    "options": [
+      "Echo Chamber liên quan đến nội dung giải trí, còn Filter Bubble liên quan đến nội dung chính trị",
+      "Echo Chamber là sự loại trừ chủ động các ý kiến đối lập do người dùng tự chọn, còn Filter Bubble là sự loại trừ thụ động do thuật toán áp đặt",
+      "Echo Chamber chỉ tồn tại trên Twitter, còn Filter Bubble chỉ tồn tại trên Facebook",
+      "Echo Chamber là hiện tượng tích cực giúp củng cố niềm tin, còn Filter Bubble là hiện tượng tiêu cực gây chia rẽ"
+    ],
+    "correct_index": 1,
+    "explanation": "Echo Chamber là sự tự cô lập về mặt tư tưởng — người dùng chủ động chỉ theo dõi và tương tác với những người cùng quan điểm. Filter Bubble là sự cô lập do thuậtật toán — nền tảng tự động lọc ra nội dung phù hợp với hành vi quá khứ của người dùng mà họ không hề hay biết (thuật ngữ của Eli Pariser, 2011).",
+    "reference_type": "none"
+  },
+  {
+    "id": "email_crm_1",
+    "topic_id": "email_crm",
+    "question": "Trong mô hình Email CRM, chỉ số **Email Read Rate** (tỷ lệ đọc email) thường được tính bằng cách nào? Công thức nào dưới đây là CHÍNH XÁC NHẤT theo chuẩn ngành marketing automation hiện đại?",
+    "options": [
+      "(Số email được mở / Số email gửi thành công) × 100%",
+      "(Số email được mở duy nhất (unique opens) / Số email gửi thành công (delivered)) × 100%",
+      "(Số email được mở / Số email gửi đi (sent)) × 100%",
+      "(Số email được click / Số email được mở) × 100%"
+    ],
+    "correct_index": 1,
+    "explanation": "Chỉ số Read Rate (Open Rate) chuẩn xác nhất dùng unique opens chia cho delivered emails, vì sent có thể gồm bounce, còn unique opens loại bỏ các lần mở trùng lặp từ cùng một người dùng, giúp phản ánh đúng tỷ lệ người thực sự đọc email.",
+    "reference_type": "article",
+    "reference_content": "## Cách tính Email Open Rate chuẩn xác\n\nTrong **Email Marketing & CRM**, việc đo lường hiệu quả chiến dịch là yếu tố sống còn. Một trong những sai lầm phổ biến nhất là dùng tổng số email *sent* thay vì *delivered* làm mẫu số. \n\n**Tại sao phải dùng *unique opens*?**\n- Một người dùng có thể mở email nhiều lần (trên điện thoại, máy tính bảng, laptop). Nếu dùng *total opens*, chỉ số sẽ bị inflate (phình to) một cách giả tạo.\n- *Delivered* (gửi thành công) loại trừ **hard bounce** (email không tồn tại) và **soft bounce** (hộp thư đầy, server tạm thời từ chối). Dùng *sent* sẽ làm giảm open rate một cách không chính xác.\n\n**Công thức chuẩn ngành (Mailchimp, HubSpot, Salesforce Marketing Cloud):**\n> **Open Rate = (Unique Opens / Delivered Emails) × 100%**\n\n*Lưu ý:* Apple Mail Privacy Protection (MPP) từ iOS 15 đã làm méo mó chỉ số này, vì Apple tự động tải pixel theo dõi. Do đó, nhiều chuyên gia CRM hiện nay khuyên nên bổ sung **Click-to-Open Rate (CTOR)** để có bức tranh toàn diện hơn."
+  },
+  {
+    "id": "email_crm_2",
+    "topic_id": "email_crm",
+    "question": "Trong quản lý quan hệ khách hàng qua email, khái niệm **Lead Scoring** (chấm điểm khách hàng tiềm năng) dựa trên hành vi email. Hành vi nào dưới đây thường được gán **trọng số điểm CAO NHẤT** trong hầu hết các mô hình scoring B2B chuẩn?",
+    "options": [
+      "Mở email marketing hàng ngày",
+      "Click vào link 'Unsubscribe' ở cuối email",
+      "Click vào link 'Download Whitepaper' trong email, sau đó truy cập trang Pricing",
+      "Forward email cho đồng nghiệp"
+    ],
+    "correct_index": 2,
+    "explanation": "Click vào link tải tài liệu chuyên sâu (Whitepaper) rồi truy cập trang Pricing thể hiện ý định mua hàng rất cao (high purchase intent) và sự đầu tư thời gian nghiêm túc. Đây là tín hiệu mạnh nhất trong lead scoring B2B.",
+    "reference_type": "youtube",
+    "reference_url": "https://www.youtube.com/embed/7nP2D8NFRqI?start=320"
+  },
+  {
+    "id": "email_crm_3",
+    "topic_id": "email_crm",
+    "question": "Khi triển khai chiến lược **Email Segmentation** trong CRM, một công ty thương mại điện tử muốn gửi email nhắc giỏ hàng bị bỏ quên (abandoned cart). Theo nguyên tắc **RFM (Recency, Frequency, Monetary)**, nhóm khách hàng nào dưới đây nên được ưu tiên nhận email với **mức giảm giá cao nhất**?",
+    "options": [
+      "Khách hàng có Recency cao (mới mua tuần trước), Frequency thấp, Monetary thấp",
+      "Khách hàng có Recency thấp (đã lâu không mua), Frequency cao (từng mua nhiều), Monetary cao (chi tiêu lớn)",
+      "Khách hàng có Recency thấp, Frequency thấp, Monetary thấp",
+      "Khách hàng có Recency cao, Frequency cao, Monetary trung bình"
+    ],
+    "correct_index": 1,
+    "explanation": "Nhóm Recency thấp (lâu rồi không mua) + Frequency cao + Monetary cao là nhóm có nguy cơ chuyển sang đối thủ cao nhất (churn risk). Họ từng là khách hàng VIP nhưng đang 'nguội lạnh'. Cần ưu tiên giảm giá mạnh để kích hoạt lại (reactivation).",
+    "reference_type": "article",
+    "reference_content": "## RFM Segmentation trong Email CRM\n\n**RFM** là viết tắt của **Recency** (thời gian từ lần mua cuối), **Frequency** (tần suất mua), **Monetary** (giá trị đơn hàng). Đây là mô hình phân khúc khách hàng cổ điển nhưng cực kỳ hiệu quả trong Email CRM.\n\n### Các nhóm khách hàng điển hình:\n\n1. **Champions (R cao, F cao, M cao):** Khách hàng trung thành nhất. Chỉ cần email cảm ơn, ưu đãi đặc biệt (VIP access). *Không cần giảm giá sâu.*\n\n2. **At Risk (R thấp, F cao, M cao):** Đây là nhóm nguy hiểm nhất. Họ từng mua nhiều, chi tiêu lớn, nhưng đã lâu không quay lại. **Cần giảm giá mạnh + email cá nhân hóa** để kéo họ về.\n\n3. **Need Attention (R trung bình, F thấp, M thấp):** Nhóm tiềm năng nhưng chưa kích hoạt được. Cần email nuôi dưỡng (nurture) hơn là giảm giá.\n\n4. **Lost (R rất thấp, F thấp, M thấp):** Có thể đã chết. Chỉ nên gửi email *\"We miss you\"* với ưu đãi cực lớn như một nỗ lực cuối cùng, hoặc loại khỏi danh sách để tiết kiệm chi phí.\n\n> *Nguyên tắc vàng:* **Không phải khách hàng nào cũng xứng đáng nhận giảm giá giống nhau.** Giảm giá sai nhóm có thể làm hỏng thương hiệu và giảm lợi nhuận."
+  },
+  {
+    "id": "email_crm_4",
+    "topic_id": "email_crm",
+    "question": "Trong một hệ thống CRM tích hợp Email Marketing, thuật ngữ **'Graymail'** (thư xám) được định nghĩa như thế nào theo các nhà cung cấp dịch vụ email (ESP) như Google, Microsoft?",
+    "options": [
+      "Email chứa nội dung lừa đảo (phishing) nhưng được ngụy trang dưới dạng thư thương mại",
+      "Email mà người dùng đã đăng ký (opt-in) nhưng không còn tương tác (không mở, không click) trong một thời gian dài",
+      "Email bị trả lại do hộp thư đầy (soft bounce)",
+      "Email bị đánh dấu là spam bởi người dùng nhưng thực chất là thư hợp lệ"
+    ],
+    "correct_index": 1,
+    "explanation": "Graymail là email mà người dùng đã chủ động đăng ký (không phải spam), nhưng họ không còn tương tác. Các ESP như Gmail, Outlook dùng tín hiệu này để định tuyến graymail vào tab Promotions hoặc thậm chí Spam, gây ảnh hưởng nghiêm trọng đến deliverability.",
+    "reference_type": "article",
+    "reference_content": "## Graymail - Kẻ thù thầm lặng của Email CRM\n\n**Graymail** là một trong những khái niệm quan trọng nhất mà người làm CRM cần hiểu rõ. Không giống spam (thư rác không mời), graymail là thư mà người dùng *đã từng muốn nhận*.\n\n### Tại sao Graymail nguy hiểm?\n\n- **Gmail & Outlook** sử dụng machine learning để phân tích hành vi người dùng. Nếu một người dùng không mở email của bạn trong 30-60 ngày, thuật toán sẽ coi email của bạn là graymail và tự động chuyển vào tab Promotions (thay vì Inbox chính) hoặc tệ hơn là Spam.\n- Hệ quả: **Open Rate giảm mạnh**, ảnh hưởng đến danh tiếng người gửi (sender reputation).\n\n### Giải pháp từ phía CRM:\n\n1. **Re-engagement Campaign:** Xây dựng chiến dịch đặc biệt cho nhóm không tương tác. Nếu sau 3-5 email vẫn không phản hồi, hãy loại họ khỏi danh sách active.\n2. **Sunset Policy:** Thiết lập chính sách tự động loại bỏ người dùng không tương tác sau 6 tháng.\n3. **Preference Center:** Cho phép người dùng chọn tần suất nhận email (daily, weekly, monthly) thay vì chỉ có opt-in/opt-out nhị phân.\n\n> *Một danh sách 10,000 email có tương tác còn giá trị hơn 100,000 email chết.*"
+  },
+  {
+    "id": "email_crm_5",
+    "topic_id": "email_crm",
+    "question": "Trong kiến trúc CRM hiện đại, khái niệm **'360-degree Customer View'** (góc nhìn 360 độ về khách hàng) khi kết hợp với dữ liệu Email thường đối mặt với thách thức lớn nhất nào sau đây?",
+    "options": [
+      "Chi phí lưu trữ dữ liệu email quá cao",
+      "Khó khăn trong việc hợp nhất dữ liệu hành vi email (opens, clicks) với dữ liệu giao dịch (purchase history) do khác định danh (identity resolution)",
+      "Email không hỗ trợ theo dõi trên thiết bị di động",
+      "Dữ liệu email không thể xuất sang định dạng CSV"
+    ],
+    "correct_index": 1,
+    "explanation": "Thách thức lớn nhất của 360 Customer View là Identity Resolution - làm sao biết rằng user email 'abc@gmail.com' click link trong email chính là khách hàng 'Nguyễn Văn A' đã mua hàng trên website. Nếu không có unified customer profile, mọi chiến dịch CRM đều thiếu chính xác.",
+    "reference_type": "youtube",
+    "reference_url": "https://www.youtube.com/embed/6A7_ERhF6zs?start=120"
+  },
+  {
+    "id": "analytics_growth_01",
+    "topic_id": "analytics_growth",
+    "question": "Khi phân tích một chiến dịch Growth, bạn phát hiện rằng North Star Metric (NSM) tăng 15% nhưng đồng thời tỷ lệ churn ở nhóm users hoạt động trên 6 tháng cũng tăng 20%. Điều này phản ánh hiện tượng gì trong Growth Analytics?",
+    "options": [
+      "Simpson's Paradox - Khi xu hướng tổng thể ngược chiều với xu hướng trong từng phân khúc",
+      "Goodhart's Law - Khi một chỉ số trở thành mục tiêu thì nó không còn là chỉ số đo lường tốt nữa",
+      "Survivorship Bias - Khi chỉ nhìn vào users còn sống sót mà bỏ qua users đã rời bỏ",
+      "Cobra Effect - Khi giải pháp tạo ra vấn đề tồi tệ hơn"
+    ],
+    "correct_index": 0,
+    "explanation": "Simpson's Paradox xảy ra khi xu hướng tổng thể (NSM tăng) che giấu xu hướng ngược lại trong từng phân khúc (churn tăng ở nhóm users trung thành). Đây là lý do tại sao Growth team cần phân tích cohort-based thay vì chỉ nhìn vào aggregate metrics.",
+    "reference_type": "youtube",
+    "reference_url": "https://www.youtube.com/watch?v=ebEkn-BiW5k?start=120"
+  },
+  {
+    "id": "analytics_growth_02",
+    "topic_id": "analytics_growth",
+    "question": "Một SaaS company có LTV = $1,200, CAC = $300, và tỷ lệ tháng users trả tiền đạt 'Habit Stage' (tháng thứ 4+) là 40%. Tuy nhiên, chỉ 15% users free-tier chuyển sang dùng thử bản trả phí. Theo mô hình Growth Loops, đâu là điểm nghẽn (bottleneck) quan trọng nhất cần tối ưu?",
+    "options": [
+      "Tối ưu hóa Activation metric vì tỷ lệ chuyển từ free sang trial quá thấp",
+      "Tối ưu hóa Retention ở tháng thứ 4 vì chỉ 40% users đạt Habit Stage",
+      "Tối ưu hóa Referral loop vì LTV/CAC = 4 đang quá thấp so với ngưỡng an toàn",
+      "Tối ưu hóa Monetization vì cần tăng LTV để bù đắp cho CAC cao"
+    ],
+    "correct_index": 1,
+    "explanation": "Mặc dù tỷ lệ free-to-trial thấp (15%) là vấn đề, nhưng bottleneck nghiêm trọng hơn là chỉ 40% users trả tiền đạt Habit Stage (tháng 4+). Điều này có nghĩa 60% users trả tiền rời bỏ trước khi hình thành thói quen, làm giảm LTV thực tế và khiến CAC không thể thu hồi. Trong Growth Loops, retention trước monetization luôn là ưu tiên.",
+    "reference_type": "article",
+    "reference_content": "## **Growth Loops & Bottleneck Analysis**\n\nTrong mô hình *Growth Loops* hiện đại, việc xác định **bottleneck** không chỉ dựa vào tỷ lệ chuyển đổi tuyến tính. Andrew Chen đã chỉ ra rằng các growth team thường mắc sai lầm khi tối ưu hóa *top-of-funnel* (ví dụ: free-to-trial) mà bỏ qua *mid-funnel retention*.\n\n**Nguyên lý quan trọng:** Một user chuyển đổi nhưng không hình thành *habit* (thói quen sử dụng) sẽ có *LTV thực tế* thấp hơn nhiều so với LTV lý thuyết. Theo *Hooked Model* của Nir Eyal, Habit Stage là khi users tự động quay lại sản phẩm mà không cần trigger bên ngoài. Nếu chỉ 40% users trả tiền đạt đến giai đoạn này, điều đó có nghĩa là *product-market fit* chưa thực sự vững chắc.\n\n**Công thức ưu tiên trong Growth:** *Retention > Activation > Monetization > Referral*. Việc tối ưu hóa sai thứ tự ưu tiên sẽ dẫn đến *leaky bucket* - nơi users đến nhanh nhưng cũng rời đi nhanh, khiến CAC không bao giờ được amortize đủ."
+  },
+  {
+    "id": "analytics_growth_03",
+    "topic_id": "analytics_growth",
+    "question": "Một Growth team thực hiện A/B test với 3 biến thể (control, variant A, variant B) trên cùng một metric. Họ sử dụng Bonferroni correction để điều chỉnh significance level. Kết quả: control vs A có p-value = 0.018, control vs B có p-value = 0.032. Với alpha ban đầu = 0.05, kết luận nào sau đây là đúng?",
+    "options": [
+      "Cả A và B đều có ý nghĩa thống kê vì p-value < 0.05",
+      "Chỉ A có ý nghĩa thống kê vì p-value = 0.018 thấp hơn B",
+      "Sau Bonferroni correction (0.05/2 = 0.025), chỉ A có ý nghĩa thống kê, còn B thì không",
+      "Bonferroni correction không áp dụng được cho A/B test vì các biến thể không độc lập"
+    ],
+    "correct_index": 2,
+    "explanation": "Khi test nhiều biến thể (multiple comparison problem), Bonferroni correction chia alpha ban đầu cho số lượng comparison: 0.05/2 = 0.025. Variant A có p=0.018 < 0.025 => significant. Variant B có p=0.032 > 0.025 => không significant. Nếu không điều chỉnh, nguy cơ mắc Type I error (false positive) sẽ tăng lên đáng kể.",
+    "reference_type": "article",
+    "reference_content": "## **Multiple Comparison Problem trong Growth Analytics**\n\nKhi thực hiện **A/B test với nhiều biến thể**, một trong những sai lầm phổ biến nhất của Growth team là *p-hacking* - cố tình chạy nhiều test cho đến khi tìm được kết quả có ý nghĩa thống kê. Vấn đề này được gọi là **Multiple Comparison Problem**.\n\n**Bonferroni correction** là phương pháp đơn giản nhất để giải quyết: chia **alpha** (thường là 0.05) cho số lượng comparison (k). Tuy nhiên, phương pháp này *rất conservative* - nó làm giảm statistical power, nghĩa là tăng nguy cơ **Type II error** (bỏ sót kết quả thực sự có ý nghĩa).\n\nCác phương pháp thay thế bao gồm: **Holm-Bonferroni** (sequential, ít conservative hơn), **Benjamini-Hochberg** (kiểm soát False Discovery Rate thay vì Family-Wise Error Rate), hoặc sử dụng **Bayesian A/B testing** với prior distribution.\n\n**Lời khuyên cho Growth team:** Thay vì chạy nhiều biến thể cùng lúc, hãy ưu tiên *sequential testing* hoặc *multi-armed bandit algorithms* để tối ưu hóa learning rate mà không làm tăng false positive rate."
+  },
+  {
+    "id": "analytics_growth_04",
+    "topic_id": "analytics_growth",
+    "question": "Một công ty EdTech có cohort retention curve giảm dần theo dạng 'bathub curve' (giảm mạnh tuần 1-2, ổn định tuần 3-8, giảm mạnh trở lại tuần 9+). Phân tích hành vi cho thấy tuần 9-10 trùng với kỳ thi giữa kỳ của users. Chiến lược Growth nào sau đây giải quyết đúng root cause?",
+    "options": [
+      "Tăng cường email reminder và push notification vào tuần 9-10 để kéo users quay lại",
+      "Phân tích 'compounding engagement' - tạo ra các tính năng ôn thi ngay trong sản phẩm, biến kỳ thi thành cơ hội tăng engagement tự nhiên",
+      "Giảm độ khó của nội dung học để users không cảm thấy áp lực khi thi",
+      "Chạy chiến dịch referral 'mời bạn cùng ôn thi' để tăng acquisition bù đắp cho retention sụt giảm"
+    ],
+    "correct_index": 1,
+    "explanation": "Drop-off ở tuần 9-10 không phải do sản phẩm kém mà do external factor (kỳ thi). Thay vì chống lại hành vi tự nhiên của users (push notification - chỉ là giải pháp tạm thời), Growth team nên 'surf the wave' - tạo tính năng ôn thi, flashcard, mock test ngay trong sản phẩm. Đây là chiến lược 'compounding engagement' - biến external trigger thành internal trigger.",
+    "reference_type": "youtube",
+    "reference_url": "https://www.youtube.com/watch?v=4G5L7FhDp4A?start=300"
+  },
+  {
+    "id": "analytics_growth_05",
+    "topic_id": "analytics_growth",
+    "question": "Một growth analyst tính toán rằng: Nếu tăng Conversion Rate từ 5% lên 6% (tăng 20% relative), doanh thu tăng 20%. Nhưng nếu tăng Average Order Value (AOV) từ $50 lên $60 (cũng tăng 20% relative), doanh thu chỉ tăng 10% do số lượng giao dịch giảm 8% vì users nhạy cảm với giá. Theo nguyên lý 'Leverage Point Analysis' trong Growth, kết luận nào đúng?",
+    "options": [
+      "Nên ưu tiên tăng AOV vì 20% relative increase lớn hơn 10% doanh thu thực tế",
+      "Nên ưu tiên tăng Conversion Rate vì nó có 'high leverage' - tác động trực tiếp đến doanh thu mà không có negative side effect",
+      "Cả hai chiến lược đều tương đương vì cùng tăng 20% relative",
+      "Nên kết hợp cả hai: tăng Conversion Rate lên 6% và AOV lên $55 để tối đa hóa doanh thu"
+    ],
+    "correct_index": 1,
+    "explanation": "Đây là ví dụ kinh điển về 'Leverage Point Analysis'. Conversion Rate có high leverage vì tăng CR không làm giảm các metrics khác (không có trade-off). Ngược lại, tăng AOV tạo ra price sensitivity, làm giảm số lượng giao dịch (8%), dẫn đến doanh thu thực tế chỉ tăng 10% thay vì 20%. Growth team cần phân tích second-order effects trước khi chọn lever.",
+    "reference_type": "none"
   }
 ]

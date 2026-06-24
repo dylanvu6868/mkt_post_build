@@ -1,8 +1,15 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 import json
 import os
 from typing import List
 from pydantic import BaseModel
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
+
+from app.core.db import get_session
+from app.models.user import User
+from app.models.study_bookmark import StudyBookmark
+from app.api.deps import get_current_user
 
 router = APIRouter()
 
@@ -48,6 +55,42 @@ async def get_topics():
             topic.total_questions = topic_counts[topic.id]
             
     return TOPICS
+
+@router.get("/bookmarks")
+async def get_bookmarks(
+    current_user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session)
+):
+    query = select(StudyBookmark.question_id).where(StudyBookmark.user_id == current_user.id)
+    result = await session.execute(query)
+    bookmarked_ids = result.scalars().all()
+    return {"bookmarks": bookmarked_ids}
+
+@router.post("/bookmarks/{question_id}")
+async def toggle_bookmark(
+    question_id: str,
+    current_user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session)
+):
+    query = select(StudyBookmark).where(
+        StudyBookmark.user_id == current_user.id,
+        StudyBookmark.question_id == question_id
+    )
+    result = await session.execute(query)
+    bookmark = result.scalar_one_or_none()
+    
+    if bookmark:
+        await session.delete(bookmark)
+        await session.commit()
+        return {"status": "removed", "question_id": question_id}
+    else:
+        new_bookmark = StudyBookmark(
+            user_id=current_user.id,
+            question_id=question_id
+        )
+        session.add(new_bookmark)
+        await session.commit()
+        return {"status": "added", "question_id": question_id}
 
 @router.get("/questions/{topic_id}")
 async def get_questions_by_topic(topic_id: str):

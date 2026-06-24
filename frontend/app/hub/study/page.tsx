@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { BookOpen, CheckCircle, XCircle, ArrowRight, Lightbulb, RefreshCw, ArrowLeft, Trophy, Video, FileText } from "lucide-react";
+import { BookOpen, CheckCircle, XCircle, ArrowRight, Lightbulb, RefreshCw, ArrowLeft, Trophy, Video, FileText, Bookmark } from "lucide-react";
 import { api } from "@/services/api";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -46,11 +46,19 @@ export default function StudyLearningPlatform() {
   // Progress state (localStorage)
   const [progress, setProgress] = useState<Record<string, {completed: number, score: number}>>({});
 
+  // Bookmark state
+  const [bookmarkedIds, setBookmarkedIds] = useState<Set<string>>(new Set());
+  const [showOnlyBookmarked, setShowOnlyBookmarked] = useState(false);
+
   // 1. Load Topics on mount
   useEffect(() => {
     api.get<Topic[]>("/api/study_questions/topics")
       .then(data => setTopics(data))
       .catch(err => console.error("Failed to load topics", err));
+      
+    api.get<{bookmarks: string[]}>("/api/study_questions/bookmarks")
+      .then(res => setBookmarkedIds(new Set(res.bookmarks)))
+      .catch(err => console.error("Failed to load bookmarks", err));
       
     // Load progress
     const saved = localStorage.getItem("vitba_study_progress");
@@ -72,8 +80,13 @@ export default function StudyLearningPlatform() {
   const startTopic = async (topic: Topic) => {
     try {
       const data = await api.get<Question[]>(`/api/study_questions/questions/${topic.id}`);
-      if (data && data.length > 0) {
-        setQuestions(data);
+      let filteredData = data;
+      if (showOnlyBookmarked) {
+        filteredData = data.filter(q => bookmarkedIds.has(q.id));
+      }
+      
+      if (filteredData && filteredData.length > 0) {
+        setQuestions(filteredData);
         setSelectedTopic(topic);
         setCurrentIndex(0);
         setSelectedOption(null);
@@ -81,7 +94,7 @@ export default function StudyLearningPlatform() {
         setScore(0);
         setView("quiz");
       } else {
-        alert("Chủ đề này hiện chưa có câu hỏi nào!");
+        alert(showOnlyBookmarked ? "Bạn chưa lưu câu hỏi nào trong chủ đề này!" : "Chủ đề này hiện chưa có câu hỏi nào!");
       }
     } catch (err) {
       console.error(err);
@@ -121,6 +134,29 @@ export default function StudyLearningPlatform() {
     }
   };
 
+  // 5. Toggle Bookmark
+  const toggleBookmark = async (questionId: string) => {
+    const isBookmarked = bookmarkedIds.has(questionId);
+    setBookmarkedIds(prev => {
+      const newSet = new Set(prev);
+      if (isBookmarked) newSet.delete(questionId);
+      else newSet.add(questionId);
+      return newSet;
+    });
+
+    try {
+      await api.post(`/api/study_questions/bookmarks/${questionId}`);
+    } catch (e) {
+      console.error("Lỗi toggle bookmark", e);
+      setBookmarkedIds(prev => {
+        const newSet = new Set(prev);
+        if (isBookmarked) newSet.add(questionId);
+        else newSet.delete(questionId);
+        return newSet;
+      });
+    }
+  };
+
   const currentQ = questions[currentIndex];
 
   // --- RENDER TOPICS ---
@@ -135,6 +171,17 @@ export default function StudyLearningPlatform() {
             <p className="text-muted-foreground mt-2 text-lg">
               Nền tảng rèn luyện tư duy và kiến thức Marketing thực chiến.
             </p>
+          </div>
+          
+          <div className="flex items-center gap-3 bg-card border rounded-2xl p-3 px-5 shadow-sm">
+            <Bookmark className={showOnlyBookmarked ? "text-yellow-500 fill-yellow-500" : "text-muted-foreground"} size={20} />
+            <span className="text-sm font-semibold">Chỉ ôn tập câu đã lưu</span>
+            <button 
+              onClick={() => setShowOnlyBookmarked(!showOnlyBookmarked)}
+              className={`w-12 h-6 rounded-full transition-colors relative ml-2 ${showOnlyBookmarked ? 'bg-yellow-500' : 'bg-secondary'}`}
+            >
+              <div className={`w-4 h-4 rounded-full bg-white absolute top-1 transition-transform ${showOnlyBookmarked ? 'translate-x-7' : 'translate-x-1'}`} />
+            </button>
           </div>
         </div>
 
@@ -222,9 +269,18 @@ export default function StudyLearningPlatform() {
           
           {/* LEFT PANE: Question & Options */}
           <div className="flex flex-col">
-            <h2 className="text-2xl md:text-3xl font-bold mb-8 leading-tight">
-              {currentQ.question}
-            </h2>
+            <div className="flex items-start justify-between gap-4 mb-8">
+              <h2 className="text-2xl md:text-3xl font-bold leading-tight flex-grow">
+                {currentQ.question}
+              </h2>
+              <button 
+                onClick={() => toggleBookmark(currentQ.id)}
+                className={`p-3 rounded-full transition-all flex-shrink-0 ${bookmarkedIds.has(currentQ.id) ? 'bg-yellow-100 text-yellow-600 shadow-sm' : 'bg-secondary text-muted-foreground hover:bg-secondary/80'}`}
+                title="Lưu câu hỏi này"
+              >
+                <Bookmark className={bookmarkedIds.has(currentQ.id) ? "fill-current" : ""} size={24} />
+              </button>
+            </div>
 
             <div className="space-y-3">
               {currentQ.options.map((option, idx) => {

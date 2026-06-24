@@ -42,8 +42,7 @@ async def generate_questions_for_topic(topic, num_questions=10):
     YÊU CẦU CHO MỖI CÂU HỎI:
     - 4 đáp án (options), chỉ 1 đáp án đúng.
     - `explanation`: Giải thích thật súc tích, dễ hiểu.
-    - `reference_type`: Phân bổ ngẫu nhiên giữa "youtube" (chiếm 30%), "article" (chiếm 60%), "none" (10%).
-    - Nếu là "youtube": Cung cấp `reference_url` là 1 link youtube có thật về chủ đề này (dùng embed format với tham số ?start=giây).
+    - `reference_type`: Phân bổ ngẫu nhiên giữa "article" (chiếm 80%), "none" (20%). TUYỆT ĐỐI KHÔNG DÙNG "youtube" vì bạn không thể lấy được link thật.
     - Nếu là "article": Cung cấp `reference_content` là 1 bài viết Markdown ngắn gọn (khoảng 150-200 từ) phân tích sâu về lý thuyết của câu hỏi đó, sử dụng định dạng in đậm, in nghiêng hợp lý.
     """
     
