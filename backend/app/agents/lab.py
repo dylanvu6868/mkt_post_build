@@ -293,43 +293,19 @@ YÊU CẦU VỀ PHONG CÁCH VIẾT:
     writer_agent = create_react_agent(get_chat_model("smart"), [], state_modifier=system)
 
     # Execute the two-stage pipeline
-    from app.core.tracing import langfuse_client
+    # 1. Research Phase
+    research_result = await researcher_agent.ainvoke(
+        {"messages": [HumanMessage(content=research_prompt)]},
+        config=config
+    )
+    research_data = research_result["messages"][-1].content
+
+    # 2. Writing Phase
+    writer_result = await writer_agent.ainvoke(
+        {"messages": [HumanMessage(content=writer_prompt.format(research_data=research_data))]},
+        config=config
+    )
+    final_report = writer_result["messages"][-1].content
     
-    if langfuse_client:
-        with langfuse_client.start_as_current_observation(
-            as_type="span",
-            name="run_report_agent_pipeline"
-        ) as span:
-            span.update(input=project_info)
-            # 1. Research Phase
-            research_result = await researcher_agent.ainvoke(
-                {"messages": [HumanMessage(content=research_prompt)]},
-                config=config
-            )
-            research_data = research_result["messages"][-1].content
+    return ReportResponse(markdown_content=final_report)
 
-            # 2. Writing Phase
-            writer_result = await writer_agent.ainvoke(
-                {"messages": [HumanMessage(content=writer_prompt.format(research_data=research_data))]},
-                config=config
-            )
-            final_report = writer_result["messages"][-1].content
-            
-            span.update(output=final_report)
-            return ReportResponse(markdown_content=final_report)
-    else:
-        # 1. Research Phase
-        research_result = await researcher_agent.ainvoke(
-            {"messages": [HumanMessage(content=research_prompt)]},
-            config=config
-        )
-        research_data = research_result["messages"][-1].content
-
-        # 2. Writing Phase
-        writer_result = await writer_agent.ainvoke(
-            {"messages": [HumanMessage(content=writer_prompt.format(research_data=research_data))]},
-            config=config
-        )
-        final_report = writer_result["messages"][-1].content
-        
-        return ReportResponse(markdown_content=final_report)

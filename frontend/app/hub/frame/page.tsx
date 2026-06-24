@@ -45,7 +45,7 @@ export default function VitbaFramePage() {
 
     setIsGenerating(true);
     try {
-      const res = await fetch("http://localhost:8000/api/frame/generate", {
+      const res = await fetch("/api/frame/generate", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -89,7 +89,7 @@ export default function VitbaFramePage() {
     setIsVideoGenerating(true);
     setVideoStatusText("Đang khởi tạo tiến trình...");
     try {
-      const res = await fetch("http://localhost:8000/api/frame/video/generate", {
+      const res = await fetch("/api/frame/video/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -110,7 +110,7 @@ export default function VitbaFramePage() {
       
       const poll = setInterval(async () => {
         try {
-          const statusRes = await fetch(`http://localhost:8000/api/frame/video/status/${encodeURIComponent(operation_name)}`);
+          const statusRes = await fetch(`/api/frame/video/status/${encodeURIComponent(operation_name)}`);
           if (statusRes.ok) {
             const data = await statusRes.json();
             if (data.status === "completed") {
