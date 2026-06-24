@@ -82,7 +82,7 @@ function DraftRenderer({
         {d.hashtags && (
           <div className="flex gap-2 flex-wrap pt-2">
             {d.hashtags.map((tag) => (
-              <span key={tag} className="px-3 py-1 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 text-xs font-medium">
+              <span key={tag} className="px-3 py-1 rounded-full bg-primary/10 text-primary border border-primary/20 text-xs font-medium">
                 {tag}
               </span>
             ))}

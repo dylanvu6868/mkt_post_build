@@ -51,8 +51,8 @@ export const PLAN_META: Record<
     name: "Pro",
     color: "text-amber-600 dark:text-amber-400",
     bgColor: "bg-amber-100 dark:bg-amber-900/30",
-    badgeBg: "bg-blue-500/20",
-    badgeColor: "text-blue-400",
+    badgeBg: "bg-primary/20",
+    badgeColor: "text-primary",
   },
   max: {
     name: "Max",

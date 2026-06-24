@@ -175,7 +175,7 @@
   }
 
   .lab-tag-beta {
-    @apply bg-blue-500/10 text-blue-500 dark:text-blue-400 border border-blue-500/20;
+    @apply bg-primary/10 text-primary dark:text-primary border border-primary/20;
   }
 
   .lab-tag-soon {

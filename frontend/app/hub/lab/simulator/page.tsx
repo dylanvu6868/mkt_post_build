@@ -10,7 +10,7 @@ const TYPE_MAP: Record<string, { label: string; dot: string }> = {
   fan: { label: "Ủng hộ", dot: "bg-emerald-500" },
   hater: { label: "Phản đối", dot: "bg-red-500" },
   neutral: { label: "Trung lập", dot: "bg-muted-foreground" },
-  question: { label: "Thắc mắc", dot: "bg-blue-500" },
+  question: { label: "Thắc mắc", dot: "bg-primary" },
 };
 
 export default function SimulatorPage() {

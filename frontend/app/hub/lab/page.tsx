@@ -187,8 +187,8 @@ const CATEGORIES = [
 ];
 
 const TAG_STYLES = {
-  available: "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20",
-  beta: "bg-blue-500/10 text-blue-400 border border-blue-500/20",
+  available: "bg-primary/10 text-primary border border-primary/20",
+  beta: "bg-primary/10 text-primary border border-primary/20",
   soon: "bg-muted text-muted-foreground border border-border/50",
 };
 
@@ -256,7 +256,7 @@ export default function VitbaLabPage() {
                   )}
                 >
                   {/* Icon */}
-                  <div className="shrink-0 w-10 h-10 rounded-xl border border-border/40 bg-background flex items-center justify-center text-foreground/60 group-hover:text-foreground group-hover:border-border/70 transition-all duration-200">
+                  <div className="shrink-0 w-10 h-10 rounded-xl border border-border/40 bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary/20 group-hover:border-primary/30 transition-all duration-200">
                     {tool.icon}
                   </div>
 

@@ -182,7 +182,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                         <div key={i} className="flex gap-3 items-start px-4 py-3 border-b border-border/50 last:border-0 hover:bg-accent/50 transition-colors">
                           <div className={cn(
                             "mt-1 h-2 w-2 shrink-0 rounded-full",
-                            n.type === "register" ? "bg-green-500" : n.type === "content" ? "bg-blue-500" : n.type === "error" ? "bg-red-500" : "bg-zinc-500"
+                            n.type === "register" ? "bg-green-500" : n.type === "content" ? "bg-primary" : n.type === "error" ? "bg-red-500" : "bg-zinc-500"
                           )} />
                           <div className="min-w-0 flex-1">
                             <p className="text-[12px] text-foreground leading-snug">{n.text}</p>

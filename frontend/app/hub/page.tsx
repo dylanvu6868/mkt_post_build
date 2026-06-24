@@ -18,8 +18,8 @@ const TOOLS = [
         <rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
       </svg>
     ),
-    gradient: "from-blue-500/15 to-cyan-500/10",
-    iconBg: "bg-blue-500/15 text-blue-600 dark:text-blue-400",
+    gradient: "from-primary/20 to-primary/10",
+    iconBg: "bg-primary/20 text-primary",
   },
   {
     key: "calendar",
@@ -31,8 +31,8 @@ const TOOLS = [
         <rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/>
       </svg>
     ),
-    gradient: "from-green-500/15 to-emerald-500/10",
-    iconBg: "bg-green-500/15 text-green-600 dark:text-green-400",
+    gradient: "from-primary/20 to-primary/10",
+    iconBg: "bg-primary/20 text-primary",
   },
   {
     key: "seo",
@@ -44,8 +44,8 @@ const TOOLS = [
         <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
       </svg>
     ),
-    gradient: "from-amber-500/15 to-yellow-500/10",
-    iconBg: "bg-amber-500/15 text-amber-600 dark:text-amber-400",
+    gradient: "from-primary/20 to-primary/10",
+    iconBg: "bg-primary/20 text-primary",
   },
   {
     key: "analytics",
@@ -57,8 +57,8 @@ const TOOLS = [
         <path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/>
       </svg>
     ),
-    gradient: "from-purple-500/15 to-violet-500/10",
-    iconBg: "bg-purple-500/15 text-purple-600 dark:text-purple-400",
+    gradient: "from-primary/20 to-primary/10",
+    iconBg: "bg-primary/20 text-primary",
   },
   {
     key: "landing",
@@ -70,8 +70,8 @@ const TOOLS = [
         <rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/>
       </svg>
     ),
-    gradient: "from-pink-500/15 to-rose-500/10",
-    iconBg: "bg-pink-500/15 text-pink-600 dark:text-pink-400",
+    gradient: "from-primary/20 to-primary/10",
+    iconBg: "bg-primary/20 text-primary",
   },
 ];
 

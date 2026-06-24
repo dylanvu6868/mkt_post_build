@@ -652,7 +652,7 @@ function StatsTab() {
             </div>
             <div>
               <p className="text-xs text-muted-foreground mb-1">Tỉ lệ nhấp</p>
-              <div className="h-2 rounded-full bg-muted overflow-hidden"><div className="h-full bg-blue-500 rounded-full" style={{ width: `${Math.min(emailStats.click_rate, 100)}%` }} /></div>
+              <div className="h-2 rounded-full bg-muted overflow-hidden"><div className="h-full bg-primary rounded-full" style={{ width: `${Math.min(emailStats.click_rate, 100)}%` }} /></div>
             </div>
           </div>
         ) : <p className="text-sm text-muted-foreground">Chưa có dữ liệu.</p>}

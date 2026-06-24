@@ -136,7 +136,7 @@ export function ChatSidebar() {
           <button
             data-tour="hub-btn"
             onClick={() => router.push("/hub")}
-            className="flex w-full items-center gap-2 rounded-2xl border border-blue-500/30 bg-blue-500/5 px-4 py-3 text-[14px] font-medium text-blue-500 hover:bg-blue-500/10 hover:border-blue-500/50 transition-all duration-300 shadow-[0_2px_10px_rgba(0,0,0,0.2)] group"
+            className="flex w-full items-center gap-2 rounded-2xl border border-primary/30 bg-primary/5 px-4 py-3 text-[14px] font-medium text-primary hover:bg-primary/10 hover:border-primary/50 transition-all duration-300 shadow-[0_2px_10px_rgba(0,0,0,0.2)] group"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="group-hover:scale-110 transition-transform"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
             Trung tâm Marketing

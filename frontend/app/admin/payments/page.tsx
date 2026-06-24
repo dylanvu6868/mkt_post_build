@@ -32,7 +32,7 @@ interface UserRow {
 const PLAN_TIERS = [
   { key: "free", label: "Free", color: "bg-zinc-500", badge: "text-zinc-500 border-zinc-500/30", price: "Miễn phí", monthly: 0 },
   { key: "lite", label: "Lite", color: "bg-sky-500", badge: "text-sky-500 border-sky-500/30", price: "99.000₫/tháng", monthly: 99000 },
-  { key: "pro", label: "Pro", color: "bg-blue-500", badge: "text-blue-500 border-blue-500/30", price: "219.000₫/tháng", monthly: 219000 },
+  { key: "pro", label: "Pro", color: "bg-primary", badge: "text-primary border-primary/30", price: "219.000₫/tháng", monthly: 219000 },
   { key: "max", label: "Max", color: "bg-amber-500", badge: "text-amber-500 border-amber-500/30", price: "469.000₫/tháng", monthly: 469000 },
 ];
 
