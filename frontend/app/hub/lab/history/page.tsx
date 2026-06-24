@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Trash2, ChevronDown, ChevronUp, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
+import { api } from "@/services/api";
 
 interface LabHistoryItem {
   id: string;
@@ -21,11 +22,8 @@ export default function LabHistoryPage() {
 
   const fetchHistory = async () => {
     try {
-      const res = await fetch("/api/lab/history");
-      if (res.ok) {
-        const data = await res.json();
-        setHistories(data);
-      }
+      const data = await api.get<LabHistoryItem[]>("/api/lab/history");
+      setHistories(data);
     } catch (error) {
       console.error("Failed to fetch history:", error);
     } finally {
@@ -42,18 +40,12 @@ export default function LabHistoryPage() {
     if (!confirm("Bạn có chắc chắn muốn xoá bản ghi này?")) return;
     
     try {
-      const res = await fetch(`/api/lab/history/${id}`, {
-        method: "DELETE",
-      });
-      if (res.ok) {
-        setHistories(prev => prev.filter(h => h.id !== id));
-        toast.success("Bản ghi đã được xoá thành công.");
-      } else {
-        toast.error("Không thể xoá bản ghi này.");
-      }
+      await api.delete(`/api/lab/history/${id}`);
+      setHistories(prev => prev.filter(h => h.id !== id));
+      toast.success("Bản ghi đã được xoá thành công.");
     } catch (error) {
       console.error(error);
-      toast.error("Có lỗi xảy ra.");
+      toast.error("Không thể xoá bản ghi này.");
     }
   };
 

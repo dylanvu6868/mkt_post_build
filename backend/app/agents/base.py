@@ -43,10 +43,28 @@ async def generate_structured(
     llm = get_chat_model(tier)
     messages = [SystemMessage(content=system), HumanMessage(content=user)]
 
-    try:
-        return await llm.with_structured_output(schema).ainvoke(messages)
-    except Exception:
-        pass
+    from app.core.tracing import langfuse_client
+
+    if langfuse_client:
+        with langfuse_client.start_as_current_observation(
+            as_type="generation",
+            name=f"generate_structured_{schema.__name__}",
+            model=f"deepseek-{tier}"
+        ) as generation:
+            try:
+                # Add input manually to trace
+                generation.update(input=messages)
+                res = await llm.with_structured_output(schema).ainvoke(messages)
+                generation.update(output=res.model_dump() if hasattr(res, "model_dump") else str(res))
+                return res
+            except Exception as e:
+                generation.update(level="ERROR", status_message=str(e))
+                pass
+    else:
+        try:
+            return await llm.with_structured_output(schema).ainvoke(messages)
+        except Exception:
+            pass
 
     json_hint = (
         f"\n\nIMPORTANT: Return your answer as a single JSON object matching this schema — "
@@ -57,13 +75,35 @@ async def generate_structured(
         SystemMessage(content=system + json_hint),
         HumanMessage(content=user),
     ]
-    try:
-        raw = await llm.ainvoke(messages_fb)
-        text = raw.content if hasattr(raw, "content") else str(raw)
-        data = _extract_json(text)
-        if data:
-            return schema.model_validate(data)
-    except Exception as e:
-        print(f"generate_structured fallback failed for {schema.__name__}: {e}")
+
+    from app.core.tracing import langfuse_client
+
+    if langfuse_client:
+        with langfuse_client.start_as_current_observation(
+            as_type="generation",
+            name=f"generate_structured_fallback_{schema.__name__}",
+            model=f"deepseek-{tier}"
+        ) as generation:
+            try:
+                generation.update(input=messages_fb)
+                raw = await llm.ainvoke(messages_fb)
+                text = raw.content if hasattr(raw, "content") else str(raw)
+                generation.update(output=text)
+                
+                data = _extract_json(text)
+                if data:
+                    return schema.model_validate(data)
+            except Exception as e:
+                generation.update(level="ERROR", status_message=str(e))
+                print(f"generate_structured fallback failed for {schema.__name__}: {e}")
+    else:
+        try:
+            raw = await llm.ainvoke(messages_fb)
+            text = raw.content if hasattr(raw, "content") else str(raw)
+            data = _extract_json(text)
+            if data:
+                return schema.model_validate(data)
+        except Exception as e:
+            print(f"generate_structured fallback failed for {schema.__name__}: {e}")
 
     raise ValueError(f"Could not parse {schema.__name__} from LLM response")

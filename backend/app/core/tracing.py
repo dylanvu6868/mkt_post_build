@@ -1,10 +1,14 @@
 import os
-from langfuse.langchain import CallbackHandler
+from langfuse import get_client
 
-def get_langfuse_handler():
-    # Langfuse v4 reads LANGFUSE_PUBLIC_KEY, LANGFUSE_SECRET_KEY, LANGFUSE_HOST from env automatically
+# Instantiate the Langfuse client based on env variables
+def get_langfuse_client():
     if os.getenv("LANGFUSE_PUBLIC_KEY") and os.getenv("LANGFUSE_SECRET_KEY"):
-        return CallbackHandler(public_key=os.getenv("LANGFUSE_PUBLIC_KEY"))
+        return get_client()
     return None
 
-langfuse_handler = get_langfuse_handler()
+langfuse_client = get_langfuse_client()
+
+# Keep a dummy handler for places that might still try to import langfuse_handler 
+# to avoid breaking other files temporarily
+langfuse_handler = None

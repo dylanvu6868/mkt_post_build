@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { BookOpen, CheckCircle, XCircle, ArrowRight, Lightbulb, RefreshCw, ArrowLeft, Trophy } from "lucide-react";
+import { api } from "@/services/api";
 
 interface Topic {
   id: string;
@@ -42,8 +43,7 @@ export default function StudyLearningPlatform() {
 
   // 1. Load Topics on mount
   useEffect(() => {
-    fetch("/api/study_questions/topics")
-      .then(res => res.json())
+    api.get<Topic[]>("/api/study_questions/topics")
       .then(data => setTopics(data))
       .catch(err => console.error("Failed to load topics", err));
       
@@ -66,8 +66,7 @@ export default function StudyLearningPlatform() {
   // 2. Start Topic
   const startTopic = async (topic: Topic) => {
     try {
-      const res = await fetch(`/api/study_questions/questions/${topic.id}`);
-      const data = await res.json();
+      const data = await api.get<Question[]>(`/api/study_questions/questions/${topic.id}`);
       if (data && data.length > 0) {
         setQuestions(data);
         setSelectedTopic(topic);

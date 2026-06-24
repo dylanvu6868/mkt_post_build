@@ -285,18 +285,51 @@ YÊU CẦU VỀ PHONG CÁCH VIẾT:
     model = get_chat_model("fast")
     tools = [get_search_tool()]
     researcher_system = "Bạn là Chuyên gia Nghiên cứu Thị trường. Nhiệm vụ của bạn là tìm kiếm thông tin mới nhất trên mạng về ngành hàng, đối thủ cạnh tranh, và xu hướng dựa trên thông tin dự án. Trả về một bản tóm tắt ngắn gọn các insight quan trọng tìm được."
-    researcher = create_react_agent(model, tools, state_modifier=researcher_system)
+    researcher_agent = create_react_agent(model, tools, state_modifier=researcher_system)
     
     config = {"callbacks": [langfuse_handler]} if langfuse_handler else {}
-    research_query = f"Tìm kiếm thông tin thị trường, đối thủ cạnh tranh và xu hướng nổi bật cho dự án sau: {user}"
-    
-    try:
-        research_result = await researcher.ainvoke({"messages": [HumanMessage(content=research_query)]}, config=config)
-        research_data = research_result["messages"][-1].content
-    except Exception as e:
-        research_data = f"Không thể lấy dữ liệu nghiên cứu thị trường. Lỗi: {e}"
+    research_prompt = f"Tìm kiếm thông tin thị trường, đối thủ cạnh tranh và xu hướng nổi bật cho dự án sau: {user_info}"
+    writer_prompt = system + "\n\nTHÔNG TIN NGHIÊN CỨU THỊ TRƯỜNG THỰC TẾ (Dùng để bổ sung vào báo cáo):\n{research_data}\n\nTiến hành phân tích và tạo Vitba Report chi tiết dựa trên thông tin dự án ở trên."
+    writer_agent = create_react_agent(get_chat_model("smart"), [], state_modifier=system)
 
-    # --- PHASE 2: WRITER AGENT ---
-    user += f"\n\nTHÔNG TIN NGHIÊN CỨU THỊ TRƯỜNG THỰC TẾ (Dùng để bổ sung vào báo cáo):\n{research_data}\n\nTiến hành phân tích và tạo Vitba Report chi tiết."
+    # Execute the two-stage pipeline
+    from app.core.tracing import langfuse_client
     
-    return await generate_structured("smart", system, user, ReportResponse)
+    if langfuse_client:
+        with langfuse_client.start_as_current_observation(
+            as_type="span",
+            name="run_report_agent_pipeline"
+        ) as span:
+            span.update(input=project_info)
+            # 1. Research Phase
+            research_result = await researcher_agent.ainvoke(
+                {"messages": [HumanMessage(content=research_prompt)]},
+                config=config
+            )
+            research_data = research_result["messages"][-1].content
+
+            # 2. Writing Phase
+            writer_result = await writer_agent.ainvoke(
+                {"messages": [HumanMessage(content=writer_prompt.format(research_data=research_data))]},
+                config=config
+            )
+            final_report = writer_result["messages"][-1].content
+            
+            span.update(output=final_report)
+            return ReportResponse(markdown_content=final_report)
+    else:
+        # 1. Research Phase
+        research_result = await researcher_agent.ainvoke(
+            {"messages": [HumanMessage(content=research_prompt)]},
+            config=config
+        )
+        research_data = research_result["messages"][-1].content
+
+        # 2. Writing Phase
+        writer_result = await writer_agent.ainvoke(
+            {"messages": [HumanMessage(content=writer_prompt.format(research_data=research_data))]},
+            config=config
+        )
+        final_report = writer_result["messages"][-1].content
+        
+        return ReportResponse(markdown_content=final_report)
