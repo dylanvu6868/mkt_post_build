@@ -34,11 +34,11 @@ type IconComp = LucideIcon | ((props: { size?: number; className?: string }) => 
 const NAV = [
   { label: "Tổng quan", href: "/hub", icon: "overview", toolKey: null },
   { label: "Meta Publisher", href: "/hub/meta", icon: "meta", toolKey: "meta" },
-  { label: "Email Marketing", href: "/hub/email", icon: "email", toolKey: "email" },
+  { label: "Vitba Mail", href: "/hub/email", icon: "email", toolKey: "email" },
   { label: "Content Calendar", href: "/hub/calendar", icon: "calendar", toolKey: "calendar" },
   { label: "SEO Tools", href: "/hub/seo", icon: "seo", toolKey: "seo" },
   { label: "Analytics", href: "/hub/analytics", icon: "analytics", toolKey: "analytics" },
-  { label: "Landing Pages", href: "/hub/landing", icon: "landing", toolKey: "landing" },
+  { label: "Vitba Landing Page", href: "/hub/landing", icon: "landing", toolKey: "landing" },
 ];
 
 const LAB_NAV = [

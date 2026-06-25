@@ -1,9 +1,13 @@
+import logging
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from app.models.document import Document
 from app.models.project import Project
 from app.rag.ingest import ingest_document
+
+logger = logging.getLogger(__name__)
 
 
 async def create_document(
@@ -45,13 +49,15 @@ async def process_upload(
         await session.commit()
 
     try:
-        await ingest_document(file_bytes, filename, project_id, document_id)
+        chunk_count = await ingest_document(file_bytes, filename, project_id, document_id)
         async with session_maker() as session:
             doc = await session.get(Document, document_id)
             if doc is not None:
                 doc.status = "ready"
                 await session.commit()
-    except Exception:  # noqa: BLE001
+        logger.info("Document %s ingested: %d chunks (project %s)", filename, chunk_count, project_id)
+    except Exception as e:
+        logger.exception("Document ingest failed for '%s' (doc_id=%s): %s", filename, document_id, e)
         async with session_maker() as session:
             doc = await session.get(Document, document_id)
             if doc is not None:

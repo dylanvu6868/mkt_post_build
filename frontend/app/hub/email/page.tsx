@@ -763,30 +763,24 @@ export default function EmailPage() {
       <div>
         <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-2">
           <Mail className="h-8 w-8 text-primary" />
-          <span className="bg-gradient-to-r from-primary to-primary/60 text-transparent bg-clip-text">Email Marketing</span>
+          <span className="bg-gradient-to-r from-primary to-primary/60 text-transparent bg-clip-text">Vitba Mail</span>
         </h1>
         <p className="mt-2 text-muted-foreground text-lg">
-          Quản lý chiến dịch email, danh bạ và tự động hóa chuỗi gửi email của bạn.
+          Tạo email chuyên nghiệp bằng AI — thiết kế, gửi, quản lý danh bạ.
         </p>
       </div>
 
-      <Tabs defaultValue="compose" className="space-y-6">
+      <Tabs defaultValue="builder" className="space-y-6">
         <TabsList className="bg-muted/50 p-1 flex-wrap gap-1">
-          <TabsTrigger value="compose" className="rounded-lg data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm">Gửi email</TabsTrigger>
           <TabsTrigger value="builder" className="rounded-lg data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm">Vitba Mail Builder</TabsTrigger>
-          <TabsTrigger value="templates" className="rounded-lg data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm">Mẫu email</TabsTrigger>
+          <TabsTrigger value="compose" className="rounded-lg data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm">Gửi email</TabsTrigger>
           <TabsTrigger value="contacts" className="rounded-lg data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm">Liên hệ</TabsTrigger>
-          <TabsTrigger value="lists" className="rounded-lg data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm">Danh sách</TabsTrigger>
-          <TabsTrigger value="scheduled" className="rounded-lg data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm">Lên lịch</TabsTrigger>
           <TabsTrigger value="stats" className="rounded-lg data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm">Thống kê</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="compose"><ComposeTab /></TabsContent>
         <TabsContent value="builder"><MailBuilder /></TabsContent>
-        <TabsContent value="templates"><TemplatesTab /></TabsContent>
+        <TabsContent value="compose"><ComposeTab /></TabsContent>
         <TabsContent value="contacts"><ContactsTab /></TabsContent>
-        <TabsContent value="lists"><ListsSection /></TabsContent>
-        <TabsContent value="scheduled"><ScheduledTab /></TabsContent>
         <TabsContent value="stats"><StatsTab /></TabsContent>
       </Tabs>
     </div>

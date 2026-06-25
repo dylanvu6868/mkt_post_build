@@ -8,6 +8,7 @@ overrides.
 from __future__ import annotations
 
 import os
+import re
 from pathlib import Path
 from typing import Any
 
@@ -354,3 +355,38 @@ def list_email_templates() -> list[dict]:
             "slots": list(meta["slots"].keys()),
         })
     return result
+
+
+# ---------------------------------------------------------------------------
+# AI generation helpers — feed template patterns to LLM as style reference
+# ---------------------------------------------------------------------------
+
+def get_landing_style_reference() -> str:
+    """Extract key CSS patterns + section structures from landing templates
+    to use as style reference for AI generation. Returns a condensed string
+    that captures design patterns without dumping full HTML.
+    """
+    parts = []
+    for tid, meta in LANDING_TEMPLATES.items():
+        css_path = meta["dir"] / "style.css"
+        if css_path.exists():
+            css = css_path.read_text(encoding="utf-8")
+            # Extract CSS variables + key class definitions (first 2000 chars)
+            condensed = css[:2000]
+            parts.append(f"/* Template {tid} ({meta['name']}) — colors: {meta['colors']} */\n{condensed}")
+    return "\n\n".join(parts)[:6000]
+
+
+def get_email_style_reference() -> str:
+    """Extract key patterns from email templates for AI reference."""
+    parts = []
+    for tid, meta in EMAIL_TEMPLATES.items():
+        html = meta["file"].read_text(encoding="utf-8")
+        # Extract section comments + color palette (condensed)
+        sections = re.findall(r"<!--\s*([^<>]+?)\s*-->", html)
+        sections = [s for s in sections if not s.startswith("[if") and not s.startswith("endif")]
+        colors = set(re.findall(r"#[0-9A-Fa-f]{6}", html))
+        parts.append(
+            f"Template {tid} ({meta['name']}): sections={sections}, colors={colors}"
+        )
+    return "\n".join(parts)[:2000]

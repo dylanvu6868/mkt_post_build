@@ -18,6 +18,7 @@ from app.services.storage import save_upload
 from app.mcp.landing.template_engine import (
     render_landing,
     list_landing_templates,
+    get_landing_style_reference,
 )
 
 router = APIRouter(tags=["landing"])
@@ -245,6 +246,75 @@ async def save_from_template(
     await session.commit()
     await log_action(session, user.id, "landing.create", "landing_page", str(page.id))
     return {"id": page.id, "title": page.title, "slug": page.slug}
+
+
+class GenerateCustomReq(BaseModel):
+    prompt: str
+    brand_name: str = ""
+    logo_url: str = ""
+    hero_image_url: str = ""
+    primary_color: str = ""
+    cta_text: str = ""
+    cta_link: str = ""
+
+
+@router.post("/mcp/landing/generate-custom")
+async def generate_custom_landing(body: GenerateCustomReq, user: User = Depends(get_current_user)):
+    """AI generates a custom landing page from user's description,
+    using template patterns as style reference (not slot-filling)."""
+    from app.llm.factory import get_chat_model, provider_available
+    if not provider_available():
+        raise HTTPException(503, "LLM provider not configured")
+
+    style_ref = get_landing_style_reference()
+
+    images_context = ""
+    if body.logo_url:
+        images_context += f"\nLogo URL: {body.logo_url}"
+    if body.hero_image_url:
+        images_context += f"\nHero image URL: {body.hero_image_url}"
+
+    color_context = f"\nPrimary color: {body.primary_color}" if body.primary_color else ""
+    cta_context = f"\nCTA button text: {body.cta_text}\nCTA link: {body.cta_link}" if body.cta_text else ""
+
+    system = f"""Bạn là AI Landing Page Designer độc quyền của Vitba AI.
+Nhiệm vụ: tạo landing page HTML hoàn chỉnh, responsive, đẹp, chuyển đổi cao từ mô tả của người dùng.
+
+## STYLE REFERENCE (học từ, không copy):
+{style_ref}
+
+## YÊU CẦU KỸ THUẬT:
+1. HTML hoàn chỉnh với inline CSS trong <style> tag
+2. Responsive, mobile-first, sử dụng CSS Grid/Flexbox
+3. Sử dụng Tailwind CSS qua CDN: <script src="https://cdn.tailwindcss.com"></script>
+4. Nếu có logo/hero image URL, dùng <img src="URL"> trực tiếp
+5. Smooth animations, hover effects, gradient accents
+6. Typography hierarchy rõ ràng, font Google Fonts
+7. Tất cả sections phải đầy đủ nội dung (không placeholder)
+8. Viết bằng tiếng Việt
+9. Trả về DUY NHẤT mã HTML bắt đầu bằng <!DOCTYPE html>
+10. KHÔNG markdown fence, KHÔNG giải thích"""
+
+    user_msg = f"""Mô tả landing page: {body.prompt}
+Brand: {body.brand_name or "(tự đặt tên phù hợp)"}
+{images_context}{color_context}{cta_context}
+
+Tạo landing page hoàn chỉnh, chuyên nghiệp, độc quyền Vitba."""
+
+    from langchain_core.messages import SystemMessage, HumanMessage
+    from app.core.tracing import trace_request
+
+    llm = get_chat_model("fast")
+    with trace_request("landing.generate_custom", user_id=user.id, metadata={"prompt": body.prompt[:200]}):
+        resp = await llm.ainvoke([SystemMessage(content=system), HumanMessage(content=user_msg)])
+
+    html = (resp.content if isinstance(resp.content, str) else str(resp.content)).strip()
+    if html.startswith("```"):
+        html = html.split("\n", 1)[-1].rsplit("```", 1)[0].strip()
+    if not html.startswith("<!DOCTYPE"):
+        html = f"<!DOCTYPE html>\n{html}"
+
+    return {"html": html}
 
 
 # Public route — serve published landing pages (no auth)

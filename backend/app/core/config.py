@@ -66,13 +66,13 @@ class Settings(BaseSettings):
     # Scheduler
     scheduler_enabled: bool = True
 
-    # RAG (M3)
+    # RAG (M3) — multilingual models for Vietnamese support
     qdrant_collection_name: str = "marketing_docs"
-    embedding_model: str = "BAAI/bge-small-en-v1.5"
+    embedding_model: str = "BAAI/bge-m3"
     sparse_embedding_model: str = "Qdrant/bm25"
-    reranker_model: str = "Xenova/ms-marco-MiniLM-L-6-v2"
-    rag_chunk_size: int = 500
-    rag_chunk_overlap: int = 50
+    reranker_model: str = "BAAI/bge-reranker-v2-m3"
+    rag_chunk_size: int = 800
+    rag_chunk_overlap: int = 150
     rag_retrieve_k: int = 20
     rag_top_k: int = 5
 

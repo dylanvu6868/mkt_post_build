@@ -42,7 +42,7 @@ def _is_hybrid_collection() -> bool:
     return isinstance(info.config.params.vectors, dict)
 
 
-def init_collection(vector_size: int = 384) -> None:
+def init_collection(vector_size: int = 1024) -> None:
     client = _get_client()
 
     if _collection_exists():

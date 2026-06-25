@@ -93,9 +93,11 @@ def _build_system_prompt(user: User, doc_context: str = "") -> str:
     )
     if doc_context:
         prompt += (
-            "\n\n## Tài liệu người dùng đã tải lên:\n"
-            "Dưới đây là nội dung từ tài liệu người dùng đã upload. "
-            "Hãy sử dụng thông tin này để trả lời câu hỏi hoặc tạo nội dung phù hợp.\n\n"
+            "\n\n## TÀI LIỆU NGƯỜI DÙNG ĐÃ TẢI LÊN (ƯU TIÊN CAO NHẤT):\n"
+            "Dưới đây là nội dung trích xuất từ tài liệu người dùng đã upload. "
+            "BẮT BUỘC sử dụng thông tin này làm nguồn chính để trả lời câu hỏi hoặc tạo nội dung. "
+            "KHÔNG bịa đặt thông tin trái với tài liệu. Nếu tài liệu không chứa thông tin cần thiết, "
+            "hãy nói rõ 'Tài liệu bạn tải lên không chứa thông tin này'.\n\n"
             f"{doc_context}"
         )
     return prompt
@@ -550,8 +552,11 @@ async def send_message(
                     chunks.append(c)
         if chunks:
             doc_context = "\n---\n".join(chunks)
+            logger.info("RAG retrieved %d chunks for conv %s (context: %d chars)", len(chunks), conversation_id, len(doc_context))
+        else:
+            logger.info("RAG retrieved 0 chunks for conv %s — query: %s", conversation_id, payload.content[:100])
     except Exception as e:
-        logger.warning(f"RAG retrieval failed: {e}")
+        logger.warning("RAG retrieval failed for conv %s: %s", conversation_id, e)
 
     history = await _build_messages(session, conversation_id)
 
