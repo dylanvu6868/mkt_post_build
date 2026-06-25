@@ -358,7 +358,7 @@ export default function ReportPage() {
         ) : (
           <>
         <div 
-          className={`bg-card border-2 border-border/80 rounded-[1.5rem] shadow-sm flex flex-col md:flex-row overflow-hidden transition-all duration-700 ease-in-out origin-top
+          className={`bg-card border-2 border-border/80 rounded-[1.5rem] shadow-sm flex flex-col overflow-hidden transition-all duration-700 ease-in-out origin-top
             ${isWizardCollapsed ? "h-0 md:h-[72px] opacity-0 md:opacity-100 flex-none overflow-hidden" : "h-[650px] opacity-100 flex-none"}`}
         >
             <div className="p-6 md:px-8 shrink-0 border-b border-border/50 bg-card z-10">
