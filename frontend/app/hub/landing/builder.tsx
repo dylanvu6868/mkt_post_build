@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { api, API_BASE_URL, getToken } from "@/services/api";
 import { toast } from "sonner";
 import {
@@ -84,6 +84,36 @@ export function LandingBuilder({ onSaved }: { onSaved?: () => void }) {
   const [saving, setSaving] = useState(false);
   const [title, setTitle] = useState("");
   const [previewMode, setPreviewMode] = useState<"desktop" | "mobile">("desktop");
+  
+  const editableHtmlRef = useRef("");
+
+  useEffect(() => {
+    const handleMessage = (e: MessageEvent) => {
+      if (e.data?.type === "html_update") {
+        editableHtmlRef.current = e.data.html;
+      }
+    };
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
+  }, []);
+
+  const injectedHtml = useMemo(() => {
+    if (!previewHtml) return "";
+    const script = `
+      <script id="live-edit-script">
+        document.body.contentEditable = 'true';
+        document.body.addEventListener('input', function() {
+          window.parent.postMessage({ type: 'html_update', html: document.documentElement.outerHTML }, '*');
+        });
+        document.body.addEventListener('click', function(e) {
+          if (e.target.closest('a')) {
+            e.preventDefault();
+          }
+        });
+      </script>
+    `;
+    return previewHtml.replace('</body>', script + '</body>');
+  }, [previewHtml]);
 
   const stepNum = STEPS.indexOf(step);
 
@@ -130,6 +160,7 @@ export function LandingBuilder({ onSaved }: { onSaved?: () => void }) {
         logo_url: logoUrl,
       });
       setPreviewHtml(res.html);
+      editableHtmlRef.current = ""; // Reset ref on new generation
       setTitle(finalPurpose.slice(0, 50));
     } catch {
       toast.error("Tạo thất bại, thử lại");
@@ -139,10 +170,13 @@ export function LandingBuilder({ onSaved }: { onSaved?: () => void }) {
   };
 
   const handleSave = async () => {
-    if (!previewHtml) return;
+    const finalHtml = editableHtmlRef.current || previewHtml;
+    if (!finalHtml) return;
     setSaving(true);
+    // Remove the injected script before saving
+    const cleanHtml = finalHtml.replace(/<script id="live-edit-script">[\s\S]*?<\/script>/, "");
     try {
-      await api.post("/mcp/landing/save-from-template", { title, html: previewHtml });
+      await api.post("/mcp/landing/save-from-template", { title, html: cleanHtml });
       toast.success("Đã lưu landing page");
       onSaved?.();
     } catch {
@@ -213,11 +247,11 @@ export function LandingBuilder({ onSaved }: { onSaved?: () => void }) {
         {/* Preview iframe */}
         <div className="flex-1 overflow-hidden rounded-xl border border-border bg-white min-h-0">
           <iframe
-            srcDoc={previewHtml}
+            srcDoc={injectedHtml}
             className="h-full w-full border-0"
             style={{ maxWidth: previewMode === "mobile" ? "390px" : "100%", margin: "0 auto", display: "block" }}
             title="Landing Preview"
-            sandbox="allow-same-origin"
+            sandbox="allow-same-origin allow-scripts"
           />
         </div>
       </div>

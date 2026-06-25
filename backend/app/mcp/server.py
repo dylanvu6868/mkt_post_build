@@ -33,7 +33,12 @@ async def send_email(body: EmailReq, user: User = Depends(get_current_user), ses
     allowed, used, limit = await check_daily_email_sends(session, user)
     if not allowed:
         raise HTTPException(429, f"Bạn đã đạt giới hạn gửi email trong ngày của gói hiện tại ({limit}/ngày). Vui lòng nâng cấp.")
-    return await email_tools.send_email(session, user.id, body.to, body.subject, body.html, body.from_email)
+    try:
+        return await email_tools.send_email(session, user.id, body.to, body.subject, body.html, body.from_email)
+    except ValueError as e:
+        raise HTTPException(400, str(e))
+    except Exception as e:
+        raise HTTPException(500, f"Lỗi gửi email: {e}")
 
 
 @router.post("/email/batch")

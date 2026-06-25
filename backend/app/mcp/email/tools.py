@@ -1,3 +1,5 @@
+import logging
+
 import httpx
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -6,6 +8,8 @@ from app.core.config import settings
 from app.models.campaign import Campaign
 from app.models.email_campaign import EmailCampaign
 from app.services.audit import log_action
+
+logger = logging.getLogger(__name__)
 
 RESEND_BASE = "https://api.resend.com"
 
@@ -19,30 +23,33 @@ async def send_email(
     to: list[str], subject: str, html: str,
     from_email: str | None = None,
 ) -> dict:
-    sender = from_email or "noreply@vitba.ai"
-    async with httpx.AsyncClient() as client:
-        resp = await client.post(
-            f"{RESEND_BASE}/emails",
-            headers=_headers(),
-            json={"from": sender, "to": to, "subject": subject, "html": html},
-        )
-        resp.raise_for_status()
-        data = resp.json()
+    from app.services.email_service import email_service
+    if not email_service.enabled:
+        raise ValueError("Dịch vụ gửi email chưa được cấu hình (Thiếu RESEND_API_KEY hoặc SMTP settings).")
+
+    success_count = 0
+    for recipient in to:
+        success = await email_service.send_email(recipient, subject, html)
+        if success:
+            success_count += 1
+
+    if success_count == 0 and len(to) > 0:
+        raise ValueError("Gửi email thất bại. Vui lòng kiểm tra lại cấu hình SMTP hoặc Resend.")
 
     campaign = Campaign(user_id=user_id, type="email", title=subject, content=html[:500], status="sent")
     session.add(campaign)
     await session.flush()
 
     ec = EmailCampaign(
-        user_id=user_id, campaign_id=campaign.id, provider="resend",
-        sent_count=len(to), status="sent", resend_batch_id=data.get("id"),
+        user_id=user_id, campaign_id=campaign.id, provider="resend" if email_service.use_resend else "smtp",
+        sent_count=success_count, status="sent",
     )
     session.add(ec)
     await session.commit()
 
     await log_action(session, user_id, "email.send", "email_campaign", str(ec.id),
-                     {"to_count": len(to), "subject": subject})
-    return {"email_id": data.get("id"), "campaign_id": campaign.id}
+                     {"to_count": len(to), "success_count": success_count, "subject": subject})
+    return {"campaign_id": campaign.id}
 
 
 async def send_batch(
@@ -50,34 +57,38 @@ async def send_batch(
     recipients: list[dict], subject: str, html_template: str,
     from_email: str | None = None,
 ) -> dict:
-    sender = from_email or "noreply@vitba.ai"
-    emails = []
+    from app.services.email_service import email_service
+    if not email_service.enabled:
+        raise ValueError("Dịch vụ gửi email chưa được cấu hình (Thiếu RESEND_API_KEY hoặc SMTP settings).")
+
+    success_count = 0
     for r in recipients:
         personalized = html_template
         for key, val in r.items():
             if key != "email":
                 personalized = personalized.replace(f"{{{{{key}}}}}", str(val))
-        emails.append({"from": sender, "to": [r["email"]], "subject": subject, "html": personalized})
+        
+        success = await email_service.send_email(r["email"], subject, personalized)
+        if success:
+            success_count += 1
 
-    async with httpx.AsyncClient() as client:
-        resp = await client.post(f"{RESEND_BASE}/emails/batch", headers=_headers(), json=emails)
-        resp.raise_for_status()
-        data = resp.json()
+    if success_count == 0 and len(recipients) > 0:
+        raise ValueError("Gửi email batch thất bại. Vui lòng kiểm tra lại cấu hình SMTP/Resend.")
 
     campaign = Campaign(user_id=user_id, type="email_batch", title=subject, status="sent")
     session.add(campaign)
     await session.flush()
 
     ec = EmailCampaign(
-        user_id=user_id, campaign_id=campaign.id, provider="resend",
-        sent_count=len(recipients), status="sent",
+        user_id=user_id, campaign_id=campaign.id, provider="resend" if email_service.use_resend else "smtp",
+        sent_count=success_count, status="sent",
     )
     session.add(ec)
     await session.commit()
 
     await log_action(session, user_id, "email.batch_send", "email_campaign", str(ec.id),
-                     {"count": len(recipients)})
-    return {"batch_data": data, "campaign_id": campaign.id}
+                     {"count": len(recipients), "success_count": success_count})
+    return {"batch_data": {}, "campaign_id": campaign.id}
 
 
 async def get_email_stats(session: AsyncSession, user_id: int, campaign_id: int | None = None) -> dict:

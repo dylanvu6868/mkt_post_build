@@ -17,8 +17,8 @@ def provider_available() -> bool:
     return False
 
 
-def get_chat_model(tier: str) -> Any:
-    # "reasoning" is a legacy alias — use fast model for speed
+def get_chat_model(tier: str, max_tokens: int | None = None) -> Any:
+    # "reasoning" is a legacy alias — use smart model for quality
     if tier in ("smart", "reasoning"):
         model = settings.llm_model_smart
         temperature = 0.5
@@ -26,6 +26,7 @@ def get_chat_model(tier: str) -> Any:
         model = settings.llm_model_fast
         temperature = 0.7
     provider = settings.llm_provider.lower()
+    tokens = max_tokens or 4096
 
     if provider == "deepseek":
         from langchain_openai import ChatOpenAI
@@ -34,12 +35,13 @@ def get_chat_model(tier: str) -> Any:
             api_key=settings.deepseek_api_key,
             base_url="https://api.deepseek.com",
             temperature=temperature,
-            timeout=90,
-            max_tokens=4096,
+            timeout=180,
+            max_tokens=tokens,
         )
     else:
         chat_model = init_chat_model(
-            model, model_provider=provider, temperature=temperature
+            model, model_provider=provider, temperature=temperature,
+            max_tokens=tokens,
         )
         
     if langfuse_handler:

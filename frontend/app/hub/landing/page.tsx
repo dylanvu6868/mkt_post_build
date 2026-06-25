@@ -604,12 +604,16 @@ function EditorTab({ initialPage, initialHtml }: {
   const [publishing, setPublishing] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [deploying, setDeploying] = useState(false);
+  const [deployingCloudflare, setDeployingCloudflare] = useState(false);
   const [vercelUrl, setVercelUrl] = useState<string | null>(null);
+  const [cloudflareUrl, setCloudflareUrl] = useState<string | null>(null);
   const [publicSlug, setPublicSlug] = useState<string | null>(initialPage?.status === "published" ? initialPage.slug : null);
   const [fullscreenOpen, setFullscreenOpen] = useState(false);
   const [codeTab, setCodeTab] = useState<"html" | "css">("html");
 
   const prevInitialHtmlRef = useRef(initialHtml);
+  const editableHtmlRef = useRef("");
+
   useEffect(() => {
     if (initialPage) {
       setPageId(initialPage.id);
@@ -619,34 +623,69 @@ function EditorTab({ initialPage, initialHtml }: {
       setCssContent(initialPage.css_content ?? "");
       setStatus(initialPage.status);
       setPublicSlug(initialPage.status === "published" ? initialPage.slug : null);
+      editableHtmlRef.current = "";
     } else if (initialHtml !== prevInitialHtmlRef.current) {
       setHtmlContent(initialHtml);
       prevInitialHtmlRef.current = initialHtml;
+      editableHtmlRef.current = "";
     }
   }, [initialPage, initialHtml]);
+
+  useEffect(() => {
+    const handleMessage = (e: MessageEvent) => {
+      if (e.data?.type === "html_update") {
+        editableHtmlRef.current = e.data.html;
+      }
+    };
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
+  }, []);
 
   const handleTitleChange = (val: string) => {
     setTitle(val);
     if (!pageId) setSlug(slugify(val));
   };
 
-  const previewDoc = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>${cssContent}</style></head><body>${htmlContent}</body></html>`;
+  const previewDoc = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>${cssContent}</style></head><body>${htmlContent}
+      <script id="live-edit-script">
+        document.body.contentEditable = 'true';
+        document.body.addEventListener('input', function() {
+          window.parent.postMessage({ type: 'html_update', html: document.documentElement.outerHTML }, '*');
+        });
+        document.body.addEventListener('click', function(e) {
+          if (e.target.closest('a')) {
+            e.preventDefault();
+          }
+        });
+      </script>
+</body></html>`;
 
   const handleSave = async () => {
     if (!title.trim()) { toast.error("Vui lòng nhập tiêu đề trang"); return; }
     if (!slug.trim()) { toast.error("Vui lòng nhập đường dẫn (slug)"); return; }
+
+    let htmlToSave = htmlContent;
+    if (editableHtmlRef.current) {
+      const match = editableHtmlRef.current.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+      if (match) {
+        htmlToSave = match[1].replace(/<script id="live-edit-script">[\s\S]*?<\/script>/, "");
+      }
+    }
+
     setSaving(true);
     try {
       if (pageId === null) {
-        const created = await createLandingPage({ title: title.trim(), slug: slug.trim(), html_content: htmlContent, css_content: cssContent });
+        const created = await createLandingPage({ title: title.trim(), slug: slug.trim(), html_content: htmlToSave, css_content: cssContent });
         setPageId(created.id);
         await loadLandingPages();
         toast.success("Đã lưu trang đích mới!");
       } else {
-        await updateLandingPage(pageId, { title: title.trim(), html_content: htmlContent, css_content: cssContent });
+        await updateLandingPage(pageId, { title: title.trim(), html_content: htmlToSave, css_content: cssContent });
         await loadLandingPages();
         toast.success("Đã lưu thay đổi!");
       }
+      setHtmlContent(htmlToSave);
+      editableHtmlRef.current = "";
     } catch (e: unknown) {
       if (e instanceof ApiError && e.status === 400) toast.error("Slug đã tồn tại.");
       else toast.error(e instanceof Error ? e.message : "Lỗi lưu trang");
@@ -706,6 +745,24 @@ function EditorTab({ initialPage, initialHtml }: {
     } finally { setDeploying(false); }
   };
 
+  const handleDeployCloudflare = async () => {
+    if (pageId === null) { toast.error("Vui lòng lưu trang trước"); return; }
+    setDeployingCloudflare(true);
+    try {
+      const fullHtml = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${title}</title><style>${cssContent}</style></head><body>${htmlContent}</body></html>`;
+      const r = await api.post<{ deployment_url?: string; error?: string; status?: string }>("/mcp/cloudflare/deploy", {
+        name: slug || title,
+        html: fullHtml,
+        landing_page_id: pageId,
+      });
+      if (r.error) throw new Error(r.error);
+      setCloudflareUrl(r.deployment_url ?? null);
+      toast.success("Đã deploy lên Cloudflare!");
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : "Lỗi deploy Cloudflare");
+    } finally { setDeployingCloudflare(false); }
+  };
+
   const publicUrl = publicSlug ? `${API_BASE_URL}/p/${publicSlug}` : null;
   const handleCopyLink = () => {
     if (!publicUrl) return;
@@ -755,6 +812,9 @@ function EditorTab({ initialPage, initialHtml }: {
             </button>
             <button className={btnOutline} onClick={handleDeployVercel} disabled={deploying || pageId === null}>
               {deploying ? "Đang deploy..." : "Deploy Vercel"}
+            </button>
+            <button className={btnOutline} onClick={handleDeployCloudflare} disabled={deployingCloudflare || pageId === null}>
+              {deployingCloudflare ? "Đang deploy..." : "Deploy Cloudflare"}
             </button>
             <button className={btnOutline} onClick={() => { loadLandingPages(); setSelectPageOpen(true); }}>Mở trang khác</button>
             <div className="ml-auto">
@@ -901,6 +961,7 @@ export default function LandingPage() {
 
         <TabsContent value="builder" className="mt-4"><LandingBuilder onSaved={() => setActiveTab("pages")} /></TabsContent>
         <TabsContent value="pages" className="mt-4"><PagesTab onEdit={handleEditFromList} /></TabsContent>
+        <TabsContent value="editor" className="mt-4"><EditorTab initialPage={editorInitialPage} initialHtml={editorInitialHtml} /></TabsContent>
       </Tabs>
     </div>
   );

@@ -63,55 +63,58 @@ async def upload_email_image(
 
 @router.post("/generate-custom")
 async def generate_custom_email(body: GenerateCustomReq, user: User = Depends(get_current_user)):
-    """AI generates a custom email HTML from user's description,
-    using template patterns as style reference."""
+    """AI generates custom email content and renders it into a template."""
     from app.llm.factory import get_chat_model, provider_available
     if not provider_available():
         raise HTTPException(503, "LLM provider not configured")
 
-    style_ref = get_email_style_reference()
+    from pydantic import BaseModel, Field
+    class EmailContent(BaseModel):
+        hero_title: str = Field(description="Tiêu đề chính của hero section")
+        hero_subtitle: str = Field(description="Phụ đề hero section")
+        hero_body: str = Field(description="Nội dung hero section")
+        hero_image_url: str = Field(description="URL ảnh minh họa hero (để trống nếu không có)")
+        hero_cta_text: str = Field(description="Chữ trên nút CTA chính")
+        hero_cta_link: str = Field(description="Link cho nút CTA chính")
+        about_title: str = Field(description="Tiêu đề phần giới thiệu")
+        about_body: str = Field(description="Nội dung giới thiệu")
+        about_image_url: str = Field(description="URL ảnh giới thiệu")
+        cta_title: str = Field(description="Tiêu đề phần CTA cuối")
+        cta_body: str = Field(description="Nội dung CTA cuối")
+        cta_button_text: str = Field(description="Chữ trên nút CTA cuối")
+        cta_button_link: str = Field(description="Link nút CTA cuối")
+        contact_email: str = Field(description="Email liên hệ")
+        contact_phone: str = Field(description="Số điện thoại liên hệ")
+        contact_website: str = Field(description="Website liên hệ")
+        contact_address: str = Field(description="Địa chỉ")
+        copyright_text: str = Field(description="Dòng bản quyền footer")
 
-    images_context = f"\nLogo URL: {body.logo_url}" if body.logo_url else ""
-    color_context = f"\nMàu chính: {body.primary_color}" if body.primary_color else ""
-    cta_context = f"\nNút CTA: {body.cta_text}" if body.cta_text else ""
-
-    system = f"""Bạn là AI Email Designer độc quyền của Vitba AI.
-Nhiệm vụ: tạo email HTML hoàn chỉnh, responsive, đẹp, chuyên nghiệp từ mô tả người dùng.
-
-## STYLE REFERENCE (học từ, không copy):
-{style_ref}
-
-## YÊU CẦU KỸ THUẬT:
-1. Email HTML table-based (MJML style) — dùng <table> cho layout, tương thích Outlook/Gmail
-2. Max-width 600px, responsive
-3. Inline CSS trong style attributes
-4. Nếu có logo URL, dùng <img src="URL">
-5. Font Google Fonts, typography hierarchy rõ ràng
-6. Tất cả nội dung đầy đủ (không placeholder)
-7. Viết bằng tiếng Việt
-8. Trả về DUY NHẤT mã HTML bắt đầu bằng <!DOCTYPE html>
-9. KHÔNG markdown fence, KHÔNG giải thích
-10. Email phải có: Header(logo) + Hero + Content + CTA + Footer(contact+unsubscribe)"""
+    system = """Bạn là AI Copywriter cho Vitba AI. Nhiệm vụ: Viết nội dung cho email marketing.
+Viết nội dung hấp dẫn, chuyên nghiệp bằng tiếng Việt. Không bỏ trống các trường (dùng nội dung giả định phù hợp nếu cần)."""
 
     user_msg = f"""Mô tả email: {body.prompt}
 Brand: {body.brand_name or "(tự đặt)"}
-{images_context}{color_context}{cta_context}
+Nút CTA: {body.cta_text}
 
-Tạo email HTML hoàn chỉnh, chuyên nghiệp, độc quyền Vitba."""
+Tạo nội dung cho các phần của email."""
 
     from langchain_core.messages import SystemMessage, HumanMessage
     from app.core.tracing import trace_request
 
-    llm = get_chat_model("fast")
+    llm = get_chat_model("smart").with_structured_output(EmailContent)
     with trace_request("email.generate_custom", user_id=user.id, metadata={"prompt": body.prompt[:200]}):
-        resp = await llm.ainvoke([SystemMessage(content=system), HumanMessage(content=user_msg)])
+        content = await llm.ainvoke([SystemMessage(content=system), HumanMessage(content=user_msg)])
 
-    html = (resp.content if isinstance(resp.content, str) else str(resp.content)).strip()
-    if html.startswith("```"):
-        html = html.split("\n", 1)[-1].rsplit("```", 1)[0].strip()
-    if not html.startswith("<!DOCTYPE"):
-        html = f"<!DOCTYPE html>\n{html}"
+    # Inject static elements from user input
+    content_dict = content.model_dump()
+    content_dict["brand_name"] = body.brand_name
+    content_dict["logo_url"] = body.logo_url
+    content_dict["primary_color"] = body.primary_color
+    content_dict["social_facebook"] = "https://facebook.com"
+    content_dict["social_twitter"] = "https://twitter.com"
+    content_dict["social_instagram"] = "https://instagram.com"
 
+    html = render_email("m1", content_dict)
     return {"html": html}
 
 
@@ -130,46 +133,53 @@ async def onboard_generate(body: OnboardReq, user: User = Depends(get_current_us
     if not provider_available():
         raise HTTPException(503, "LLM provider not configured")
 
-    style_ref = get_email_style_reference()
+    from pydantic import BaseModel, Field
+    class EmailContent(BaseModel):
+        hero_title: str = Field(description="Tiêu đề chính của hero section")
+        hero_subtitle: str = Field(description="Phụ đề hero section")
+        hero_body: str = Field(description="Nội dung hero section")
+        hero_image_url: str = Field(description="URL ảnh minh họa hero (để trống nếu không có)")
+        hero_cta_text: str = Field(description="Chữ trên nút CTA chính")
+        hero_cta_link: str = Field(description="Link cho nút CTA chính")
+        about_title: str = Field(description="Tiêu đề phần giới thiệu")
+        about_body: str = Field(description="Nội dung giới thiệu")
+        about_image_url: str = Field(description="URL ảnh giới thiệu")
+        cta_title: str = Field(description="Tiêu đề phần CTA cuối")
+        cta_body: str = Field(description="Nội dung CTA cuối")
+        cta_button_text: str = Field(description="Chữ trên nút CTA cuối")
+        cta_button_link: str = Field(description="Link nút CTA cuối")
+        contact_email: str = Field(description="Email liên hệ")
+        contact_phone: str = Field(description="Số điện thoại liên hệ")
+        contact_website: str = Field(description="Website liên hệ")
+        contact_address: str = Field(description="Địa chỉ")
+        copyright_text: str = Field(description="Dòng bản quyền footer")
 
-    images_ctx = f"\nLogo URL: {body.logo_url}" if body.logo_url else ""
-
-    system = f"""Bạn là AI Email Designer độc quyền của Vitba AI.
-Người dùng đã trả lời bộ câu hỏi onboarding. Tạo email HTML dựa trên câu trả lời.
-
-## STYLE REFERENCE (học pattern, không copy):
-{style_ref}
-
-## YÊU CẦU KỸ THUẬT:
-1. Email HTML table-based (MJML style) — <table> layout, tương thích Outlook/Gmail
-2. Max-width 600px, responsive
-3. Inline CSS trong style attributes
-4. Sử dụng ĐÚNG cặp font (Google Fonts @import)
-5. Sử dụng ĐÚNG bảng màu (primary, secondary, accent)
-6. {images_ctx if images_ctx else "Nếu không có logo, dùng text brand name style đẹp."}
-7. Tất cả nội dung tiếng Việt (không placeholder)
-8. Cấu trúc: Header(logo) + Hero(title+CTA) + Content + CTA + Footer(contact+unsubscribe)
-9. Trả về DUY NHẤT HTML bắt đầu <!DOCTYPE html>, KHÔNG markdown fence"""
+    system = """Bạn là AI Copywriter chuyên nghiệp của Vitba AI. Nhiệm vụ: Viết nội dung cho email marketing.
+Viết nội dung hấp dẫn, chuyên nghiệp bằng tiếng Việt. Hãy tưởng tượng ra các nội dung chi tiết dựa trên mục đích người dùng cung cấp."""
 
     user_msg = f"""## Câu trả lời Onboarding:
 - Mục đích email: {body.purpose}
-- Bảng màu: {body.color_palette}
-- Cặp font: {body.typography}
-- Brand: {body.brand_name or "(tự đặt)"}{images_ctx}
+- Brand: {body.brand_name or "(tự đặt)"}
 
-Tạo email HTML hoàn chỉnh, chuyên nghiệp, độc quyền Vitba."""
+Viết nội dung cho tất cả các phần của email."""
 
     from langchain_core.messages import SystemMessage, HumanMessage
     from app.core.tracing import trace_request
 
-    llm = get_chat_model("fast")
+    llm = get_chat_model("smart").with_structured_output(EmailContent)
     with trace_request("email.onboard", user_id=user.id, metadata={"purpose": body.purpose[:100]}):
-        resp = await llm.ainvoke([SystemMessage(content=system), HumanMessage(content=user_msg)])
+        content = await llm.ainvoke([SystemMessage(content=system), HumanMessage(content=user_msg)])
 
-    html = (resp.content if isinstance(resp.content, str) else str(resp.content)).strip()
-    if html.startswith("```"):
-        html = html.split("\n", 1)[-1].rsplit("```", 1)[0].strip()
-    if not html.startswith("<!DOCTYPE"):
-        html = f"<!DOCTYPE html>\n{html}"
+    # Inject user settings + extracted content
+    content_dict = content.model_dump()
+    content_dict["brand_name"] = body.brand_name
+    content_dict["logo_url"] = body.logo_url
+    
+    # Parse color_palette to get primary_color
+    colors = body.color_palette.split(":")[-1].split(",") if ":" in body.color_palette else []
+    primary = colors[0].strip() if colors else "#2563EB"
+    content_dict["primary_color"] = primary
 
+    html = render_email("m1", content_dict)
+    
     return {"html": html}

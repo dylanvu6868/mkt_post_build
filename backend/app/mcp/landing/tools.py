@@ -87,46 +87,56 @@ async def generate_page(body: GenerateReq, user: User = Depends(get_current_user
     from app.llm.factory import get_chat_model, provider_available
     if not provider_available():
         raise HTTPException(503, "LLM provider not configured")
-    llm = get_chat_model("fast")
+        
+    from pydantic import Field
+    class LandingContent(BaseModel):
+        hero_title: str = Field(description="Tiêu đề chính của hero section")
+        hero_highlight: str = Field(description="Từ khóa nổi bật trong tiêu đề")
+        hero_subtitle: str = Field(description="Phụ đề hero section")
+        hero_image_url: str = Field(description="URL ảnh hero")
+        hero_cta_text: str = Field(description="Chữ trên nút CTA chính")
+        hero_cta_link: str = Field(description="Link cho nút CTA chính")
+        about_title: str = Field(description="Tiêu đề phần giới thiệu/tính năng")
+        about_text: str = Field(description="Nội dung giới thiệu/tính năng")
+        cta_title: str = Field(description="Tiêu đề phần CTA cuối")
+        cta_text: str = Field(description="Nội dung CTA cuối")
+        cta_button_text: str = Field(description="Chữ trên nút CTA cuối")
+        cta_button_link: str = Field(description="Link nút CTA cuối")
+        contact_email: str = Field(description="Email liên hệ")
+        contact_phone: str = Field(description="Số điện thoại liên hệ")
+        contact_address: str = Field(description="Địa chỉ")
+        footer_copyright: str = Field(description="Dòng bản quyền footer")
+
+    system = "Bạn là AI Copywriter cho Vitba AI. Nhiệm vụ: Viết nội dung cho landing page. Không bỏ trống các trường."
+    
     sections_str = ", ".join(body.sections) if body.sections else "hero, features, CTA"
-    images_str = ""
+    user_msg = f"""Mục đích: {body.purpose}
+Sản phẩm: {body.product}
+Tone: {body.tone}
+CTA: {body.cta}
+Các sections: {sections_str}
+
+Tạo nội dung tiếng Việt chuyên nghiệp cho Landing Page."""
+
+    llm = get_chat_model("smart").with_structured_output(LandingContent)
+    with trace_request("landing.generate", user_id=user.id, metadata={"purpose": body.purpose, "product": body.product}):
+        content = await llm.ainvoke([
+            {"role": "system", "content": system},
+            {"role": "user", "content": user_msg}
+        ])
+
+    content_dict = content.model_dump()
+    content_dict["brand_name"] = body.product
+    content_dict["logo_url"] = body.logo_url
     if body.hero_image_url:
-        images_str += f"\nHero image URL: {body.hero_image_url}"
-    if body.logo_url:
-        images_str += f"\nLogo URL: {body.logo_url}"
-    if body.additional_images:
-        images_str += f"\nAdditional images: {', '.join(body.additional_images)}"
-    template_str = f"\nTemplate style reference: {body.template}" if body.template else ""
-    prompt = (
-        f"Generate a complete, responsive HTML landing page with inline CSS.\n"
-        f"Purpose: {body.purpose}\n"
-        f"Product: {body.product}\n"
-        f"Tone: {body.tone}\n"
-        f"CTA button text: {body.cta}\n"
-        f"Color scheme: {body.color_scheme}\n"
-        f"Design style: {body.style}\n"
-        f"Sections to include: {sections_str}\n"
-        f"{images_str}{template_str}\n"
-        f"Requirements:\n"
-        f"- Mobile-responsive with media queries\n"
-        f"- Single HTML file with inline <style>\n"
-        f"- Use the specified color scheme as primary color\n"
-        f"- Include all requested sections with proper spacing\n"
-        f"- If image URLs are provided, use them with <img> tags (object-fit: cover)\n"
-        f"- If no image URLs, use CSS gradient/pattern backgrounds instead\n"
-        f"- Professional typography with system font stack\n"
-        f"- Smooth hover transitions on buttons and links\n"
-        f"Return ONLY the HTML code, no markdown fences."
-    )
-    with trace_request(
-        "landing.generate",
-        user_id=user.id,
-        metadata={"purpose": body.purpose, "product": body.product, "style": body.style},
-    ):
-        response = await llm.ainvoke(prompt)
-    html = (response.content if isinstance(response.content, str) else str(response.content)).strip()
-    if html.startswith("```"):
-        html = html.split("\n", 1)[-1].rsplit("```", 1)[0].strip()
+        content_dict["hero_image_url"] = body.hero_image_url
+    content_dict["primary_color"] = body.color_scheme
+    content_dict["social_facebook"] = "https://facebook.com"
+    content_dict["social_twitter"] = "https://twitter.com"
+
+    template_id = body.template if body.template and body.template in ["m1", "m2", "m3"] else "m1"
+    html = render_landing(template_id, content_dict)
+    
     await log_action(session, user.id, "landing.generate", "landing_page", None)
     return {"html": html}
 
@@ -304,7 +314,7 @@ Tạo landing page hoàn chỉnh, chuyên nghiệp, độc quyền Vitba."""
     from langchain_core.messages import SystemMessage, HumanMessage
     from app.core.tracing import trace_request
 
-    llm = get_chat_model("fast")
+    llm = get_chat_model("smart", max_tokens=8192)
     with trace_request("landing.generate_custom", user_id=user.id, metadata={"prompt": body.prompt[:200]}):
         resp = await llm.ainvoke([SystemMessage(content=system), HumanMessage(content=user_msg)])
 
@@ -328,56 +338,56 @@ class OnboardReq(BaseModel):
 
 @router.post("/mcp/landing/onboard")
 async def onboard_generate(body: OnboardReq, user: User = Depends(get_current_user)):
-    """AI generates landing page from onboarding wizard answers (purpose + colors + fonts)."""
+    """AI generates landing page from onboarding wizard answers."""
     from app.llm.factory import get_chat_model, provider_available
     if not provider_available():
         raise HTTPException(503, "LLM provider not configured")
 
-    style_ref = get_landing_style_reference()[:3000]
+    from pydantic import Field
+    class LandingContent(BaseModel):
+        hero_title: str = Field(description="Tiêu đề chính của hero section")
+        hero_highlight: str = Field(description="Từ khóa nổi bật trong tiêu đề")
+        hero_subtitle: str = Field(description="Phụ đề hero section")
+        hero_image_url: str = Field(description="URL ảnh hero")
+        hero_cta_text: str = Field(description="Chữ trên nút CTA chính")
+        hero_cta_link: str = Field(description="Link cho nút CTA chính")
+        about_title: str = Field(description="Tiêu đề phần giới thiệu/tính năng")
+        about_text: str = Field(description="Nội dung giới thiệu/tính năng")
+        cta_title: str = Field(description="Tiêu đề phần CTA cuối")
+        cta_text: str = Field(description="Nội dung CTA cuối")
+        cta_button_text: str = Field(description="Chữ trên nút CTA cuối")
+        cta_button_link: str = Field(description="Link nút CTA cuối")
+        contact_email: str = Field(description="Email liên hệ")
+        contact_phone: str = Field(description="Số điện thoại liên hệ")
+        contact_address: str = Field(description="Địa chỉ")
+        footer_copyright: str = Field(description="Dòng bản quyền footer")
 
-    images_ctx = ""
-    if body.logo_url:
-        images_ctx += f"\nLogo URL (dùng <img src>): {body.logo_url}"
-    if body.hero_image_url:
-        images_ctx += f"\nHero image URL (dùng <img src>): {body.hero_image_url}"
-
-    system = f"""Bạn là AI Landing Page Designer độc quyền của Vitba AI.
-Người dùng đã trả lời bộ câu hỏi onboarding. Hãy tạo landing page dựa trên câu trả lời.
-
-## STYLE REFERENCE (học pattern, không copy):
-{style_ref}
-
-## YÊU CẦU KỸ THUẬT:
-1. HTML hoàn chỉnh, <!DOCTYPE html>, Tailwind CSS CDN, inline <style>
-2. Responsive mobile-first, CSS Grid/Flexbox
-3. Sử dụng ĐÚNG cặp font người dùng chọn (load từ Google Fonts)
-4. Sử dụng ĐÚNG bảng màu người dùng chọn (primary, secondary, accent, bg)
-5. {images_ctx if images_ctx else "Nếu không có logo, dùng text brand name style đẹp."}
-6. Tất cả sections đầy đủ nội dung tiếng Việt (không placeholder, không Lorem)
-7. Smooth animations, hover effects, gradient accents theo tone màu
-8. Trả về DUY NHẤT mã HTML, KHÔNG markdown fence, KHÔNG giải thích"""
+    system = "Bạn là AI Copywriter chuyên nghiệp của Vitba AI. Nhiệm vụ: Viết nội dung cho landing page. Không bỏ trống các trường."
 
     user_msg = f"""## Câu trả lời Onboarding:
 - Mục đích trang: {body.purpose}
-- Bảng màu: {body.color_palette}
-- Cặp font: {body.typography}
-- Brand: {body.brand_name or "(tự đặt phù hợp)"}{images_ctx}
+- Brand: {body.brand_name or "(tự đặt phù hợp)"}
 
-Tạo landing page hoàn chỉnh, đẹp, chuyển đổi cao, độc quyền Vitba."""
+Viết toàn bộ nội dung tiếng Việt cho trang Landing Page."""
 
-    from langchain_core.messages import SystemMessage, HumanMessage
-    from app.core.tracing import trace_request
-
-    llm = get_chat_model("fast")
+    llm = get_chat_model("smart").with_structured_output(LandingContent)
     with trace_request("landing.onboard", user_id=user.id, metadata={"purpose": body.purpose[:100]}):
-        resp = await llm.ainvoke([SystemMessage(content=system), HumanMessage(content=user_msg)])
+        content = await llm.ainvoke([
+            {"role": "system", "content": system},
+            {"role": "user", "content": user_msg}
+        ])
 
-    html = (resp.content if isinstance(resp.content, str) else str(resp.content)).strip()
-    if html.startswith("```"):
-        html = html.split("\n", 1)[-1].rsplit("```", 1)[0].strip()
-    if not html.startswith("<!DOCTYPE"):
-        html = f"<!DOCTYPE html>\n{html}"
+    content_dict = content.model_dump()
+    content_dict["brand_name"] = body.brand_name
+    content_dict["logo_url"] = body.logo_url
+    if body.hero_image_url:
+        content_dict["hero_image_url"] = body.hero_image_url
+        
+    colors = body.color_palette.split(":")[-1].split(",") if ":" in body.color_palette else []
+    primary = colors[0].strip() if colors else "#2563EB"
+    content_dict["primary_color"] = primary
 
+    html = render_landing("m1", content_dict)
     return {"html": html}
 
 

@@ -47,6 +47,8 @@ class Settings(BaseSettings):
     redis_url: str = "redis://localhost:6379"
     vercel_token: str = ""
     github_token: str = ""
+    cloudflare_api_token: str = ""
+    cloudflare_account_id: str = ""
 
     # Meta (Facebook/Instagram) OAuth + Graph API
     meta_app_id: str = ""

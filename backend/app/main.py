@@ -174,6 +174,9 @@ app.include_router(meta_public_router)  # public OAuth callback — no gating
 from app.mcp.vercel.routes import router as vercel_router
 app.include_router(vercel_router, dependencies=[Depends(require_hub_tool("landing"))])
 
+from app.mcp.cloudflare.routes import router as cloudflare_router
+app.include_router(cloudflare_router, dependencies=[Depends(require_hub_tool("landing"))])
+
 from app.mcp.github.routes import router as github_router
 app.include_router(github_router, dependencies=[Depends(require_hub_tool("landing"))])
 

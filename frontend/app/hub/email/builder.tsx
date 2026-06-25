@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { api, API_BASE_URL, getToken } from "@/services/api";
 import { toast } from "sonner";
 import {
@@ -79,6 +79,36 @@ export function MailBuilder({ onSendTest }: { onSendTest?: (html: string) => voi
   const [testEmail, setTestEmail] = useState("");
   const [subject, setSubject] = useState("");
 
+  const editableHtmlRef = useRef("");
+
+  useEffect(() => {
+    const handleMessage = (e: MessageEvent) => {
+      if (e.data?.type === "html_update") {
+        editableHtmlRef.current = e.data.html;
+      }
+    };
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
+  }, []);
+
+  const injectedHtml = useMemo(() => {
+    if (!previewHtml) return "";
+    const script = `
+      <script id="live-edit-script">
+        document.body.contentEditable = 'true';
+        document.body.addEventListener('input', function() {
+          window.parent.postMessage({ type: 'html_update', html: document.documentElement.outerHTML }, '*');
+        });
+        document.body.addEventListener('click', function(e) {
+          if (e.target.closest('a')) {
+            e.preventDefault();
+          }
+        });
+      </script>
+    `;
+    return previewHtml.replace('</body>', script + '</body>');
+  }, [previewHtml]);
+
   const stepNum = STEPS.indexOf(step);
 
   const uploadLogo = async (file: File) => {
@@ -124,6 +154,7 @@ export function MailBuilder({ onSendTest }: { onSendTest?: (html: string) => voi
         logo_url: logoUrl,
       });
       setPreviewHtml(res.html);
+      editableHtmlRef.current = ""; // Reset ref on new generation
       setSubject(finalPurpose.slice(0, 60));
     } catch {
       toast.error("Tạo thất bại, thử lại");
@@ -140,12 +171,12 @@ export function MailBuilder({ onSendTest }: { onSendTest?: (html: string) => voi
     setSending(true);
     try {
       if (onSendTest) {
-        onSendTest(previewHtml);
+        onSendTest(editableHtmlRef.current || previewHtml);
       } else {
         await api.post("/mcp/email/send", {
           to: [testEmail],
           subject: subject || "Test from Vitba",
-          html: previewHtml,
+          html: (editableHtmlRef.current || previewHtml).replace(/<script id="live-edit-script">[\s\S]*?<\/script>/, ""),
         });
         toast.success(`Đã gửi test đến ${testEmail}`);
       }
@@ -200,7 +231,7 @@ export function MailBuilder({ onSendTest }: { onSendTest?: (html: string) => voi
           </button>
         </div>
         <div className="flex-1 overflow-y-auto rounded-xl border border-border bg-white min-h-0">
-          <iframe srcDoc={previewHtml} className="h-full w-full border-0" title="Email Preview" sandbox="allow-same-origin" />
+          <iframe srcDoc={injectedHtml} className="h-full w-full border-0" title="Email Preview" sandbox="allow-same-origin allow-scripts" />
         </div>
       </div>
     );
