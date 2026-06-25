@@ -317,6 +317,70 @@ Tạo landing page hoàn chỉnh, chuyên nghiệp, độc quyền Vitba."""
     return {"html": html}
 
 
+class OnboardReq(BaseModel):
+    purpose: str
+    color_palette: str
+    typography: str
+    brand_name: str = ""
+    logo_url: str = ""
+    hero_image_url: str = ""
+
+
+@router.post("/mcp/landing/onboard")
+async def onboard_generate(body: OnboardReq, user: User = Depends(get_current_user)):
+    """AI generates landing page from onboarding wizard answers (purpose + colors + fonts)."""
+    from app.llm.factory import get_chat_model, provider_available
+    if not provider_available():
+        raise HTTPException(503, "LLM provider not configured")
+
+    style_ref = get_landing_style_reference()[:3000]
+
+    images_ctx = ""
+    if body.logo_url:
+        images_ctx += f"\nLogo URL (dùng <img src>): {body.logo_url}"
+    if body.hero_image_url:
+        images_ctx += f"\nHero image URL (dùng <img src>): {body.hero_image_url}"
+
+    system = f"""Bạn là AI Landing Page Designer độc quyền của Vitba AI.
+Người dùng đã trả lời bộ câu hỏi onboarding. Hãy tạo landing page dựa trên câu trả lời.
+
+## STYLE REFERENCE (học pattern, không copy):
+{style_ref}
+
+## YÊU CẦU KỸ THUẬT:
+1. HTML hoàn chỉnh, <!DOCTYPE html>, Tailwind CSS CDN, inline <style>
+2. Responsive mobile-first, CSS Grid/Flexbox
+3. Sử dụng ĐÚNG cặp font người dùng chọn (load từ Google Fonts)
+4. Sử dụng ĐÚNG bảng màu người dùng chọn (primary, secondary, accent, bg)
+5. {images_ctx if images_ctx else "Nếu không có logo, dùng text brand name style đẹp."}
+6. Tất cả sections đầy đủ nội dung tiếng Việt (không placeholder, không Lorem)
+7. Smooth animations, hover effects, gradient accents theo tone màu
+8. Trả về DUY NHẤT mã HTML, KHÔNG markdown fence, KHÔNG giải thích"""
+
+    user_msg = f"""## Câu trả lời Onboarding:
+- Mục đích trang: {body.purpose}
+- Bảng màu: {body.color_palette}
+- Cặp font: {body.typography}
+- Brand: {body.brand_name or "(tự đặt phù hợp)"}{images_ctx}
+
+Tạo landing page hoàn chỉnh, đẹp, chuyển đổi cao, độc quyền Vitba."""
+
+    from langchain_core.messages import SystemMessage, HumanMessage
+    from app.core.tracing import trace_request
+
+    llm = get_chat_model("fast")
+    with trace_request("landing.onboard", user_id=user.id, metadata={"purpose": body.purpose[:100]}):
+        resp = await llm.ainvoke([SystemMessage(content=system), HumanMessage(content=user_msg)])
+
+    html = (resp.content if isinstance(resp.content, str) else str(resp.content)).strip()
+    if html.startswith("```"):
+        html = html.split("\n", 1)[-1].rsplit("```", 1)[0].strip()
+    if not html.startswith("<!DOCTYPE"):
+        html = f"<!DOCTYPE html>\n{html}"
+
+    return {"html": html}
+
+
 # Public route — serve published landing pages (no auth)
 @public_router.get("/p/{slug}")
 async def serve_landing_page(slug: str, session: AsyncSession = Depends(get_session)):

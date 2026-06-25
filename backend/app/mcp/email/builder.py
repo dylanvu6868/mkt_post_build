@@ -113,3 +113,63 @@ Tạo email HTML hoàn chỉnh, chuyên nghiệp, độc quyền Vitba."""
         html = f"<!DOCTYPE html>\n{html}"
 
     return {"html": html}
+
+
+class OnboardReq(BaseModel):
+    purpose: str
+    color_palette: str
+    typography: str
+    brand_name: str = ""
+    logo_url: str = ""
+
+
+@router.post("/onboard")
+async def onboard_generate(body: OnboardReq, user: User = Depends(get_current_user)):
+    """AI generates email from onboarding wizard answers."""
+    from app.llm.factory import get_chat_model, provider_available
+    if not provider_available():
+        raise HTTPException(503, "LLM provider not configured")
+
+    style_ref = get_email_style_reference()
+
+    images_ctx = f"\nLogo URL: {body.logo_url}" if body.logo_url else ""
+
+    system = f"""Bạn là AI Email Designer độc quyền của Vitba AI.
+Người dùng đã trả lời bộ câu hỏi onboarding. Tạo email HTML dựa trên câu trả lời.
+
+## STYLE REFERENCE (học pattern, không copy):
+{style_ref}
+
+## YÊU CẦU KỸ THUẬT:
+1. Email HTML table-based (MJML style) — <table> layout, tương thích Outlook/Gmail
+2. Max-width 600px, responsive
+3. Inline CSS trong style attributes
+4. Sử dụng ĐÚNG cặp font (Google Fonts @import)
+5. Sử dụng ĐÚNG bảng màu (primary, secondary, accent)
+6. {images_ctx if images_ctx else "Nếu không có logo, dùng text brand name style đẹp."}
+7. Tất cả nội dung tiếng Việt (không placeholder)
+8. Cấu trúc: Header(logo) + Hero(title+CTA) + Content + CTA + Footer(contact+unsubscribe)
+9. Trả về DUY NHẤT HTML bắt đầu <!DOCTYPE html>, KHÔNG markdown fence"""
+
+    user_msg = f"""## Câu trả lời Onboarding:
+- Mục đích email: {body.purpose}
+- Bảng màu: {body.color_palette}
+- Cặp font: {body.typography}
+- Brand: {body.brand_name or "(tự đặt)"}{images_ctx}
+
+Tạo email HTML hoàn chỉnh, chuyên nghiệp, độc quyền Vitba."""
+
+    from langchain_core.messages import SystemMessage, HumanMessage
+    from app.core.tracing import trace_request
+
+    llm = get_chat_model("fast")
+    with trace_request("email.onboard", user_id=user.id, metadata={"purpose": body.purpose[:100]}):
+        resp = await llm.ainvoke([SystemMessage(content=system), HumanMessage(content=user_msg)])
+
+    html = (resp.content if isinstance(resp.content, str) else str(resp.content)).strip()
+    if html.startswith("```"):
+        html = html.split("\n", 1)[-1].rsplit("```", 1)[0].strip()
+    if not html.startswith("<!DOCTYPE"):
+        html = f"<!DOCTYPE html>\n{html}"
+
+    return {"html": html}
