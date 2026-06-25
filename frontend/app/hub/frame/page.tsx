@@ -83,7 +83,7 @@ export default function VitbaFramePage() {
       const data = await api.post<any>("/api/frame/generate", {
         prompt,
         size,
-        model: "gpt-image-2"
+        model: "dall-e-3"
       });
       
       const newImage: GeneratedImage = {

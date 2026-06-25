@@ -24,7 +24,7 @@ router = APIRouter(prefix="/api/frame", tags=["Frame"])
 
 class GenerateImageRequest(BaseModel):
     prompt: str
-    model: str = "gpt-image-2"
+    model: str = "dall-e-3"
     size: str = "1024x1024"
 
 class GenerateImageResponse(BaseModel):
