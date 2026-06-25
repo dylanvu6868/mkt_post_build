@@ -7,6 +7,7 @@ from app.api.deps import get_current_user
 from app.core.db import async_session_maker
 from app.core.plan_limits import check_lab_daily_limit, get_user_plan, upgrade_message
 from app.core.rate_limit import limiter
+from app.core.tracing import trace_request
 from app.models.user import User
 from app.models.lab_history import LabHistory
 from app.services.audit import log_action
@@ -156,7 +157,12 @@ async def _run_tool(tool_name: str, agent_fn, user: User, request: Request, inpu
         )
     await _audit(user.id, tool_name, request.client.host if request.client else None)
     try:
-        result = await agent_fn()
+        with trace_request(
+            f"lab.{tool_name}",
+            user_id=user.id,
+            metadata={"tool": tool_name, "plan": plan, "input": input_data},
+        ):
+            result = await agent_fn()
         output_data = result.model_dump()
         
         # Save to lab_history

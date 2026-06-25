@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Mail } from "lucide-react";
+import { MailBuilder } from "./builder";
 import {
   btn,
   btnOutline,
@@ -772,6 +773,7 @@ export default function EmailPage() {
       <Tabs defaultValue="compose" className="space-y-6">
         <TabsList className="bg-muted/50 p-1 flex-wrap gap-1">
           <TabsTrigger value="compose" className="rounded-lg data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm">Gửi email</TabsTrigger>
+          <TabsTrigger value="builder" className="rounded-lg data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm">Vitba Mail Builder</TabsTrigger>
           <TabsTrigger value="templates" className="rounded-lg data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm">Mẫu email</TabsTrigger>
           <TabsTrigger value="contacts" className="rounded-lg data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm">Liên hệ</TabsTrigger>
           <TabsTrigger value="lists" className="rounded-lg data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm">Danh sách</TabsTrigger>
@@ -780,6 +782,7 @@ export default function EmailPage() {
         </TabsList>
 
         <TabsContent value="compose"><ComposeTab /></TabsContent>
+        <TabsContent value="builder"><MailBuilder /></TabsContent>
         <TabsContent value="templates"><TemplatesTab /></TabsContent>
         <TabsContent value="contacts"><ContactsTab /></TabsContent>
         <TabsContent value="lists"><ListsSection /></TabsContent>

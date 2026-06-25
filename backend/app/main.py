@@ -37,7 +37,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response.headers["X-XSS-Protection"] = "1; mode=block"
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
         path = request.url.path
-        if path.startswith("/p/") or path == "/mcp/landing/preview":
+        if path.startswith("/p/") or path == "/mcp/landing/preview" or path.startswith("/uploads/"):
             response.headers["Content-Security-Policy"] = _RELAXED_CSP
         else:
             response.headers["Content-Security-Policy"] = _STRICT_CSP
@@ -69,6 +69,10 @@ app.add_middleware(SecurityHeadersMiddleware)
 
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+from fastapi.staticfiles import StaticFiles
+from app.services.storage import UPLOAD_DIR
+app.mount("/uploads", StaticFiles(directory=str(UPLOAD_DIR)), name="uploads")
 
 @app.on_event("startup")
 async def ensure_tables():
@@ -140,12 +144,14 @@ from app.mcp.email.templates import router as email_templates_router
 from app.mcp.email.contacts import router as email_contacts_router
 from app.mcp.email.lists import router as email_lists_router
 from app.mcp.email.scheduling import router as email_scheduling_router, public_router as email_unsubscribe_router
+from app.mcp.email.builder import router as email_builder_router
 
 app.include_router(mcp_router, dependencies=[Depends(require_hub_tool("email"))])
 app.include_router(email_templates_router, dependencies=[Depends(require_hub_tool("email"))])
 app.include_router(email_contacts_router, dependencies=[Depends(require_hub_tool("email"))])
 app.include_router(email_lists_router, dependencies=[Depends(require_hub_tool("email"))])
 app.include_router(email_scheduling_router, dependencies=[Depends(require_hub_tool("email"))])
+app.include_router(email_builder_router, dependencies=[Depends(require_hub_tool("email"))])
 app.include_router(email_unsubscribe_router)  # public — no gating
 
 from app.mcp.calendar.tools import router as calendar_router

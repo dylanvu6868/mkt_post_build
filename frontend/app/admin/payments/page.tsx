@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { api } from "@/services/api";
+import { api, API_BASE_URL } from "@/services/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -57,7 +57,7 @@ export default function AdminPaymentsPage() {
     setAppOrigin(window.location.origin);
   }, []);
 
-  const apiOrigin = (process.env.NEXT_PUBLIC_API_URL ?? "").replace(/\/$/, "");
+  const apiOrigin = API_BASE_URL.replace(/\/$/, "");
   const webhookUrl = apiOrigin ? `${apiOrigin}/payments/sepay-webhook` : "/payments/sepay-webhook";
   const successUrl = appOrigin ? `${appOrigin}/checkout/success` : "/checkout/success";
   const checkoutLinks = PLAN_TIERS

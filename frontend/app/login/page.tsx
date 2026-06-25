@@ -5,7 +5,7 @@ import Script from "next/script";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/auth";
 import { Input } from "@/components/ui/input";
-import { ApiError } from "@/services/api";
+import { ApiError, API_BASE_URL } from "@/services/api";
 import { toast } from "sonner";
 import {
   Check, Mail, Lock, Sparkles, Search, TrendingUp, Calendar,
@@ -101,8 +101,7 @@ export default function LoginPage() {
     e.preventDefault();
     setForgotLoading(true);
     try {
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
-      const res = await fetch(`${baseUrl}/auth/forgot-password`, {
+      const res = await fetch(`${API_BASE_URL}/auth/forgot-password`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: forgotEmail }),
@@ -121,8 +120,7 @@ export default function LoginPage() {
     e.preventDefault();
     setResetLoading(true);
     try {
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
-      const res = await fetch(`${baseUrl}/auth/reset-password`, {
+      const res = await fetch(`${API_BASE_URL}/auth/reset-password`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: forgotEmail, code: resetCode, new_password: newPassword }),

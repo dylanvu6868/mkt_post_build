@@ -16,6 +16,7 @@ from app.models.oauth_account import OauthAccount
 from app.models.seo_audit import SeoAudit
 from app.models.user import User
 from app.services.audit import log_action
+from app.core.tracing import trace_request
 
 router = APIRouter(prefix="/mcp/analytics", tags=["analytics"])
 
@@ -218,11 +219,12 @@ async def roi_calculate(
     commentary = None
     if body.get("with_commentary"):
         try:
-            result = await run_roi_agent({
-                "spend": spend, "revenue": revenue, "ad_spend": ad_spend,
-                "other_costs": other_costs, "roas": roas, "roi_pct": roi_pct, "profit": profit,
-                "campaign_name": body.get("campaign_name", ""),
-            })
+            with trace_request("analytics.roi", user_id=user.id, metadata={"roas": roas, "roi_pct": roi_pct}):
+                result = await run_roi_agent({
+                    "spend": spend, "revenue": revenue, "ad_spend": ad_spend,
+                    "other_costs": other_costs, "roas": roas, "roi_pct": roi_pct, "profit": profit,
+                    "campaign_name": body.get("campaign_name", ""),
+                })
             commentary = result.commentary
         except Exception:
             pass

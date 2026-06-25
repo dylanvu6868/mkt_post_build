@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { api } from "@/services/api";
+import { api, getToken, API_BASE_URL } from "@/services/api";
 import { useProjectStore } from "@/store/project";
 
 export interface Conversation {
@@ -72,20 +72,6 @@ function clearTypingForConv(convId: number) {
     clearInterval(iv);
     _typingIntervals.delete(convId);
   }
-}
-
-function getToken(): string | null {
-  try {
-    const raw = localStorage.getItem("auth-storage");
-    if (!raw) return null;
-    return JSON.parse(raw)?.state?.token ?? null;
-  } catch {
-    return null;
-  }
-}
-
-function getBaseUrl(): string {
-  return process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 }
 
 // Sleep that wakes immediately when tab becomes visible (avoids browser throttle)
@@ -281,7 +267,7 @@ export const useChatStore = create<ChatState>()(
         }));
 
         const token = getToken();
-        const baseUrl = getBaseUrl();
+        const baseUrl = API_BASE_URL;
         const isFg = () => get().activeConversationId === targetConvId;
 
         const controller = new AbortController();
@@ -443,7 +429,7 @@ export const useChatStore = create<ChatState>()(
         if (!convId) return;
 
         const token = getToken();
-        const baseUrl = getBaseUrl();
+        const baseUrl = API_BASE_URL;
         const isFg = () => get().activeConversationId === convId;
 
         try {

@@ -27,6 +27,7 @@ import {
   btnGhost,
   inp,
 } from "@/lib/ui-tokens";
+import { LandingBuilder } from "./builder";
 
 /* ------------------------------------------------------------------ */
 /*  Constants & Styles                                                 */
@@ -892,9 +893,13 @@ export default function LandingPage() {
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
             Danh sách
           </TabsTrigger>
+          <TabsTrigger value="builder" className="gap-1.5 rounded-lg data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
+            Vitba Builder
+          </TabsTrigger>
           <TabsTrigger value="create" className="gap-1.5 rounded-lg data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
-            Tạo trang
+            Tạo bằng AI
           </TabsTrigger>
           <TabsTrigger value="editor" className="gap-1.5 rounded-lg data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
@@ -903,6 +908,7 @@ export default function LandingPage() {
         </TabsList>
 
         <TabsContent value="pages" className="mt-4"><PagesTab onEdit={handleEditFromList} /></TabsContent>
+        <TabsContent value="builder" className="mt-4"><LandingBuilder onSaved={() => setActiveTab("pages")} /></TabsContent>
         <TabsContent value="create" className="mt-4"><CreateTab onGenerated={handleGenerated} /></TabsContent>
         <TabsContent value="editor" className="mt-4"><EditorTab initialPage={editorInitialPage} initialHtml={editorInitialHtml} /></TabsContent>
       </Tabs>

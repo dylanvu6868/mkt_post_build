@@ -1,7 +1,7 @@
 import html as html_mod
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 from sqlalchemy import select
@@ -10,9 +10,15 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.deps import get_current_user
 from app.core.db import get_session
 from app.core.plan_limits import check_daily_landing_generates
+from app.core.tracing import trace_request
 from app.models.landing_page import LandingPage
 from app.models.user import User
 from app.services.audit import log_action
+from app.services.storage import save_upload
+from app.mcp.landing.template_engine import (
+    render_landing,
+    list_landing_templates,
+)
 
 router = APIRouter(tags=["landing"])
 public_router = APIRouter()
@@ -111,7 +117,12 @@ async def generate_page(body: GenerateReq, user: User = Depends(get_current_user
         f"- Smooth hover transitions on buttons and links\n"
         f"Return ONLY the HTML code, no markdown fences."
     )
-    response = await llm.ainvoke(prompt)
+    with trace_request(
+        "landing.generate",
+        user_id=user.id,
+        metadata={"purpose": body.purpose, "product": body.product, "style": body.style},
+    ):
+        response = await llm.ainvoke(prompt)
     html = (response.content if isinstance(response.content, str) else str(response.content)).strip()
     if html.startswith("```"):
         html = html.split("\n", 1)[-1].rsplit("```", 1)[0].strip()
@@ -171,6 +182,69 @@ async def delete_page(page_id: int, user: User = Depends(get_current_user), sess
         raise HTTPException(404, "Page not found")
     await session.delete(page)
     await session.commit()
+
+
+# ---------------------------------------------------------------------------
+# Vitba Landing Page Builder — template-based visual builder
+# ---------------------------------------------------------------------------
+
+class RenderReq(BaseModel):
+    template_id: str
+    content: dict
+
+
+@router.get("/mcp/landing/templates")
+async def get_templates():
+    """List available landing page templates for the gallery."""
+    return list_landing_templates()
+
+
+@router.post("/mcp/landing/render")
+async def render_template(body: RenderReq, user: User = Depends(get_current_user)):
+    """Render a landing page template with user content injected."""
+    try:
+        html = render_landing(body.template_id, body.content)
+    except ValueError as e:
+        raise HTTPException(400, str(e))
+    return {"html": html}
+
+
+@router.post("/mcp/landing/upload-image")
+async def upload_landing_image(
+    file: UploadFile = File(...),
+    user: User = Depends(get_current_user),
+):
+    """Upload an image (logo, hero, gallery) for the landing builder."""
+    try:
+        url = await save_upload(file, subdir="landing")
+    except ValueError as e:
+        raise HTTPException(400, str(e))
+    return {"url": url}
+
+
+@router.post("/mcp/landing/save-from-template")
+async def save_from_template(
+    body: dict,
+    user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+):
+    """Save a rendered template as a new landing page."""
+    title = body.get("title", "Untitled Landing Page")
+    slug = body.get("slug") or title.lower().replace(" ", "-")[:50]
+    html_content = body.get("html", "")
+    if not html_content:
+        raise HTTPException(400, "html content is required")
+    page = LandingPage(
+        user_id=user.id,
+        title=title,
+        slug=slug,
+        html_content=html_content,
+        status="draft",
+    )
+    session.add(page)
+    await session.commit()
+    await log_action(session, user.id, "landing.create", "landing_page", str(page.id))
+    return {"id": page.id, "title": page.title, "slug": page.slug}
 
 
 # Public route — serve published landing pages (no auth)

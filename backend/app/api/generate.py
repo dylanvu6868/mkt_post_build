@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from app.api.deps import get_current_user
 from app.core.db import get_session, get_session_maker
 from app.core.rate_limit import limiter
+from app.core.tracing import trace_request
 from app.llm.factory import provider_available
 from app.models.brand_profile import BrandProfile
 from app.models.project import Project
@@ -86,7 +87,12 @@ async def start_generation(
         )
 
     if provider_available():
-        guard_result = await run_guard_agent(payload.brief)
+        with trace_request(
+            "generate.guard",
+            user_id=current_user.id,
+            metadata={"content_type": payload.content_type, "brief_preview": payload.brief[:200]},
+        ):
+            guard_result = await run_guard_agent(payload.brief)
         if not guard_result.is_safe:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,

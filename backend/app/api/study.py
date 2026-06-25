@@ -12,7 +12,7 @@ from app.llm.factory import get_chat_model, provider_available
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 from langgraph.prebuilt import create_react_agent
 from app.agents.tools.marketing_tools import get_marketing_tools
-from app.core.tracing import langfuse_handler
+from app.core.tracing import langfuse_handler, trace_request
 
 logger = logging.getLogger(__name__)
 
@@ -149,9 +149,14 @@ async def study_chat(request: Request, req: StudyChatRequest, current_user: User
     """Streaming endpoint for Vitba Study."""
     
     async def event_stream():
-        stream = _stream_study_llm(req.messages) if provider_available() else _mock_stream()
-        async for event in stream:
-            yield event
+        with trace_request(
+            "study.chat",
+            user_id=current_user.id,
+            metadata={"message_count": len(req.messages)},
+        ):
+            stream = _stream_study_llm(req.messages) if provider_available() else _mock_stream()
+            async for event in stream:
+                yield event
 
     return StreamingResponse(
         event_stream(),

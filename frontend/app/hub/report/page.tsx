@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useLabTool } from "@/hooks/use-lab-tool";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { ArrowRight, ArrowLeft, Check, Sparkles, Edit2, FileDown, History, Calendar } from "lucide-react";
+import { ArrowRight, ArrowLeft, Check, Sparkles, Edit2, FileDown, History, Calendar, Copy, Loader2 } from "lucide-react";
 import { api } from "@/services/api";
 
 interface ReportResult {
@@ -60,11 +60,13 @@ export default function ReportPage() {
   const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = 5;
   const reportRef = useRef<HTMLDivElement>(null);
+  const articleRef = useRef<HTMLElement>(null);
   const [copied, setCopied] = useState(false);
   const [isWizardCollapsed, setIsWizardCollapsed] = useState(false);
   const [history, setHistory] = useState<ReportHistoryItem[]>([]);
   const [showHistory, setShowHistory] = useState(false);
   const [historyResult, setHistoryResult] = useState<ReportResult | null>(null);
+  const [exportingPdf, setExportingPdf] = useState(false);
 
   useEffect(() => {
     if (showHistory) {
@@ -110,6 +112,89 @@ export default function ReportPage() {
   async function handleRun() {
     if (!formData.name.trim() || !formData.industry.trim()) return;
     await run(formData);
+  }
+
+  async function exportToPDF() {
+    const target = articleRef.current;
+    if (!target) return;
+    setExportingPdf(true);
+    try {
+      const { default: jsPDF } = await import("jspdf");
+      const { default: html2canvas } = await import("html2canvas");
+
+      // Temporarily expand to capture full content
+      const originalStyle = target.style.cssText;
+      target.style.maxHeight = "none";
+      target.style.overflow = "visible";
+
+      const canvas = await html2canvas(target, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: "#ffffff",
+        windowWidth: 900,
+      });
+
+      // Restore styles
+      target.style.cssText = originalStyle;
+
+      const imgData = canvas.toDataURL("image/jpeg", 0.95);
+      const pdf = new jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format: "a4",
+      });
+
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const margin = 15;
+      const contentWidth = pageWidth - margin * 2;
+      const imgWidth = canvas.width;
+      const imgHeight = canvas.height;
+      const ratio = contentWidth / imgWidth;
+      const totalImgHeight = imgHeight * ratio;
+
+      let yPosition = margin;
+      let remainingHeight = totalImgHeight;
+      let sourceY = 0;
+
+      while (remainingHeight > 0) {
+        const sliceHeight = Math.min(remainingHeight, pageHeight - margin * 2);
+        const sourceSliceHeight = sliceHeight / ratio;
+
+        const sliceCanvas = document.createElement("canvas");
+        sliceCanvas.width = imgWidth;
+        sliceCanvas.height = Math.ceil(sourceSliceHeight);
+        const ctx = sliceCanvas.getContext("2d")!;
+        const img = new Image();
+        await new Promise<void>((resolve) => {
+          img.onload = () => {
+            ctx.drawImage(img, 0, sourceY, imgWidth, sourceSliceHeight, 0, 0, imgWidth, sourceSliceHeight);
+            resolve();
+          };
+          img.src = imgData;
+        });
+
+        const sliceData = sliceCanvas.toDataURL("image/jpeg", 0.95);
+        pdf.addImage(sliceData, "JPEG", margin, yPosition, contentWidth, sliceHeight);
+
+        sourceY += sourceSliceHeight;
+        remainingHeight -= sliceHeight;
+
+        if (remainingHeight > 0) {
+          pdf.addPage();
+          yPosition = margin;
+        }
+      }
+
+      const filename = `vitba-report-${(formData.name || "bao-cao").toLowerCase().replace(/[^a-z0-9]/gi, "-")}-${new Date().toISOString().slice(0, 10)}.pdf`;
+      pdf.save(filename);
+    } catch (err) {
+      console.error("Lỗi xuất PDF:", err);
+      alert("Có lỗi khi xuất PDF. Vui lòng thử lại.");
+    } finally {
+      setExportingPdf(false);
+    }
   }
 
   const nextStep = () => {
@@ -451,10 +536,15 @@ export default function ReportPage() {
               </div>
               <div className="flex gap-2">
                 <button
-                  onClick={() => window.print()}
-                  className="flex items-center gap-2 px-4 py-2 bg-white border rounded-lg text-sm font-medium hover:bg-secondary transition-colors shadow-sm text-primary"
+                  onClick={exportToPDF}
+                  disabled={exportingPdf}
+                  className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors shadow-sm disabled:opacity-60 disabled:cursor-not-allowed"
                 >
-                  <FileDown size={16} /> Xuất PDF
+                  {exportingPdf ? (
+                    <><Loader2 size={16} className="animate-spin" /> Đang xuất...</>
+                  ) : (
+                    <><FileDown size={16} /> Xuất PDF</>
+                  )}
                 </button>
                 <button
                   onClick={() => {
@@ -462,15 +552,19 @@ export default function ReportPage() {
                     setCopied(true);
                     setTimeout(() => setCopied(false), 2000);
                   }}
-                  className="flex items-center gap-2 px-4 py-2 bg-white border rounded-lg text-sm font-medium hover:bg-secondary transition-colors shadow-sm"
+                  className="flex items-center gap-2 px-4 py-2 bg-white border border-border rounded-lg text-sm font-medium hover:bg-secondary transition-colors shadow-sm text-foreground"
                 >
-                  {copied ? <><Check className="text-green-500" size={16} /> Đã sao chép</> : <><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect width="14" height="14" x="8" y="8" rx="2" /><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" /></svg> Sao chép Markdown</>}
+                  {copied ? (
+                    <><Check className="text-green-500" size={16} /> Đã sao chép</>
+                  ) : (
+                    <><Copy size={16} /> Sao chép Markdown</>
+                  )}
                 </button>
               </div>
             </div>
             
-            <div className="flex-1 overflow-y-auto p-6 md:p-10 custom-scrollbar print:p-0 print:overflow-visible">
-              <article className="prose prose-sm md:prose-base max-w-none dark:prose-invert
+            <div ref={reportRef} className="flex-1 overflow-y-auto p-6 md:p-10 custom-scrollbar">
+              <article ref={articleRef} className="prose prose-sm md:prose-base max-w-none dark:prose-invert
                 prose-headings:font-bold 
                 prose-h1:text-2xl prose-h2:text-xl prose-h3:text-lg
                 prose-p:leading-relaxed

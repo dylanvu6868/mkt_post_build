@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.deps import require_admin
 from app.core.db import get_session
 
+from app.models.audit_log import AuditLog
 from app.models.content_history import ContentHistory
 from app.models.conversation import Conversation, Message
 from app.models.generation_job import GenerationJob
@@ -301,8 +302,37 @@ async def get_analytics(session: AsyncSession = Depends(get_session)):
                 "time": j.created_at.isoformat() if j.created_at else None,
             })
 
+    recent_audits = (
+        await session.execute(
+            select(AuditLog.action, AuditLog.created_at, AuditLog.user_id, User.name)
+            .outerjoin(User, AuditLog.user_id == User.id)
+            .order_by(AuditLog.created_at.desc())
+            .limit(15)
+        )
+    ).all()
+    for a in recent_audits:
+        parts = a.action.split(".")
+        category = parts[0] if parts else "system"
+        user_name = a.name or "Khách"
+        activities.append({
+            "type": category,
+            "text": f"{user_name} — {a.action}",
+            "time": a.created_at.isoformat() if a.created_at else None,
+        })
+
     activities.sort(key=lambda x: x["time"] or "", reverse=True)
     activities = activities[:10]
+
+    tool_usage_rows = (
+        await session.execute(
+            select(AuditLog.action, func.count(AuditLog.id).label("count"))
+            .where(AuditLog.created_at >= week_ago)
+            .group_by(AuditLog.action)
+            .order_by(func.count(AuditLog.id).desc())
+            .limit(20)
+        )
+    ).all()
+    tool_usage = [{"action": r.action, "count": r.count} for r in tool_usage_rows]
 
     return {
         "users": {
@@ -329,6 +359,7 @@ async def get_analytics(session: AsyncSession = Depends(get_session)):
         "top_users": top_users,
         "user_growth": user_growth,
         "content_daily": content_daily,
+        "tool_usage": tool_usage,
         "activities": activities,
     }
 

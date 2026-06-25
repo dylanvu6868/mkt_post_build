@@ -13,6 +13,7 @@ from app.api.deps import get_current_user
 from app.core.config import settings
 from app.core.db import get_session, get_session_maker
 from app.core.plan_limits import get_limits, get_user_plan
+from app.core.tracing import trace_request
 from app.llm.factory import get_chat_model, provider_available
 from app.models.conversation import Conversation, Message
 from app.models.user import User
@@ -122,6 +123,7 @@ async def _analyze_images(image_data: list[dict]) -> str:
         try:
             from langchain_openai import ChatOpenAI
             from langchain_core.messages import HumanMessage as HMsg
+            from app.core.tracing import langfuse_handler
 
             vision_model = ChatOpenAI(
                 model="gpt-4o-mini",
@@ -130,6 +132,8 @@ async def _analyze_images(image_data: list[dict]) -> str:
                 max_tokens=1024,
                 timeout=30,
             )
+            if langfuse_handler:
+                vision_model = vision_model.with_config({"callbacks": [langfuse_handler]})
             content_parts: list[dict] = [
                 {"type": "text", "text": "Mô tả chi tiết nội dung từng ảnh bằng tiếng Việt. Nếu có chữ trong ảnh, trích xuất toàn bộ text."}
             ]
@@ -486,7 +490,13 @@ async def send_message(
 
     # Guard Agent Check
     if provider_available():
-        guard_result = await run_guard_agent(payload.content)
+        with trace_request(
+            "chat.guard",
+            user_id=current_user.id,
+            session_id=str(conversation_id),
+            metadata={"type": "guard", "content_preview": payload.content[:200]},
+        ):
+            guard_result = await run_guard_agent(payload.content)
         if not guard_result.is_safe:
             # Save AI rejection message
             async with session_maker() as save_session:
@@ -557,33 +567,39 @@ async def send_message(
 
     async def event_stream():
         full_response = ""
-        stream = (
-            _stream_llm(chat_messages)
-            if provider_available()
-            else _mock_stream(chat_messages)
-        )
-        async for event in stream:
-            if '"type": "done"' in event or '"type":"done"' in event:
-                data = json.loads(event.replace("data: ", "").strip())
-                full_response = data["content"]
-            yield event
-
-        async with session_maker() as save_session:
-            ai_msg = Message(
-                conversation_id=conversation_id,
-                role="assistant",
-                content=full_response,
+        with trace_request(
+            "chat.stream",
+            user_id=current_user.id,
+            session_id=str(conversation_id),
+            metadata={"type": "stream", "has_images": bool(image_description), "has_rag": bool(doc_context)},
+        ):
+            stream = (
+                _stream_llm(chat_messages)
+                if provider_available()
+                else _mock_stream(chat_messages)
             )
-            save_session.add(ai_msg)
-            if needs_title:
-                try:
-                    smart_title = await _summarize_title(payload.content)
-                    c = await save_session.get(Conversation, conversation_id)
-                    if c:
-                        c.title = smart_title
-                except Exception:
-                    pass
-            await save_session.commit()
+            async for event in stream:
+                if '"type": "done"' in event or '"type":"done"' in event:
+                    data = json.loads(event.replace("data: ", "").strip())
+                    full_response = data["content"]
+                yield event
+
+            async with session_maker() as save_session:
+                ai_msg = Message(
+                    conversation_id=conversation_id,
+                    role="assistant",
+                    content=full_response,
+                )
+                save_session.add(ai_msg)
+                if needs_title:
+                    try:
+                        smart_title = await _summarize_title(payload.content)
+                        c = await save_session.get(Conversation, conversation_id)
+                        if c:
+                            c.title = smart_title
+                    except Exception:
+                        pass
+                await save_session.commit()
 
     return StreamingResponse(
         event_stream(),

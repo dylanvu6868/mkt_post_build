@@ -10,6 +10,7 @@ from app.graph.build import build_graph
 from app.models.generation_job import GenerationJob
 from app.models.project import Project
 from app.services import history_service
+from app.core.tracing import trace_request
 
 _RESULT_KEYS = (
     "draft",
@@ -74,36 +75,40 @@ async def run_generation_job(
     logger.info("Generation started job_id=%s", job_id)
     state: dict[str, Any] = dict(initial_state)
     try:
-        async for update in graph.astream(initial_state, stream_mode="updates"):
-            for node, delta in update.items():
-                for key, value in (delta or {}).items():
-                    if key == "errors":
-                        state.setdefault("errors", [])
-                        state["errors"].extend(value)
-                    else:
-                        state[key] = value
-                logger.info("Agent step completed job_id=%s step=%s", job_id, node)
-                await _set_step(session_maker, job_id, node)
+        with trace_request(
+            "generate.pipeline",
+            metadata={"job_id": job_id, "content_type": initial_state.get("content_type")},
+        ):
+            async for update in graph.astream(initial_state, stream_mode="updates"):
+                for node, delta in update.items():
+                    for key, value in (delta or {}).items():
+                        if key == "errors":
+                            state.setdefault("errors", [])
+                            state["errors"].extend(value)
+                        else:
+                            state[key] = value
+                    logger.info("Agent step completed job_id=%s step=%s", job_id, node)
+                    await _set_step(session_maker, job_id, node)
 
-        result = {key: state.get(key) for key in _RESULT_KEYS}
-        async with session_maker() as session:
-            job = await session.get(GenerationJob, job_id)
-            if job is not None:
-                job.status = "done"
-                job.result_json = result
-                await session.commit()
+            result = {key: state.get(key) for key in _RESULT_KEYS}
+            async with session_maker() as session:
+                job = await session.get(GenerationJob, job_id)
+                if job is not None:
+                    job.status = "done"
+                    job.result_json = result
+                    await session.commit()
 
-            review = state.get("review") or {}
-            score = review.get("score")
-            await history_service.save_to_history(
-                session,
-                initial_state["project_id"],
-                initial_state["content_type"],
-                initial_state["brief"],
-                result,
-                score=score,
-            )
-        logger.info("Generation completed job_id=%s score=%s", job_id, score)
+                review = state.get("review") or {}
+                score = review.get("score")
+                await history_service.save_to_history(
+                    session,
+                    initial_state["project_id"],
+                    initial_state["content_type"],
+                    initial_state["brief"],
+                    result,
+                    score=score,
+                )
+            logger.info("Generation completed job_id=%s score=%s", job_id, score)
     except Exception as exc:  # noqa: BLE001 — any agent/LLM failure marks the job errored
         logger.error("Generation failed job_id=%s error=%s", job_id, exc)
         async with session_maker() as session:
