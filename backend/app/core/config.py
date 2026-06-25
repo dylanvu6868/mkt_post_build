@@ -48,6 +48,12 @@ class Settings(BaseSettings):
     vercel_token: str = ""
     github_token: str = ""
 
+    # Meta (Facebook/Instagram) OAuth + Graph API
+    meta_app_id: str = ""
+    meta_app_secret: str = ""
+    meta_redirect_uri: str = "https://vitba.ai/api/meta/oauth/callback"
+    meta_api_version: str = "v21.0"
+
     # Email — Resend API (preferred on Railway where SMTP is blocked)
     resend_api_key: str = ""
     # SMTP fallback (local dev)

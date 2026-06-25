@@ -2,6 +2,31 @@
 
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
+import {
+  ShieldCheck,
+  Globe,
+  MessageSquare,
+  Brain,
+  Repeat,
+  ChartColumnIncreasing,
+  TrendingUp,
+  Users,
+  Dna,
+  RefreshCw,
+  Clapperboard,
+  AudioLines,
+  FlaskConical,
+  History,
+  ChevronRight,
+  Zap,
+  Swords,
+  Crosshair,
+  Share2,
+  UserSearch,
+  Hash,
+  Languages,
+  type LucideIcon,
+} from "lucide-react";
 
 const CATEGORIES = [
   {
@@ -14,12 +39,7 @@ const CATEGORIES = [
         name: "Content Safety Scanner",
         tagline: "Quét và vô hiệu hoá rủi ro ngôn ngữ trước khi đăng tải",
         tag: "available",
-        icon: (
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-            <path d="m9 12 2 2 4-4" />
-          </svg>
-        ),
+        icon: ShieldCheck,
       },
       {
         id: "blindspot",
@@ -27,11 +47,7 @@ const CATEGORIES = [
         name: "Cultural Risk Detector",
         tagline: "Phát hiện điểm mù văn hoá, tín ngưỡng vùng miền trước khi phát hành",
         tag: "available",
-        icon: (
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="12" r="10" /><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20" /><path d="M2 12h20" />
-          </svg>
-        ),
+        icon: Globe,
       },
       {
         id: "simulator",
@@ -39,11 +55,7 @@ const CATEGORIES = [
         name: "Audience Response Simulator",
         tagline: "Mô phỏng phản ứng và kịch bản bình luận của 20 nhóm người dùng",
         tag: "available",
-        icon: (
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-          </svg>
-        ),
+        icon: MessageSquare,
       },
     ],
   },
@@ -57,12 +69,7 @@ const CATEGORIES = [
         name: "Emotion Trigger Optimizer",
         tagline: "Tái cấu trúc nội dung theo khung PAS để kích hoạt cảm xúc mục tiêu",
         tag: "available",
-        icon: (
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z" />
-            <path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2Z" />
-          </svg>
-        ),
+        icon: Brain,
       },
       {
         id: "reverse",
@@ -70,12 +77,15 @@ const CATEGORIES = [
         name: "Reverse Psychology Engine",
         tagline: "Chuyển đổi thông điệp trực diện thành chiến thuật kích thích phản kháng",
         tag: "available",
-        icon: (
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" /><path d="M3 3v5h5" />
-            <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" /><path d="M16 16h5v5" />
-          </svg>
-        ),
+        icon: Repeat,
+      },
+      {
+        id: "abtest",
+        href: "/hub/lab/abtest",
+        name: "A/B Test Lab",
+        tagline: "Đánh giá 2 variant, chấm điểm, chọn winner + gợi ý cải thiện",
+        tag: "available",
+        icon: Swords,
       },
     ],
   },
@@ -89,11 +99,7 @@ const CATEGORIES = [
         name: "Organic Reach Optimizer",
         tagline: "Phân tích và tái cấu trúc nội dung để tối đa phạm vi tiếp cận tự nhiên",
         tag: "available",
-        icon: (
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M3 3v18h18" /><path d="m19 9-5 5-4-4-3 3" />
-          </svg>
-        ),
+        icon: ChartColumnIncreasing,
       },
       {
         id: "trendjack",
@@ -101,11 +107,23 @@ const CATEGORIES = [
         name: "Trend Integration Engine",
         tagline: "Lồng ghép từ khoá xu hướng vào nội dung hiện có mà không làm gãy thông điệp",
         tag: "available",
-        icon: (
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="22 7 13.5 15.5 8.5 10.5 2 17" /><polyline points="16 7 22 7 22 13" />
-          </svg>
-        ),
+        icon: TrendingUp,
+      },
+      {
+        id: "hashtag",
+        href: "/hub/lab/hashtag",
+        name: "Hashtag Universe",
+        tagline: "Vũ trụ hashtag theo framework 3-6-3 + trend VN + danh sách nên tránh",
+        tag: "available",
+        icon: Hash,
+      },
+      {
+        id: "influencer",
+        href: "/hub/lab/influencer",
+        name: "Influencer Match",
+        tagline: "Đề xuất profile influencer phù hợp + template brief + kịch bản tiếp cận",
+        tag: "available",
+        icon: UserSearch,
       },
     ],
   },
@@ -119,12 +137,7 @@ const CATEGORIES = [
         name: "Voice & Tone Adapter",
         tagline: "Chuyển đổi giọng viết sang 6 phân khúc đối tượng khác nhau trong một thao tác",
         tag: "available",
-        icon: (
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" />
-            <path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" />
-          </svg>
-        ),
+        icon: Users,
       },
       {
         id: "dna",
@@ -132,12 +145,7 @@ const CATEGORIES = [
         name: "Viral Structure Analyzer",
         tagline: "Trích xuất cấu trúc Hook–Body–CTA từ nội dung viral và tái ứng dụng",
         tag: "available",
-        icon: (
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-            <path d="m10.5 20.5 1-1.5" /><path d="m13.5 3.5-1 1.5" /><path d="m13.5 20.5-1-1.5" /><path d="m10.5 3.5 1 1.5" />
-            <path d="M12 21A4.5 4.5 0 0 1 7.5 16.5c0-1.28.53-2.43 1.38-3.26a4.52 4.52 0 0 0 0-6.48 4.5 4.5 0 0 1-1.38-3.26A4.5 4.5 0 0 1 12 3a4.5 4.5 0 0 1 4.5 4.5c0 1.28-.53 2.43-1.38 3.26a4.52 4.52 0 0 0 0 6.48 4.5 4.5 0 0 1 1.38 3.26A4.5 4.5 0 0 1 12 21Z" />
-          </svg>
-        ),
+        icon: Dna,
       },
       {
         id: "evergreen",
@@ -145,11 +153,37 @@ const CATEGORIES = [
         name: "Content Revitalizer",
         tagline: "Cập nhật ngữ nghĩa và văn phong của nội dung cũ theo bối cảnh hiện tại",
         tag: "available",
-        icon: (
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" /><path d="M3 3v5h5" /><path d="M12 7v5l4 2" />
-          </svg>
-        ),
+        icon: RefreshCw,
+      },
+      {
+        id: "hook",
+        href: "/hub/lab/hook",
+        name: "Hook Generator",
+        tagline: "Sinh 10 hook theo 7 công thức (AIDA, PAS, Curiosity Gap...) cho A/B test",
+        tag: "available",
+        icon: Zap,
+      },
+      {
+        id: "repurposer",
+        href: "/hub/lab/repurposer",
+        name: "Content Repurposer",
+        tagline: "1 nội dung → nhiều định dạng (FB, TikTok, Email, Instagram) trong 1 thao tác",
+        tag: "available",
+        icon: Share2,
+      },
+    ],
+  },
+  {
+    id: "competitive-intel",
+    label: "Nghiên cứu đối thủ",
+    tools: [
+      {
+        id: "competitor-spy",
+        href: "/hub/lab/competitor-spy",
+        name: "Competitor Spy",
+        tagline: "Bóc tách chiến lược content, tần suất, giọng văn, framework của đối thủ",
+        tag: "available",
+        icon: Crosshair,
       },
     ],
   },
@@ -163,12 +197,7 @@ const CATEGORIES = [
         name: "Visual Prompt Director",
         tagline: "Chuyển đổi nội dung văn bản thành storyboard và prompt hình ảnh AI chuyên nghiệp",
         tag: "available",
-        icon: (
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-            <rect width="18" height="18" x="3" y="3" rx="2" /><path d="M7 3v18" /><path d="M17 3v18" />
-            <path d="M3 7h4" /><path d="M3 12h4" /><path d="M3 17h4" /><path d="M17 7h4" /><path d="M17 12h4" /><path d="M17 17h4" />
-          </svg>
-        ),
+        icon: Clapperboard,
       },
       {
         id: "audiohook",
@@ -176,11 +205,21 @@ const CATEGORIES = [
         name: "Voiceover Script Optimizer",
         tagline: "Đồng bộ kịch bản đọc với nhịp BPM nhạc nền và xuất SSML cho AI voice",
         tag: "available",
-        icon: (
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M9 18V5l12-2v13" /><circle cx="6" cy="18" r="3" /><circle cx="18" cy="16" r="3" />
-          </svg>
-        ),
+        icon: AudioLines,
+      },
+    ],
+  },
+  {
+    id: "vietnam-pack",
+    label: "Việt Nam Pack",
+    tools: [
+      {
+        id: "dialect",
+        href: "/hub/lab/dialect",
+        name: "Dialect Adapter",
+        tagline: "Chuyển nội dung sang 3 phương ngữ Bắc/Trung/Nam + phiên bản trung lập",
+        tag: "available",
+        icon: Languages,
       },
     ],
   },
@@ -210,10 +249,7 @@ export default function VitbaLabPage() {
           <div className="space-y-1.5">
             <div className="flex items-center gap-2.5">
               <div className="w-7 h-7 rounded-xl bg-foreground/5 border border-border/50 flex items-center justify-center">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M10 2v7.31" /><path d="M14 9.3V1.99" /><path d="M8.5 2h7" />
-                  <path d="M14 9.3a6.5 6.5 0 1 1-4 0" /><path d="M5.52 16h12.96" />
-                </svg>
+                <FlaskConical size={13} />
               </div>
               <h1 className="text-xl font-semibold tracking-tight">Vitba Tool</h1>
               <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider bg-foreground/5 border border-border/50 text-muted-foreground">
@@ -228,9 +264,7 @@ export default function VitbaLabPage() {
                 onClick={() => router.push("/hub/lab/history")}
                 className="inline-flex items-center gap-2 px-4 py-2 bg-secondary text-secondary-foreground hover:bg-secondary/80 rounded-lg text-sm font-medium transition-colors"
               >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" /><path d="M3 3v5h5" /><path d="M12 7v5l4 2" />
-                </svg>
+                <History size={16} />
                 Lịch sử của tôi
               </button>
             </div>
@@ -268,7 +302,7 @@ export default function VitbaLabPage() {
                 >
                   {/* Icon */}
                   <div className="shrink-0 w-10 h-10 rounded-xl border border-border/40 bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary/20 group-hover:border-primary/30 transition-all duration-200">
-                    {tool.icon}
+                    {(() => { const ToolIcon = tool.icon as LucideIcon; return <ToolIcon size={18} />; })()}
                   </div>
 
                   {/* Text */}
@@ -284,9 +318,7 @@ export default function VitbaLabPage() {
 
                   {/* Arrow */}
                   <div className="shrink-0 text-muted-foreground/30 group-hover:text-muted-foreground group-hover:translate-x-0.5 transition-all">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M5 12h14" /><path d="m12 5 7 7-7 7" />
-                    </svg>
+                    <ChevronRight size={14} />
                   </div>
                 </button>
               ))}

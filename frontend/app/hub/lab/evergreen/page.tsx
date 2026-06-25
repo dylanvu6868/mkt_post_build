@@ -1,13 +1,12 @@
 "use client";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { useLabTool } from "@/hooks/use-lab-tool";
+import { LabBreadcrumb, ToolHeader, RunButton, ErrorBox, LabTextarea, ChipGroup } from "@/components/lab-ui";
+
 
 interface EvergreenResult { original_core: string; refreshed_content: string; updated_elements: string[]; repost_tips: string; }
 
-export default function EvergreenPage() {
-  const router = useRouter();
-  const [oldContent, setOldContent] = useState("");
+export default function EvergreenPage() {const [oldContent, setOldContent] = useState("");
   const [yearCtx, setYearCtx] = useState("Giữa năm 2025 — thế hệ Alpha, AI bùng nổ, xu hướng slow living");
   const [copied, setCopied] = useState(false);
   const { run, result, loading, error } = useLabTool<EvergreenResult>("/evergreen");
@@ -19,21 +18,9 @@ export default function EvergreenPage() {
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
-      <div className="flex items-center gap-2 text-sm">
-        <button onClick={() => router.push("/hub/lab")} className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M10 2v7.31" /><path d="M14 9.3V1.99" /><path d="M8.5 2h7" /><path d="M14 9.3a6.5 6.5 0 1 1-4 0" /><path d="M5.52 16h12.96" /></svg>
-          Vitba Tool
-        </button>
-        <span className="text-border">/</span>
-        <span className="text-foreground font-medium">Content Revitalizer</span>
-      </div>
-      <div className="border-b border-border/50 pb-5">
-        <div className="flex items-start gap-2">
-          <h1 className="text-lg font-semibold tracking-tight">Content Revitalizer</h1>
-          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-semibold uppercase tracking-wider bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 mt-0.5">Khả dụng</span>
-        </div>
-        <p className="text-sm text-muted-foreground mt-1.5 max-w-xl">Cập nhật ngữ nghĩa, ví dụ minh hoạ và văn phong của nội dung cũ theo bối cảnh hiện tại, giữ nguyên cấu trúc cảm xúc đã chứng minh hiệu quả.</p>
-      </div>
+      <LabBreadcrumb tool="Content Revitalizer" />
+      <ToolHeader name="Content Revitalizer" description="Cập nhật ngữ nghĩa, ví dụ minh hoạ và văn phong của nội dung cũ theo bối cảnh hiện tại, giữ nguyên cấu trúc cảm xúc đã chứng minh hiệu quả." tag="available" />
+
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
         <div className="lg:col-span-2 space-y-4">
@@ -48,7 +35,7 @@ export default function EvergreenPage() {
           <button onClick={handleRun} disabled={loading || !oldContent.trim()} className="w-full flex items-center justify-center gap-2 rounded-lg bg-foreground text-background text-sm font-medium py-2.5 hover:bg-foreground/90 disabled:opacity-40 disabled:cursor-not-allowed transition-all">
             {loading ? <><svg className="animate-spin w-3.5 h-3.5" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>Đang làm mới nội dung...</> : "Làm mới nội dung"}
           </button>
-          {error && <p className="text-xs text-red-500 rounded-lg border border-red-500/20 bg-red-500/5 px-3 py-2.5">{error}</p>}
+          {error && <ErrorBox message={error} />}
         </div>
 
         <div className="lg:col-span-3 space-y-4">

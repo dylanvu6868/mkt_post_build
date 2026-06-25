@@ -306,6 +306,201 @@ YÊU CẦU VỀ PHONG CÁCH VIẾT:
         config=config
     )
     final_report = writer_result["messages"][-1].content
-    
+
     return ReportResponse(markdown_content=final_report)
+
+
+# --- HOOK GENERATOR AGENT ---
+
+class HookVariant(BaseModel):
+    formula: str = Field(..., description="Tên công thức hook (AIDA, PAS, Curiosity Gap, v.v.)")
+    hook: str = Field(..., description="Câu hook hoàn chỉnh")
+    psychology: str = Field(..., description="Cơ chế tâm lý mà hook này khai thác")
+
+class HookGeneratorResponse(BaseModel):
+    hooks: list[HookVariant] = Field(..., description="10 hook theo 7 công thức khác nhau")
+    best_for_engagement: str = Field(..., description="Hook được đánh giá tốt nhất cho tương tác")
+    best_for_conversion: str = Field(..., description="Hook được đánh giá tốt nhất cho chuyển đổi")
+
+async def run_hook_agent(content: str, goal: str) -> HookGeneratorResponse:
+    system = f"""Bạn là 'Máy Sinh Hook' chuyên nghiệp. Nhiệm vụ: tạo 10 hook khác nhau cho nội dung dựa trên 7 công thức:
+1. AIDA (Attention-Interest-Desire-Action)
+2. PAS (Problem-Agitate-Solution)
+3. Curiosity Gap (khoảng cách tò mò)
+4. Pattern Interrupt (phá khuôn mẫu)
+5. Number Hook (hook dùng số liệu)
+6. Controversy (gây tranh luận)
+7. Story Hook (mở đầu kể chuyện)
+
+Mục tiêu nội dung: {goal}
+Mỗi hook phải khác biệt hoàn toàn về góc tiếp cận. Trả về kèm cơ chế tâm lý.""" + STRICT_RULES
+    user = f"NỘI DUNG CẦN TẠO HOOK:\n{content}\n\nHãy tạo 10 hook đa dạng theo 7 công thức trên."
+    return await generate_structured("smart", system, user, HookGeneratorResponse)
+
+
+# --- A/B TEST AGENT ---
+
+class ABTestResponse(BaseModel):
+    winner: str = Field(..., description="'A' hoặc 'B' — variant chiến thắng")
+    winner_reason: str = Field(..., description="Lý do chi tiết tại sao variant này thắng")
+    score_a: int = Field(..., description="Điểm variant A (0-100)")
+    score_b: int = Field(..., description="Điểm variant B (0-100)")
+    predicted_engagement_a: str = Field(..., description="Dự đoán tương tác variant A")
+    predicted_engagement_b: str = Field(..., description="Dự đoán tương tác variant B")
+    improvement_suggestions: list[str] = Field(..., description="3-5 gợi ý cải thiện cả 2 variant")
+
+async def run_abtest_agent(variant_a: str, variant_b: str, platform: str) -> ABTestResponse:
+    system = f"""Bạn là 'Trọng tài A/B Test' cho nền tảng {platform}. Nhiệm vụ: đánh giá 2 variant nội dung,
+chấm điểm từng variant (0-100) dựa trên: hook strength, emotional trigger, CTA clarity, platform fit, scroll-stop power.
+Xác định winner và giải thích chi tiết. Đưa ra gợi ý cải thiện cho cả hai.""" + STRICT_RULES
+    user = f"VARIANT A:\n{variant_a}\n\nVARIANT B:\n{variant_b}\n\nHãy đánh giá và chọn winner cho nền tảng {platform}."
+    return await generate_structured("smart", system, user, ABTestResponse)
+
+
+# --- COMPETITOR SPY AGENT ---
+
+class CompetitorInsight(BaseModel):
+    metric: str = Field(..., description="Chỉ số/đặc điểm được phân tích")
+    observation: str = Field(..., description="Quan sát chi tiết về đối thủ")
+    vitba_recommendation: str = Field(..., description="Đề xuất hành động cho user")
+
+class CompetitorSpyResponse(BaseModel):
+    content_strategy: str = Field(..., description="Tổng quan chiến lược nội dung của đối thủ")
+    posting_frequency: str = Field(..., description="Tần suất đăng bài ước tính")
+    tone_and_voice: str = Field(..., description="Giọng văn và phong cách đối thủ")
+    top_frameworks: list[str] = Field(..., description="Framework content đối thủ hay dùng")
+    weaknesses: list[str] = Field(..., description="Điểm yếu đối thủ có thể khai thác")
+    insights: list[CompetitorInsight] = Field(..., description="Phân tích chi tiết từng chỉ số")
+    action_plan: str = Field(..., description="Kế hoạch hành động cụ thể để vượt đối thủ")
+
+async def run_competitor_spy_agent(competitor_info: str, niche: str) -> CompetitorSpyResponse:
+    system = f"""Bạn là 'Điệp Viên Đối Thủ' — chuyên gia phân tích chiến lược content marketing của đối thủ cạnh tranh.
+Ngành: {niche}
+Nhiệm vụ: phân tích thông tin đối thủ, bóc tách chiến lược nội dung, tần suất, giọng văn, framework,
+xác định điểm yếu và đề xuất kế hoạch vượt mặt.""" + STRICT_RULES
+    user = f"THÔNG TIN ĐỐI THỦ (URL, nội dung bài đăng, mô tả):\n{competitor_info}\n\nHãy phân tích toàn diện."
+    return await generate_structured("smart", system, user, CompetitorSpyResponse)
+
+
+# --- CONTENT REPURPOSER AGENT ---
+
+class RepurposedPiece(BaseModel):
+    format: str = Field(..., description="Định dạng (Facebook Post, TikTok Script, Email, v.v.)")
+    content: str = Field(..., description="Nội dung đã chuyển đổi hoàn chỉnh")
+    adaptation_notes: str = Field(..., description="Ghi chú cách thích nghi cho từng nền tảng")
+
+class RepurposerResponse(BaseModel):
+    pieces: list[RepurposedPiece] = Field(..., description="Các phiên bản nội dung đã chuyển đổi")
+    cross_post_strategy: str = Field(..., description="Chiến lược đăng chéo giữa các nền tảng")
+
+async def run_repurposer_agent(source_content: str, target_formats: str) -> RepurposerResponse:
+    system = f"""Bạn là 'Máy Tái Dụng Nội Dung'. Nhiệm vụ: chuyển đổi 1 nội dung gốc thành nhiều định dạng khác nhau.
+Các định dạng mục tiêu: {target_formats}
+Nguyên tắc: giữ nguyên thông điệp lõi, nhưng thích nghi hoàn toàn: độ dài, giọng văn, cấu trúc, hashtag, CTA
+cho từng nền tảng. Không copy-paste — chuyển đổi thực sự.""" + STRICT_RULES
+    user = f"NỘI DUNG GỐC:\n{source_content}\n\nHãy chuyển đổi sang: {target_formats}"
+    return await generate_structured("smart", system, user, RepurposerResponse)
+
+
+# --- INFLUENCER MATCH AGENT ---
+
+class InfluencerProfile(BaseModel):
+    tier: str = Field(..., description="Tier influencer (Nano/Micro/Macro)")
+    follower_range: str = Field(..., description="Phạm vi follower ước tính")
+    profile_description: str = Field(..., description="Mô tả profile influencer phù hợp")
+    content_style: str = Field(..., description="Phong cách nội dung nên tìm")
+    estimated_cost: str = Field(..., description="Chi phí ước tính per post")
+
+class InfluencerMatchResponse(BaseModel):
+    recommended_profiles: list[InfluencerProfile] = Field(..., description="3-5 profile influencer đề xuất")
+    brief_template: str = Field(..., description="Template brief MCP để gửi cho influencer")
+    outreach_script: str = Field(..., description="Kịch bản tiếp cận influencer")
+    kpi_to_track: list[str] = Field(..., description="5 KPI cần theo dõi khi hợp tác")
+
+async def run_influencer_agent(niche: str, budget: str, platform: str) -> InfluencerMatchResponse:
+    system = f"""Bạn là 'Chuyên gia Match Influencer'. Nhiệm vụ: đề xuất profile influencer phù hợp cho chiến dịch.
+Ngành: {niche}
+Ngân sách: {budget}
+Nền tảng: {platform}
+Trả về: mô tả profile phù hợp (không cần tên thật — mô tả đặc điểm), template brief, kịch bản tiếp cận, KPI.""" + STRICT_RULES
+    user = f"Hãy đề xuất influencer match cho: ngành {niche}, ngân sách {budget}, nền tảng {platform}."
+    return await generate_structured("smart", system, user, InfluencerMatchResponse)
+
+
+# --- HASHTAG UNIVERSE AGENT ---
+
+class HashtagGroup(BaseModel):
+    category: str = Field(..., description="Nhóm: Primary / Secondary / Niche")
+    hashtags: list[str] = Field(..., description="Danh sách hashtag trong nhóm (mỗi hashtag bắt đầu bằng #)")
+    purpose: str = Field(..., description="Mục đích của nhóm này")
+
+class HashtagUniverseResponse(BaseModel):
+    groups: list[HashtagGroup] = Field(..., description="3 nhóm hashtag theo tỷ lệ 3-6-3")
+    recommended_mix: str = Field(..., description="Gợi ý mix 12 hashtag tối ưu cho 1 bài đăng")
+    trending_now: list[str] = Field(..., description="5 hashtag đang trend tại Việt Nam cho ngành này")
+    avoid_list: list[str] = Field(..., description="5 hashtag nên tránh (bị shadowban hoặc spam)")
+
+async def run_hashtag_agent(niche: str, platform: str, region: str) -> HashtagUniverseResponse:
+    system = f"""Bạn là 'Vũ Trụ Hashtag'. Nhiệm vụ: xây dựng vũ trụ hashtag theo framework 3-6-3:
+- 3 Primary hashtag (lượng search cao, cạnh tranh cao)
+- 6 Secondary hashtag (cân bằng)
+- 3 Niche hashtag (siêu ngách, cạnh tranh thấp)
+Ngành: {niche}
+Nền tảng: {platform}
+Khu vực: {region}
+Mỗi hashtag BẮT BUỘC bắt đầu bằng '#'. Trả về kèm hashtag trend VN và danh sách nên tránh.""" + STRICT_RULES
+    user = f"Hãy xây dựng vũ trụ hashtag cho ngành {niche}, nền tảng {platform}, khu vực {region}."
+    return await generate_structured("smart", system, user, HashtagUniverseResponse)
+
+
+# ─── VIETNAM PACK ────────────────────────────────────────────────
+
+# --- DIALECT ADAPTER AGENT ---
+
+class DialectVariant(BaseModel):
+    region: str = Field(..., description="Vùng miền: Bắc / Trung / Nam")
+    adapted_content: str = Field(..., description="Nội dung đã chuyển sang phương ngữ vùng đó")
+    key_changes: list[str] = Field(..., description="Các thay đổi từ vựng/ngữ pháp chính")
+
+class DialectAdapterResponse(BaseModel):
+    variants: list[DialectVariant] = Field(..., description="3 phiên bản theo 3 vùng miền")
+    universal_version: str = Field(..., description="Phiên bản trung lập, an toàn cho mọi vùng")
+    localization_tips: list[str] = Field(..., description="Mẹo bản địa hóa thêm cho từng vùng")
+
+async def run_dialect_adapter_agent(content: str) -> DialectAdapterResponse:
+    system = """Bạn là 'Chuyên gia Phương Ngữ Việt Nam'. Nhiệm vụ: chuyển đổi nội dung marketing sang 3 phương ngữ:
+1. MIỀN BẮC: dùng từ lóng Bắc (nhộn, oách, xịn xò, pđu, chững), giọng điệu thanh lịch, hài hước nhẹ
+2. MIỀN TRUNG: dùng từ Trung (mừng, răng, mô, tề), giọng điệu chân chất, mộc mạc
+3. MIỀN NAM: dùng từ Nam (bứt phá, xịn, quê, cứng), giọng điệu năng động, thực tế
+Giữ nguyên thông điệp, chỉ thay đổi từ vựng + cấu trúc câu cho khớp phương ngữ. Trả về kèm phiên bản trung lập an toàn.""" + STRICT_RULES
+    user = f"NỘI DUNG GỐC:\n{content}\n\nHãy chuyển sang 3 phương ngữ Bắc/Trung/Nam."
+    return await generate_structured("smart", system, user, DialectAdapterResponse)
+
+
+# --- ZALO OA PUBLISHER HELPERS ---
+
+class ZaloPostResult(BaseModel):
+    success: bool
+    post_id: str | None = None
+    message: str
+
+async def publish_to_zalo_oa(access_token: str, content: str, image_url: str | None = None) -> ZaloPostResult:
+    """Publish a post to Zalo Official Account via Zalo OA API.
+
+    Docs: https://developers.zalo.me/docs/api/official-account-api/bai-viet/post-article
+    Requires a Zalo OA access token (long-lived, obtained from Zalo OA console).
+    """
+    import httpx
+    ZALO_BASE = "https://openapi.zalo.me/v2.0/article"
+    payload: dict = {"content": content}
+    if image_url:
+        payload["cover"] = image_url
+    headers = {"access_token": access_token, "Content-Type": "application/json"}
+    async with httpx.AsyncClient(timeout=30) as client:
+        resp = await client.post(ZALO_BASE, headers=headers, json=payload)
+        data = resp.json()
+    if data.get("error") and data["error"] != 0:
+        return ZaloPostResult(success=False, message=data.get("message", "Lỗi Zalo OA API"))
+    post_id = data.get("data", {}).get("article_id")
+    return ZaloPostResult(success=True, post_id=post_id, message="Đã đăng bài lên Zalo OA")
 

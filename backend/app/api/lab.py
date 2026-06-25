@@ -16,6 +16,9 @@ from app.agents.lab import (
     run_reverse_agent, run_hexbreaker_agent, run_trendjack_agent,
     run_blindspot_agent, run_evergreen_agent, run_audiohook_agent,
     run_report_agent,
+    run_hook_agent, run_abtest_agent, run_competitor_spy_agent,
+    run_repurposer_agent, run_influencer_agent, run_hashtag_agent,
+    run_dialect_adapter_agent, publish_to_zalo_oa,
 )
 
 logger = logging.getLogger(__name__)
@@ -89,6 +92,47 @@ class ReportRequest(BaseModel):
     competitors: str = Field("", max_length=1000)
     strengths: str = Field("", max_length=1000)
     weaknesses: str = Field("", max_length=1000)
+
+
+# --- New Lab Tools (Phase 2 expansion) ---
+
+class HookRequest(BaseModel):
+    content: str = Field(..., max_length=MAX_CONTENT)
+    goal: str = Field("Tăng engagement", max_length=200)
+
+class ABTestRequest(BaseModel):
+    variant_a: str = Field(..., max_length=MAX_CONTENT)
+    variant_b: str = Field(..., max_length=MAX_CONTENT)
+    platform: str = Field("Facebook", max_length=50)
+
+class CompetitorSpyRequest(BaseModel):
+    competitor_info: str = Field(..., max_length=MAX_CONTENT)
+    niche: str = Field(..., max_length=200)
+
+class RepurposerRequest(BaseModel):
+    source_content: str = Field(..., max_length=MAX_CONTENT)
+    target_formats: str = Field("Facebook Post, TikTok Script, Email, Instagram Caption", max_length=500)
+
+class InfluencerRequest(BaseModel):
+    niche: str = Field(..., max_length=200)
+    budget: str = Field("5-20 triệu VND", max_length=200)
+    platform: str = Field("TikTok", max_length=50)
+
+class HashtagRequest(BaseModel):
+    niche: str = Field(..., max_length=200)
+    platform: str = Field("Facebook", max_length=50)
+    region: str = Field("Việt Nam", max_length=100)
+
+
+# --- Vietnam Pack ---
+
+class DialectRequest(BaseModel):
+    content: str = Field(..., max_length=MAX_CONTENT)
+
+class ZaloPublishRequest(BaseModel):
+    access_token: str = Field(..., max_length=1000)
+    content: str = Field(..., max_length=MAX_CONTENT)
+    image_url: str | None = Field(None, max_length=2000)
 
 
 # --- Helpers ---
@@ -256,3 +300,61 @@ async def audiohook_endpoint(request: Request, req: AudioHookRequest, current_us
 @limiter.limit("2/minute")
 async def report_endpoint(request: Request, req: ReportRequest, current_user: User = Depends(get_current_user)):
     return await _run_tool("report", lambda: run_report_agent(req.model_dump()), current_user, request, input_data=req.model_dump())
+
+
+# --- New Lab Tool endpoints ---
+
+@router.post("/hook")
+@limiter.limit("5/minute")
+async def hook_endpoint(request: Request, req: HookRequest, current_user: User = Depends(get_current_user)):
+    return await _run_tool("hook", lambda: run_hook_agent(req.content, req.goal), current_user, request, input_data=req.model_dump())
+
+@router.post("/abtest")
+@limiter.limit("5/minute")
+async def abtest_endpoint(request: Request, req: ABTestRequest, current_user: User = Depends(get_current_user)):
+    return await _run_tool("abtest", lambda: run_abtest_agent(req.variant_a, req.variant_b, req.platform), current_user, request, input_data=req.model_dump())
+
+@router.post("/competitor-spy")
+@limiter.limit("3/minute")
+async def competitor_spy_endpoint(request: Request, req: CompetitorSpyRequest, current_user: User = Depends(get_current_user)):
+    return await _run_tool("competitor_spy", lambda: run_competitor_spy_agent(req.competitor_info, req.niche), current_user, request, input_data=req.model_dump())
+
+@router.post("/repurposer")
+@limiter.limit("5/minute")
+async def repurposer_endpoint(request: Request, req: RepurposerRequest, current_user: User = Depends(get_current_user)):
+    return await _run_tool("repurposer", lambda: run_repurposer_agent(req.source_content, req.target_formats), current_user, request, input_data=req.model_dump())
+
+@router.post("/influencer")
+@limiter.limit("3/minute")
+async def influencer_endpoint(request: Request, req: InfluencerRequest, current_user: User = Depends(get_current_user)):
+    return await _run_tool("influencer", lambda: run_influencer_agent(req.niche, req.budget, req.platform), current_user, request, input_data=req.model_dump())
+
+@router.post("/hashtag")
+@limiter.limit("5/minute")
+async def hashtag_endpoint(request: Request, req: HashtagRequest, current_user: User = Depends(get_current_user)):
+    return await _run_tool("hashtag", lambda: run_hashtag_agent(req.niche, req.platform, req.region), current_user, request, input_data=req.model_dump())
+
+
+# --- Vietnam Pack endpoints ---
+
+@router.post("/dialect")
+@limiter.limit("5/minute")
+async def dialect_endpoint(request: Request, req: DialectRequest, current_user: User = Depends(get_current_user)):
+    return await _run_tool("dialect", lambda: run_dialect_adapter_agent(req.content), current_user, request, input_data=req.model_dump())
+
+@router.post("/zalo-publish")
+@limiter.limit("3/minute")
+async def zalo_publish_endpoint(request: Request, req: ZaloPublishRequest, current_user: User = Depends(get_current_user)):
+    """Publish to Zalo OA — no daily lab limit, just rate limit."""
+    await _audit(current_user.id, "zalo_publish", request.client.host if request.client else None)
+    result = await publish_to_zalo_oa(req.access_token, req.content, req.image_url)
+    return result.model_dump()
+
+@router.get("/lunar-festivals")
+async def lunar_festivals_endpoint(current_user: User = Depends(get_current_user)):
+    """Return upcoming Vietnamese lunar-calendar festivals + content suggestions."""
+    from app.mcp.lunar_calendar import get_upcoming_festivals, festival_content_suggestions
+    festivals = get_upcoming_festivals()
+    for f in festivals:
+        f["content_suggestions"] = festival_content_suggestions(f["name"])
+    return {"festivals": festivals}

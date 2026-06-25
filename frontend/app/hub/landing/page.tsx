@@ -6,7 +6,7 @@ import {
   type LandingPageListItem,
   type LandingPageDetail,
 } from "@/store/mcp";
-import { API_BASE_URL, ApiError, getToken } from "@/services/api";
+import { API_BASE_URL, ApiError, getToken, api } from "@/services/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -20,21 +20,17 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Layout } from "lucide-react";
+import {
+  btn,
+  btnOutline,
+  btnDanger,
+  btnGhost,
+  inp,
+} from "@/lib/ui-tokens";
 
 /* ------------------------------------------------------------------ */
 /*  Constants & Styles                                                 */
 /* ------------------------------------------------------------------ */
-
-const btn =
-  "inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-all disabled:opacity-50";
-const btnOutline =
-  "inline-flex items-center justify-center gap-2 rounded-xl border border-border px-4 py-2.5 text-sm font-medium hover:bg-accent transition-all disabled:opacity-50";
-const btnDanger =
-  "inline-flex items-center justify-center gap-2 rounded-xl bg-destructive px-4 py-2.5 text-sm font-medium text-destructive-foreground hover:bg-destructive/90 transition-all disabled:opacity-50";
-const btnGhost =
-  "inline-flex items-center justify-center gap-2 rounded-xl px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-accent hover:text-foreground transition-all";
-const inp =
-  "w-full rounded-xl border border-border bg-background px-3.5 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary/40 transition-all";
 
 const COLOR_SCHEMES = [
   { value: "blue", label: "Xanh dương", color: "#3B82F6" },
@@ -606,6 +602,8 @@ function EditorTab({ initialPage, initialHtml }: {
   const [saving, setSaving] = useState(false);
   const [publishing, setPublishing] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [deploying, setDeploying] = useState(false);
+  const [vercelUrl, setVercelUrl] = useState<string | null>(null);
   const [publicSlug, setPublicSlug] = useState<string | null>(initialPage?.status === "published" ? initialPage.slug : null);
   const [fullscreenOpen, setFullscreenOpen] = useState(false);
   const [codeTab, setCodeTab] = useState<"html" | "css">("html");
@@ -689,6 +687,24 @@ function EditorTab({ initialPage, initialHtml }: {
     } finally { setExporting(false); }
   };
 
+  const handleDeployVercel = async () => {
+    if (pageId === null) { toast.error("Vui lòng lưu trang trước"); return; }
+    setDeploying(true);
+    try {
+      const fullHtml = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${title}</title><style>${cssContent}</style></head><body>${htmlContent}</body></html>`;
+      const r = await api.post<{ deployment_url?: string; error?: string; status?: string }>("/mcp/vercel/deploy", {
+        name: slug || title,
+        html: fullHtml,
+        landing_page_id: pageId,
+      });
+      if (r.error) throw new Error(r.error);
+      setVercelUrl(r.deployment_url ?? null);
+      toast.success("Đã deploy lên Vercel!");
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : "Lỗi deploy Vercel");
+    } finally { setDeploying(false); }
+  };
+
   const publicUrl = publicSlug ? `${API_BASE_URL}/p/${publicSlug}` : null;
   const handleCopyLink = () => {
     if (!publicUrl) return;
@@ -712,7 +728,7 @@ function EditorTab({ initialPage, initialHtml }: {
     <div className="space-y-4">
       {/* Toolbar */}
       <Card className="border-border/50 bg-card/50 backdrop-blur-sm overflow-hidden">
-        <div className="h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500"></div>
+        <div className="h-1 bg-gradient-to-r from-primary via-primary/70 to-primary/40"></div>
         <CardContent className="p-4">
           <div className="flex flex-wrap items-end gap-3">
             <div className="flex-1 min-w-[200px]">
@@ -736,6 +752,9 @@ function EditorTab({ initialPage, initialHtml }: {
             <button className={btnOutline} onClick={handleExport} disabled={exporting || pageId === null}>
               {exporting ? "Đang xuất..." : "Tải HTML"}
             </button>
+            <button className={btnOutline} onClick={handleDeployVercel} disabled={deploying || pageId === null}>
+              {deploying ? "Đang deploy..." : "Deploy Vercel"}
+            </button>
             <button className={btnOutline} onClick={() => { loadLandingPages(); setSelectPageOpen(true); }}>Mở trang khác</button>
             <div className="ml-auto">
               <button className={btnGhost} onClick={() => setFullscreenOpen(true)} title="Phóng to xem trước">
@@ -750,6 +769,15 @@ function EditorTab({ initialPage, initialHtml }: {
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-green-600 shrink-0"><path d="M20 6 9 17l-5-5"/></svg>
               <a href={publicUrl} target="_blank" rel="noopener noreferrer" className="truncate text-primary underline text-xs">{publicUrl}</a>
               <button className="shrink-0 rounded-lg border border-border px-2 py-1 text-[11px] font-medium hover:bg-accent transition" onClick={handleCopyLink}>Sao chép</button>
+            </div>
+          )}
+
+          {vercelUrl && (
+            <div className="mt-2 flex items-center gap-2 p-3 rounded-xl bg-primary/5 border border-primary/20 text-sm">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" className="text-primary shrink-0"><path d="M12 2L2 20h20L12 2z"/></svg>
+              <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Vercel:</span>
+              <a href={vercelUrl} target="_blank" rel="noopener noreferrer" className="truncate text-primary underline text-xs">{vercelUrl}</a>
+              <button className="shrink-0 rounded-lg border border-border px-2 py-1 text-[11px] font-medium hover:bg-accent transition" onClick={() => { navigator.clipboard.writeText(vercelUrl); toast.success("Đã sao chép!"); }}>Sao chép</button>
             </div>
           )}
         </CardContent>
@@ -852,23 +880,23 @@ export default function LandingPage() {
     <div className="mx-auto max-w-6xl space-y-8 pb-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div>
         <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-2">
-          <Layout className="h-8 w-8 text-blue-500" />
-          <span className="bg-gradient-to-r from-blue-600 to-indigo-600 text-transparent bg-clip-text">Landing Pages</span>
+          <Layout className="h-8 w-8 text-primary" />
+          <span className="bg-gradient-to-r from-primary to-primary/60 text-transparent bg-clip-text">Landing Pages</span>
         </h1>
         <p className="mt-2 text-muted-foreground text-lg">Tạo trang đích chuyên nghiệp bằng AI trong vài giây</p>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList className="bg-muted/50 p-1 flex-wrap gap-1">
-          <TabsTrigger value="pages" className="gap-1.5 rounded-lg data-[state=active]:bg-background data-[state=active]:text-blue-600 data-[state=active]:shadow-sm">
+          <TabsTrigger value="pages" className="gap-1.5 rounded-lg data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
             Danh sách
           </TabsTrigger>
-          <TabsTrigger value="create" className="gap-1.5 rounded-lg data-[state=active]:bg-background data-[state=active]:text-blue-600 data-[state=active]:shadow-sm">
+          <TabsTrigger value="create" className="gap-1.5 rounded-lg data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
             Tạo trang
           </TabsTrigger>
-          <TabsTrigger value="editor" className="gap-1.5 rounded-lg data-[state=active]:bg-background data-[state=active]:text-blue-600 data-[state=active]:shadow-sm">
+          <TabsTrigger value="editor" className="gap-1.5 rounded-lg data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
             Trình chỉnh sửa
           </TabsTrigger>

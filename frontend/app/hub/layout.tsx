@@ -6,12 +6,31 @@ import { useAuthStore } from "@/store/auth";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { cn } from "@/lib/utils";
 import { usePlanLimits } from "@/hooks/use-plan-limits";
-import { Lock } from "lucide-react";
+import {
+  Lock,
+  LayoutDashboard,
+  Mail,
+  Calendar,
+  Search,
+  ChartColumnIncreasing,
+  LayoutGrid,
+  FlaskConical,
+  BookOpen,
+  FileText,
+  Frame,
+  ArrowLeft,
+  LogOut,
+  type LucideIcon,
+} from "lucide-react";
+import { FacebookIcon } from "@/components/brand-icons";
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
+type IconComp = LucideIcon | ((props: { size?: number; className?: string }) => JSX.Element);
+
 const NAV = [
   { label: "Tổng quan", href: "/hub", icon: "overview", toolKey: null },
+  { label: "Meta Publisher", href: "/hub/meta", icon: "meta", toolKey: "meta" },
   { label: "Email Marketing", href: "/hub/email", icon: "email", toolKey: "email" },
   { label: "Content Calendar", href: "/hub/calendar", icon: "calendar", toolKey: "calendar" },
   { label: "SEO Tools", href: "/hub/seo", icon: "seo", toolKey: "seo" },
@@ -27,6 +46,7 @@ const LAB_NAV = [
 ];
 
 const PATHNAME_TO_TOOL: Record<string, string> = {
+  "/hub/meta": "meta",
   "/hub/email": "email",
   "/hub/calendar": "calendar",
   "/hub/seo": "seo",
@@ -34,17 +54,18 @@ const PATHNAME_TO_TOOL: Record<string, string> = {
   "/hub/landing": "landing",
 };
 
-const ICONS: Record<string, React.ReactNode> = {
-  overview: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>,
-  email: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>,
-  calendar: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>,
-  seo: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>,
-  analytics: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>,
-  landing: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>,
-  lab: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 2v7.31"/><path d="M14 9.3V1.99"/><path d="M8.5 2h7"/><path d="M14 9.3a6.5 6.5 0 1 1-4 0"/><path d="M5.52 16h12.96"/></svg>,
-  study: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>,
-  report: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>,
-  frame: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>,
+const ICONS: Record<string, IconComp> = {
+  overview: LayoutDashboard,
+  meta: FacebookIcon,
+  email: Mail,
+  calendar: Calendar,
+  seo: Search,
+  analytics: ChartColumnIncreasing,
+  landing: LayoutGrid,
+  lab: FlaskConical,
+  study: BookOpen,
+  report: FileText,
+  frame: Frame,
 };
 
 function UpgradeGate({ tool }: { tool: string }) {
@@ -126,7 +147,7 @@ export default function HubLayout({ children }: { children: React.ReactNode }) {
                       : "text-muted-foreground hover:bg-accent hover:text-foreground"
                   )}
                 >
-                  {ICONS[item.icon]}
+                  {(() => { const Icon = ICONS[item.icon]; return <Icon size={16} />; })()}
                   <span className="flex-1 text-left">{item.label}</span>
                   {isLocked && (
                     <>
@@ -141,7 +162,7 @@ export default function HubLayout({ children }: { children: React.ReactNode }) {
             })}
 
             <div className="pt-4 pb-1.5">
-              <p className="px-3 text-[10px] font-bold uppercase tracking-wider text-purple-500/70">Độc Quyền</p>
+              <p className="px-3 text-[10px] font-bold uppercase tracking-wider text-primary/70">Độc Quyền</p>
             </div>
             {LAB_NAV.map((item) => (
               <button
@@ -150,18 +171,18 @@ export default function HubLayout({ children }: { children: React.ReactNode }) {
                 className={cn(
                   "group relative flex w-full items-center gap-3 rounded-xl px-3 py-2 text-[13px] font-medium transition-all overflow-hidden",
                   pathname === item.href
-                    ? "bg-purple-500/15 text-purple-400 border border-purple-500/30"
-                    : "text-muted-foreground hover:bg-accent hover:text-purple-400 border border-transparent"
+                    ? "bg-primary/15 text-primary border border-primary/30"
+                    : "text-muted-foreground hover:bg-accent hover:text-primary border border-transparent"
                 )}
               >
                 {pathname !== item.href && (
-                  <div className="absolute inset-0 bg-gradient-to-r from-purple-500/0 via-purple-500/5 to-purple-500/0 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <div className="absolute inset-0 bg-gradient-to-r from-primary/0 via-primary/5 to-primary/0 opacity-0 group-hover:opacity-100 transition-opacity" />
                 )}
-                <span className={pathname === item.href ? "text-purple-400" : "group-hover:text-purple-400 transition-colors"}>
-                  {ICONS[item.icon]}
+                <span className={pathname === item.href ? "text-primary" : "group-hover:text-primary transition-colors"}>
+                  {(() => { const Icon = ICONS[item.icon]; return <Icon size={16} />; })()}
                 </span>
                 <span className="relative z-10">{item.label}</span>
-                <span className="relative z-10 ml-auto flex h-4 items-center rounded-full bg-purple-500/20 px-1.5 text-[9px] font-bold uppercase text-purple-400">
+                <span className="relative z-10 ml-auto flex h-4 items-center rounded-full bg-primary/20 px-1.5 text-[9px] font-bold uppercase text-primary">
                   New
                 </span>
               </button>
@@ -173,7 +194,7 @@ export default function HubLayout({ children }: { children: React.ReactNode }) {
               onClick={() => router.push("/dashboard")}
               className="flex w-full items-center gap-2 rounded-xl border border-border px-3 py-2 text-[12px] font-medium text-muted-foreground hover:bg-accent hover:text-foreground transition-all"
             >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+              <ArrowLeft size={14} />
               Về Chat
             </button>
             <div className="flex items-center justify-between px-1">
@@ -186,7 +207,7 @@ export default function HubLayout({ children }: { children: React.ReactNode }) {
               <div className="flex items-center gap-0.5">
                 <ThemeToggle />
                 <button onClick={logout} className="flex h-7 w-7 items-center justify-center rounded-full text-muted-foreground hover:bg-red-500/10 hover:text-red-400 transition-colors" title="Đăng xuất">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                  <LogOut size={13} />
                 </button>
               </div>
             </div>

@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { useLabTool } from "@/hooks/use-lab-tool";
+import { LabBreadcrumb, ToolHeader, RunButton, ErrorBox, LabTextarea, ChipGroup } from "@/components/lab-ui";
+
 
 const VOICES = [
   { id: "Gen Z", label: "Gen Z", desc: "Ngôn ngữ GenZ, từ lóng hiện đại, năng động" },
@@ -19,7 +20,6 @@ interface PersonaResult {
 }
 
 export default function PersonaPage() {
-  const router = useRouter();
   const [content, setContent] = useState("");
   const [voice, setVoice] = useState(VOICES[0].id);
   const [copied, setCopied] = useState(false);
@@ -35,37 +35,11 @@ export default function PersonaPage() {
   return (
     <div className="max-w-5xl mx-auto space-y-6">
       {/* Breadcrumb header */}
-      <div className="flex items-center gap-2 text-sm">
-        <button
-          onClick={() => router.push("/hub/lab")}
-          className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M10 2v7.31" /><path d="M14 9.3V1.99" /><path d="M8.5 2h7" />
-            <path d="M14 9.3a6.5 6.5 0 1 1-4 0" /><path d="M5.52 16h12.96" />
-          </svg>
-          Vitba Tool
-        </button>
-        <span className="text-border">/</span>
-        <span className="text-foreground font-medium">Voice & Tone Adapter</span>
-      </div>
+      <LabBreadcrumb tool="Voice & Tone Adapter" />
+
 
       {/* Tool header */}
-      <div className="border-b border-border/50 pb-5">
-        <div className="flex items-start justify-between gap-6">
-          <div className="space-y-1.5">
-            <div className="flex items-center gap-2">
-              <h1 className="text-lg font-semibold tracking-tight">Voice & Tone Adapter</h1>
-              <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-semibold uppercase tracking-wider bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
-                Khả dụng
-              </span>
-            </div>
-            <p className="text-sm text-muted-foreground leading-relaxed max-w-xl">
-              Chuyển đổi giọng viết sang 6 phân khúc đối tượng khác nhau trong một thao tác. Giữ nguyên thông điệp, thay toàn bộ văn phong và ngữ điệu.
-            </p>
-          </div>
-        </div>
-      </div>
+      <ToolHeader name="Voice & Tone Adapter" description="Chuyển đổi giọng viết sang 6 phân khúc đối tượng khác nhau trong một thao tác. Giữ nguyên thông điệp, thay toàn bộ văn phong và ngữ điệu." tag="available" />
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
         {/* Left: Input panel */}

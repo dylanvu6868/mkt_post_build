@@ -8,20 +8,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Calendar } from "lucide-react";
-
-/* ------------------------------------------------------------------ */
-/*  Shared style constants                                              */
-/* ------------------------------------------------------------------ */
-const btn =
-  "inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition disabled:opacity-50";
-const btn2 =
-  "inline-flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium hover:bg-muted transition disabled:opacity-50";
-const btnDanger =
-  "inline-flex items-center gap-2 rounded-lg bg-destructive px-3 py-1.5 text-xs font-medium text-destructive-foreground hover:bg-destructive/90 transition disabled:opacity-50";
-const btnSmall =
-  "inline-flex items-center gap-1 rounded-md border px-2 py-1 text-xs font-medium hover:bg-muted transition disabled:opacity-50";
-const inp =
-  "w-full rounded-lg border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/50";
+import {
+  btn,
+  btnOutline,
+  btnDanger,
+  btnSmall,
+  inp,
+} from "@/lib/ui-tokens";
 
 /* ------------------------------------------------------------------ */
 /*  Constants                                                           */
@@ -454,8 +447,8 @@ export default function CalendarPage() {
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-2">
-            <Calendar className="h-8 w-8 text-blue-500" />
-            <span className="bg-gradient-to-r from-blue-600 to-indigo-600 text-transparent bg-clip-text">Content Calendar</span>
+            <Calendar className="h-8 w-8 text-primary" />
+            <span className="bg-gradient-to-r from-primary to-primary/60 text-transparent bg-clip-text">Content Calendar</span>
           </h1>
           <p className="mt-2 text-muted-foreground text-lg">
             Lên lịch và quản lý nội dung đăng tải trên các nền tảng của bạn.
@@ -469,7 +462,7 @@ export default function CalendarPage() {
 
       {/* Filter bar + view toggle */}
       <Card className="border-border/50 bg-card/50 backdrop-blur-sm overflow-hidden">
-        <div className="h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500"></div>
+        <div className="h-1 bg-gradient-to-r from-primary via-primary/70 to-primary/40"></div>
         <CardContent className="pt-4">
           <div className="flex items-center gap-3 flex-wrap">
             <select className={inp + " max-w-[180px]"} value={filterType} onChange={(e) => setFilterType(e.target.value)}>
@@ -485,8 +478,8 @@ export default function CalendarPage() {
               ))}
             </select>
             <div className="ml-auto flex gap-2">
-              <button className={view === "kanban" ? btn : btn2} onClick={() => setView("kanban")}>Kanban</button>
-              <button className={view === "calendar" ? btn : btn2} onClick={() => setView("calendar")}>Lịch</button>
+              <button className={view === "kanban" ? btn : btnOutline} onClick={() => setView("kanban")}>Kanban</button>
+              <button className={view === "calendar" ? btn : btnOutline} onClick={() => setView("calendar")}>Lịch</button>
             </div>
           </div>
         </CardContent>
@@ -494,7 +487,7 @@ export default function CalendarPage() {
 
       {/* Views */}
       <Card className="border-border/50 bg-card/50 backdrop-blur-sm overflow-hidden">
-        <div className="h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500"></div>
+        <div className="h-1 bg-gradient-to-r from-primary via-primary/70 to-primary/40"></div>
         <CardHeader>
           <CardTitle>{view === "kanban" ? "Bảng Kanban" : "Lịch tháng"}</CardTitle>
         </CardHeader>

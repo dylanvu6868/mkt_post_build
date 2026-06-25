@@ -5,6 +5,18 @@
 @layer base {
   :root {
     --radius: 1.25rem;
+    /* Type scale */
+    --text-h1: 1.875rem;    /* text-3xl — page titles */
+    --text-h2: 1.25rem;     /* text-xl — section/tool titles */
+    --text-h3: 1rem;        /* text-base — card titles */
+    --text-body: 0.875rem;  /* text-sm — body text */
+    --text-muted: 0.75rem;  /* text-xs — labels, meta */
+    /* Spacing */
+    --space-section: 2rem;
+    --space-card: 1.5rem;
+    /* Radius */
+    --radius-card: 1.25rem;
+    --radius-btn: 1rem;
     --background: 45 20% 97%;
     --foreground: 30 15% 12%;
     --card: 0 0% 100%;

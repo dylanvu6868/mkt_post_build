@@ -119,6 +119,7 @@ async def process_due_scheduled_emails(
 async def scheduler_loop(interval_seconds: int = 60) -> None:
     """Infinite loop that calls process_due_scheduled_emails every interval_seconds.
 
+    Also dispatches due Content Calendar items via the Cross-Post Orchestrator.
     Imported lazily inside the startup hook so the worker is never instantiated
     during test collection.
     """
@@ -128,6 +129,53 @@ async def scheduler_loop(interval_seconds: int = 60) -> None:
     while True:
         try:
             await process_due_scheduled_emails(async_session_maker)
+            await process_due_calendar_items(async_session_maker)
         except Exception:
             logger.exception("scheduler_loop iteration failed")
         await asyncio.sleep(interval_seconds)
+
+
+async def process_due_calendar_items(
+    session_maker: async_sessionmaker,
+    now: datetime | None = None,
+) -> dict[str, int]:
+    """Find approved ContentItem rows whose scheduled_date <= now and publish them
+    via the Cross-Post Orchestrator. Returns {"processed": int, "published": int, "failed": int}.
+    """
+    from app.models.content_item import ContentItem
+    from app.mcp.orchestrator import publish_scheduled_calendar_item
+
+    now = now or datetime.now(timezone.utc)
+    processed = published = failed = 0
+
+    async with session_maker() as session:
+        rows = (
+            await session.execute(
+                select(ContentItem).where(
+                    ContentItem.status == "approved",
+                    ContentItem.scheduled_date.is_not(None),
+                )
+            )
+        ).scalars().all()
+
+        for item in rows:
+            due = item.scheduled_date
+            if due is None:
+                continue
+            if due.tzinfo is None:
+                due = due.replace(tzinfo=timezone.utc)
+            if due > now:
+                continue
+            processed += 1
+            try:
+                result = await publish_scheduled_calendar_item(session, item)
+                if "error" in result:
+                    failed += 1
+                else:
+                    published += 1
+            except Exception:
+                logger.exception("Failed to publish calendar item %s", item.id)
+                failed += 1
+            await session.commit()
+
+    return {"processed": processed, "published": published, "failed": failed}

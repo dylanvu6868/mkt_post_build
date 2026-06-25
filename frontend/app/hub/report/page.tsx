@@ -132,8 +132,8 @@ export default function ReportPage() {
           onClick={() => handleSuggestion(field, s)} 
           className={`px-3 py-1.5 rounded-xl text-[13px] font-medium border transition-all ${
             formData[field] === s 
-            ? 'bg-blue-600 text-white border-blue-600 shadow-sm scale-105' 
-            : 'bg-secondary text-muted-foreground hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50/50'
+            ? 'bg-primary text-white border-primary shadow-sm scale-105' 
+            : 'bg-secondary text-muted-foreground hover:border-primary/50 hover:text-primary hover:bg-primary/5'
           }`}
         >
           {s}
@@ -154,19 +154,19 @@ export default function ReportPage() {
             
             <div className="space-y-3">
               <label className="text-sm font-semibold flex items-center gap-1">Tên doanh nghiệp/dự án <span className="text-red-500">*</span></label>
-              <input name="name" value={formData.name} onChange={handleChange} className="w-full rounded-xl border-2 border-border bg-card px-4 py-3 text-base font-medium focus:ring-0 focus:border-blue-500 outline-none transition-colors" placeholder="VD: Vitba" autoFocus />
+              <input name="name" value={formData.name} onChange={handleChange} className="w-full rounded-xl border-2 border-border bg-card px-4 py-3 text-base font-medium focus:ring-0 focus:border-primary outline-none transition-colors" placeholder="VD: Vitba" autoFocus />
             </div>
 
             <div className="space-y-3">
               <label className="text-sm font-semibold flex items-center gap-1">Lĩnh vực/Ngành hàng <span className="text-red-500">*</span></label>
               {renderChips("industry")}
-              <input name="industry" value={formData.industry} onChange={handleChange} className="w-full rounded-xl border-2 border-border bg-card px-4 py-3 focus:ring-0 focus:border-blue-500 outline-none transition-colors" placeholder="Hoặc nhập lĩnh vực khác..." />
+              <input name="industry" value={formData.industry} onChange={handleChange} className="w-full rounded-xl border-2 border-border bg-card px-4 py-3 focus:ring-0 focus:border-primary outline-none transition-colors" placeholder="Hoặc nhập lĩnh vực khác..." />
             </div>
 
             <div className="space-y-3">
               <label className="text-sm font-semibold">Mô hình kinh doanh</label>
               {renderChips("business_model")}
-              <input name="business_model" value={formData.business_model} onChange={handleChange} className="w-full rounded-xl border-2 border-border bg-card px-4 py-3 focus:ring-0 focus:border-blue-500 outline-none transition-colors" placeholder="Hoặc nhập mô hình khác..." />
+              <input name="business_model" value={formData.business_model} onChange={handleChange} className="w-full rounded-xl border-2 border-border bg-card px-4 py-3 focus:ring-0 focus:border-primary outline-none transition-colors" placeholder="Hoặc nhập mô hình khác..." />
             </div>
           </div>
         );
@@ -180,24 +180,24 @@ export default function ReportPage() {
             
             <div className="space-y-3">
               <label className="text-sm font-semibold">Sản phẩm/Dịch vụ cốt lõi</label>
-              <textarea name="product" value={formData.product} onChange={handleChange} className="w-full h-20 resize-none rounded-xl border-2 border-border bg-card px-4 py-3 focus:ring-0 focus:border-blue-500 outline-none transition-colors text-sm" placeholder="Mô tả ngắn gọn sản phẩm hoặc dịch vụ bạn cung cấp..." autoFocus />
+              <textarea name="product" value={formData.product} onChange={handleChange} className="w-full h-20 resize-none rounded-xl border-2 border-border bg-card px-4 py-3 focus:ring-0 focus:border-primary outline-none transition-colors text-sm" placeholder="Mô tả ngắn gọn sản phẩm hoặc dịch vụ bạn cung cấp..." autoFocus />
             </div>
 
             <div className="space-y-3">
               <label className="text-sm font-semibold">Khách hàng mục tiêu</label>
-              <textarea name="target_customer" value={formData.target_customer} onChange={handleChange} className="w-full h-20 resize-none rounded-xl border-2 border-border bg-card px-4 py-3 focus:ring-0 focus:border-blue-500 outline-none transition-colors text-sm" placeholder="Độ tuổi, thu nhập, sở thích, nỗi đau của khách hàng..." />
+              <textarea name="target_customer" value={formData.target_customer} onChange={handleChange} className="w-full h-20 resize-none rounded-xl border-2 border-border bg-card px-4 py-3 focus:ring-0 focus:border-primary outline-none transition-colors text-sm" placeholder="Độ tuổi, thu nhập, sở thích, nỗi đau của khách hàng..." />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-3">
                 <label className="text-sm font-semibold">Thị trường nhắm đến</label>
                 {renderChips("target_market")}
-                <input name="target_market" value={formData.target_market} onChange={handleChange} className="w-full rounded-xl border-2 border-border bg-card px-4 py-2.5 focus:border-blue-500 outline-none" placeholder="VD: Đông Nam Á..." />
+                <input name="target_market" value={formData.target_market} onChange={handleChange} className="w-full rounded-xl border-2 border-border bg-card px-4 py-2.5 focus:border-primary outline-none" placeholder="VD: Đông Nam Á..." />
               </div>
               <div className="space-y-3">
                 <label className="text-sm font-semibold">Phân khúc giá</label>
                 {renderChips("price")}
-                <input name="price" value={formData.price} onChange={handleChange} className="w-full rounded-xl border-2 border-border bg-card px-4 py-2.5 focus:border-blue-500 outline-none" placeholder="VD: Gói rẻ nhất 50k..." />
+                <input name="price" value={formData.price} onChange={handleChange} className="w-full rounded-xl border-2 border-border bg-card px-4 py-2.5 focus:border-primary outline-none" placeholder="VD: Gói rẻ nhất 50k..." />
               </div>
             </div>
 
@@ -218,19 +218,19 @@ export default function ReportPage() {
             <div className="space-y-3">
               <label className="text-sm font-semibold">Mục tiêu 3 tháng (Ngắn hạn)</label>
               {renderChips("goal_3m")}
-              <input name="goal_3m" value={formData.goal_3m} onChange={handleChange} className="w-full rounded-xl border-2 border-border bg-card px-4 py-3 focus:border-blue-500 outline-none" placeholder="Nhập mục tiêu khác..." autoFocus />
+              <input name="goal_3m" value={formData.goal_3m} onChange={handleChange} className="w-full rounded-xl border-2 border-border bg-card px-4 py-3 focus:border-primary outline-none" placeholder="Nhập mục tiêu khác..." autoFocus />
             </div>
 
             <div className="space-y-3">
               <label className="text-sm font-semibold">Mục tiêu 6 tháng (Trung hạn)</label>
               {renderChips("goal_6m")}
-              <input name="goal_6m" value={formData.goal_6m} onChange={handleChange} className="w-full rounded-xl border-2 border-border bg-card px-4 py-3 focus:border-blue-500 outline-none" placeholder="Nhập mục tiêu khác..." />
+              <input name="goal_6m" value={formData.goal_6m} onChange={handleChange} className="w-full rounded-xl border-2 border-border bg-card px-4 py-3 focus:border-primary outline-none" placeholder="Nhập mục tiêu khác..." />
             </div>
 
             <div className="space-y-3">
               <label className="text-sm font-semibold">Mục tiêu 1 năm (Dài hạn)</label>
               {renderChips("goal_12m")}
-              <input name="goal_12m" value={formData.goal_12m} onChange={handleChange} className="w-full rounded-xl border-2 border-border bg-card px-4 py-3 focus:border-blue-500 outline-none" placeholder="Nhập mục tiêu khác..." />
+              <input name="goal_12m" value={formData.goal_12m} onChange={handleChange} className="w-full rounded-xl border-2 border-border bg-card px-4 py-3 focus:border-primary outline-none" placeholder="Nhập mục tiêu khác..." />
             </div>
           </div>
         );
@@ -245,13 +245,13 @@ export default function ReportPage() {
             <div className="space-y-3">
               <label className="text-sm font-semibold">Ngân sách Marketing / Tháng</label>
               {renderChips("budget")}
-              <input name="budget" value={formData.budget} onChange={handleChange} className="w-full rounded-xl border-2 border-border bg-card px-4 py-3 focus:border-blue-500 outline-none" placeholder="Nhập mức ngân sách khác..." autoFocus />
+              <input name="budget" value={formData.budget} onChange={handleChange} className="w-full rounded-xl border-2 border-border bg-card px-4 py-3 focus:border-primary outline-none" placeholder="Nhập mức ngân sách khác..." autoFocus />
             </div>
 
             <div className="space-y-3">
               <label className="text-sm font-semibold">Nguồn lực nhân sự hiện có</label>
               {renderChips("resources")}
-              <textarea name="resources" value={formData.resources} onChange={handleChange} className="w-full h-20 resize-none rounded-xl border-2 border-border bg-card px-4 py-3 focus:border-blue-500 outline-none text-sm" placeholder="Mô tả cụ thể (Ví dụ: 1 Dev, 1 Content Writer, chưa có Sales)..." />
+              <textarea name="resources" value={formData.resources} onChange={handleChange} className="w-full h-20 resize-none rounded-xl border-2 border-border bg-card px-4 py-3 focus:border-primary outline-none text-sm" placeholder="Mô tả cụ thể (Ví dụ: 1 Dev, 1 Content Writer, chưa có Sales)..." />
             </div>
           </div>
         );
@@ -265,17 +265,17 @@ export default function ReportPage() {
             
             <div className="space-y-3">
               <label className="text-sm font-semibold">Đối thủ cạnh tranh trực tiếp / gián tiếp</label>
-              <textarea name="competitors" value={formData.competitors} onChange={handleChange} className="w-full h-16 resize-none rounded-xl border-2 border-border bg-card px-4 py-3 focus:border-blue-500 outline-none text-sm" placeholder="Nhập tên đối thủ hoặc link website của họ..." autoFocus />
+              <textarea name="competitors" value={formData.competitors} onChange={handleChange} className="w-full h-16 resize-none rounded-xl border-2 border-border bg-card px-4 py-3 focus:border-primary outline-none text-sm" placeholder="Nhập tên đối thủ hoặc link website của họ..." autoFocus />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-3">
                 <label className="text-sm font-semibold">Điểm mạnh (Strengths)</label>
-                <textarea name="strengths" value={formData.strengths} onChange={handleChange} className="w-full h-24 resize-none rounded-xl border-2 border-border bg-card px-4 py-3 focus:border-blue-500 outline-none text-sm" placeholder="Lợi thế cạnh tranh của bạn là gì? (Ví dụ: Công nghệ lõi, giá rẻ...)" />
+                <textarea name="strengths" value={formData.strengths} onChange={handleChange} className="w-full h-24 resize-none rounded-xl border-2 border-border bg-card px-4 py-3 focus:border-primary outline-none text-sm" placeholder="Lợi thế cạnh tranh của bạn là gì? (Ví dụ: Công nghệ lõi, giá rẻ...)" />
               </div>
               <div className="space-y-3">
                 <label className="text-sm font-semibold">Điểm yếu (Weaknesses)</label>
-                <textarea name="weaknesses" value={formData.weaknesses} onChange={handleChange} className="w-full h-24 resize-none rounded-xl border-2 border-border bg-card px-4 py-3 focus:border-blue-500 outline-none text-sm" placeholder="Hạn chế hiện tại? (Ví dụ: Thiếu vốn, thương hiệu mới...)" />
+                <textarea name="weaknesses" value={formData.weaknesses} onChange={handleChange} className="w-full h-24 resize-none rounded-xl border-2 border-border bg-card px-4 py-3 focus:border-primary outline-none text-sm" placeholder="Hạn chế hiện tại? (Ví dụ: Thiếu vốn, thương hiệu mới...)" />
               </div>
             </div>
           </div>
@@ -301,7 +301,7 @@ export default function ReportPage() {
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
               <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-2">
-                <span className="bg-gradient-to-r from-blue-600 to-purple-600 text-transparent bg-clip-text">Vitba Report</span>
+                <span className="bg-gradient-to-r from-primary to-primary/60 text-transparent bg-clip-text">Vitba Report</span>
               </h1>
               <p className="mt-2 text-muted-foreground">Báo cáo chiến lược & marketing toàn diện</p>
             </div>
@@ -319,7 +319,7 @@ export default function ReportPage() {
 
         {showHistory ? (
           <div className="flex-1 min-h-0 bg-card border-2 border-border/80 rounded-[1.5rem] overflow-y-auto p-6 md:p-10 shadow-xl custom-scrollbar animate-in fade-in slide-in-from-bottom-8 duration-500">
-            <h2 className="text-2xl font-bold mb-6 flex items-center gap-2"><History className="text-blue-500"/> Lịch sử Báo Cáo</h2>
+            <h2 className="text-2xl font-bold mb-6 flex items-center gap-2"><History className="text-primary"/> Lịch sử Báo Cáo</h2>
             {history.length === 0 ? (
               <p className="text-muted-foreground text-center py-10">Chưa có báo cáo nào được tạo.</p>
             ) : (
@@ -333,13 +333,13 @@ export default function ReportPage() {
                       setShowHistory(false);
                       setIsWizardCollapsed(true);
                     }}
-                    className="p-5 border-2 rounded-2xl bg-secondary/20 hover:bg-secondary/60 hover:border-blue-500/50 cursor-pointer transition-all text-left flex flex-col gap-3 group"
+                    className="p-5 border-2 rounded-2xl bg-secondary/20 hover:bg-secondary/60 hover:border-primary/50 cursor-pointer transition-all text-left flex flex-col gap-3 group"
                   >
                     <div className="flex justify-between items-start gap-2">
-                      <h3 className="font-bold text-lg line-clamp-1 group-hover:text-blue-500 transition-colors">
+                      <h3 className="font-bold text-lg line-clamp-1 group-hover:text-primary transition-colors">
                         {item.input_data?.name || "Dự án không tên"}
                       </h3>
-                      <span className="text-xs font-medium px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg whitespace-nowrap">
+                      <span className="text-xs font-medium px-2 py-1 bg-primary/10 dark:bg-primary/10 text-primary dark:text-primary/70 rounded-lg whitespace-nowrap">
                         {item.input_data?.industry || "Marketing"}
                       </span>
                     </div>
@@ -368,7 +368,7 @@ export default function ReportPage() {
               </div>
               <div className="w-full bg-secondary rounded-full h-2.5 overflow-hidden">
                 <div 
-                  className="bg-blue-600 h-full rounded-full transition-all duration-500 ease-out"
+                  className="bg-primary h-full rounded-full transition-all duration-500 ease-out"
                   style={{ width: `${(currentStep / totalSteps) * 100}%` }}
                 />
               </div>
@@ -389,7 +389,7 @@ export default function ReportPage() {
               {currentStep < totalSteps ? (
                 <button
                   onClick={nextStep}
-                  className="flex items-center gap-2 px-6 py-2.5 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 shadow-sm transition-transform hover:-translate-y-0.5 text-sm"
+                  className="flex items-center gap-2 px-6 py-2.5 bg-primary text-white rounded-xl font-bold hover:bg-primary/90 shadow-sm transition-transform hover:-translate-y-0.5 text-sm"
                 >
                   Tiếp tục <ArrowRight size={18} />
                 </button>
@@ -397,7 +397,7 @@ export default function ReportPage() {
                 <button
                   onClick={handleRun}
                   disabled={loading}
-                  className="flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-bold hover:opacity-90 shadow-md transition-transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none text-base"
+                  className="flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-primary to-primary/60 text-white rounded-xl font-bold hover:opacity-90 shadow-md transition-transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none text-base"
                 >
                   {loading ? (
                     <>
@@ -423,7 +423,7 @@ export default function ReportPage() {
               </div>
               <button 
                 onClick={() => setIsWizardCollapsed(false)}
-                className="flex items-center gap-2 text-sm font-medium text-blue-600 hover:bg-blue-50 px-4 py-2 rounded-lg transition-colors"
+                className="flex items-center gap-2 text-sm font-medium text-primary hover:bg-primary/5 px-4 py-2 rounded-lg transition-colors"
               >
                 <Edit2 size={16} /> Chỉnh sửa thông tin
               </button>
@@ -439,9 +439,9 @@ export default function ReportPage() {
 
         {displayResult && (
           <div className="flex-1 min-h-0 bg-card border-2 border-border/80 rounded-[1.5rem] overflow-hidden shadow-xl flex flex-col animate-in fade-in slide-in-from-bottom-8 duration-700">
-            <div className="shrink-0 bg-gradient-to-r from-blue-50 to-purple-50 border-b border-border p-5 flex items-center justify-between gap-4">
+            <div className="shrink-0 bg-gradient-to-r from-primary/5 to-primary/5 border-b border-border p-5 flex items-center justify-between gap-4">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-blue-100 text-blue-600 rounded-xl">
+                <div className="p-2 bg-primary/10 text-primary rounded-xl">
                   <Sparkles size={20} />
                 </div>
                 <div>
@@ -452,7 +452,7 @@ export default function ReportPage() {
               <div className="flex gap-2">
                 <button
                   onClick={() => window.print()}
-                  className="flex items-center gap-2 px-4 py-2 bg-white border rounded-lg text-sm font-medium hover:bg-secondary transition-colors shadow-sm text-blue-700"
+                  className="flex items-center gap-2 px-4 py-2 bg-white border rounded-lg text-sm font-medium hover:bg-secondary transition-colors shadow-sm text-primary"
                 >
                   <FileDown size={16} /> Xuất PDF
                 </button>
@@ -474,10 +474,10 @@ export default function ReportPage() {
                 prose-headings:font-bold 
                 prose-h1:text-2xl prose-h2:text-xl prose-h3:text-lg
                 prose-p:leading-relaxed
-                prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline
-                prose-blockquote:border-l-4 prose-blockquote:border-blue-500 prose-blockquote:bg-blue-50 dark:prose-blockquote:bg-blue-900/20 prose-blockquote:py-2 prose-blockquote:px-4 prose-blockquote:rounded-r-lg prose-blockquote:not-italic
+                prose-a:text-primary prose-a:no-underline hover:prose-a:underline
+                prose-blockquote:border-l-4 prose-blockquote:border-primary prose-blockquote:bg-primary/5 dark:prose-blockquote:bg-primary/10 prose-blockquote:py-2 prose-blockquote:px-4 prose-blockquote:rounded-r-lg prose-blockquote:not-italic
                 prose-pre:bg-slate-900 prose-pre:text-slate-50 prose-pre:rounded-xl
-                prose-code:text-blue-600 dark:prose-code:text-blue-400 prose-code:bg-blue-50 dark:prose-code:bg-blue-900/30 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded-md prose-code:before:content-none prose-code:after:content-none"
+                prose-code:text-primary dark:prose-code:text-primary/70 prose-code:bg-primary/5 dark:prose-code:bg-primary/10 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded-md prose-code:before:content-none prose-code:after:content-none"
               >
                 <ReactMarkdown remarkPlugins={[remarkGfm]}>
                   {displayResult.markdown_content}

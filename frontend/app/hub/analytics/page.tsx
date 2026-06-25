@@ -1,15 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  useMcpStore,
-  type AnalyticsPeriod,
-} from "@/store/mcp";
+import { useMcpStore, type AnalyticsPeriod } from "@/store/mcp";
+import { api } from "@/services/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { BarChart2 } from "lucide-react";
+import { btn, inp } from "@/lib/ui-tokens";
 import {
   BarChart,
   Bar,
@@ -226,7 +225,7 @@ function EmailSection({ period }: { period: AnalyticsPeriod }) {
 
   return (
     <Card className="border-border/50 bg-card/50 backdrop-blur-sm overflow-hidden">
-      <div className="h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500"></div>
+      <div className="h-1 bg-gradient-to-r from-primary via-primary/70 to-primary/40"></div>
       <CardHeader>
         <CardTitle>Phân tích Email</CardTitle>
       </CardHeader>
@@ -298,7 +297,7 @@ function ContentSection({ period }: { period: AnalyticsPeriod }) {
 
   return (
     <Card className="border-border/50 bg-card/50 backdrop-blur-sm overflow-hidden">
-      <div className="h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500"></div>
+      <div className="h-1 bg-gradient-to-r from-primary via-primary/70 to-primary/40"></div>
       <CardHeader>
         <CardTitle>
           Phân tích Nội dung
@@ -385,7 +384,7 @@ function SeoSection({ period }: { period: AnalyticsPeriod }) {
 
   return (
     <Card className="border-border/50 bg-card/50 backdrop-blur-sm overflow-hidden">
-      <div className="h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500"></div>
+      <div className="h-1 bg-gradient-to-r from-primary via-primary/70 to-primary/40"></div>
       <CardHeader>
         <CardTitle>Phân tích SEO</CardTitle>
       </CardHeader>
@@ -458,7 +457,7 @@ function ActivitySection() {
 
   return (
     <Card className="border-border/50 bg-card/50 backdrop-blur-sm overflow-hidden">
-      <div className="h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500"></div>
+      <div className="h-1 bg-gradient-to-r from-primary via-primary/70 to-primary/40"></div>
       <CardHeader>
         <CardTitle>Hoạt động gần đây</CardTitle>
       </CardHeader>
@@ -523,8 +522,8 @@ export default function AnalyticsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-2">
-            <BarChart2 className="h-8 w-8 text-blue-500" />
-            <span className="bg-gradient-to-r from-blue-600 to-indigo-600 text-transparent bg-clip-text">Analytics</span>
+            <BarChart2 className="h-8 w-8 text-primary" />
+            <span className="bg-gradient-to-r from-primary to-primary/60 text-transparent bg-clip-text">Analytics</span>
           </h1>
           <p className="mt-2 text-muted-foreground text-lg">
             Đo lường và theo dõi hiệu suất chiến dịch, email, SEO và nội dung của bạn.
@@ -545,6 +544,191 @@ export default function AnalyticsPage() {
       <ContentSection period={period} />
 
       <ActivitySection />
+
+      {/* ROI + UTM tools */}
+      <RoiSection />
+      <UtmSection />
+    </div>
+  );
+}
+
+
+/* ------------------------------------------------------------------ */
+/*  ROI Calculator Section                                             */
+/* ------------------------------------------------------------------ */
+
+function RoiSection() {
+  const [adSpend, setAdSpend] = useState("");
+  const [otherCosts, setOtherCosts] = useState("");
+  const [revenue, setRevenue] = useState("");
+  const [campaignName, setCampaignName] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState<{ roas: number; roi_pct: number; profit: number; total_cost: number; commentary?: string } | null>(null);
+
+  const handleCalc = async () => {
+    const ad = parseFloat(adSpend) || 0;
+    const costs = parseFloat(otherCosts) || 0;
+    const rev = parseFloat(revenue) || 0;
+    if (ad <= 0 || rev <= 0) { toast.error("Nh?p s? li?u h?p l?"); return; }
+    setLoading(true);
+    try {
+      const r = await api.post<{ roas: number; roi_pct: number; profit: number; total_cost: number; commentary?: string }>("/mcp/analytics/roi", {
+        spend: ad + costs, revenue: rev, ad_spend: ad, costs: costs,
+        campaign_name: campaignName, with_commentary: true,
+      });
+      setResult(r);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "L?i t�nh ROI");
+    } finally { setLoading(false); }
+  };
+
+  return (
+    <div>
+      <h2 className="text-base font-semibold mb-4 tracking-tight flex items-center gap-2">
+        <span className="bg-gradient-to-r from-primary to-primary/60 text-transparent bg-clip-text">ROI Calculator</span>
+      </h2>
+      <div className="h-1 bg-gradient-to-r from-primary via-primary/70 to-primary/40 rounded-full mb-4" />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card>
+          <CardContent className="p-5 space-y-3">
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">T�n chi?n d?ch</label>
+              <input value={campaignName} onChange={(e) => setCampaignName(e.target.value)} placeholder="VD: Summer Sale 2025" className={inp} />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Chi ph� qu?ng c�o (VND)</label>
+                <input type="number" value={adSpend} onChange={(e) => setAdSpend(e.target.value)} placeholder="3000000" className={inp} />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Chi ph� kh�c (VND)</label>
+                <input type="number" value={otherCosts} onChange={(e) => setOtherCosts(e.target.value)} placeholder="1000000" className={inp} />
+              </div>
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Doanh thu (VND)</label>
+              <input type="number" value={revenue} onChange={(e) => setRevenue(e.target.value)} placeholder="15000000" className={inp} />
+            </div>
+            <button onClick={handleCalc} disabled={loading} className={btn + " w-full"}>
+              {loading ? "�ang t�nh..." : "T�nh ROAS + ROI"}
+            </button>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-5">
+            {result ? (
+              <div className="space-y-4">
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="rounded-xl border border-border/40 p-3 text-center">
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1">ROAS</p>
+                    <p className="text-xl font-black text-primary">{result.roas}x</p>
+                  </div>
+                  <div className="rounded-xl border border-border/40 p-3 text-center">
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1">ROI</p>
+                    <p className={`text-xl font-black ${result.roi_pct >= 0 ? "text-emerald-500" : "text-red-500"}`}>{result.roi_pct}%</p>
+                  </div>
+                  <div className="rounded-xl border border-border/40 p-3 text-center">
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1">L?i nhu?n</p>
+                    <p className={`text-xl font-black ${result.profit >= 0 ? "text-emerald-500" : "text-red-500"}`}>{result.profit >= 0 ? "+" : ""}{result.profit.toLocaleString("vi-VN")}</p>
+                  </div>
+                </div>
+                {result.commentary && (
+                  <div className="rounded-xl border border-primary/25 bg-primary/5 p-3">
+                    <p className="text-[10px] font-bold text-primary uppercase tracking-wider mb-1.5">Ph�n t�ch AI</p>
+                    <p className="text-xs text-foreground/90 whitespace-pre-wrap">{result.commentary}</p>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-12 gap-2">
+                <BarChart2 className="h-8 w-8 text-muted-foreground/30" />
+                <p className="text-xs text-muted-foreground/50">Nh?p s? li?u d? t�nh ROAS + ROI</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  UTM Builder Section                                                */
+/* ------------------------------------------------------------------ */
+
+function UtmSection() {
+  const [url, setUrl] = useState("");
+  const [source, setSource] = useState("");
+  const [medium, setMedium] = useState("");
+  const [campaign, setCampaign] = useState("");
+  const [term, setTerm] = useState("");
+  const [content, setContent] = useState("");
+  const [result, setResult] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  const handleBuild = async () => {
+    if (!url.trim()) { toast.error("Nh?p URL"); return; }
+    try {
+      const r = await api.post<{ utm_url: string }>("/mcp/analytics/utm/build", {
+        url, utm_source: source, utm_medium: medium, utm_campaign: campaign, utm_term: term, utm_content: content,
+      });
+      setResult(r.utm_url);
+      setCopied(false);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "L?i t?o UTM");
+    }
+  };
+
+  const copy = () => {
+    if (!result) return;
+    navigator.clipboard.writeText(result).then(() => { setCopied(true); toast.success("�� sao ch�p!"); });
+  };
+
+  return (
+    <div>
+      <h2 className="text-base font-semibold mb-4 tracking-tight flex items-center gap-2">
+        <span className="bg-gradient-to-r from-primary to-primary/60 text-transparent bg-clip-text">UTM Builder</span>
+      </h2>
+      <div className="h-1 bg-gradient-to-r from-primary via-primary/70 to-primary/40 rounded-full mb-4" />
+      <Card>
+        <CardContent className="p-5 space-y-3">
+          <div className="space-y-1">
+            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">URL d�ch</label>
+            <input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://vitba.ai/landing-page" className={inp} />
+          </div>
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">utm_source *</label>
+              <input value={source} onChange={(e) => setSource(e.target.value)} placeholder="facebook" className={inp} />
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">utm_medium *</label>
+              <input value={medium} onChange={(e) => setMedium(e.target.value)} placeholder="cpc" className={inp} />
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">utm_campaign</label>
+              <input value={campaign} onChange={(e) => setCampaign(e.target.value)} placeholder="summer_sale" className={inp} />
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">utm_term</label>
+              <input value={term} onChange={(e) => setTerm(e.target.value)} placeholder="marketing_tool" className={inp} />
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">utm_content</label>
+              <input value={content} onChange={(e) => setContent(e.target.value)} placeholder="ad_variant_a" className={inp} />
+            </div>
+          </div>
+          <button onClick={handleBuild} className={btn + " w-full"}>T?o UTM URL</button>
+          {result && (
+            <div className="rounded-xl border border-primary/25 bg-primary/5 p-3 flex items-center gap-2">
+              <code className="text-xs text-foreground/90 flex-1 truncate">{result}</code>
+              <button onClick={copy} className="shrink-0 rounded-lg border border-border px-2 py-1 text-[11px] font-medium hover:bg-accent transition">
+                {copied ? "�� ch�p!" : "Sao ch�p"}
+              </button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

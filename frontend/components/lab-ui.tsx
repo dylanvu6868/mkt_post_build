@@ -3,6 +3,14 @@
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import React from "react";
+import {
+  FlaskConical,
+  ChevronRight,
+  Loader2,
+  CircleAlert,
+  Check,
+  Copy,
+} from "lucide-react";
 
 /* ─── Breadcrumb ─────────────────────────────────────────────── */
 export function LabBreadcrumb({ tool }: { tool: string }) {
@@ -13,15 +21,10 @@ export function LabBreadcrumb({ tool }: { tool: string }) {
         onClick={() => router.push("/hub/lab")}
         className="lab-breadcrumb-btn"
       >
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M10 2v7.31"/><path d="M14 9.3V1.99"/><path d="M8.5 2h7"/>
-          <path d="M14 9.3a6.5 6.5 0 1 1-4 0"/><path d="M5.52 16h12.96"/>
-        </svg>
+        <FlaskConical size={12} />
         Vitba Tool
       </button>
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-muted-foreground/30">
-        <path d="m9 18 6-6-6-6"/>
-      </svg>
+      <ChevronRight size={12} className="text-muted-foreground/30" />
       <span className="text-foreground font-medium">{tool}</span>
     </nav>
   );
@@ -60,25 +63,24 @@ export function RunButton({
   onClick,
   loadingText,
   idleText,
+  className,
 }: {
   loading: boolean;
   disabled: boolean;
   onClick: () => void;
   loadingText: string;
   idleText: string;
+  className?: string;
 }) {
   return (
     <button
       onClick={onClick}
       disabled={disabled || loading}
-      className="lab-run-btn"
+      className={cn("lab-run-btn", className)}
     >
       {loading ? (
         <>
-          <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
-            <circle className="opacity-20" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3"/>
-            <path className="opacity-80" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
-          </svg>
+          <Loader2 size={16} className="animate-spin" />
           <span>{loadingText}</span>
         </>
       ) : (
@@ -147,9 +149,7 @@ export function LabInput({
 export function ErrorBox({ message }: { message: string }) {
   return (
     <div className="lab-error-box">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0 mt-0.5">
-        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-      </svg>
+      <CircleAlert size={14} className="shrink-0 mt-0.5" />
       <p>{message}</p>
     </div>
   );
@@ -200,16 +200,12 @@ export function ResultBox({
           <button onClick={onCopy} className="lab-copy-btn">
             {copied ? (
               <>
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                  <path d="M20 6 9 17l-5-5"/>
-                </svg>
+                <Check size={11} strokeWidth={2.5} />
                 {copiedLabel}
               </>
             ) : (
               <>
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
-                </svg>
+                <Copy size={11} />
                 {copyLabel}
               </>
             )}

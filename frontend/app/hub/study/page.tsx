@@ -201,7 +201,7 @@ export default function StudyLearningPlatform() {
       <div className="max-w-6xl mx-auto p-6 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
-            <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
+            <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/60">
               Vitba Study
             </h1>
             <p className="text-muted-foreground mt-2 text-lg">
@@ -251,11 +251,11 @@ export default function StudyLearningPlatform() {
                 className={`p-6 rounded-2xl border transition-all duration-300 cursor-pointer flex flex-col h-full
                   ${isCompleted 
                     ? 'bg-green-50/50 border-green-200 hover:border-green-400 hover:shadow-md' 
-                    : 'bg-card hover:shadow-lg hover:border-blue-300 hover:-translate-y-1'
+                    : 'bg-card hover:shadow-lg hover:border-primary/40 hover:-translate-y-1'
                   }`}
               >
                 <div className="flex justify-between items-start mb-4">
-                  <div className={`p-3 rounded-xl ${isCompleted ? 'bg-green-100 text-green-600' : 'bg-blue-100 text-blue-600'}`}>
+                  <div className={`p-3 rounded-xl ${isCompleted ? 'bg-green-100 text-green-600' : 'bg-primary/10 text-primary'}`}>
                     <BookOpen size={24} />
                   </div>
                   {isCompleted && (
@@ -271,11 +271,11 @@ export default function StudyLearningPlatform() {
                 <div className="space-y-2 mt-auto">
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">{topic.total_questions} câu hỏi</span>
-                    <span className="font-medium text-blue-600">{percent}%</span>
+                    <span className="font-medium text-primary">{percent}%</span>
                   </div>
                   <div className="w-full bg-secondary rounded-full h-2 overflow-hidden">
                     <div 
-                      className={`h-full rounded-full transition-all duration-1000 ease-out ${isCompleted ? 'bg-green-500' : 'bg-blue-500'}`}
+                      className={`h-full rounded-full transition-all duration-1000 ease-out ${isCompleted ? 'bg-green-500' : 'bg-primary/50'}`}
                       style={{ width: `${percent}%` }}
                     />
                   </div>
@@ -310,7 +310,7 @@ export default function StudyLearningPlatform() {
             </div>
             <div className="w-full bg-secondary rounded-full h-2.5 overflow-hidden">
               <div 
-                className="bg-blue-600 h-full rounded-full transition-all duration-500"
+                className="bg-primary h-full rounded-full transition-all duration-500"
                 style={{ width: `${((currentIndex + 1) / questions.length) * 100}%` }}
               />
             </div>
@@ -318,7 +318,7 @@ export default function StudyLearningPlatform() {
           
           {useTimer && (
             <div className={`ml-4 px-4 py-1.5 rounded-full font-mono font-bold text-lg border-2 ${
-              timeLeft !== null && timeLeft <= 10 ? 'border-red-500 text-red-600 animate-pulse' : 'border-blue-500 text-blue-600'
+              timeLeft !== null && timeLeft <= 10 ? 'border-red-500 text-red-600 animate-pulse' : 'border-primary text-primary'
             }`}>
               {timeLeft !== null ? `00:${timeLeft.toString().padStart(2, '0')}` : '00:60'}
             </div>
@@ -345,7 +345,7 @@ export default function StudyLearningPlatform() {
 
             <div className="space-y-3">
               {currentQ.options.map((option, idx) => {
-                let optionClass = "border-border hover:border-blue-400 hover:bg-blue-50/50";
+                let optionClass = "border-border hover:border-primary/50 hover:bg-primary/5";
                 let icon = null;
 
                 if (isRevealed) {
@@ -359,7 +359,7 @@ export default function StudyLearningPlatform() {
                     optionClass = "border-border opacity-50";
                   }
                 } else if (selectedOption === idx) {
-                  optionClass = "border-blue-500 bg-blue-50 text-blue-900";
+                  optionClass = "border-primary bg-primary/5 text-primary";
                 }
 
                 return (
@@ -472,7 +472,7 @@ export default function StudyLearningPlatform() {
     return (
       <div className="max-w-4xl mx-auto p-6 h-[calc(100vh-4rem)] flex flex-col items-center animate-in zoom-in-95 duration-500 py-10 overflow-hidden">
         <div className="flex-1 w-full overflow-y-auto custom-scrollbar flex flex-col items-center pr-4">
-          <div className="w-24 h-24 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mb-6 shadow-inner shrink-0">
+          <div className="w-24 h-24 bg-primary/10 text-primary rounded-full flex items-center justify-center mb-6 shadow-inner shrink-0">
             <Trophy size={48} />
           </div>
           
@@ -484,7 +484,7 @@ export default function StudyLearningPlatform() {
           <div className="grid grid-cols-2 gap-6 w-full max-w-2xl mb-8 shrink-0">
             <div className="bg-card p-6 rounded-2xl border shadow-sm text-center">
               <p className="text-muted-foreground font-medium mb-2">Độ chính xác</p>
-              <p className="text-5xl font-black text-blue-600">{accuracy}%</p>
+              <p className="text-5xl font-black text-primary">{accuracy}%</p>
             </div>
             <div className="bg-card p-6 rounded-2xl border shadow-sm text-center">
               <p className="text-muted-foreground font-medium mb-2">Số câu đúng</p>
@@ -520,8 +520,8 @@ export default function StudyLearningPlatform() {
                         </div>
                       </div>
 
-                      <div className="bg-blue-50/50 dark:bg-blue-500/10 p-3 rounded-lg text-sm text-foreground dark:text-blue-100">
-                        <span className="font-bold text-blue-800 dark:text-blue-400">Giải thích: </span>
+                      <div className="bg-primary/5 dark:bg-primary/10 p-3 rounded-lg text-sm text-foreground dark:text-primary">
+                        <span className="font-bold text-primary dark:text-primary/70">Giải thích: </span>
                         {q.explanation}
                       </div>
                     </div>

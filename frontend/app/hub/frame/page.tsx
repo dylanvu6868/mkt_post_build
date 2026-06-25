@@ -182,7 +182,7 @@ export default function VitbaFramePage() {
     <div className="mx-auto max-w-5xl space-y-8 pb-12">
       <div>
         <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-2">
-          <ImageIcon className="h-8 w-8 text-purple-500" />
+          <ImageIcon className="h-8 w-8 text-primary" />
           Vitba Frame
         </h1>
         <p className="mt-2 text-muted-foreground">
@@ -192,11 +192,11 @@ export default function VitbaFramePage() {
 
       <Tabs defaultValue="image" className="space-y-6">
         <TabsList className="bg-muted/50 p-1">
-          <TabsTrigger value="image" className="flex items-center gap-2 rounded-lg data-[state=active]:bg-background data-[state=active]:text-purple-500 data-[state=active]:shadow-sm">
+          <TabsTrigger value="image" className="flex items-center gap-2 rounded-lg data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm">
             <ImageIcon size={16} />
             Tạo Ảnh
           </TabsTrigger>
-          <TabsTrigger value="video" className="flex items-center gap-2 rounded-lg data-[state=active]:bg-background data-[state=active]:text-purple-500 data-[state=active]:shadow-sm">
+          <TabsTrigger value="video" className="flex items-center gap-2 rounded-lg data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm">
             <Video size={16} />
             Tạo Video
           </TabsTrigger>
@@ -205,11 +205,11 @@ export default function VitbaFramePage() {
         {/* IMAGE TAB */}
         <TabsContent value="image" className="space-y-6">
           <Card className="border-border/50 bg-card/50 backdrop-blur-sm overflow-hidden">
-            <div className="h-1 bg-gradient-to-r from-purple-500 via-indigo-500 to-blue-500"></div>
+            <div className="h-1 bg-gradient-to-r from-primary via-primary/70 to-primary/40"></div>
             <CardContent className="p-6 space-y-6">
               <div className="space-y-3">
                 <label className="text-sm font-semibold text-foreground flex items-center gap-2">
-                  <Sparkles size={16} className="text-purple-500" />
+                  <Sparkles size={16} className="text-primary" />
                   Mô tả bức ảnh bạn muốn tạo
                 </label>
                 <Textarea
@@ -238,7 +238,7 @@ export default function VitbaFramePage() {
                 <Button 
                   onClick={handleGenerateImage} 
                   disabled={isGenerating || !prompt.trim()}
-                  className="w-full sm:w-auto bg-purple-600 hover:bg-purple-700 text-white font-medium"
+                  className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-white font-medium"
                 >
                   {isGenerating ? (
                     <>
@@ -259,7 +259,7 @@ export default function VitbaFramePage() {
           {history.length > 0 && (
             <div className="space-y-4 pt-6 border-t border-border/50">
               <h2 className="text-lg font-semibold flex items-center gap-2">
-                <RefreshCcw size={18} className="text-purple-500" />
+                <RefreshCcw size={18} className="text-primary" />
                 Kết quả gần đây
               </h2>
               
@@ -299,11 +299,11 @@ export default function VitbaFramePage() {
         {/* VIDEO TAB */}
         <TabsContent value="video" className="space-y-6">
           <Card className="border-border/50 bg-card/50 backdrop-blur-sm overflow-hidden">
-            <div className="h-1 bg-gradient-to-r from-purple-500 via-indigo-500 to-blue-500"></div>
+            <div className="h-1 bg-gradient-to-r from-primary via-primary/70 to-primary/40"></div>
             <CardContent className="p-6 space-y-6">
               <div className="space-y-3">
                 <label className="text-sm font-semibold text-foreground flex items-center gap-2">
-                  <Sparkles size={16} className="text-purple-500" />
+                  <Sparkles size={16} className="text-primary" />
                   Mô tả Video muốn tạo
                 </label>
                 <Textarea
@@ -347,7 +347,7 @@ export default function VitbaFramePage() {
                 <Button 
                   onClick={handleGenerateVideo} 
                   disabled={isVideoGenerating || !videoPrompt.trim()}
-                  className="w-full sm:w-auto bg-purple-600 hover:bg-purple-700 text-white font-medium"
+                  className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-white font-medium"
                 >
                   {isVideoGenerating ? (
                     <>
@@ -368,7 +368,7 @@ export default function VitbaFramePage() {
           {videoHistory.length > 0 && (
             <div className="space-y-4 pt-6 border-t border-border/50">
               <h2 className="text-lg font-semibold flex items-center gap-2">
-                <RefreshCcw size={18} className="text-purple-500" />
+                <RefreshCcw size={18} className="text-primary" />
                 Kết quả Video
               </h2>
               

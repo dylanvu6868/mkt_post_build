@@ -161,6 +161,16 @@ from app.mcp.landing.tools import router as landing_router, public_router as lan
 app.include_router(landing_router, dependencies=[Depends(require_hub_tool("landing"))])
 app.include_router(landing_public_router)  # public — no gating
 
+from app.mcp.meta.routes import router as meta_router, public_router as meta_public_router
+app.include_router(meta_router, dependencies=[Depends(require_hub_tool("meta"))])
+app.include_router(meta_public_router)  # public OAuth callback — no gating
+
+from app.mcp.vercel.routes import router as vercel_router
+app.include_router(vercel_router, dependencies=[Depends(require_hub_tool("landing"))])
+
+from app.mcp.github.routes import router as github_router
+app.include_router(github_router, dependencies=[Depends(require_hub_tool("landing"))])
+
 
 @app.get("/health")
 def health() -> dict[str, str]:

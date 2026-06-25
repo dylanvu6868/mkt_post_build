@@ -2,6 +2,8 @@
 
 from typing import Any
 
+from pydantic import BaseModel, Field
+
 from app.agents.base import generate_structured
 from app.schemas.agents import Insights
 
@@ -33,3 +35,17 @@ async def insights(state: dict[str, Any]) -> dict[str, Any]:
     user = f"Product/brief: {brief}\nMarketing goal: {goal}"
     result = await generate_structured("fast", SYSTEM, user, Insights)
     return {"insights": result.model_dump()}
+
+
+# ─── ROI Commentary Agent ────────────────────────────────────────
+
+class ROICommentary(BaseModel):
+    commentary: str = Field(..., description="Phân tích chuyên sâu về ROAS/ROI bằng tiếng Việt, kèm đề xuất tối ưu")
+
+
+async def run_roi_agent(data: dict[str, Any]) -> ROICommentary:
+    system = """Bạn là chuyên gia phân tích ROI/ROAS marketing. Dựa trên số liệu spend/revenue/ROAS/ROI,
+hãy viết phân tích ngắn gọn (3-5 câu) bằng tiếng Việt: đánh giá hiệu quả, so sánh benchmark ngành,
+và đưa ra 2-3 đề xuất tối ưu cụ thể. Viết thực chiến, không lý thuyết."""
+    user = "Số liệu chiến dịch:\n" + "\n".join(f"- {k}: {v}" for k, v in data.items() if v is not None)
+    return await generate_structured("fast", system, user, ROICommentary)
