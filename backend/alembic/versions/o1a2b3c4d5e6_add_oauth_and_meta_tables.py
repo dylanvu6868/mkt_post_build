@@ -1,6 +1,6 @@
 """Add oauth_accounts and meta_pages tables
 
-Revision ID: a1b2c3d4e5f6
+Revision ID: o1a2b3c4d5e6
 Revises: 428896e85f32
 Create Date: 2026-06-25 03:00:00.000000
 
@@ -11,7 +11,7 @@ from alembic import op
 import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
-revision: str = 'a1b2c3d4e5f6'
+revision: str = 'o1a2b3c4d5e6'
 down_revision: Union[str, None] = '428896e85f32'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None

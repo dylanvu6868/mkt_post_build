@@ -15,7 +15,7 @@ from bs4 import BeautifulSoup
 
 TEMPLATES_ROOT = Path(os.getenv(
     "TEMPLATES_DIR",
-    Path(__file__).resolve().parents[4] / "landingpage_html",
+    Path(__file__).resolve().parents[3] / "templates" / "landing",
 ))
 
 
@@ -175,7 +175,7 @@ EMAIL_TEMPLATES = {
         "description": "Email template cho spa, wellness, lifestyle brand. Hero + About + Services + Team + CTA + Footer.",
         "file": Path(os.getenv(
             "EMAIL_TEMPLATES_DIR",
-            Path(__file__).resolve().parents[4] / "email_html",
+            Path(__file__).resolve().parents[3] / "templates" / "email",
         )) / "m1.html",
         "slots": EMAIL_M1_SLOTS,
         "colors": {"primary": "#FF6B81", "bg": "#EEF2F5"},
@@ -187,7 +187,7 @@ EMAIL_TEMPLATES = {
         "description": "Email template cho y tế, chuyên nghiệp. Hero + Services + Testimonials + CTA + Footer.",
         "file": Path(os.getenv(
             "EMAIL_TEMPLATES_DIR",
-            Path(__file__).resolve().parents[4] / "email_html",
+            Path(__file__).resolve().parents[3] / "templates" / "email",
         )) / "m2.html",
         "slots": EMAIL_M2_SLOTS,
         "colors": {"primary": "#0056D2", "bg": "#FFFFFF"},
