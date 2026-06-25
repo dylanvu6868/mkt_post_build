@@ -29,6 +29,28 @@ campaigns, meta posts; auto fine-tuning from feedback (blueprint §28 — explic
 - Both lab UI **and** generate UI get the feedback bar in this MVP.
 - Admin analytics: full (ratio, top tags, recent negatives, combined with reviewer score).
 
+### 2a. AI-Product framing (the loop, not the button)
+
+Feedback is a **quality-measurement system**, not a UI feature. Collection without a
+consumption loop is dead data. The loop this MVP enables (manual, monthly — **no auto
+fine-tune**, blueprint §28): export 👎 + corrections grouped by `content_type`/`tool_name`
+→ cluster failure modes → revise that prompt → version it → measure 👎-rate change. Four
+design consequences, all confirmed:
+
+1. **Tag-first, not thumbs-first.** Binary 👍/👎 has poor signal (low response rate, anger
+   bias, no nuance). The actionable gold is `tags` + `correction`. UI leads with tags;
+   thumbs is just the entry gate. Do not over-invest in the buttons.
+2. **Hallucination is a separate guardrail.** `sai thông tin` (wrong facts) is a
+   hallucination report = the highest-severity LLM risk, not a style nit. It is surfaced
+   **separately** in admin (its own count + recency), never folded into the generic ratio.
+3. **Divergence is the killer signal.** Triangulate reviewer score (offline, every output)
+   against user feedback (online, sparse). The high-value admin view is **reviewer-high but
+   user-👎**, grouped by `content_type`/`tool_name` → prompt/rubric drift = exactly what to
+   fix. This is the concrete meaning of blueprint §28 "kết hợp reviewer score + feedback".
+4. **Measure the feature itself.** Track **feedback submission rate** as a guardrail. If
+   <2% after two weeks, the UI or the premise is wrong — stop investing, don't add more
+   analytics.
+
 ## 3. Data Model — `Feedback`
 
 New file `backend/app/models/feedback.py`, following existing conventions (SQLAlchemy 2.0
@@ -95,10 +117,13 @@ The hard constraint: lab pages read output fields directly off the hook `result`
 ## 6. Frontend
 
 ### `<FeedbackBar targetType targetId />` (new, in `frontend/components/lab-ui.tsx`)
-- 👍 / 👎 buttons (toggle, reflect server state).
-- Collapsible "Bạn muốn sửa gì?" textarea (`reason`/`correction`).
+- 👍 / 👎 buttons (toggle, reflect server state) — the entry gate.
+- **Tag-first:** on 👎 (and optionally 👍), reveal the tag chips prominently plus the
+  "Bạn muốn sửa gì?" textarea (`reason`/`correction`). Tags carry the signal, so they are
+  the primary affordance, not an afterthought.
 - Quick tag chips: `sai giọng thương hiệu`, `quá dài`, `thiếu CTA`, `sai thông tin`,
-  `lỗi format` (maps to `tags`).
+  `lỗi format` (maps to `tags`). Note `sai thông tin` is the hallucination tag — it is
+  treated as a guardrail server-side (see §7), not a style nit.
 - On mount, `GET /api/feedback` to hydrate state; on action, `POST /api/feedback`.
 - Renders nothing if `targetId` is falsy.
 
@@ -115,12 +140,20 @@ The hard constraint: lab pages read output fields directly off the hook `result`
 ## 7. Admin analytics (full — blueprint §16.2)
 
 - Extend `GET /admin/analytics` with a `feedback` block:
-  `{ total, up, down, ratio, by_target_type: {generation_job:{up,down}, lab_history:{...}} }`.
+  - `{ total, up, down, ratio, by_target_type, submission_rate }`.
+  - `submission_rate` = feedback count ÷ eligible outputs (jobs + lab runs) over the
+    window — the **guardrail** on the feature itself (§2a.4). Flag low (<2%).
+  - `hallucination`: separate count + recent list of feedback carrying the `sai thông tin`
+    tag (§2a.2) — a safety signal, NOT folded into `ratio`.
 - New `GET /admin/feedback` (admin-only): recent feedback (user, target_type, rating,
-  reason, created_at), top tags (counts), filters `rating` / `target_type`. Surface
-  alongside existing reviewer score (`ContentHistory.score`) in the dashboard.
-- Frontend admin dashboard: cards for "Feedback up/down ratio", "Top feedback tags",
-  "Negative feedback gần nhất".
+  reason, tags, created_at), top tags (counts), filters `rating` / `target_type` / `tag`.
+- New `GET /admin/feedback/divergence` (admin-only, §2a.3): outputs where reviewer score
+  is high (≥ threshold, e.g. 75) **but** user rating is 👎, grouped by `content_type` /
+  `tool_name`. Joins `Feedback` → `GenerationJob`/`ContentHistory` (reviewer score lives
+  in `ContentHistory.score`) / `LabHistory`. This is the prompt-iteration worklist.
+- Frontend admin dashboard cards: "Feedback up/down ratio + submission rate",
+  "Top feedback tags", "⚠ Hallucination reports (sai thông tin)",
+  "Reviewer-cao nhưng user-👎 (divergence)".
 
 ## 8. Testing
 
@@ -132,7 +165,10 @@ Unit:
 Integration:
 - `POST /feedback` → row + `AuditLog(feedback.create)`.
 - Re-`POST` same target → status `updated`, single row.
-- `GET /admin/analytics` reflects up/down ratio after submissions.
+- `GET /admin/analytics` reflects up/down ratio + `submission_rate` after submissions.
+- Hallucination block counts only feedback tagged `sai thông tin`, excluded from `ratio`.
+- `GET /admin/feedback/divergence` returns a high-reviewer-score + 👎 row, omits
+  high-score + 👍 rows.
 - Lab `_run_tool` response includes `_feedback_id`; generate flow exposes `job_id`.
 
 ## 9. Definition of Done (blueprint §22)
