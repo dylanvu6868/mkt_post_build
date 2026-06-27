@@ -86,6 +86,10 @@ async def run_generation_job(
             handler = get_langfuse_handler(trace_id)
             config = {"callbacks": [handler]} if handler else {}
 
+            # Propagate trace_id vào ContextVar để tất cả agent calls đều ghi nhận
+            from app.agents.base import current_trace_id
+            current_trace_id.set(trace_id)
+
             # Timeout 300s cho toàn bộ pipeline generation
             stream = graph.astream(initial_state, config, stream_mode="updates")
             try:

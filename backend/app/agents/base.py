@@ -1,5 +1,6 @@
 import json
 import re
+from contextvars import ContextVar
 from typing import TypeVar
 
 from langchain_core.messages import HumanMessage, SystemMessage
@@ -8,6 +9,10 @@ from pydantic import BaseModel
 from app.llm.factory import get_chat_model
 
 T = TypeVar("T", bound=BaseModel)
+
+# ContextVar để Langfuse trace_id tự động propagate qua các agent calls
+# mà không cần pass trace_id thủ công qua từng hàm.
+current_trace_id: ContextVar[str | None] = ContextVar("current_trace_id", default=None)
 
 
 def _extract_json(text: str) -> dict | None:
@@ -47,7 +52,9 @@ async def generate_structured(
         )
         tier = "fast"
 
-    llm = get_chat_model(tier, trace_id=trace_id)
+    # Dùng trace_id từ ContextVar nếu không được pass trực tiếp
+    effective_trace_id = trace_id or current_trace_id.get()
+    llm = get_chat_model(tier, trace_id=effective_trace_id)
     messages = [SystemMessage(content=system), HumanMessage(content=user)]
 
     try:
