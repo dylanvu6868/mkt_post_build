@@ -132,7 +132,7 @@ async def generate_structured(
     effective_trace_id = trace_id or current_trace_id.get()
     effective_span_type = span_type or _classify_span_type(schema.__name__)
     span_id = _trace_span(effective_trace_id, schema.__name__, system, user, effective_span_type)
-    llm = get_chat_model(tier, trace_id=effective_trace_id)
+    llm = get_chat_model(tier, max_tokens=8192, trace_id=effective_trace_id)
     messages = [SystemMessage(content=system), HumanMessage(content=user)]
 
     try:

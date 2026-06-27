@@ -203,7 +203,7 @@ async def _summarize_title(content: str) -> str:
 async def _stream_llm(chat_messages: list[dict]):
     from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 
-    model = get_chat_model("fast")
+    model = get_chat_model("fast", max_tokens=8192)
     lc_messages = []
     for m in chat_messages:
         if m["role"] == "system":

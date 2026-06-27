@@ -509,6 +509,23 @@ export const useChatStore = create<ChatState>()(
                   streamContent: "",
                 });
                 _saveGenerationResult(baseUrl, token, convId, draftText, set, get);
+                // Add result to local messages so it shows in chat without reload
+                const resultMsg: ChatMessage = {
+                  id: Date.now() + 1,
+                  conversation_id: convId,
+                  role: "assistant",
+                  content: draftText,
+                  metadata_json: null,
+                  created_at: new Date().toISOString(),
+                };
+                set((s) => ({
+                  messages: [...s.messages, resultMsg],
+                  conversations: s.conversations.map((c) =>
+                    c.id === convId
+                      ? { ...c, updated_at: new Date().toISOString() }
+                      : c
+                  ),
+                }));
               } else {
                 // Background: skip animation, save directly
                 _saveGenerationResult(baseUrl, token, convId, draftText, set, get);
