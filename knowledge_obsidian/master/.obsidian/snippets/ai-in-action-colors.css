@@ -1,0 +1,27 @@
+/* Obsidian Tag Colors - AI in Action Knowledge System */
+/* Foundation - Blue */
+.tag[href="#llm"], .tag[href="#prompt"], .tag[href="#architecture"], .tag[href="#transformer"], 
+.tag[href="#01-foundation"] { background-color: #2563eb; color: #fff; }
+
+/* Product - Green */
+.tag[href="#product"], .tag[href="#ux"], .tag[href="#retention"], .tag[href="#strategy"], 
+.tag[href="#prototype"], .tag[href="#02-product"] { background-color: #059669; color: #fff; }
+
+/* RAG/Data - Purple */
+.tag[href="#rag"], .tag[href="#data"], .tag[href="#embedding"], .tag[href="#vector-store"],
+.tag[href="#graphrag"], .tag[href="#03-rag-data"] { background-color: #7c3aed; color: #fff; }
+
+/* Agent - Orange */
+.tag[href="#agent"], .tag[href="#multi-agent"], .tag[href="#memory"], .tag[href="#mcp"],
+.tag[href="#tools"], .tag[href="#04-agent"] { background-color: #ea580c; color: #fff; }
+
+/* Operations - Red */
+.tag[href="#devops"], .tag[href="#monitoring"], .tag[href="#guardrails"], 
+.tag[href="#cicd"], .tag[href="#llmops"], .tag[href="#cloud"], .tag[href="#05-operations"] { background-color: #dc2626; color: #fff; }
+
+/* Evaluation - Pink */
+.tag[href="#eval"], .tag[href="#benchmark"], .tag[href="#ragas"], .tag[href="#llm-judge"],
+.tag[href="#06-evaluation"] { background-color: #db2777; color: #fff; }
+
+/* Meta - Gray */
+.tag[href="#meta"], .tag[href="#reference"] { background-color: #6b7280; color: #fff; }

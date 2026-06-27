@@ -1,0 +1,86 @@
+---
+title: "Vault Manifest"
+created: 2026-06-25
+status: draft
+type: note
+tags:
+  - vitba
+  - manifest
+---
+
+# Vault Manifest
+
+- [[00_Vitba_AI_MOC]] — `00_MOC/00_Vitba_AI_MOC.md`
+- [[Decision_Log]] — `00_MOC/Decision_Log.md`
+- [[Glossary]] — `00_MOC/Glossary.md`
+- [[System_Architecture_Overview]] — `00_MOC/System_Architecture_Overview.md`
+- [[Vitba_Ecosystem_Map]] — `00_MOC/Vitba_Ecosystem_Map.md`
+- [[Agent_Runtime_Contract]] — `01_Harness/Agent_Runtime_Contract.md`
+- [[Evaluation_and_Feedback_Loop]] — `01_Harness/Evaluation_and_Feedback_Loop.md`
+- [[Model_Tiers_and_Structured_Output]] — `01_Harness/Model_Tiers_and_Structured_Output.md`
+- [[Tool_Skill_Matrix]] — `01_Harness/Tool_Skill_Matrix.md`
+- [[Vitba Agent Harness]] — `01_Harness/Vitba Agent Harness.md`
+- [[Chat_to_Generate_Flow]] — `02_Pipeline/Chat_to_Generate_Flow.md`
+- [[GenerationJob_State_Machine]] — `02_Pipeline/GenerationJob_State_Machine.md`
+- [[Graph_State_Context_Memory]] — `02_Pipeline/Graph_State_Context_Memory.md`
+- [[LangGraph_Pipeline]] — `02_Pipeline/LangGraph_Pipeline.md`
+- [[Agents_MOC]] — `03_Agents/Agents_MOC.md`
+- [[Brand_Context_Agent]] — `03_Agents/Brand_Context_Agent.md`
+- [[Copywriter_Agent]] — `03_Agents/Copywriter_Agent.md`
+- [[Formatter_Agent]] — `03_Agents/Formatter_Agent.md`
+- [[Fusion_Agent]] — `03_Agents/Fusion_Agent.md`
+- [[Landing_Page_Coder_Agent]] — `03_Agents/Landing_Page_Coder_Agent.md`
+- [[Marketing_Planner_RAG_Agent]] — `03_Agents/Marketing_Planner_RAG_Agent.md`
+- [[Planner_Agent]] — `03_Agents/Planner_Agent.md`
+- [[Report_ReAct_Agent]] — `03_Agents/Report_ReAct_Agent.md`
+- [[Research_Agent]] — `03_Agents/Research_Agent.md`
+- [[Reviewer_Agent]] — `03_Agents/Reviewer_Agent.md`
+- [[SEO_Agent]] — `03_Agents/SEO_Agent.md`
+- [[Brand_Safety_Lab_Tools]] — `04_Lab_Agents/Brand_Safety_Lab_Tools.md`
+- [[Competitive_Lab_Tools]] — `04_Lab_Agents/Competitive_Lab_Tools.md`
+- [[Lab_Agents_MOC]] — `04_Lab_Agents/Lab_Agents_MOC.md`
+- [[Persuasion_Lab_Tools]] — `04_Lab_Agents/Persuasion_Lab_Tools.md`
+- [[Production_Lab_Tools]] — `04_Lab_Agents/Production_Lab_Tools.md`
+- [[SEO_Analysis_Lab_Tool]] — `04_Lab_Agents/SEO_Analysis_Lab_Tool.md`
+- [[Strategy_Lab_Tools]] — `04_Lab_Agents/Strategy_Lab_Tools.md`
+- [[Vietnam_Channel_Lab_Tools]] — `04_Lab_Agents/Vietnam_Channel_Lab_Tools.md`
+- [[Analytics_GA4_UTM_ROI_Module]] — `05_MCP_Hub/Analytics_GA4_UTM_ROI_Module.md`
+- [[Calendar_Scheduler_Module]] — `05_MCP_Hub/Calendar_Scheduler_Module.md`
+- [[Cross_Post_Orchestrator]] — `05_MCP_Hub/Cross_Post_Orchestrator.md`
+- [[Email_Resend_Module]] — `05_MCP_Hub/Email_Resend_Module.md`
+- [[Landing_Deploy_Module]] — `05_MCP_Hub/Landing_Deploy_Module.md`
+- [[MCP_Hub_MOC]] — `05_MCP_Hub/MCP_Hub_MOC.md`
+- [[Meta_Graph_Module]] — `05_MCP_Hub/Meta_Graph_Module.md`
+- [[SEO_HTML_Analyzer_Module]] — `05_MCP_Hub/SEO_HTML_Analyzer_Module.md`
+- [[Context_Loading_Policy]] — `06_Data_Memory/Context_Loading_Policy.md`
+- [[PostgreSQL_Models]] — `06_Data_Memory/PostgreSQL_Models.md`
+- [[Qdrant_RAG]] — `06_Data_Memory/Qdrant_RAG.md`
+- [[Redis_Session_Memory]] — `06_Data_Memory/Redis_Session_Memory.md`
+- [[Retention_and_Plan_Limits]] — `06_Data_Memory/Retention_and_Plan_Limits.md`
+- [[AuditLog_Action_Taxonomy]] — `07_Guardrails_Audit/AuditLog_Action_Taxonomy.md`
+- [[Error_Handling_Retry]] — `07_Guardrails_Audit/Error_Handling_Retry.md`
+- [[Guardrails_Audit_MOC]] — `07_Guardrails_Audit/Guardrails_Audit_MOC.md`
+- [[Langfuse_Tracing]] — `07_Guardrails_Audit/Langfuse_Tracing.md`
+- [[MCP_Mutation_Safety]] — `07_Guardrails_Audit/MCP_Mutation_Safety.md`
+- [[Safety_Guardrails]] — `07_Guardrails_Audit/Safety_Guardrails.md`
+- [[Security_Checklist]] — `07_Guardrails_Audit/Security_Checklist.md`
+- [[Controlled_Agent_Chaining]] — `08_Multi_Agent_Workflows/Controlled_Agent_Chaining.md`
+- [[Future_Agent_Harness]] — `08_Multi_Agent_Workflows/Future_Agent_Harness.md`
+- [[Multi_Agent_MOC]] — `08_Multi_Agent_Workflows/Multi_Agent_MOC.md`
+- [[Multi_Agent_Principles]] — `08_Multi_Agent_Workflows/Multi_Agent_Principles.md`
+- [[Report_2_Stage_ReAct]] — `08_Multi_Agent_Workflows/Report_2_Stage_ReAct.md`
+- [[Workflow_Templates]] — `08_Multi_Agent_Workflows/Workflow_Templates.md`
+- [[Admin_Analytics]] — `09_Product_Ops/Admin_Analytics.md`
+- [[Frontend_UI_Architecture]] — `09_Product_Ops/Frontend_UI_Architecture.md`
+- [[Roadmap_Phases]] — `09_Product_Ops/Roadmap_Phases.md`
+- [[User_Feedback_System]] — `09_Product_Ops/User_Feedback_System.md`
+- [[Build_Checklist]] — `10_Checklists/Build_Checklist.md`
+- [[Definition_of_Done]] — `10_Checklists/Definition_of_Done.md`
+- [[Deployment_Checklist]] — `10_Checklists/Deployment_Checklist.md`
+- [[Testing_Strategy]] — `10_Checklists/Testing_Strategy.md`
+- [[Original_Implementation_Blueprint]] — `98_Source/Original_Implementation_Blueprint.md`
+- [[API_Endpoint_Template]] — `99_Templates/API_Endpoint_Template.md`
+- [[Agent_Card_Template]] — `99_Templates/Agent_Card_Template.md`
+- [[Prompt_Template]] — `99_Templates/Prompt_Template.md`
+- [[Tool_Card_Template]] — `99_Templates/Tool_Card_Template.md`
+- [[README_START_HERE]] — `README_START_HERE.md`

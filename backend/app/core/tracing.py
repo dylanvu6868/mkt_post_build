@@ -1,69 +1,50 @@
 import os
+import json
+import base64
 from contextlib import contextmanager
 from contextvars import ContextVar
+from datetime import datetime, timezone
 from typing import Any, Generator
 
+import requests
 from dotenv import load_dotenv
 
 load_dotenv()
 
-# Langfuse SDK v4 — uses get_client() or direct Langfuse class.
-# The deprecated Langfuse class at langfuse.Langfuse doesn't have .trace().
-# Instead, SDK v4 uses create_trace_id(), start_observation(), etc.
-# For simplicity: only init if env vars are set, then use as singleton.
-try:
-    from langfuse import Langfuse
-    from langfuse._client.client import Langfuse as _LangfuseClient
-except ImportError:
-    Langfuse = None
-    _LangfuseClient = None
+# ── Config ──────────────────────────────────────────────────────────
+_PK = os.getenv("LANGFUSE_PUBLIC_KEY") or ""
+_SK = os.getenv("LANGFUSE_SECRET_KEY") or ""
+_HOST = os.getenv("LANGFUSE_HOST") or os.getenv("LANGFUSE_BASE_URL") or "https://us.cloud.langfuse.com"
+_BASIC_AUTH = base64.b64encode(f"{_PK}:{_SK}".encode()).decode() if _PK and _SK else None
+ENABLED = bool(_PK and _SK)
 
-try:
-    from langfuse.callback import CallbackHandler
-except ImportError:
-    CallbackHandler = None
+# Legacy exports — kept as None to not break existing imports
+langfuse_client = None
+langfuse_handler = None
+CallbackHandler = None
 
 
-def _get_host() -> str | None:
-    return os.getenv("LANGFUSE_HOST") or os.getenv("LANGFUSE_BASE_URL") or None
+def get_langfuse_handler(trace_id: str | None = None) -> None:
+    """Legacy — always returns None. Use REST API instead."""
+    return None
 
 
-def get_langfuse_client():
-    """Initialize Langfuse SDK v4 client with env vars."""
-    if not _LangfuseClient:
-        return None
-    pk = os.getenv("LANGFUSE_PUBLIC_KEY")
-    sk = os.getenv("LANGFUSE_SECRET_KEY")
-    if not pk or not sk:
-        return None
-    host = _get_host()
-    kwargs = {"public_key": pk, "secret_key": sk}
-    if host:
-        kwargs["host"] = host
-    return _LangfuseClient(**kwargs)
+def _post(path: str, data: dict) -> None:
+    """POST to Langfuse REST API, silently ignore failures."""
+    if not ENABLED:
+        return
+    try:
+        requests.post(
+            f"{_HOST}/api/public/{path}",
+            json=data,
+            headers={"Authorization": f"Basic {_BASIC_AUTH}"},
+            timeout=5,
+        )
+    except Exception:
+        pass
 
 
-langfuse_client = get_langfuse_client()
-
-# Legacy CallbackHandler for LangChain — optional
-if CallbackHandler and os.getenv("LANGFUSE_PUBLIC_KEY") and os.getenv("LANGFUSE_SECRET_KEY"):
-    host = _get_host() or "https://cloud.langfuse.com"
-    langfuse_handler = CallbackHandler(host=host)
-else:
-    langfuse_handler = None
-
-
-def get_langfuse_handler(trace_id: str | None = None) -> "CallbackHandler | None":
-    """Tạo CallbackHandler với trace_id để link LangChain spans vào trace đúng."""
-    if not CallbackHandler or not os.getenv("LANGFUSE_PUBLIC_KEY") or not os.getenv("LANGFUSE_SECRET_KEY"):
-        return None
-    host = _get_host() or "https://cloud.langfuse.com"
-    if trace_id:
-        return CallbackHandler(host=host, trace_id=trace_id)
-    return langfuse_handler
-
-
-# ContextVar lưu observation_id (SDK v4) để agent spans tự động ghi đúng
+# ContextVar trace_id để agent spans tự động ghi đúng parent
 current_trace_id_ctx: ContextVar[str | None] = ContextVar("current_trace_id_ctx", default=None)
 
 
@@ -73,34 +54,38 @@ def trace_request(
     user_id: str | int | None = None,
     session_id: str | None = None,
     metadata: dict[str, Any] | None = None,
-) -> Generator[Any | None, None, None]:
-    """Tạo Langfuse trace cho AI request (SDK v4).
-
-    SDK v4 không có trace() method. Dùng create_trace_id() + start_observation().
-    Yield trace_id string hoặc None.
-    """
-    if not langfuse_client:
+) -> Generator[str | None, None, None]:
+    """Tạo Langfuse trace + root observation qua REST API."""
+    if not ENABLED:
         yield None
         return
 
-    trace_id = langfuse_client.create_trace_id()
-    input_data = {"metadata": metadata or {}}
-    if user_id:
-        input_data["user_id"] = str(user_id)
-    if session_id:
-        input_data["session_id"] = session_id
+    import uuid
+    trace_id = uuid.uuid4().hex
+    now = datetime.now(timezone.utc).isoformat()
 
-    # Start a generation-level observation as the root span
-    trace_context = {"trace_id": trace_id}
-    observation = langfuse_client.start_observation(
-        name=name,
-        as_type="GENERATION",
-        input=input_data,
-        trace_context=trace_context,
-    )
+    # POST trace
+    _post("traces", {
+        "id": trace_id,
+        "name": name,
+        "timestamp": now,
+        "user_id": str(user_id) if user_id else None,
+        "session_id": session_id,
+        "metadata": metadata or {},
+    })
+
+    # POST root observation (generation)
+    _post("observations", {
+        "id": uuid.uuid4().hex,
+        "trace_id": trace_id,
+        "name": name,
+        "type": "GENERATION",
+        "start_time": now,
+        "metadata": metadata or {},
+    })
+
     token = current_trace_id_ctx.set(trace_id)
     try:
         yield trace_id
     finally:
         current_trace_id_ctx.reset(token)
-        langfuse_client.flush()

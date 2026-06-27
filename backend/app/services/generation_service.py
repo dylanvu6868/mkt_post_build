@@ -82,19 +82,13 @@ async def run_generation_job(
             user_id=user_id,
             metadata={"job_id": job_id, "content_type": initial_state.get("content_type")},
         ) as trace:
-            trace_id = trace  # trace_request now yields trace_id string directly
-            handler = get_langfuse_handler(trace_id)
-            config = {"callbacks": [handler]} if handler else {}
-
+            trace_id = trace  # REST API trace_id string
             # Propagate trace_id vào ContextVar để tất cả agent calls đều ghi nhận
             from app.agents.base import current_trace_id
             current_trace_id.set(trace_id)
-            # Langfuse SDK v4 trace_id ContextVar
-            from app.core.tracing import current_trace_id_ctx
-            current_trace_id_ctx.set(trace_id)
 
             # Timeout 300s cho toàn bộ pipeline generation
-            stream = graph.astream(initial_state, config, stream_mode="updates")
+            stream = graph.astream(initial_state, {}, stream_mode="updates")
             try:
                 async with asyncio.timeout(300):
                     async for update in stream:
