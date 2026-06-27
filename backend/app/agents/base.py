@@ -57,33 +57,28 @@ async def generate_structured(
     llm = get_chat_model(tier, trace_id=effective_trace_id)
     messages = [SystemMessage(content=system), HumanMessage(content=user)]
 
-    # Tạo generation span qua Langfuse SDK v2 nếu có parent trace
-    from app.core.tracing import current_langfuse_trace
-    parent_trace = current_langfuse_trace.get()
-    generation = None
-    if parent_trace:
-        generation = parent_trace.generation(
+    # Tạo generation span qua Langfuse SDK v4 nếu có parent trace
+    from app.core.tracing import current_trace_id_ctx, langfuse_client
+    parent_trace_id = current_trace_id_ctx.get()
+    span = None
+    if parent_trace_id and langfuse_client:
+        span = langfuse_client.start_observation(
             name=f"generate_structured_{schema.__name__}",
-            model=settings.llm_model_smart if tier == "smart" else settings.llm_model_fast,
-            model_parameters={"temperature": 0.5 if tier == "smart" else 0.7},
-            input=[{"role": "system", "content": system}, {"role": "user", "content": user}],
+            as_type="GENERATION",
+            trace_context={"trace_id": parent_trace_id},
+            input=[{"role": "system", "content": system[:200]}, {"role": "user", "content": user[:200]}],
         )
 
     try:
         result = await llm.with_structured_output(schema).ainvoke(messages)
-        if generation:
-            generation.end(
+        if span:
+            langfuse_client.update_current_generation(
                 output=result.model_dump() if hasattr(result, "model_dump") else str(result),
-                level="DEFAULT",
             )
         return result
     except Exception as e:
-        if generation:
-            generation.end(
-                output=None,
-                level="ERROR",
-                status_message=str(e),
-            )
+        if span:
+            langfuse_client.update_current_generation(output=None, level="ERROR")
         import logging
         logging.getLogger(__name__).warning(
             "Structured output failed for %s: %s. Falling back to JSON extraction.",
@@ -107,12 +102,8 @@ async def generate_structured(
         if data:
             return schema.model_validate(data)
     except Exception as e:
-        if generation:
-            generation.end(
-                output=None,
-                level="ERROR",
-                status_message=f"Fallback failed: {e}",
-            )
+        if span:
+            langfuse_client.update_current_generation(output=None, level="ERROR")
         print(f"generate_structured fallback failed for {schema.__name__}: {e}")
 
     raise ValueError(f"Could not parse {schema.__name__} from LLM response")

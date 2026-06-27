@@ -7,46 +7,64 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+# Langfuse SDK v4 — uses get_client() or direct Langfuse class.
+# The deprecated Langfuse class at langfuse.Langfuse doesn't have .trace().
+# Instead, SDK v4 uses create_trace_id(), start_observation(), etc.
+# For simplicity: only init if env vars are set, then use as singleton.
 try:
     from langfuse import Langfuse
-    from langfuse.callback import CallbackHandler
+    from langfuse._client.client import Langfuse as _LangfuseClient
 except ImportError:
     Langfuse = None
+    _LangfuseClient = None
+
+try:
+    from langfuse.callback import CallbackHandler
+except ImportError:
     CallbackHandler = None
 
 
+def _get_host() -> str | None:
+    return os.getenv("LANGFUSE_HOST") or os.getenv("LANGFUSE_BASE_URL") or None
+
+
 def get_langfuse_client():
-    if Langfuse and os.getenv("LANGFUSE_PUBLIC_KEY") and os.getenv("LANGFUSE_SECRET_KEY"):
-        host = os.getenv("LANGFUSE_HOST", os.getenv("LANGFUSE_BASE_URL", "https://cloud.langfuse.com"))
-        return Langfuse(host=host)
-    return None
+    """Initialize Langfuse SDK v4 client with env vars."""
+    if not _LangfuseClient:
+        return None
+    pk = os.getenv("LANGFUSE_PUBLIC_KEY")
+    sk = os.getenv("LANGFUSE_SECRET_KEY")
+    if not pk or not sk:
+        return None
+    host = _get_host()
+    kwargs = {"public_key": pk, "secret_key": sk}
+    if host:
+        kwargs["host"] = host
+    return _LangfuseClient(**kwargs)
 
 
 langfuse_client = get_langfuse_client()
 
+# Legacy CallbackHandler for LangChain — optional
 if CallbackHandler and os.getenv("LANGFUSE_PUBLIC_KEY") and os.getenv("LANGFUSE_SECRET_KEY"):
-    host = os.getenv("LANGFUSE_HOST", os.getenv("LANGFUSE_BASE_URL", "https://cloud.langfuse.com"))
+    host = _get_host() or "https://cloud.langfuse.com"
     langfuse_handler = CallbackHandler(host=host)
 else:
     langfuse_handler = None
 
 
 def get_langfuse_handler(trace_id: str | None = None) -> "CallbackHandler | None":
-    """Tạo CallbackHandler với trace_id để link LangChain spans vào trace đúng.
-
-    Dùng khi có trace context (generate pipeline, lab tool calls).
-    Trả về None nếu Langfuse chưa được cấu hình.
-    """
+    """Tạo CallbackHandler với trace_id để link LangChain spans vào trace đúng."""
     if not CallbackHandler or not os.getenv("LANGFUSE_PUBLIC_KEY") or not os.getenv("LANGFUSE_SECRET_KEY"):
         return None
-    host = os.getenv("LANGFUSE_HOST", os.getenv("LANGFUSE_BASE_URL", "https://cloud.langfuse.com"))
+    host = _get_host() or "https://cloud.langfuse.com"
     if trace_id:
         return CallbackHandler(host=host, trace_id=trace_id)
     return langfuse_handler
 
 
-# ContextVar lưu Langfuse trace object (SDK v2) để agent spans tự động ghi đúng
-current_langfuse_trace: ContextVar[Any | None] = ContextVar("current_langfuse_trace", default=None)
+# ContextVar lưu observation_id (SDK v4) để agent spans tự động ghi đúng
+current_trace_id_ctx: ContextVar[str | None] = ContextVar("current_trace_id_ctx", default=None)
 
 
 @contextmanager
@@ -56,24 +74,37 @@ def trace_request(
     session_id: str | None = None,
     metadata: dict[str, Any] | None = None,
 ) -> Generator[Any | None, None, None]:
-    """Tạo Langfuse trace cho AI request (SDK v2).
+    """Tạo Langfuse trace cho AI request (SDK v4).
 
-    Yield trace object (có .id, .generation()) hoặc None nếu Langfuse không được cấu hình.
-    Agent calls có thể đọc trace từ ContextVar để tạo generation span.
+    SDK v4 không có trace() method. Dùng create_trace_id() + start_observation().
+    Yield trace_id string hoặc None.
     """
     if not langfuse_client:
         yield None
         return
 
-    trace = langfuse_client.trace(
+    trace_id = langfuse_client.create_trace_id()
+    input_data = {"metadata": metadata or {}}
+    if user_id:
+        input_data["user_id"] = str(user_id)
+    if session_id:
+        input_data["session_id"] = session_id
+
+    # Start a generation-level observation as the root span
+    observation = langfuse_client.start_observation(
         name=name,
-        user_id=str(user_id) if user_id is not None else None,
-        session_id=session_id,
-        metadata=metadata or {},
+        as_type="GENERATION",
+        input=input_data,
+        trace_context={"trace_id": trace_id},
     )
-    # Lưu trace vào ContextVar để agent code có thể tạo span con
-    token = current_langfuse_trace.set(trace)
+    token = current_trace_id_ctx.set(trace_id)
     try:
-        yield trace
+        yield trace_id
     finally:
-        current_langfuse_trace.reset(token)
+        current_trace_id_ctx.reset(token)
+        # End the root observation
+        try:
+            langfuse_client.update_current_generation(input=input_data)
+        except Exception:
+            pass
+        langfuse_client.flush()
