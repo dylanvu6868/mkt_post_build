@@ -19,9 +19,9 @@ class Settings(BaseSettings):
     llm_model_smart: str = "deepseek-chat"
 
     # Auth (consumed in M1)
-    jwt_secret: str = "change-me"
+    jwt_secret: str = "change-me"  # WARNING: MUST change in production
     jwt_algorithm: str = "HS256"
-    access_token_expire_minutes: int = 43200  # 30 days
+    access_token_expire_minutes: int = 10080  # 7 days. NO refresh token — keep short.
 
     # Default admin (seeded on first startup)
     admin_email: str = "admin@mktplatform.com"

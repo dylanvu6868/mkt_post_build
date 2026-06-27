@@ -3,7 +3,7 @@ from typing import Any
 from langchain.chat_models import init_chat_model
 
 from app.core.config import settings
-from app.core.tracing import langfuse_handler
+from app.core.tracing import langfuse_handler, get_langfuse_handler
 
 
 def provider_available() -> bool:
@@ -17,7 +17,7 @@ def provider_available() -> bool:
     return False
 
 
-def get_chat_model(tier: str, max_tokens: int | None = None) -> Any:
+def get_chat_model(tier: str, max_tokens: int | None = None, trace_id: str | None = None) -> Any:
     # "reasoning" is a legacy alias — use smart model for quality
     if tier in ("smart", "reasoning"):
         model = settings.llm_model_smart
@@ -43,8 +43,10 @@ def get_chat_model(tier: str, max_tokens: int | None = None) -> Any:
             model, model_provider=provider, temperature=temperature,
             max_tokens=tokens,
         )
-        
-    if langfuse_handler:
-        chat_model = chat_model.with_config({"callbacks": [langfuse_handler]})
-        
+
+    # Use per-request handler with trace_id when available, fallback to global handler
+    handler = get_langfuse_handler(trace_id) if trace_id else langfuse_handler
+    if handler:
+        chat_model = chat_model.with_config({"callbacks": [handler]})
+
     return chat_model

@@ -100,6 +100,8 @@ async def start_generation(
             )
 
     # Load brand profile for this project (may be None)
+    # Security note: phân quyền đã được check ở query project_id phía trên,
+    # owner của project chính là owner của brand profile.
     result = await session.execute(
         select(BrandProfile).where(BrandProfile.project_id == payload.project_id)
     )
@@ -132,6 +134,7 @@ async def start_generation(
         payload.marketing_goal,
     )
     initial_state = {
+        "user_id": current_user.id,   # NEW — needed for trace_request() in run_generation_job
         "project_id": payload.project_id,
         "content_type": payload.content_type,
         "brief": payload.brief,

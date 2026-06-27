@@ -44,18 +44,16 @@ async def reviewer(state: dict[str, Any]) -> dict[str, Any]:
     content_type = state.get("content_type", "facebook_post")
 
     if not state.get("provider_available"):
-        final = dict(draft)
-        if "cta" in final:
-            final["cta"] = f"{final['cta']} Limited time only!".strip()
+        # Mock mode — alert scope (không silently generate fake data)
         review = Review(
-            score=85,
-            suggestions=["Tighten the hook.", "Add urgency to the CTA."],
-            final_content=final,
+            score=0,
+            suggestions=["Mock mode: reviewer skipped — set LLM_API_KEY để review thực."],
+            final_content=draft,
         )
         return {
             "review": review.model_dump(),
-            "final": final,
-            "formatted_final": final,
+            "final": draft,
+            "formatted_final": draft,
         }
 
     system = SYSTEM_TEMPLATES.get(content_type, SYSTEM_TEMPLATES["facebook_post"])

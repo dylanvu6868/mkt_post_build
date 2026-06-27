@@ -29,4 +29,4 @@ Nhiệm vụ của bạn là kiểm duyệt MỌI input của người dùng tr�
 - Ví dụ reason cho Out of scope: "Xin lỗi, Vitba AI chỉ hỗ trợ các nghiệp vụ chuyên môn về Marketing và Copywriting. Vui lòng đặt câu hỏi liên quan đến lĩnh vực này."
 """
     user = f"Hãy kiểm duyệt nội dung sau từ người dùng:\n\n{prompt}"
-    return await generate_structured("smart", system, user, GuardResult)
+    return await generate_structured("fast", system, user, GuardResult)

@@ -11,7 +11,10 @@ _KEY_ENV = "MCP_ENCRYPTION_KEY"
 def _get_key() -> bytes:
     raw = getattr(settings, "mcp_encryption_key", "") or os.environ.get(_KEY_ENV, "")
     if not raw:
-        raw = settings.jwt_secret
+        raise ValueError(
+            "MCP_ENCRYPTION_KEY is not set. "
+            "Set it to a 32+ character secret (different from JWT_SECRET)."
+        )
     key = raw.encode()[:32].ljust(32, b"\0")
     return key
 

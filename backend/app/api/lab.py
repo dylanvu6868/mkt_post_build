@@ -20,6 +20,7 @@ from app.agents.lab import (
     run_hook_agent, run_abtest_agent, run_competitor_spy_agent,
     run_repurposer_agent, run_influencer_agent, run_hashtag_agent,
     run_dialect_adapter_agent, publish_to_zalo_oa,
+    run_seo_analysis_agent, SeoAnalysisRequest,
 )
 
 logger = logging.getLogger(__name__)
@@ -364,3 +365,30 @@ async def lunar_festivals_endpoint(current_user: User = Depends(get_current_user
     for f in festivals:
         f["content_suggestions"] = festival_content_suggestions(f["name"])
     return {"festivals": festivals}
+
+
+# --- SEO Analysis endpoint ---
+
+@router.post("/seo-analysis")
+@limiter.limit("3/minute")
+async def seo_analysis_endpoint(request: Request, req: SeoAnalysisRequest, current_user: User = Depends(get_current_user)):
+    """Run full SEO analysis report — returns markdown text."""
+    await _audit(current_user.id, "seo_analysis", request.client.host if request.client else None)
+    try:
+        report = await run_seo_analysis_agent(req)
+        # Save to lab_history
+        async with async_session_maker() as session:
+            entry = LabHistory(
+                user_id=current_user.id,
+                tool_name="seo_analysis",
+                input_data=req.model_dump(),
+                output_data={"report": report},
+            )
+            session.add(entry)
+            await session.commit()
+        return {"report": report}
+    except ValueError as e:
+        raise HTTPException(status_code=502, detail=str(e))
+    except Exception:
+        logger.exception("SEO analysis failed for user %s", current_user.id)
+        raise HTTPException(status_code=500, detail="Có lỗi xảy ra khi phân tích SEO.")

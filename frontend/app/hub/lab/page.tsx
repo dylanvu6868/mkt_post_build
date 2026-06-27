@@ -223,17 +223,33 @@ const CATEGORIES = [
       },
     ],
   },
+  {
+    id: "seo",
+    label: "SEO",
+    tools: [
+      {
+        id: "seo-analysis",
+        href: "/hub/lab/seo-analysis",
+        name: "Vitba SEO Analysis",
+        tagline: "Phân tích SEO chuyên sâu: đối thủ, keyword gap, content plan, backlink, technical + roadmap 30-60-90 ngày",
+        tag: "new",
+        icon: Globe,
+      },
+    ],
+  },
 ];
 
 const TAG_STYLES = {
   available: "bg-primary/10 text-primary border border-primary/20",
   beta: "bg-primary/10 text-primary border border-primary/20",
+  new: "bg-primary/10 text-primary border border-primary/20",
   soon: "bg-muted text-muted-foreground border border-border/50",
 };
 
 const TAG_LABELS = {
   available: "Khả dụng",
   beta: "Beta",
+  new: "Mới",
   soon: "Sắp ra mắt",
 };
 

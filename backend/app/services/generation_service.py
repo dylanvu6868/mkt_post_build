@@ -10,7 +10,7 @@ from app.graph.build import build_graph
 from app.models.generation_job import GenerationJob
 from app.models.project import Project
 from app.services import history_service
-from app.core.tracing import trace_request
+from app.core.tracing import get_langfuse_handler, trace_request
 
 _RESULT_KEYS = (
     "draft",
@@ -64,6 +64,7 @@ async def run_generation_job(
 ) -> None:
     """Background entrypoint: run the graph, stream progress, persist result."""
     graph = build_graph()
+    user_id = initial_state.get("user_id")  # NEW: read user_id from state
 
     async with session_maker() as session:
         job = await session.get(GenerationJob, job_id)
@@ -72,23 +73,42 @@ async def run_generation_job(
         job.status = "running"
         await session.commit()
 
+    import asyncio
     logger.info("Generation started job_id=%s", job_id)
     state: dict[str, Any] = dict(initial_state)
     try:
         with trace_request(
             "generate.pipeline",
+            user_id=user_id,
             metadata={"job_id": job_id, "content_type": initial_state.get("content_type")},
-        ):
-            async for update in graph.astream(initial_state, stream_mode="updates"):
-                for node, delta in update.items():
-                    for key, value in (delta or {}).items():
-                        if key == "errors":
-                            state.setdefault("errors", [])
-                            state["errors"].extend(value)
-                        else:
-                            state[key] = value
-                    logger.info("Agent step completed job_id=%s step=%s", job_id, node)
-                    await _set_step(session_maker, job_id, node)
+        ) as trace:
+            trace_id = trace.id if trace else None
+            handler = get_langfuse_handler(trace_id)
+            config = {"callbacks": [handler]} if handler else {}
+
+            # Timeout 300s cho toàn bộ pipeline generation
+            stream = graph.astream(initial_state, config, stream_mode="updates")
+            try:
+                async with asyncio.timeout(300):
+                    async for update in stream:
+                        for node, delta in update.items():
+                            for key, value in (delta or {}).items():
+                                if key == "errors":
+                                    state.setdefault("errors", [])
+                                    state["errors"].extend(value)
+                                else:
+                                    state[key] = value
+                            logger.info("Agent step completed job_id=%s step=%s", job_id, node)
+                            await _set_step(session_maker, job_id, node)
+            except asyncio.TimeoutError:
+                logger.error("Generation timed out after 300s job_id=%s", job_id)
+                async with session_maker() as session:
+                    job = await session.get(GenerationJob, job_id)
+                    if job is not None:
+                        job.status = "error"
+                        job.error = "Pipeline timed out after 300 seconds"
+                        await session.commit()
+                return
 
             result = {key: state.get(key) for key in _RESULT_KEYS}
             async with session_maker() as session:

@@ -181,6 +181,14 @@ from app.mcp.github.routes import router as github_router
 app.include_router(github_router, dependencies=[Depends(require_hub_tool("landing"))])
 
 
+@app.on_event("shutdown")
+async def flush_langfuse():
+    """Flush Langfuse buffer on shutdown to avoid losing buffered spans."""
+    from app.core.tracing import langfuse_client
+    if langfuse_client:
+        langfuse_client.flush()
+
+
 @app.get("/health")
 def health() -> dict[str, str]:
     return {"status": "ok", "service": settings.app_name}

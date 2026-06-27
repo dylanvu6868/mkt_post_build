@@ -38,13 +38,14 @@ export function ToolHeader({
 }: {
   name: string;
   description: string;
-  tag?: "available" | "beta" | "soon";
+  tag?: "available" | "beta" | "soon" | "new";
 }) {
   const tagConfig = {
     available: { label: "Khả dụng", cls: "lab-tag-available" },
     beta: { label: "Beta", cls: "lab-tag-beta" },
     soon: { label: "Sắp ra mắt", cls: "lab-tag-soon" },
-  }[tag];
+    new: { label: "Mới", cls: "lab-tag-available" },
+  }[tag]!;
   return (
     <div className="border-b border-border/50 pb-5">
       <div className="flex items-center gap-2.5 mb-1.5">
