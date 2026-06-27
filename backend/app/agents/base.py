@@ -36,7 +36,33 @@ def _post_langfuse(path: str, data: dict) -> None:
         pass
 
 
-def _trace_span(trace_id: str | None, schema_name: str, system: str, user: str) -> str | None:
+def _classify_span_type(schema_name: str) -> str:
+    """Phân loại observation type dựa trên schema name.
+
+    AGENT: pipeline agents (Research, SEO, Brand, FusedBrief, Review, Plan...)
+    TOOL: lab/guard tools (GuardResult, ShieldResponse, PsychoResponse, HookGeneratorResponse...)
+    GENERATION: mặc định (copywriter, formatter...)
+    """
+    tool_schemas = {
+        "GuardResult", "ShieldResponse", "PsychoResponse", "PersonaResponse",
+        "DNAResponse", "SimulatorResponse", "CinematicResponse", "ReverseResponse",
+        "HexBreakerResponse", "TrendJackResponse", "BlindspotResponse", "EvergreenResponse",
+        "AudioHookResponse", "HookGeneratorResponse", "ABTestResponse", "CompetitorSpyResponse",
+        "RepurposerResponse", "InfluencerMatchResponse", "HashtagUniverseResponse",
+        "DialectAdapterResponse", "ROICommentary", "SeoAnalysisResult",
+    }
+    agent_schemas = {
+        "Research", "SEO", "BrandContext", "FusedBrief", "Plan", "Review",
+        "Insights", "FAQItem",
+    }
+    if schema_name in tool_schemas:
+        return "TOOL"
+    if schema_name in agent_schemas:
+        return "AGENT"
+    return "GENERATION"
+
+
+def _trace_span(trace_id: str | None, schema_name: str, system: str, user: str, span_type: str | None = None) -> str | None:
     """Tạo Langfuse span cho agent call. Trả về span_id hoặc None."""
     if not trace_id:
         return None
@@ -45,7 +71,7 @@ def _trace_span(trace_id: str | None, schema_name: str, system: str, user: str) 
         "id": span_id,
         "trace_id": trace_id,
         "name": f"agent_{schema_name}",
-        "type": "GENERATION",
+        "type": span_type,
         "start_time": datetime.now(timezone.utc).isoformat(),
         "input": {"system": system[:200], "user": user[:200]},
     })
@@ -91,6 +117,7 @@ def _extract_json(text: str) -> dict | None:
 async def generate_structured(
     tier: str, system: str, user: str, schema: type[T],
     trace_id: str | None = None,
+    span_type: str = "GENERATION",
 ) -> T:
     from app.core.config import settings
     if tier == "smart" and settings.llm_provider.lower() == "deepseek" and settings.llm_model_smart == "deepseek-reasoner":
@@ -103,7 +130,8 @@ async def generate_structured(
         tier = "fast"
 
     effective_trace_id = trace_id or current_trace_id.get()
-    span_id = _trace_span(effective_trace_id, schema.__name__, system, user)
+    effective_span_type = span_type or _classify_span_type(schema.__name__)
+    span_id = _trace_span(effective_trace_id, schema.__name__, system, user, effective_span_type)
     llm = get_chat_model(tier, trace_id=effective_trace_id)
     messages = [SystemMessage(content=system), HumanMessage(content=user)]
 
