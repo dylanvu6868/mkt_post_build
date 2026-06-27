@@ -84,7 +84,7 @@ async def generate_page(body: GenerateReq, user: User = Depends(get_current_user
     allowed, used, limit = await check_daily_landing_generates(session, user)
     if not allowed:
         raise HTTPException(429, f"Bạn đã đạt giới hạn tạo landing page trong ngày của gói hiện tại ({limit}/ngày). Vui lòng nâng cấp.")
-    from app.llm.factory import get_chat_model, provider_available
+    from app.llm.factory import get_chat_model_for_tier as get_chat_model, provider_available
     if not provider_available():
         raise HTTPException(503, "LLM provider not configured")
         
@@ -272,7 +272,7 @@ class GenerateCustomReq(BaseModel):
 async def generate_custom_landing(body: GenerateCustomReq, user: User = Depends(get_current_user)):
     """AI generates a custom landing page from user's description,
     using template patterns as style reference (not slot-filling)."""
-    from app.llm.factory import get_chat_model, provider_available
+    from app.llm.factory import get_chat_model_for_tier as get_chat_model, provider_available
     if not provider_available():
         raise HTTPException(503, "LLM provider not configured")
 
@@ -339,7 +339,7 @@ class OnboardReq(BaseModel):
 @router.post("/mcp/landing/onboard")
 async def onboard_generate(body: OnboardReq, user: User = Depends(get_current_user)):
     """AI generates landing page from onboarding wizard answers."""
-    from app.llm.factory import get_chat_model, provider_available
+    from app.llm.factory import get_chat_model_for_tier as get_chat_model, provider_available
     if not provider_available():
         raise HTTPException(503, "LLM provider not configured")
 

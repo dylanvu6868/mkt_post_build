@@ -64,7 +64,7 @@ async def upload_email_image(
 @router.post("/generate-custom")
 async def generate_custom_email(body: GenerateCustomReq, user: User = Depends(get_current_user)):
     """AI generates custom email content and renders it into a template."""
-    from app.llm.factory import get_chat_model, provider_available
+    from app.llm.factory import get_chat_model_for_tier as get_chat_model, provider_available
     if not provider_available():
         raise HTTPException(503, "LLM provider not configured")
 
@@ -129,7 +129,7 @@ class OnboardReq(BaseModel):
 @router.post("/onboard")
 async def onboard_generate(body: OnboardReq, user: User = Depends(get_current_user)):
     """AI generates email from onboarding wizard answers."""
-    from app.llm.factory import get_chat_model, provider_available
+    from app.llm.factory import get_chat_model_for_tier as get_chat_model, provider_available
     if not provider_available():
         raise HTTPException(503, "LLM provider not configured")
 

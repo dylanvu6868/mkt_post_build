@@ -50,3 +50,22 @@ def get_chat_model(tier: str, max_tokens: int | None = None, trace_id: str | Non
         chat_model = chat_model.with_config({"callbacks": [handler]})
 
     return chat_model
+
+
+def get_chat_model_for_tier(tier: str, max_tokens: int | None = None, trace_id: str | None = None) -> Any:
+    """Return a chat model suitable for structured output / tool_choice.
+
+    DeepSeek reasoner model doesn't support with_structured_output() or
+    tool_choice.  This guard logs a warning and falls back to the fast model
+    when that pairing would otherwise cause a 400 error.
+    """
+    if tier == "smart" and settings.llm_provider.lower() == "deepseek" and settings.llm_model_smart == "deepseek-reasoner":
+        import logging
+        logging.getLogger(__name__).warning(
+            "deepseek-reasoner does not support structured output. "
+            "Falling back to fast model (%s) for this call. "
+            "Set llm_model_smart to a chat model (e.g. deepseek-chat).",
+            settings.llm_model_fast,
+        )
+        tier = "fast"
+    return get_chat_model(tier, max_tokens=max_tokens, trace_id=trace_id)
