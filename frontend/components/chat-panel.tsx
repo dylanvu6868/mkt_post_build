@@ -1132,6 +1132,17 @@ export function ChatPanel() {
             const cleaned = cleanContent(msg.content);
             if (!cleaned) return null;
           }
+          // Render generation results as InlineResult cards
+          if (msg.role === "assistant" && msg.metadata_json && (msg.metadata_json as Record<string, unknown>)._contentType) {
+            const meta = msg.metadata_json as Record<string, unknown>;
+            return (
+              <InlineResult
+                key={msg.id}
+                result={meta as Record<string, unknown>}
+                onRedo={() => {}}
+              />
+            );
+          }
           return (
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} key={msg.id} className={cn("flex w-full", msg.role === "user" ? "justify-end" : "justify-start")}>
               <div className={cn(

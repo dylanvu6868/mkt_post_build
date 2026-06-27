@@ -505,17 +505,17 @@ export const useChatStore = create<ChatState>()(
 
               if (isFg()) {
                 set({
-                  contentPanel: { visible: false, generating: false, result: { ...statusData.result, _contentType: payload.content_type } },
+                  contentPanel: { visible: false, generating: false, result: null },
                   streamContent: "",
                 });
                 _saveGenerationResult(baseUrl, token, convId, draftText, set, get);
-                // Add result to local messages so it shows in chat without reload
+                // Add result to local messages as InlineResult card
                 const resultMsg: ChatMessage = {
                   id: Date.now() + 1,
                   conversation_id: convId,
                   role: "assistant",
                   content: draftText,
-                  metadata_json: null,
+                  metadata_json: { ...statusData.result, _contentType: payload.content_type } as Record<string, unknown> | null,
                   created_at: new Date().toISOString(),
                 };
                 set((s) => ({
