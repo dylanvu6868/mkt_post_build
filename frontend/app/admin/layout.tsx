@@ -89,7 +89,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <aside className="flex w-[240px] shrink-0 flex-col border-r border-border bg-card/50 backdrop-blur-2xl">
           <div className="flex items-center gap-2.5 px-5 py-4 border-b border-border">
             <button onClick={() => router.push("/dashboard")} className="flex items-center gap-2 text-[15px] font-bold text-foreground tracking-tight hover:opacity-80 transition-opacity">
-              <img src="/logo.png" alt="Logo" className="h-6 w-auto object-contain" />
+              <img src="/logo.png" alt="Vitba.ai" className="h-6 w-auto object-contain" />
               Vitba<span className="text-primary">.ai</span>
             </button>
             <span className="rounded-full bg-red-500/10 px-2 py-0.5 text-[10px] font-bold text-red-500 uppercase tracking-wider">Admin</span>

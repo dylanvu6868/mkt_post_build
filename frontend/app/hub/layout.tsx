@@ -128,7 +128,7 @@ export default function HubLayout({ children }: { children: React.ReactNode }) {
               "flex items-center font-bold text-foreground tracking-tight hover:opacity-80 transition-opacity",
               collapsed ? "justify-center" : "gap-2 text-[15px]"
             )}>
-              <img src="/logo.png" alt="Logo" className="h-6 w-auto object-contain" />
+              <img src="/logo.png" alt="Vitba.ai" className="h-6 w-auto object-contain" />
               {!collapsed && (<>Vitba<span className="text-primary">.ai</span></>)}
             </button>
             {!collapsed && (
