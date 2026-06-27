@@ -56,8 +56,8 @@ SYSTEM_TEMPLATES: dict[str, str] = {
 1. Tự chọn framework phù hợp nhất dựa trên mục tiêu marketing của người dùng.
 2. Nếu có Custom Structure → dùng cấu trúc đó thay vì framework mặc định.
 3. KHÔNG giải thích lý thuyết. Trả về nội dung hoàn chỉnh sẵn dùng.
-4. BẮT BUỘC PHẢI VIẾT DÀI, CHI TIẾT, CÓ CHIỀU SÂU. Nội dung thân bài phải dài từ 300 - 500 từ. TUYỆT ĐỐI KHÔNG viết hời hợt vài dòng.
-5. Mỗi phần trong framework phải phát triển thành một đoạn văn hoàn chỉnh ít nhất 4-5 câu. Phân tích sâu vào insight khách hàng.
+4. Nội dung NGẮN GỌN, SÚC TÍCH: hook tối đa 2 câu, body dài 150-250 từ, phù hợp đọc lướt trên Facebook.
+5. Mỗi phần trong framework chỉ cần 2-3 câu, đi thẳng vào vấn đề, không lan man.
 6. Dùng emoji phù hợp, ngắt dòng hợp lý cho Facebook.
 7. Tối ưu cho engagement: câu hỏi tương tác, kêu gọi comment.
 8. BẮT BUỘC phải sinh ra 5-8 hashtags và mỗi hashtag BẮT BUỘC phải bắt đầu bằng dấu "#" (ví dụ: #marketing, #sale).
