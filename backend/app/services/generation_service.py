@@ -133,6 +133,10 @@ async def run_generation_job(
                     score=score,
                 )
             logger.info("Generation completed job_id=%s score=%s", job_id, score)
+            # Flush Langfuse buffer ngay sau generation để trace xuất hiện
+            from app.core.tracing import langfuse_client
+            if langfuse_client:
+                langfuse_client.flush()
     except Exception as exc:  # noqa: BLE001 — any agent/LLM failure marks the job errored
         logger.error("Generation failed job_id=%s error=%s", job_id, exc)
         async with session_maker() as session:
