@@ -70,7 +70,7 @@ class Settings(BaseSettings):
 
     # RAG (M3) — multilingual models for Vietnamese support
     qdrant_collection_name: str = "marketing_docs"
-    embedding_model: str = "BAAI/bge-m3"
+    embedding_model: str = "BAAI/bge-small-en-v1.5"
     sparse_embedding_model: str = "Qdrant/bm25"
     reranker_model: str = "BAAI/bge-reranker-v2-m3"
     rag_chunk_size: int = 800

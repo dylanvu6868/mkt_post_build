@@ -383,6 +383,32 @@ async def copywriter(state: dict[str, Any]) -> dict[str, Any]:
         f"{brand_voice_section}\n\n"
         "Hãy chọn framework phù hợp nhất và viết nội dung HOÀN CHỈNH, DÀI, CHI TIẾT ngay bây giờ."
     )
-    result = await generate_structured("fast", system, user, schema)
-    final = result.model_dump()
+    try:
+        result = await generate_structured("fast", system, user, schema)
+        final = result.model_dump() if hasattr(result, "model_dump") else result
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).warning(
+            "generate_structured failed for %s: %s. Generating fallback draft.",
+            content_type, e,
+        )
+        # Fallback: generate raw text content via regular LLM call
+        try:
+            model = get_chat_model("fast")
+            raw = await model.ainvoke([SystemMessage(content=system), HumanMessage(content=user)])
+            text = raw.content if hasattr(raw, "content") else str(raw)
+            final = {
+                "hook": text[:100] if content_type == "facebook_post" else "",
+                "body": text,
+                "cta": "Liên hệ ngay để biết thêm chi tiết.",
+                "hashtags": ["#marketing", "#vitba"],
+            }
+        except Exception as fallback_err:
+            logging.error("Fallback also failed: %s", fallback_err)
+            final = DRAFT_SCHEMAS.get(content_type, FacebookPostDraft)(
+                hook="Bài viết marketing",
+                body=brief,
+                cta="Liên hệ ngay",
+                hashtags=["#marketing"],
+            ).model_dump()
     return {"draft": final, "final": final, "formatted_final": final}
