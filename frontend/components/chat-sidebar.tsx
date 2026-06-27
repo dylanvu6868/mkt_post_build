@@ -104,8 +104,8 @@ export function ChatSidebar() {
         <div className="flex items-center justify-between px-5 py-4">
           <div className="flex items-center gap-2">
             <h1 className="flex items-center gap-2.5 text-[17px] font-bold text-foreground tracking-tight">
-              <img src="/logo.png" alt="Logo" className="h-6 w-6 object-contain" />
-              Vitba.ai
+              <img src="/logo.png" alt="Vitba.ai" className="h-6 w-auto object-contain" />
+              Vitba<span className="text-primary">.ai</span>
             </h1>
             <ThemeToggle />
           </div>
