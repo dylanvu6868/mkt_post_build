@@ -62,23 +62,23 @@ async def generate_structured(
     parent_trace_id = current_trace_id_ctx.get()
     span = None
     if parent_trace_id and langfuse_client:
-        span = langfuse_client.start_observation(
+        span = langfuse_client.start_as_current_observation(
             name=f"generate_structured_{schema.__name__}",
             as_type="GENERATION",
             trace_context={"trace_id": parent_trace_id},
             input=[{"role": "system", "content": system[:200]}, {"role": "user", "content": user[:200]}],
+            end_on_exit=False,
         )
+        span.__enter__()
 
     try:
         result = await llm.with_structured_output(schema).ainvoke(messages)
         if span:
-            langfuse_client.update_current_generation(
-                output=result.model_dump() if hasattr(result, "model_dump") else str(result),
-            )
+            span.__exit__(None, None, None)
         return result
     except Exception as e:
         if span:
-            langfuse_client.update_current_generation(output=None, level="ERROR")
+            span.__exit__(type(e), e, e.__traceback__)
         import logging
         logging.getLogger(__name__).warning(
             "Structured output failed for %s: %s. Falling back to JSON extraction.",
@@ -103,7 +103,7 @@ async def generate_structured(
             return schema.model_validate(data)
     except Exception as e:
         if span:
-            langfuse_client.update_current_generation(output=None, level="ERROR")
+            span.__exit__(type(e), e, e.__traceback__)
         print(f"generate_structured fallback failed for {schema.__name__}: {e}")
 
     raise ValueError(f"Could not parse {schema.__name__} from LLM response")

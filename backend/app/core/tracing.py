@@ -91,20 +91,16 @@ def trace_request(
         input_data["session_id"] = session_id
 
     # Start a generation-level observation as the root span
+    trace_context = {"trace_id": trace_id}
     observation = langfuse_client.start_observation(
         name=name,
         as_type="GENERATION",
         input=input_data,
-        trace_context={"trace_id": trace_id},
+        trace_context=trace_context,
     )
     token = current_trace_id_ctx.set(trace_id)
     try:
         yield trace_id
     finally:
         current_trace_id_ctx.reset(token)
-        # End the root observation
-        try:
-            langfuse_client.update_current_generation(input=input_data)
-        except Exception:
-            pass
         langfuse_client.flush()
