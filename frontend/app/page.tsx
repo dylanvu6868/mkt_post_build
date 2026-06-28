@@ -119,8 +119,8 @@ export default function LandingPage() {
       <header className="sticky top-0 z-50 backdrop-blur-xl bg-background/70 border-b border-border/60">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-3.5">
           <div className="flex items-center gap-2">
-            <img src="/logo.png" alt="Vitba.ai" className="h-6 w-auto object-contain" />
-            <span className="text-lg font-extrabold tracking-tight">Vitba<span className="text-primary">.ai</span></span>
+            <img src="/logo.png" alt="Vitba" className="h-6 w-auto object-contain" />
+            <span className="text-lg font-extrabold tracking-tight">Vitba</span>
           </div>
           <nav className="hidden md:flex items-center gap-7 text-sm font-medium text-muted-foreground">
             <a href="#features" className="hover:text-foreground transition">Tính năng</a>
@@ -384,8 +384,8 @@ export default function LandingPage() {
             {/* Brand */}
             <div className="space-y-4">
               <div className="flex items-center gap-2">
-                <img src="/logo.png" alt="Vitba.ai" className="h-6 w-auto object-contain" />
-                <span className="text-lg font-extrabold tracking-tight">Vitba<span className="text-primary">.ai</span></span>
+                <img src="/logo.png" alt="Vitba" className="h-6 w-auto object-contain" />
+                <span className="text-lg font-extrabold tracking-tight">Vitba</span>
               </div>
               <p className="text-sm text-muted-foreground leading-relaxed">
                 Nền tảng AI Marketing chuyên biệt cho người Việt — tạo nội dung chuẩn chuyên gia trong 30 giây.

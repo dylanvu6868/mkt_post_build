@@ -163,7 +163,7 @@ export default function LoginPage() {
               <div className="panel-block p-4">
                 <div className="surface-card p-8 xl:p-10">
                   <div className="mb-8">
-                    <img src="/logo.png" alt="Vitba.ai" className="h-20 w-auto object-contain object-left" />
+                    <img src="/logo.png" alt="Vitba" className="h-20 w-auto object-contain object-left" />
                   </div>
 
                   <span className="pill-tag mb-5">
@@ -210,7 +210,7 @@ export default function LoginPage() {
         <div className="w-full lg:w-1/2 h-full flex items-center justify-center p-5 sm:p-8 relative z-10">
           <div className="w-full max-w-[440px]">
             <div className="lg:hidden flex justify-center mb-6">
-              <img src="/logo.png" alt="Vitba.ai" className="h-10 w-auto object-contain" />
+              <img src="/logo.png" alt="Vitba" className="h-10 w-auto object-contain" />
             </div>
 
             <div className="w-full rounded-[2rem] border border-border bg-card p-8 lg:p-10 relative overflow-hidden">
