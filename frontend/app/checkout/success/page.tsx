@@ -38,8 +38,8 @@ function CheckoutSuccessContent() {
             onClick={() => router.push("/pricing")}
             className="flex items-center gap-2.5 text-[17px] font-bold text-foreground tracking-tight hover:opacity-80 transition-opacity"
           >
-            <img src="/logo.png" alt="Logo" className="h-6 w-6 object-contain" />
-            Vitba.ai
+            <img src="/logo.png" alt="Vitba.ai" className="h-6 w-auto object-contain" />
+            Vitba<span className="text-primary">.ai</span>
           </button>
           <div className="flex items-center gap-3">
             <ThemeToggle />
