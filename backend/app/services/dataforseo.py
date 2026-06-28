@@ -234,7 +234,7 @@ class DataForSEOService:
         ]
         return await self._request(
             "POST",
-            "/v3/dataforseo_labs/google/keyword_suggestions_live",
+            "/v3/dataforseo_labs/google/keyword_suggestions/live",
             payload,
             endpoint_label="keyword_suggestions",
         )
@@ -266,7 +266,7 @@ class DataForSEOService:
         ]
         return await self._request(
             "POST",
-            "/v3/dataforseo_labs/google/keyword_ideas_live",
+            "/v3/dataforseo_labs/google/keyword_ideas/live",
             payload,
             endpoint_label="keyword_ideas",
         )
@@ -301,7 +301,7 @@ class DataForSEOService:
         ]
         return await self._request(
             "POST",
-            "/v3/dataforseo_labs/google/related_keywords_live",
+            "/v3/dataforseo_labs/google/related_keywords/live",
             payload,
             endpoint_label="related_keywords",
         )
@@ -333,7 +333,7 @@ class DataForSEOService:
         ]
         return await self._request(
             "POST",
-            "/v3/dataforseo_labs/google/domain_rank_overview_live",
+            "/v3/dataforseo_labs/google/domain_rank_overview/live",
             payload,
             endpoint_label="domain_rank_overview",
         )
@@ -364,7 +364,7 @@ class DataForSEOService:
         ]
         return await self._request(
             "POST",
-            "/v3/dataforseo_labs/google/ranked_keywords_live",
+            "/v3/dataforseo_labs/google/ranked_keywords/live",
             payload,
             endpoint_label="ranked_keywords",
         )
@@ -395,7 +395,7 @@ class DataForSEOService:
         ]
         return await self._request(
             "POST",
-            "/v3/dataforseo_labs/google/serp_competitors_live",
+            "/v3/dataforseo_labs/google/serp_competitors/live",
             payload,
             endpoint_label="serp_competitors",
         )
