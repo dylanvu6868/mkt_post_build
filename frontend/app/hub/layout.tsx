@@ -118,11 +118,11 @@ export default function HubLayout({ children }: { children: React.ReactNode }) {
       <div className="flex h-screen bg-background">
         <aside className={cn(
           "flex shrink-0 flex-col border-r border-border bg-card/50 backdrop-blur-2xl transition-all duration-300",
-          collapsed ? "w-[64px]" : "w-[240px]"
+          collapsed ? "w-[64px]" : "w-[280px]"
         )}>
           <div className={cn(
-            "flex items-center border-b border-border transition-all duration-300",
-            collapsed ? "justify-center px-2 py-4" : "gap-2.5 px-5 py-4"
+            "flex items-center justify-between border-b border-border transition-all duration-300",
+            collapsed ? "flex-col px-2 py-3" : "px-5 py-4"
           )}>
             <button onClick={() => router.push("/dashboard")} className={cn(
               "flex items-center font-bold text-foreground tracking-tight hover:opacity-80 transition-opacity",
@@ -133,6 +133,25 @@ export default function HubLayout({ children }: { children: React.ReactNode }) {
             </button>
             {!collapsed && (
               <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary uppercase tracking-wider">Hub</span>
+            )}
+            {/* Collapse + Về Chat buttons in header row */}
+            {!collapsed && (
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => router.push("/dashboard")}
+                  title="Về Chat"
+                  className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground transition-all"
+                >
+                  <ArrowLeft size={14} />
+                </button>
+                <button
+                  onClick={() => setCollapsed((v) => !v)}
+                  title="Thu gọn"
+                  className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground transition-all"
+                >
+                  <ChevronLeft size={14} />
+                </button>
+              </div>
             )}
           </div>
 
@@ -213,28 +232,7 @@ export default function HubLayout({ children }: { children: React.ReactNode }) {
             ))}
           </nav>
 
-          <div className="border-t border-border p-3 space-y-2">
-            <button
-              onClick={() => setCollapsed((v) => !v)}
-              title={collapsed ? "Mở rộng" : "Thu gọn"}
-              className={cn(
-                "flex w-full items-center gap-2 rounded-xl px-3 py-2 text-[12px] font-medium text-muted-foreground hover:bg-accent hover:text-foreground transition-all",
-                collapsed ? "justify-center border border-border" : "border border-border"
-              )}
-            >
-              {collapsed ? <ChevronRight size={14} /> : <><ChevronLeft size={14} /> Thu gọn</>}
-            </button>
-            <button
-              onClick={() => router.push("/dashboard")}
-              title="Về Chat"
-              className={cn(
-                "flex w-full items-center gap-2 rounded-xl border border-border px-3 py-2 text-[12px] font-medium text-muted-foreground hover:bg-accent hover:text-foreground transition-all",
-                collapsed ? "justify-center px-2" : ""
-              )}
-            >
-              <ArrowLeft size={14} />
-              {!collapsed && <>Về Chat</>}
-            </button>
+          <div className="border-t border-border p-3">
             <div className={cn(
               "flex items-center",
               collapsed ? "flex-col gap-2" : "justify-between px-1"
@@ -252,6 +250,24 @@ export default function HubLayout({ children }: { children: React.ReactNode }) {
                 "flex items-center",
                 collapsed ? "flex-col gap-1" : "gap-0.5"
               )}>
+                {collapsed && (
+                  <button
+                    onClick={() => router.push("/dashboard")}
+                    title="Về Chat"
+                    className="flex h-7 w-7 items-center justify-center rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground transition-all"
+                  >
+                    <ArrowLeft size={14} />
+                  </button>
+                )}
+                {collapsed && (
+                  <button
+                    onClick={() => setCollapsed((v) => !v)}
+                    title="Mở rộng"
+                    className="flex h-7 w-7 items-center justify-center rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground transition-all"
+                  >
+                    <ChevronRight size={14} />
+                  </button>
+                )}
                 <ThemeToggle />
                 <button onClick={logout} className="flex h-7 w-7 items-center justify-center rounded-full text-muted-foreground hover:bg-red-500/10 hover:text-red-400 transition-colors" title="Đăng xuất">
                   <LogOut size={13} />
