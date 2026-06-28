@@ -232,20 +232,20 @@ export default function HubLayout({ children }: { children: React.ReactNode }) {
             ))}
           </nav>
 
-          <div className="border-t border-border p-3">
-            <div className={cn(
-              "flex items-center",
-              collapsed ? "flex-col gap-2" : "justify-between"
-            )}>
-              <div className={cn(
-                "flex items-center min-w-0",
-                collapsed ? "flex-col gap-1" : "gap-2.5"
-              )}>
+          <div className="border-t border-border p-4 bg-gradient-to-t from-background to-transparent">
+            {user?.is_admin && (
+              <a href="/admin" className="mb-3 flex items-center justify-center gap-2 rounded-xl px-3 py-2 text-[12px] font-medium text-muted-foreground hover:bg-accent border border-border hover:border-border hover:text-foreground transition-all">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/><path d="m9 12 2 2 4-4"/></svg>
+                Admin Dashboard
+              </a>
+            )}
+            <div data-tour="user-profile" className="flex items-center justify-between glass-card p-3 rounded-2xl shadow-none border-border hover:border-border group">
+              <div className="flex items-center gap-2.5 min-w-0 flex-1">
                 <div className="shrink-0 flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-yellow-400 to-amber-500 text-amber-950 text-[13px] font-bold">
                   {user?.name?.charAt(0)?.toUpperCase() || "U"}
                 </div>
                 {!collapsed && (
-                  <div className="min-w-0 flex flex-col justify-center">
+                  <div className="min-w-0 flex-1 flex flex-col justify-center">
                     <div className="flex items-center gap-1.5">
                       <span className="truncate text-[13px] font-semibold text-foreground">{user?.name}</span>
                     </div>
@@ -253,31 +253,20 @@ export default function HubLayout({ children }: { children: React.ReactNode }) {
                   </div>
                 )}
               </div>
-              <div className={cn(
-                "flex items-center",
-                collapsed ? "flex-col gap-1" : "gap-0.5"
-              )}>
+              <div className="flex items-center gap-1">
                 {collapsed && (
-                  <button
-                    onClick={() => router.push("/dashboard")}
-                    title="Về Chat"
-                    className="flex h-7 w-7 items-center justify-center rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground transition-all"
-                  >
-                    <ArrowLeft size={14} />
+                  <button onClick={() => router.push("/dashboard")} title="Về Chat" className="flex h-8 w-8 items-center justify-center rounded-full bg-transparent text-muted-foreground hover:bg-accent hover:text-foreground transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
                   </button>
                 )}
                 {collapsed && (
-                  <button
-                    onClick={() => setCollapsed((v) => !v)}
-                    title="Mở rộng"
-                    className="flex h-7 w-7 items-center justify-center rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground transition-all"
-                  >
-                    <ChevronRight size={14} />
+                  <button onClick={() => setCollapsed((v) => !v)} title="Mở rộng" className="flex h-8 w-8 items-center justify-center rounded-full bg-transparent text-muted-foreground hover:bg-accent hover:text-foreground transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
                   </button>
                 )}
                 <ThemeToggle />
-                <button onClick={logout} className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground hover:bg-accent hover:text-foreground transition-colors" title="Đăng xuất">
-                  <LogOut size={13} />
+                <button onClick={logout} className="flex h-8 w-8 items-center justify-center rounded-full bg-transparent text-muted-foreground hover:bg-red-500/10 hover:text-red-600 dark:hover:text-red-400 transition-colors" title="Đăng xuất">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
                 </button>
               </div>
             </div>
