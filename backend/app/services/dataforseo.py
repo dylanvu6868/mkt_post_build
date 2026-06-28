@@ -68,11 +68,13 @@ class DataForSEOService:
         """Lazy-init a shared httpx.AsyncClient."""
         if self._client is None or self._client.is_closed:
             api_key = self.get_api_key()
-            auth = (api_key, "") if api_key else None
+            # DataForSEO API key is already base64-encoded — set header directly
+            headers = {"Content-Type": "application/json"}
+            if api_key:
+                headers["Authorization"] = f"Basic {api_key}"
             self._client = httpx.AsyncClient(
                 base_url=BASE_URL,
-                auth=auth,
-                headers={"Content-Type": "application/json"},
+                headers=headers,
                 timeout=httpx.Timeout(TIMEOUT_SECONDS),
             )
         return self._client
