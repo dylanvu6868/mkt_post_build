@@ -25,6 +25,7 @@ import {
   UserSearch,
   Hash,
   Languages,
+  Search,
   type LucideIcon,
 } from "lucide-react";
 
@@ -225,14 +226,46 @@ const CATEGORIES = [
   },
   {
     id: "seo",
-    label: "SEO",
+    label: "Vitba SEO",
     tools: [
+      {
+        id: "keyword-research",
+        href: "/hub/lab/keyword-research",
+        name: "Keyword Research",
+        tagline: "Nghiên cứu từ khóa thực tế: search volume, độ khó, CPC, xu hướng — dữ liệu từ DataForSEO",
+        tag: "new",
+        icon: Search,
+      },
+      {
+        id: "rank-tracker",
+        href: "/hub/lab/rank-tracker",
+        name: "Rank Tracker",
+        tagline: "Theo dõi thứ hạng domain: authority, ETV, từ khóa đang xếp hạng",
+        tag: "new",
+        icon: TrendingUp,
+      },
+      {
+        id: "backlinks",
+        href: "/hub/lab/backlinks",
+        name: "Backlinks Analyzer",
+        tagline: "Phân tích backlinks: tổng quan, referring domains, liên kết mới nhất",
+        tag: "new",
+        icon: Share2,
+      },
+      {
+        id: "serp-spy",
+        href: "/hub/lab/serp-spy",
+        name: "SERP Spy",
+        tagline: "Do thám SERP: kết quả tìm kiếm, đối thủ cạnh tranh, cơ hội lọt top",
+        tag: "new",
+        icon: Crosshair,
+      },
       {
         id: "seo-analysis",
         href: "/hub/lab/seo-analysis",
         name: "Vitba SEO Analysis",
         tagline: "Phân tích SEO chuyên sâu: đối thủ, keyword gap, content plan, backlink, technical + roadmap 30-60-90 ngày",
-        tag: "new",
+        tag: "available",
         icon: Globe,
       },
     ],
