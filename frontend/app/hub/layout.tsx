@@ -21,8 +21,6 @@ import {
   Frame,
   ArrowLeft,
   LogOut,
-  ChevronLeft,
-  ChevronRight,
   type LucideIcon,
 } from "lucide-react";
 import { FacebookIcon } from "@/components/brand-icons";
