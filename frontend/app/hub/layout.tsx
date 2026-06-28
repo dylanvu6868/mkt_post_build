@@ -35,12 +35,12 @@ const NAV = [
   { label: "Tổng quan", href: "/hub", icon: "overview", toolKey: null },
   { label: "Meta Publisher", href: "/hub/meta", icon: "meta", toolKey: "meta" },
   { label: "Content Calendar", href: "/hub/calendar", icon: "calendar", toolKey: "calendar" },
-  { label: "Vitba SEO", href: "/hub/seo", icon: "seo", toolKey: "seo" },
   { label: "Analytics", href: "/hub/analytics", icon: "analytics", toolKey: "analytics" },
 ];
 
 const LAB_NAV = [
   { label: "Vitba Tool", href: "/hub/lab", icon: "lab" },
+  { label: "Vitba SEO", href: "/hub/seo", icon: "seo" },
   { label: "Vitba Mail", href: "/hub/email", icon: "email" },
   { label: "Vitba Landing", href: "/hub/landing", icon: "landing" },
   { label: "Vitba Frame", href: "/hub/frame", icon: "frame" },
@@ -235,16 +235,23 @@ export default function HubLayout({ children }: { children: React.ReactNode }) {
           <div className="border-t border-border p-3">
             <div className={cn(
               "flex items-center",
-              collapsed ? "flex-col gap-2" : "justify-between px-1"
+              collapsed ? "flex-col gap-2" : "justify-between"
             )}>
               <div className={cn(
                 "flex items-center min-w-0",
-                collapsed ? "flex-col gap-1" : "gap-2"
+                collapsed ? "flex-col gap-1" : "gap-2.5"
               )}>
-                <div className="shrink-0 flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-yellow-400 to-amber-500 text-amber-950 text-[11px] font-bold">
+                <div className="shrink-0 flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-yellow-400 to-amber-500 text-amber-950 text-[13px] font-bold">
                   {user?.name?.charAt(0)?.toUpperCase() || "U"}
                 </div>
-                {!collapsed && <span className="truncate text-[12px] font-medium text-foreground">{user?.name}</span>}
+                {!collapsed && (
+                  <div className="min-w-0 flex flex-col justify-center">
+                    <div className="flex items-center gap-1.5">
+                      <span className="truncate text-[13px] font-semibold text-foreground">{user?.name}</span>
+                    </div>
+                    <span className="truncate text-[11px] text-muted-foreground">{user?.email}</span>
+                  </div>
+                )}
               </div>
               <div className={cn(
                 "flex items-center",
@@ -269,7 +276,7 @@ export default function HubLayout({ children }: { children: React.ReactNode }) {
                   </button>
                 )}
                 <ThemeToggle />
-                <button onClick={logout} className="flex h-7 w-7 items-center justify-center rounded-full text-muted-foreground hover:bg-red-500/10 hover:text-red-400 transition-colors" title="Đăng xuất">
+                <button onClick={logout} className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground hover:bg-accent hover:text-foreground transition-colors" title="Đăng xuất">
                   <LogOut size={13} />
                 </button>
               </div>
