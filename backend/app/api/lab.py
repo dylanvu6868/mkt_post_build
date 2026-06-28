@@ -1,3 +1,4 @@
+import asyncio
 import logging
 
 from fastapi import APIRouter, Depends, HTTPException, Request
@@ -11,6 +12,7 @@ from app.core.tracing import trace_request
 from app.models.user import User
 from app.models.lab_history import LabHistory
 from app.services.audit import log_action
+from app.services.dataforseo import DataForSEOService
 from app.agents.lab import (
     run_shield_agent, run_psycho_agent, run_persona_agent,
     run_dna_agent, run_simulator_agent, run_cinematic_agent,
@@ -137,6 +139,24 @@ class ZaloPublishRequest(BaseModel):
     image_url: str | None = Field(None, max_length=2000)
 
 
+# --- DataForSEO Lab Tool Request Schemas ---
+
+class KeywordResearchRequest(BaseModel):
+    keyword: str = Field(..., max_length=200)
+    location_code: int = Field(2840, description="DataForSEO location code (2840 = Vietnam)")
+
+class RankTrackerRequest(BaseModel):
+    domain: str = Field(..., max_length=200)
+    location_code: int = Field(2840, description="DataForSEO location code (2840 = Vietnam)")
+
+class BacklinksRequest(BaseModel):
+    domain: str = Field(..., max_length=200)
+
+class SerpSpyRequest(BaseModel):
+    keyword: str = Field(..., max_length=200)
+    location_code: int = Field(2840, description="DataForSEO location code (2840 = Vietnam)")
+
+
 # --- Helpers ---
 
 async def _audit(user_id: int, tool: str, ip: str | None = None):
@@ -164,8 +184,8 @@ async def _run_tool(tool_name: str, agent_fn, user: User, request: Request, inpu
             metadata={"tool": tool_name, "plan": plan, "input": input_data},
         ):
             result = await agent_fn()
-        output_data = result.model_dump()
-        
+        output_data = result.model_dump() if hasattr(result, "model_dump") else result
+
         # Save to lab_history
         if input_data is not None:
             async with async_session_maker() as session:
@@ -177,7 +197,7 @@ async def _run_tool(tool_name: str, agent_fn, user: User, request: Request, inpu
                 )
                 session.add(history_entry)
                 await session.commit()
-                
+
         return output_data
     except ValueError as e:
         logger.warning("Lab tool %s failed for user %s: %s", tool_name, user.id, e)
@@ -203,10 +223,10 @@ async def get_lab_history(
         if tool_name:
             stmt = stmt.where(LabHistory.tool_name == tool_name)
         stmt = stmt.order_by(LabHistory.created_at.desc())
-        
+
         result = await session.execute(stmt)
         histories = result.scalars().all()
-        
+
         return [
             {
                 "id": str(h.id),
@@ -228,17 +248,17 @@ async def delete_lab_history(
             h_uuid = uuid.UUID(history_id)
         except ValueError:
             raise HTTPException(status_code=400, detail="Invalid history ID")
-            
+
         stmt = select(LabHistory).where(
             LabHistory.id == h_uuid,
             LabHistory.user_id == current_user.id
         )
         result = await session.execute(stmt)
         history = result.scalars().first()
-        
+
         if not history:
             raise HTTPException(status_code=404, detail="History not found")
-            
+
         await session.delete(history)
         await session.commit()
         return {"status": "success"}
@@ -392,3 +412,124 @@ async def seo_analysis_endpoint(request: Request, req: SeoAnalysisRequest, curre
     except Exception:
         logger.exception("SEO analysis failed for user %s", current_user.id)
         raise HTTPException(status_code=500, detail="Có lỗi xảy ra khi phân tích SEO.")
+
+
+# --- DataForSEO Lab Tool Endpoints ---
+
+def _check_dataforseo():
+    """Raise 503 if DataForSEO API key is not configured."""
+    if not DataForSEOService.get_api_key():
+        raise HTTPException(
+            status_code=503,
+            detail="DataForSEO chưa được cấu hình. Vui lòng cung cấp API key DATAFORSEO_API_KEY.",
+        )
+
+
+@router.post("/keyword-research")
+@limiter.limit("3/minute")
+async def keyword_research_endpoint(
+    request: Request,
+    req: KeywordResearchRequest,
+    current_user: User = Depends(get_current_user),
+):
+    """Research keywords via DataForSEO — suggestions, ideas, related keywords."""
+    _check_dataforseo()
+
+    async def _run():
+        d4s = DataForSEOService()
+        overview, ideas, related = await asyncio.gather(
+            d4s.keyword_suggestions(req.keyword, req.location_code),
+            d4s.keyword_ideas(keywords=[req.keyword], location_code=req.location_code),
+            d4s.related_keywords(req.keyword, req.location_code),
+        )
+        return {"overview": overview, "ideas": ideas, "related": related}
+
+    return await _run_tool(
+        "keyword_research",
+        _run,
+        current_user,
+        request,
+        input_data=req.model_dump(),
+    )
+
+
+@router.post("/rank-tracker")
+@limiter.limit("3/minute")
+async def rank_tracker_endpoint(
+    request: Request,
+    req: RankTrackerRequest,
+    current_user: User = Depends(get_current_user),
+):
+    """Track domain authority & ranked keywords via DataForSEO."""
+    _check_dataforseo()
+
+    async def _run():
+        d4s = DataForSEOService()
+        rank_overview, ranked_kws = await asyncio.gather(
+            d4s.domain_rank_overview(target=req.domain, location_code=req.location_code),
+            d4s.ranked_keywords(target=req.domain, location_code=req.location_code),
+        )
+        return {"rank_overview": rank_overview, "ranked_keywords": ranked_kws}
+
+    return await _run_tool(
+        "rank_tracker",
+        _run,
+        current_user,
+        request,
+        input_data=req.model_dump(),
+    )
+
+
+@router.post("/backlinks")
+@limiter.limit("3/minute")
+async def backlinks_endpoint(
+    request: Request,
+    req: BacklinksRequest,
+    current_user: User = Depends(get_current_user),
+):
+    """Analyze backlinks, referring domains, and link quality via DataForSEO."""
+    _check_dataforseo()
+
+    async def _run():
+        d4s = DataForSEOService()
+        summary, ref_domains, bklinks = await asyncio.gather(
+            d4s.backlinks_summary(target=req.domain),
+            d4s.referring_domains(target=req.domain),
+            d4s.backlinks(target=req.domain),
+        )
+        return {"summary": summary, "referring_domains": ref_domains, "backlinks": bklinks}
+
+    return await _run_tool(
+        "backlinks",
+        _run,
+        current_user,
+        request,
+        input_data=req.model_dump(),
+    )
+
+
+@router.post("/serp-spy")
+@limiter.limit("3/minute")
+async def serp_spy_endpoint(
+    request: Request,
+    req: SerpSpyRequest,
+    current_user: User = Depends(get_current_user),
+):
+    """Spy on SERP results and competitors for a keyword via DataForSEO."""
+    _check_dataforseo()
+
+    async def _run():
+        d4s = DataForSEOService()
+        serp_results, competitors = await asyncio.gather(
+            d4s.google_organic_serp(req.keyword, req.location_code),
+            d4s.serp_competitors(keywords=[req.keyword], location_code=req.location_code),
+        )
+        return {"serp_results": serp_results, "competitors": competitors}
+
+    return await _run_tool(
+        "serp_spy",
+        _run,
+        current_user,
+        request,
+        input_data=req.model_dump(),
+    )

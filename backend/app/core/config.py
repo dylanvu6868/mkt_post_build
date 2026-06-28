@@ -50,6 +50,9 @@ class Settings(BaseSettings):
     cloudflare_api_token: str = ""
     cloudflare_account_id: str = ""
 
+    # DataForSEO — keyword research, rank tracking, backlinks, SERP
+    dataforseo_api_key: str = ""
+
     # Meta (Facebook/Instagram) OAuth + Graph API
     meta_app_id: str = ""
     meta_app_secret: str = ""
