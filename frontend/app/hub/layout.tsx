@@ -42,7 +42,7 @@ const NAV = [
 const LAB_NAV = [
   { label: "Vitba Tool", href: "/hub/lab", icon: "lab" },
   { label: "Vitba Mail", href: "/hub/email", icon: "email" },
-  { label: "Vitba Landing Page", href: "/hub/landing", icon: "landing" },
+  { label: "Vitba Landing", href: "/hub/landing", icon: "landing" },
   { label: "Vitba Frame", href: "/hub/frame", icon: "frame" },
   { label: "Vitba Study", href: "/hub/study", icon: "study" },
   { label: "Vitba Report", href: "/hub/report", icon: "report" },
@@ -136,7 +136,7 @@ export default function HubLayout({ children }: { children: React.ReactNode }) {
             )}
           </div>
 
-          <nav className="flex-1 overflow-y-auto px-3 py-3 space-y-0.5">
+          <nav className="flex-1 overflow-y-auto px-3 py-3 space-y-0.5 no-scrollbar">
             {!collapsed && <p className="px-3 pb-1.5 pt-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/50">Marketing</p>}
             {NAV.map((item) => {
               const isLocked =
