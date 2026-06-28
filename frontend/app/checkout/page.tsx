@@ -140,8 +140,8 @@ function CheckoutContent() {
       <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-xl">
         <div className="mx-auto flex max-w-4xl items-center justify-between px-6 py-4">
           <button onClick={() => router.push("/pricing")} className="flex items-center gap-2.5 text-[17px] font-bold text-foreground tracking-tight hover:opacity-80 transition-opacity">
-            <img src="/logo.png" alt="Vitba.ai" className="h-6 w-auto object-contain" />
-            Vitba<span className="text-primary">.ai</span>
+            <img src="/logo.png" alt="Vitba" className="h-6 w-auto object-contain" />
+            Vitba
           </button>
           <div className="flex items-center gap-3">
             <ThemeToggle />
