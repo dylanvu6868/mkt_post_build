@@ -34,15 +34,15 @@ type IconComp = LucideIcon | ((props: { size?: number; className?: string }) => 
 const NAV = [
   { label: "Tổng quan", href: "/hub", icon: "overview", toolKey: null },
   { label: "Meta Publisher", href: "/hub/meta", icon: "meta", toolKey: "meta" },
-  { label: "Vitba Mail", href: "/hub/email", icon: "email", toolKey: "email" },
   { label: "Content Calendar", href: "/hub/calendar", icon: "calendar", toolKey: "calendar" },
-  { label: "SEO Tools", href: "/hub/seo", icon: "seo", toolKey: "seo" },
+  { label: "Vitba SEO", href: "/hub/seo", icon: "seo", toolKey: "seo" },
   { label: "Analytics", href: "/hub/analytics", icon: "analytics", toolKey: "analytics" },
-  { label: "Vitba Landing Page", href: "/hub/landing", icon: "landing", toolKey: "landing" },
 ];
 
 const LAB_NAV = [
   { label: "Vitba Tool", href: "/hub/lab", icon: "lab" },
+  { label: "Vitba Mail", href: "/hub/email", icon: "email" },
+  { label: "Vitba Landing Page", href: "/hub/landing", icon: "landing" },
   { label: "Vitba Frame", href: "/hub/frame", icon: "frame" },
   { label: "Vitba Study", href: "/hub/study", icon: "study" },
   { label: "Vitba Report", href: "/hub/report", icon: "report" },
