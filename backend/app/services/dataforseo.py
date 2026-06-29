@@ -521,6 +521,164 @@ class DataForSEOService:
 
 
 # ---------------------------------------------------------------------------
+# Vietnamese diacritics enrichment
+# ---------------------------------------------------------------------------
+
+_VIET_DIACRITICS: dict[str, str] = {
+    "thiet ke": "thiết kế",
+    "cong ty": "công ty",
+    "dich vu": "dịch vụ",
+    "gia re": "giá rẻ",
+    "tot nhat": "tốt nhất",
+    "ha noi": "hà nội",
+    "ho chi minh": "hồ chí minh",
+    "da nang": "đà nẵng",
+    "sai gon": "sài gòn",
+    "mua sam": "mua sắm",
+    "truc tuyen": "trực tuyến",
+    "ban hang": "bán hàng",
+    "kinh doanh": "kinh doanh",
+    "quang cao": "quảng cáo",
+    "tiep thi": "tiếp thị",
+    "noi dung": "nội dung",
+    "san pham": "sản phẩm",
+    "khach hang": "khách hàng",
+    "thuong hieu": "thương hiệu",
+    "so sanh": "so sánh",
+    "danh gia": "đánh giá",
+    "huong dan": "hướng dẫn",
+    "lam the nao": "làm thế nào",
+    "la gi": "là gì",
+    "nhu the nao": "như thế nào",
+    "toi uu": "tối ưu",
+    "phan mem": "phần mềm",
+    "ung dung": "ứng dụng",
+    "cong nghe": "công nghệ",
+    "dien thoai": "điện thoại",
+    "may tinh": "máy tính",
+    "bat dong san": "bất động sản",
+    "nha dat": "nhà đất",
+    "cho thue": "cho thuê",
+    "du lich": "du lịch",
+    "khach san": "khách sạn",
+    "nha hang": "nhà hàng",
+    "am thuc": "ẩm thực",
+    "mon an": "món ăn",
+    "suc khoe": "sức khỏe",
+    "giao duc": "giáo dục",
+    "dao tao": "đào tạo",
+    "tuyen dung": "tuyển dụng",
+    "viec lam": "việc làm",
+    "ngan hang": "ngân hàng",
+    "tai chinh": "tài chính",
+    "bao hiem": "bảo hiểm",
+    "dau tu": "đầu tư",
+    "chung khoan": "chứng khoán",
+    "xe may": "xe máy",
+    "o to": "ô tô",
+    "xe hoi": "xe hơi",
+    "thoi trang": "thời trang",
+    "quan ao": "quần áo",
+    "giay dep": "giày dép",
+    "lam dep": "làm đẹp",
+    "my pham": "mỹ phẩm",
+    "cham soc": "chăm sóc",
+    "noi that": "nội thất",
+    "xay dung": "xây dựng",
+    "sua chua": "sửa chữa",
+    "van chuyen": "vận chuyển",
+    "giao hang": "giao hàng",
+    "mien phi": "miễn phí",
+    "khuyen mai": "khuyến mại",
+    "giam gia": "giảm giá",
+    "uy tin": "uy tín",
+    "chat luong": "chất lượng",
+    "chuyen nghiep": "chuyên nghiệp",
+    "pho bien": "phổ biến",
+    "xu huong": "xu hướng",
+    "moi nhat": "mới nhất",
+    "viet nam": "việt nam",
+    "thanh pho": "thành phố",
+    "doanh nghiep": "doanh nghiệp",
+    "cua hang": "cửa hàng",
+    "trang web": "trang web",
+    "kiem tien": "kiếm tiền",
+    "phat trien": "phát triển",
+    "quan ly": "quản lý",
+    "he thong": "hệ thống",
+    "giai phap": "giải pháp",
+    "tu van": "tư vấn",
+    "ho tro": "hỗ trợ",
+    "lien he": "liên hệ",
+    "dang ky": "đăng ký",
+    "tai khoan": "tài khoản",
+    "bai viet": "bài viết",
+    "tin tuc": "tin tức",
+    "hinh anh": "hình ảnh",
+    "the thao": "thể thao",
+    "bong da": "bóng đá",
+    "tre em": "trẻ em",
+    "gia dinh": "gia đình",
+    "doi song": "đời sống",
+    "cach": "cách",
+    "hoc": "học",
+    "tai": "tại",
+    "luong": "lương",
+    "nam": "năm",
+    "toc": "tóc",
+}
+
+_sorted_viet_keys: list[str] | None = None
+
+
+def _get_sorted_keys() -> list[str]:
+    global _sorted_viet_keys
+    if _sorted_viet_keys is None:
+        _sorted_viet_keys = sorted(_VIET_DIACRITICS.keys(), key=len, reverse=True)
+    return _sorted_viet_keys
+
+
+def add_vietnamese_diacritics(keyword: str) -> str:
+    """Best-effort conversion of non-diacritics Vietnamese to diacritics."""
+    if not keyword:
+        return keyword
+    result = keyword.lower()
+    for key in _get_sorted_keys():
+        if key in result:
+            result = result.replace(key, _VIET_DIACRITICS[key])
+    return result
+
+
+def enrich_keywords_vietnamese(data: dict) -> dict:
+    """Walk a DataForSEO result dict, adding 'keyword_vi' next to 'keyword'."""
+    if not isinstance(data, dict):
+        return data
+    items = data.get("items", [])
+    if not isinstance(items, list):
+        return data
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        inner_items = item.get("items", [])
+        if isinstance(inner_items, list):
+            for inner in inner_items:
+                if isinstance(inner, dict) and "keyword" in inner:
+                    inner["keyword_vi"] = add_vietnamese_diacritics(inner["keyword"])
+                kd = inner.get("keyword_data") if isinstance(inner, dict) else None
+                if isinstance(kd, dict) and "keyword" in kd:
+                    kd["keyword_vi"] = add_vietnamese_diacritics(kd["keyword"])
+        if "keyword" in item:
+            item["keyword_vi"] = add_vietnamese_diacritics(item["keyword"])
+        kd = item.get("keyword_data")
+        if isinstance(kd, dict) and "keyword" in kd:
+            kd["keyword_vi"] = add_vietnamese_diacritics(kd["keyword"])
+        seed = item.get("seed_keyword")
+        if isinstance(seed, str):
+            item["seed_keyword_vi"] = add_vietnamese_diacritics(seed)
+    return data
+
+
+# ---------------------------------------------------------------------------
 # Module-level singleton for convenience
 # ---------------------------------------------------------------------------
 dataforseo_service = DataForSEOService()

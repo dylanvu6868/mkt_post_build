@@ -13,7 +13,7 @@ from app.core.tracing import trace_request
 from app.models.user import User
 from app.models.lab_history import LabHistory
 from app.services.audit import log_action
-from app.services.dataforseo import DataForSEOService
+from app.services.dataforseo import DataForSEOService, enrich_keywords_vietnamese
 from app.agents.lab import (
     run_shield_agent, run_psycho_agent, run_persona_agent,
     run_dna_agent, run_simulator_agent, run_cinematic_agent,
@@ -494,7 +494,11 @@ async def keyword_research_endpoint(
             d4s.keyword_ideas(keywords=[req.keyword], location_code=req.location_code),
             d4s.related_keywords(req.keyword, req.location_code),
         )
-        return {"overview": overview, "ideas": ideas, "related": related}
+        return {
+            "overview": enrich_keywords_vietnamese(overview),
+            "ideas": enrich_keywords_vietnamese(ideas),
+            "related": enrich_keywords_vietnamese(related),
+        }
 
     return await _run_tool(
         "keyword_research",
@@ -521,7 +525,10 @@ async def rank_tracker_endpoint(
             d4s.domain_rank_overview(target=req.domain, location_code=req.location_code),
             d4s.ranked_keywords(target=req.domain, location_code=req.location_code),
         )
-        return {"rank_overview": rank_overview, "ranked_keywords": ranked_kws}
+        return {
+            "rank_overview": rank_overview,
+            "ranked_keywords": enrich_keywords_vietnamese(ranked_kws),
+        }
 
     return await _run_tool(
         "rank_tracker",
@@ -576,7 +583,10 @@ async def serp_spy_endpoint(
             d4s.google_organic_serp(req.keyword, req.location_code),
             d4s.serp_competitors(keywords=[req.keyword], location_code=req.location_code),
         )
-        return {"serp_results": serp_results, "competitors": competitors}
+        return {
+            "serp_results": enrich_keywords_vietnamese(serp_results),
+            "competitors": enrich_keywords_vietnamese(competitors),
+        }
 
     return await _run_tool(
         "serp_spy",
