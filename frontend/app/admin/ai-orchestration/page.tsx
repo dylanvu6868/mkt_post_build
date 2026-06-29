@@ -37,6 +37,17 @@ interface UserRow {
   user_id: number; name: string; email: string; calls: number; cost: number; total_tokens: number;
 }
 
+interface ToolRow {
+  tool_name: string; endpoint: string; calls: number; cost: number;
+  avg_latency_ms: number; errors: number; avg_input_tokens: number; avg_output_tokens: number;
+}
+
+interface TraceRow {
+  trace_id: string; started_at: string; call_count: number; total_cost: number;
+  total_input: number; total_output: number; max_latency_ms: number; errors: number;
+  call_type: string; user_id: number; user_name: string | null;
+}
+
 interface RecentCall {
   id: number; created_at: string; call_type: string; model: string; provider: string;
   endpoint: string; tool_name: string; input_tokens: number; output_tokens: number;
@@ -70,10 +81,13 @@ export default function AIOrchestrationPage() {
   const [types, setTypes] = useState<TypeRow[]>([]);
   const [daily, setDaily] = useState<DailyRow[]>([]);
   const [users, setUsers] = useState<UserRow[]>([]);
+  const [tools, setTools] = useState<ToolRow[]>([]);
+  const [traces, setTraces] = useState<TraceRow[]>([]);
   const [recent, setRecent] = useState<RecentCall[]>([]);
-  const [tab, setTab] = useState<"overview" | "calls">("overview");
+  const [tab, setTab] = useState<"overview" | "calls" | "traces">("overview");
   const [loading, setLoading] = useState(true);
   const [callFilter, setCallFilter] = useState<string>("");
+  const [expandedId, setExpandedId] = useState<number | null>(null);
 
   useEffect(() => {
     setLoading(true);
@@ -83,8 +97,10 @@ export default function AIOrchestrationPage() {
       api.get<TypeRow[]>(`/admin/ai-orchestration/by-type?days=${days}`),
       api.get<DailyRow[]>(`/admin/ai-orchestration/daily-trend?days=${days}`),
       api.get<UserRow[]>(`/admin/ai-orchestration/by-user?days=${days}`),
-    ]).then(([o, m, t, d, u]) => {
-      setOverview(o); setModels(m); setTypes(t); setDaily(d); setUsers(u);
+      api.get<ToolRow[]>(`/admin/ai-orchestration/by-tool?days=${days}`),
+      api.get<TraceRow[]>(`/admin/ai-orchestration/traces?limit=30`),
+    ]).then(([o, m, t, d, u, tl, tr]) => {
+      setOverview(o); setModels(m); setTypes(t); setDaily(d); setUsers(u); setTools(tl); setTraces(tr);
     }).catch(() => {}).finally(() => setLoading(false));
   }, [days]);
 
@@ -125,8 +141,9 @@ export default function AIOrchestrationPage() {
             ))}
           </div>
           <div className="flex rounded-lg border border-border overflow-hidden">
-            <button onClick={() => setTab("overview")} className={`px-3 py-1.5 text-xs font-medium transition-colors ${tab === "overview" ? "bg-primary text-primary-foreground" : "bg-card text-muted-foreground hover:bg-accent"}`}>Overview</button>
-            <button onClick={() => setTab("calls")} className={`px-3 py-1.5 text-xs font-medium transition-colors ${tab === "calls" ? "bg-primary text-primary-foreground" : "bg-card text-muted-foreground hover:bg-accent"}`}>Recent Calls</button>
+            <button onClick={() => setTab("overview")} className={`px-3 py-1.5 text-xs font-medium transition-colors ${tab === "overview" ? "bg-primary text-primary-foreground" : "bg-card text-muted-foreground hover:bg-accent"}`}>Tổng quan</button>
+            <button onClick={() => setTab("traces")} className={`px-3 py-1.5 text-xs font-medium transition-colors ${tab === "traces" ? "bg-primary text-primary-foreground" : "bg-card text-muted-foreground hover:bg-accent"}`}>Traces</button>
+            <button onClick={() => setTab("calls")} className={`px-3 py-1.5 text-xs font-medium transition-colors ${tab === "calls" ? "bg-primary text-primary-foreground" : "bg-card text-muted-foreground hover:bg-accent"}`}>Chi tiết Calls</button>
           </div>
         </div>
       </div>
@@ -229,6 +246,47 @@ export default function AIOrchestrationPage() {
             </Card>
           </div>
 
+          {/* By Tool */}
+          {tools.length > 0 && (
+            <Card>
+              <CardHeader><CardTitle className="text-sm">Theo Tool / Endpoint</CardTitle></CardHeader>
+              <CardContent>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-xs">
+                    <thead>
+                      <tr className="border-b border-border text-left text-muted-foreground">
+                        <th className="pb-2 font-medium">Tool</th>
+                        <th className="pb-2 font-medium">Endpoint</th>
+                        <th className="pb-2 font-medium">Lượt gọi</th>
+                        <th className="pb-2 font-medium">Chi phí</th>
+                        <th className="pb-2 font-medium">Avg Latency</th>
+                        <th className="pb-2 font-medium">Avg Tokens (in/out)</th>
+                        <th className="pb-2 font-medium">Lỗi</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {tools.map((t) => (
+                        <tr key={t.tool_name} className="border-b border-border/50">
+                          <td className="py-2 font-medium text-foreground">{t.tool_name}</td>
+                          <td className="py-2 font-mono text-muted-foreground">{t.endpoint || "-"}</td>
+                          <td className="py-2">{t.calls}</td>
+                          <td className="py-2 text-green-500">{fmtCost(t.cost)}</td>
+                          <td className="py-2">{t.avg_latency_ms}ms</td>
+                          <td className="py-2">
+                            <span className="text-cyan-400">{fmt(t.avg_input_tokens)}</span>
+                            <span className="text-muted-foreground mx-0.5">/</span>
+                            <span className="text-amber-400">{fmt(t.avg_output_tokens)}</span>
+                          </td>
+                          <td className="py-2">{t.errors > 0 ? <span className="text-red-400">{t.errors}</span> : <span className="text-muted-foreground">0</span>}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Top Users */}
           <Card>
             <CardHeader><CardTitle className="text-sm">Top Users by AI Usage</CardTitle></CardHeader>
@@ -262,6 +320,53 @@ export default function AIOrchestrationPage() {
             </CardContent>
           </Card>
         </>
+      ) : tab === "traces" ? (
+        /* Traces Tab */
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm">Recent Traces</CardTitle>
+            <p className="text-xs text-muted-foreground">Mỗi trace tương ứng 1 request (chat, lab, generate) — bao gồm nhiều LLM calls bên trong</p>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="border-b border-border text-left text-muted-foreground">
+                    <th className="pb-2 font-medium">Trace ID</th>
+                    <th className="pb-2 font-medium">Thời gian</th>
+                    <th className="pb-2 font-medium">Loại</th>
+                    <th className="pb-2 font-medium">User</th>
+                    <th className="pb-2 font-medium">Số calls</th>
+                    <th className="pb-2 font-medium">Tokens (in/out)</th>
+                    <th className="pb-2 font-medium">Chi phí</th>
+                    <th className="pb-2 font-medium">Max Latency</th>
+                    <th className="pb-2 font-medium">Lỗi</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {traces.map((t) => (
+                    <tr key={t.trace_id} className="border-b border-border/50 hover:bg-accent/30 transition-colors">
+                      <td className="py-2 font-mono text-[10px] text-muted-foreground" title={t.trace_id}>{t.trace_id.slice(0, 12)}...</td>
+                      <td className="py-2 whitespace-nowrap">{t.started_at ? new Date(t.started_at).toLocaleString("vi-VN", { hour: "2-digit", minute: "2-digit", second: "2-digit", day: "2-digit", month: "2-digit" }) : "-"}</td>
+                      <td className="py-2"><span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary capitalize">{t.call_type}</span></td>
+                      <td className="py-2 text-foreground">{t.user_name || "-"}</td>
+                      <td className="py-2 font-medium">{t.call_count}</td>
+                      <td className="py-2">
+                        <span className="text-cyan-400">{fmt(t.total_input)}</span>
+                        <span className="text-muted-foreground mx-0.5">/</span>
+                        <span className="text-amber-400">{fmt(t.total_output)}</span>
+                      </td>
+                      <td className="py-2 text-green-500">{fmtCost(t.total_cost)}</td>
+                      <td className="py-2">{t.max_latency_ms}ms</td>
+                      <td className="py-2">{t.errors > 0 ? <span className="text-red-400">{t.errors}</span> : <span className="text-emerald-500">0</span>}</td>
+                    </tr>
+                  ))}
+                  {traces.length === 0 && <tr><td colSpan={9} className="py-8 text-center text-muted-foreground">Chưa có traces. Data sẽ xuất hiện khi người dùng sử dụng các tính năng AI.</td></tr>}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
       ) : (
         /* Recent Calls Tab */
         <Card>
@@ -273,7 +378,7 @@ export default function AIOrchestrationPage() {
                 onChange={(e) => setCallFilter(e.target.value)}
                 className="rounded-lg border border-border bg-card px-2 py-1 text-xs text-foreground"
               >
-                <option value="">All types</option>
+                <option value="">Tất cả</option>
                 <option value="chat">Chat</option>
                 <option value="lab">Lab</option>
                 <option value="generate">Generate</option>
@@ -286,37 +391,116 @@ export default function AIOrchestrationPage() {
               <table className="w-full text-xs">
                 <thead>
                   <tr className="border-b border-border text-left text-muted-foreground">
-                    <th className="pb-2 font-medium">Time</th>
-                    <th className="pb-2 font-medium">Type</th>
+                    <th className="pb-2 font-medium w-5"></th>
+                    <th className="pb-2 font-medium">Thời gian</th>
+                    <th className="pb-2 font-medium">Loại</th>
                     <th className="pb-2 font-medium">Model</th>
+                    <th className="pb-2 font-medium">Tool / Endpoint</th>
                     <th className="pb-2 font-medium">User</th>
-                    <th className="pb-2 font-medium">Tokens</th>
-                    <th className="pb-2 font-medium">Cost</th>
+                    <th className="pb-2 font-medium">Tokens (in/out)</th>
+                    <th className="pb-2 font-medium">Chi phí</th>
                     <th className="pb-2 font-medium">Latency</th>
-                    <th className="pb-2 font-medium">Status</th>
+                    <th className="pb-2 font-medium">Trace ID</th>
+                    <th className="pb-2 font-medium">Trạng thái</th>
                   </tr>
                 </thead>
                 <tbody>
                   {recent.map((c) => (
-                    <tr key={c.id} className="border-b border-border/50 hover:bg-accent/30 transition-colors">
-                      <td className="py-2 whitespace-nowrap">{c.created_at ? new Date(c.created_at).toLocaleString("vi-VN", { hour: "2-digit", minute: "2-digit", day: "2-digit", month: "2-digit" }) : "-"}</td>
-                      <td className="py-2"><span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary capitalize">{c.call_type}</span></td>
-                      <td className="py-2 text-foreground">{c.model || "-"}</td>
-                      <td className="py-2">
-                        <p className="text-foreground">{c.user_name || "-"}</p>
-                      </td>
-                      <td className="py-2">{fmt(c.input_tokens + c.output_tokens)}</td>
-                      <td className="py-2 text-green-500">{fmtCost(c.total_cost)}</td>
-                      <td className="py-2">{c.latency_ms}ms</td>
-                      <td className="py-2">
-                        {c.status === "success"
-                          ? <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] text-emerald-500">OK</span>
-                          : <span className="rounded-full bg-red-500/10 px-2 py-0.5 text-[10px] text-red-500" title={c.error_message || ""}>Error</span>
-                        }
-                      </td>
-                    </tr>
+                    <>
+                      <tr
+                        key={c.id}
+                        className="border-b border-border/50 hover:bg-accent/30 transition-colors cursor-pointer"
+                        onClick={() => setExpandedId(expandedId === c.id ? null : c.id)}
+                      >
+                        <td className="py-2 text-muted-foreground">{expandedId === c.id ? "▾" : "▸"}</td>
+                        <td className="py-2 whitespace-nowrap">{c.created_at ? new Date(c.created_at).toLocaleString("vi-VN", { hour: "2-digit", minute: "2-digit", second: "2-digit", day: "2-digit", month: "2-digit" }) : "-"}</td>
+                        <td className="py-2"><span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary capitalize">{c.call_type}</span></td>
+                        <td className="py-2 text-foreground font-medium">{c.model || "-"}</td>
+                        <td className="py-2">
+                          {c.tool_name && <span className="rounded bg-blue-500/10 px-1.5 py-0.5 text-[10px] text-blue-400">{c.tool_name}</span>}
+                          {!c.tool_name && c.endpoint && <span className="text-muted-foreground">{c.endpoint}</span>}
+                          {!c.tool_name && !c.endpoint && "-"}
+                        </td>
+                        <td className="py-2">
+                          <p className="text-foreground">{c.user_name || "-"}</p>
+                        </td>
+                        <td className="py-2">
+                          <span className="text-cyan-400">{fmt(c.input_tokens)}</span>
+                          <span className="text-muted-foreground mx-0.5">/</span>
+                          <span className="text-amber-400">{fmt(c.output_tokens)}</span>
+                        </td>
+                        <td className="py-2 text-green-500">{fmtCost(c.total_cost)}</td>
+                        <td className="py-2">{c.latency_ms}ms</td>
+                        <td className="py-2">
+                          {c.trace_id
+                            ? <span className="font-mono text-[10px] text-muted-foreground" title={c.trace_id}>{c.trace_id.slice(0, 8)}...</span>
+                            : <span className="text-muted-foreground/40">-</span>
+                          }
+                        </td>
+                        <td className="py-2">
+                          {c.status === "success"
+                            ? <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] text-emerald-500">OK</span>
+                            : <span className="rounded-full bg-red-500/10 px-2 py-0.5 text-[10px] text-red-500">Error</span>
+                          }
+                        </td>
+                      </tr>
+                      {expandedId === c.id && (
+                        <tr key={`${c.id}-detail`} className="bg-accent/20">
+                          <td colSpan={11} className="px-4 py-3">
+                            <div className="grid grid-cols-2 gap-4">
+                              {/* Metadata */}
+                              <div className="space-y-2">
+                                <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Chi tiết</p>
+                                <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-[11px]">
+                                  <span className="text-muted-foreground">Provider:</span>
+                                  <span className="text-foreground">{c.provider || "-"}</span>
+                                  <span className="text-muted-foreground">Endpoint:</span>
+                                  <span className="text-foreground font-mono">{c.endpoint || "-"}</span>
+                                  <span className="text-muted-foreground">Tool:</span>
+                                  <span className="text-foreground">{c.tool_name || "-"}</span>
+                                  <span className="text-muted-foreground">Conversation ID:</span>
+                                  <span className="text-foreground">{c.conversation_id || "-"}</span>
+                                  <span className="text-muted-foreground">Trace ID:</span>
+                                  <span className="text-foreground font-mono text-[10px]">{c.trace_id || "-"}</span>
+                                  <span className="text-muted-foreground">Input tokens:</span>
+                                  <span className="text-cyan-400">{c.input_tokens.toLocaleString()}</span>
+                                  <span className="text-muted-foreground">Output tokens:</span>
+                                  <span className="text-amber-400">{c.output_tokens.toLocaleString()}</span>
+                                  <span className="text-muted-foreground">User:</span>
+                                  <span className="text-foreground">{c.user_name} ({c.user_email})</span>
+                                </div>
+                                {c.error_message && (
+                                  <div className="mt-2">
+                                    <p className="text-[10px] font-bold uppercase tracking-wider text-red-400">Lỗi</p>
+                                    <p className="mt-1 rounded bg-red-500/10 px-2 py-1 text-[11px] text-red-300 font-mono">{c.error_message}</p>
+                                  </div>
+                                )}
+                              </div>
+                              {/* Input/Output Preview */}
+                              <div className="space-y-2">
+                                {c.input_preview && (
+                                  <div>
+                                    <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Input Preview</p>
+                                    <pre className="mt-1 max-h-32 overflow-y-auto rounded bg-card border border-border px-2 py-1.5 text-[11px] text-foreground/80 whitespace-pre-wrap break-words">{c.input_preview}</pre>
+                                  </div>
+                                )}
+                                {c.output_preview && (
+                                  <div>
+                                    <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Output Preview</p>
+                                    <pre className="mt-1 max-h-32 overflow-y-auto rounded bg-card border border-border px-2 py-1.5 text-[11px] text-foreground/80 whitespace-pre-wrap break-words">{c.output_preview}</pre>
+                                  </div>
+                                )}
+                                {!c.input_preview && !c.output_preview && (
+                                  <p className="text-xs text-muted-foreground italic">Không có preview data</p>
+                                )}
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </>
                   ))}
-                  {recent.length === 0 && <tr><td colSpan={8} className="py-8 text-center text-muted-foreground">No AI calls recorded yet. Data will appear after users interact with chat, lab tools, or content generation.</td></tr>}
+                  {recent.length === 0 && <tr><td colSpan={11} className="py-8 text-center text-muted-foreground">Chưa có dữ liệu AI calls. Data sẽ xuất hiện khi người dùng sử dụng chat, lab tools, hoặc tạo nội dung.</td></tr>}
                 </tbody>
               </table>
             </div>

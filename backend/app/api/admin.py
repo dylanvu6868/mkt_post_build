@@ -744,3 +744,93 @@ async def ai_recent_calls(
         }
         for r in rows
     ]
+
+
+@router.get("/ai-orchestration/by-tool")
+async def ai_by_tool(
+    days: int = Query(7, ge=1, le=90),
+    session: AsyncSession = Depends(get_session),
+):
+    """Breakdown by tool_name — which lab tools / endpoints are used most."""
+    since = datetime.now(timezone.utc) - timedelta(days=days)
+    rows = (await session.execute(
+        select(
+            AICallLog.tool_name,
+            AICallLog.endpoint,
+            func.count(AICallLog.id).label("calls"),
+            func.sum(AICallLog.total_cost).label("cost"),
+            func.avg(AICallLog.latency_ms).label("avg_latency"),
+            func.count(AICallLog.id).filter(AICallLog.status == "error").label("errors"),
+            func.avg(AICallLog.input_tokens).label("avg_input"),
+            func.avg(AICallLog.output_tokens).label("avg_output"),
+        )
+        .where(AICallLog.created_at >= since)
+        .where(AICallLog.tool_name.is_not(None))
+        .group_by(AICallLog.tool_name, AICallLog.endpoint)
+        .order_by(func.count(AICallLog.id).desc())
+    )).all()
+
+    return [
+        {
+            "tool_name": r.tool_name,
+            "endpoint": r.endpoint,
+            "calls": r.calls,
+            "cost": round(r.cost or 0, 6),
+            "avg_latency_ms": int(r.avg_latency or 0),
+            "errors": r.errors or 0,
+            "avg_input_tokens": int(r.avg_input or 0),
+            "avg_output_tokens": int(r.avg_output or 0),
+        }
+        for r in rows
+    ]
+
+
+@router.get("/ai-orchestration/traces")
+async def ai_traces(
+    limit: int = Query(30, ge=1, le=100),
+    session: AsyncSession = Depends(get_session),
+):
+    """Recent traces — grouped calls by trace_id."""
+    rows = (await session.execute(
+        select(
+            AICallLog.trace_id,
+            func.min(AICallLog.created_at).label("started_at"),
+            func.count(AICallLog.id).label("call_count"),
+            func.sum(AICallLog.total_cost).label("total_cost"),
+            func.sum(AICallLog.input_tokens).label("total_input"),
+            func.sum(AICallLog.output_tokens).label("total_output"),
+            func.max(AICallLog.latency_ms).label("max_latency"),
+            func.count(AICallLog.id).filter(AICallLog.status == "error").label("errors"),
+            func.min(AICallLog.call_type).label("call_type"),
+            func.min(AICallLog.user_id).label("user_id"),
+        )
+        .where(AICallLog.trace_id.is_not(None))
+        .group_by(AICallLog.trace_id)
+        .order_by(func.min(AICallLog.created_at).desc())
+        .limit(limit)
+    )).all()
+
+    user_ids = [r.user_id for r in rows if r.user_id]
+    user_map: dict[int, str] = {}
+    if user_ids:
+        users_q = (await session.execute(
+            select(User.id, User.name).where(User.id.in_(user_ids))
+        )).all()
+        user_map = {u.id: u.name for u in users_q}
+
+    return [
+        {
+            "trace_id": r.trace_id,
+            "started_at": r.started_at.isoformat() if r.started_at else None,
+            "call_count": r.call_count,
+            "total_cost": round(r.total_cost or 0, 6),
+            "total_input": r.total_input or 0,
+            "total_output": r.total_output or 0,
+            "max_latency_ms": r.max_latency or 0,
+            "errors": r.errors or 0,
+            "call_type": r.call_type,
+            "user_id": r.user_id,
+            "user_name": user_map.get(r.user_id, "Unknown") if r.user_id else None,
+        }
+        for r in rows
+    ]
