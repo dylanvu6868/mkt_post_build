@@ -29,7 +29,9 @@ MAX_RETRIES = 2
 BACKOFF_BASE = 1.0  # seconds, doubles each retry
 
 VIETNAM_LOCATION_CODE = 2840
-VIETNAM_LANGUAGE_CODE = "vi"
+# DataForSEO Labs API for Vietnam only supports language_code="en"
+# (Vietnamese SERP data is available via keywords, not via language_code="vi")
+VIETNAM_LANGUAGE_CODE = "en"
 
 # ---------------------------------------------------------------------------
 # Empty result helper
