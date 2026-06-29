@@ -46,6 +46,14 @@ def get_langfuse_handler(trace_id: str | None = None):
         - SELECT: model/tool selection (on_chat_model_start metadata)
         """
 
+        raise_error = False
+        run_inline = False
+        ignore_llm = False
+        ignore_chain = False
+        ignore_agent = False
+        ignore_retriever = False
+        ignore_chat_model = False
+
         def __init__(self, trace_id: str):
             self.trace_id = trace_id
             self._stack: list[dict] = []  # [{id, type, name}] stack
