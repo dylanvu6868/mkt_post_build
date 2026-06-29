@@ -292,11 +292,25 @@ function SectionSkeleton({ rows = 4 }: { rows?: number }) {
   );
 }
 
-function EmptySection({ icon, text }: { icon: React.ReactNode; text: string }) {
+function EmptySection({ icon, text, error }: { icon: React.ReactNode; text: string; error?: string | null }) {
   return (
-    <div className="flex flex-col items-center justify-center py-16 gap-4">
+    <div className="flex flex-col items-center justify-center py-12 gap-4">
       <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-border/40 bg-muted/50 text-muted-foreground/40">{icon}</div>
       <p className="text-xs font-medium text-muted-foreground/50">{text}</p>
+      {error && (
+        <div className="rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-2 max-w-md">
+          <p className="text-[11px] font-medium text-red-600 dark:text-red-400">Lỗi: {error}</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function SectionError({ error }: { error: string }) {
+  return (
+    <div className="rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-3 flex items-start gap-2">
+      <Shield size={14} className="text-red-500 shrink-0 mt-0.5" />
+      <p className="text-[11px] font-medium text-red-600 dark:text-red-400">{error}</p>
     </div>
   );
 }
@@ -407,11 +421,12 @@ function DimensionRow({ dim }: { dim: RubricDimension }) {
   );
 }
 
-function OverviewTab({ rankResult, rankLoading, backlinksResult, backlinksLoading, kwResult, kwLoading, serpResult, serpLoading }: {
+function OverviewTab({ rankResult, rankLoading, backlinksResult, backlinksLoading, kwResult, kwLoading, serpResult, serpLoading, errors }: {
   rankResult: RankTrackerResult | null; rankLoading: boolean;
   backlinksResult: BacklinksResult | null; backlinksLoading: boolean;
   kwResult: KeywordResearchResult | null; kwLoading: boolean;
   serpResult: SerpSpyResult | null; serpLoading: boolean;
+  errors: { rank?: string | null; backlinks?: string | null; kw?: string | null; serp?: string | null };
 }) {
   const loading = rankLoading || backlinksLoading || kwLoading || serpLoading;
   if (loading) return <SectionSkeleton rows={6} />;
@@ -422,8 +437,9 @@ function OverviewTab({ rankResult, rankLoading, backlinksResult, backlinksLoadin
   const summary = backlinksResult?.summary?.items?.[0] as BacklinksSummary | undefined;
   const serpItems = serpResult?.serp_results?.items ? flatten<SerpResultItem>(serpResult.serp_results.items).filter(i => i.type === "organic" || i.url) : [];
   const hasData = organic || summary;
+  const allErrors = [errors.rank, errors.backlinks, errors.kw, errors.serp].filter(Boolean);
 
-  if (!hasData) return <EmptySection icon={<Award size={20} />} text="Chưa có dữ liệu tổng quan. Hãy tạo báo cáo SEO trước." />;
+  if (!hasData) return <EmptySection icon={<Award size={20} />} text="Chưa có dữ liệu tổng quan." error={allErrors.length > 0 ? allErrors.join(" | ") : null} />;
 
   const dimensions = computeRubric(organic, summary, serpItems.length);
   const overallScore = Math.round(dimensions.reduce((s, d) => s + d.score * d.weight, 0) / 100);
@@ -504,9 +520,10 @@ function OverviewTab({ rankResult, rankLoading, backlinksResult, backlinksLoadin
   );
 }
 
-function KeywordsTab({ kwResult, kwLoading, rankResult, rankLoading }: {
+function KeywordsTab({ kwResult, kwLoading, rankResult, rankLoading, errors }: {
   kwResult: KeywordResearchResult | null; kwLoading: boolean;
   rankResult: RankTrackerResult | null; rankLoading: boolean;
+  errors?: { kw?: string | null; rank?: string | null };
 }) {
   if (kwLoading || rankLoading) return <SectionSkeleton rows={8} />;
 
@@ -515,8 +532,9 @@ function KeywordsTab({ kwResult, kwLoading, rankResult, rankLoading }: {
   const relatedItems = kwResult?.related?.items ? flatten<KeywordItem>(kwResult.related.items) : [];
   const rankedItems = rankResult?.ranked_keywords?.items ? flatten<KeywordItem>(rankResult.ranked_keywords.items) : [];
   const hasData = overviewItems.length > 0 || ideasItems.length > 0 || relatedItems.length > 0 || rankedItems.length > 0;
+  const allErrors = [errors?.kw, errors?.rank].filter(Boolean);
 
-  if (!hasData) return <EmptySection icon={<Search size={20} />} text="Chưa có dữ liệu từ khóa. Hãy tạo báo cáo SEO trước." />;
+  if (!hasData) return <EmptySection icon={<Search size={20} />} text="Chưa có dữ liệu từ khóa." error={allErrors.length > 0 ? allErrors.join(" | ") : null} />;
 
   function KwTable({ items, title }: { items: KeywordItem[]; title: string }) {
     if (items.length === 0) return null;
@@ -602,7 +620,7 @@ function KeywordsTab({ kwResult, kwLoading, rankResult, rankLoading }: {
   );
 }
 
-function BacklinksTab({ result, loading }: { result: BacklinksResult | null; loading: boolean }) {
+function BacklinksTab({ result, loading, error }: { result: BacklinksResult | null; loading: boolean; error?: string | null }) {
   if (loading) return <SectionSkeleton rows={6} />;
 
   const summary = result?.summary?.items?.[0] as BacklinksSummary | undefined;
@@ -610,7 +628,7 @@ function BacklinksTab({ result, loading }: { result: BacklinksResult | null; loa
   const recentBacklinks = result?.backlinks?.items ? flatten<BacklinkItem>(result.backlinks.items) : [];
   const hasData = summary || refDomains.length > 0 || recentBacklinks.length > 0;
 
-  if (!hasData) return <EmptySection icon={<Link size={20} />} text="Chưa có dữ liệu backlinks. Hãy tạo báo cáo SEO trước." />;
+  if (!hasData) return <EmptySection icon={<Link size={20} />} text="Chưa có dữ liệu backlinks." error={error} />;
 
   return (
     <div className="space-y-6">
@@ -704,14 +722,14 @@ function BacklinksTab({ result, loading }: { result: BacklinksResult | null; loa
   );
 }
 
-function SerpTab({ result, loading }: { result: SerpSpyResult | null; loading: boolean }) {
+function SerpTab({ result, loading, error }: { result: SerpSpyResult | null; loading: boolean; error?: string | null }) {
   if (loading) return <SectionSkeleton rows={6} />;
 
   const serpItems = result?.serp_results?.items ? flatten<SerpResultItem>(result.serp_results.items).filter(i => i.type === "organic" || i.url) : [];
   const competitorItems = result?.competitors?.items ? flatten<CompetitorItem>(result.competitors.items) : [];
   const hasData = serpItems.length > 0 || competitorItems.length > 0;
 
-  if (!hasData) return <EmptySection icon={<Crosshair size={20} />} text="Chưa có dữ liệu SERP. Hãy tạo báo cáo SEO trước." />;
+  if (!hasData) return <EmptySection icon={<Crosshair size={20} />} text="Chưa có dữ liệu SERP." error={error} />;
 
   const top3 = serpItems.filter(i => (i.rank_absolute ?? i.rank_group ?? 999) <= 3).length;
   const top10 = serpItems.filter(i => (i.rank_absolute ?? i.rank_group ?? 999) <= 10).length;
@@ -810,10 +828,10 @@ function SerpTab({ result, loading }: { result: SerpSpyResult | null; loading: b
   );
 }
 
-function DeepAnalysisTab({ result, loading, domain }: { result: SeoAnalysisResult | null; loading: boolean; domain: string }) {
+function DeepAnalysisTab({ result, loading, domain, error }: { result: SeoAnalysisResult | null; loading: boolean; domain: string; error?: string | null }) {
   const [copied, setCopied] = useState(false);
   if (loading) return <SectionSkeleton rows={8} />;
-  if (!result?.report) return <EmptySection icon={<FileText size={20} />} text="Chưa có báo cáo phân tích chuyên sâu. Hãy tạo báo cáo SEO trước." />;
+  if (!result?.report) return <EmptySection icon={<FileText size={20} />} text="Chưa có báo cáo phân tích chuyên sâu." error={error} />;
 
   function handleCopy() {
     if (result?.report) { navigator.clipboard.writeText(result.report); setCopied(true); setTimeout(() => setCopied(false), 2000); }
@@ -992,31 +1010,31 @@ export default function VitbaSeoPage() {
           {/* 1. Overview / Rubric */}
           <SectionAnchor id="overview" label="Tổng quan & SEO Health" icon={Award} />
           <div className="mt-4">
-            <OverviewTab rankResult={rankTracker.result} rankLoading={rankTracker.loading} backlinksResult={backlinksHook.result} backlinksLoading={backlinksHook.loading} kwResult={kwResearch.result} kwLoading={kwResearch.loading} serpResult={serpSpy.result} serpLoading={serpSpy.loading} />
+            <OverviewTab rankResult={rankTracker.result} rankLoading={rankTracker.loading} backlinksResult={backlinksHook.result} backlinksLoading={backlinksHook.loading} kwResult={kwResearch.result} kwLoading={kwResearch.loading} serpResult={serpSpy.result} serpLoading={serpSpy.loading} errors={{ rank: rankTracker.error, backlinks: backlinksHook.error, kw: kwResearch.error, serp: serpSpy.error }} />
           </div>
 
           {/* 2. Keywords */}
           <SectionAnchor id="keywords" label="Từ khóa" icon={Search} />
           <div className="mt-4">
-            <KeywordsTab kwResult={kwResearch.result} kwLoading={kwResearch.loading} rankResult={rankTracker.result} rankLoading={rankTracker.loading} />
+            <KeywordsTab kwResult={kwResearch.result} kwLoading={kwResearch.loading} rankResult={rankTracker.result} rankLoading={rankTracker.loading} errors={{ kw: kwResearch.error, rank: rankTracker.error }} />
           </div>
 
           {/* 3. Backlinks */}
           <SectionAnchor id="backlinks" label="Backlinks" icon={Link} />
           <div className="mt-4">
-            <BacklinksTab result={backlinksHook.result} loading={backlinksHook.loading} />
+            <BacklinksTab result={backlinksHook.result} loading={backlinksHook.loading} error={backlinksHook.error} />
           </div>
 
           {/* 4. SERP & Competitors */}
           <SectionAnchor id="serp" label="SERP & Đối thủ" icon={Crosshair} />
           <div className="mt-4">
-            <SerpTab result={serpSpy.result} loading={serpSpy.loading} />
+            <SerpTab result={serpSpy.result} loading={serpSpy.loading} error={serpSpy.error} />
           </div>
 
           {/* 5. Deep Analysis */}
           <SectionAnchor id="deep" label="Phân tích chuyên sâu" icon={FileText} />
           <div className="mt-4">
-            <DeepAnalysisTab result={seoAnalysis.result} loading={seoAnalysis.loading} domain={domain.trim()} />
+            <DeepAnalysisTab result={seoAnalysis.result} loading={seoAnalysis.loading} domain={domain.trim()} error={seoAnalysis.error} />
           </div>
         </div>
       )}
