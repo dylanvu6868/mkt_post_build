@@ -61,7 +61,15 @@ function flattenRanked(raw: (RankedKeywordItem | { items?: RankedKeywordItem[] }
   const out: RankedKeywordItem[] = [];
   for (const entry of raw) {
     if ("items" in entry && Array.isArray(entry.items)) {
-      out.push(...entry.items);
+      for (const inner of entry.items) {
+        if (inner && typeof inner === "object" && "items" in inner && Array.isArray((inner as any).items)) {
+          out.push(...(inner as any).items);
+        } else {
+          out.push(inner);
+        }
+      }
+    } else if ("items" in entry && (entry as any).items === null) {
+      // skip
     } else {
       out.push(entry as RankedKeywordItem);
     }
@@ -152,7 +160,8 @@ export default function RankTrackerPage() {
     await run({ domain: domain.trim(), location_code: locationCode });
   }
 
-  const overview = result?.rank_overview?.items?.[0];
+  const rawOverview = result?.rank_overview?.items?.[0];
+  const overview = (rawOverview?.metrics?.organic ? rawOverview : (rawOverview as any)?.items?.[0]) as typeof rawOverview;
   const organic = overview?.metrics?.organic;
   const rankedItems = result?.ranked_keywords?.items ? flattenRanked(result.ranked_keywords.items) : [];
 

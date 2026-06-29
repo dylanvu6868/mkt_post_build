@@ -39,7 +39,15 @@ function flatten<T>(raw: any[]): T[] {
   const out: T[] = [];
   for (const entry of raw) {
     if (entry && typeof entry === "object" && "items" in entry && Array.isArray(entry.items)) {
-      out.push(...entry.items);
+      for (const inner of entry.items) {
+        if (inner && typeof inner === "object" && "items" in inner && Array.isArray(inner.items)) {
+          out.push(...inner.items);
+        } else {
+          out.push(inner as T);
+        }
+      }
+    } else if (entry && typeof entry === "object" && "items" in entry && entry.items === null) {
+      // skip null items (e.g. competitors with no results)
     } else {
       out.push(entry as T);
     }
@@ -301,7 +309,8 @@ function OverviewTab({ rankResult, rankLoading, backlinksResult, backlinksLoadin
   const loading = rankLoading || backlinksLoading || kwLoading;
   if (loading) return <SectionSkeleton rows={6} />;
 
-  const overview = rankResult?.rank_overview?.items?.[0] as RankOverviewItem | undefined;
+  const rawOverview = rankResult?.rank_overview?.items?.[0] as RankOverviewItem | undefined;
+  const overview = (rawOverview?.metrics?.organic ? rawOverview : (rawOverview as any)?.items?.[0]) as RankOverviewItem | undefined;
   const organic = overview?.metrics?.organic;
   const summary = backlinksResult?.summary?.items?.[0] as BacklinksSummary | undefined;
   const kwFlat = kwResult?.overview?.items ? flatten<KeywordItem>(kwResult.overview.items) : [];

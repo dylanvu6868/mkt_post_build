@@ -47,7 +47,15 @@ function flatten<T>(raw: (T | { items?: T[] })[]): T[] {
   const out: T[] = [];
   for (const entry of raw) {
     if (entry && typeof entry === "object" && "items" in entry && Array.isArray((entry as { items?: T[] }).items)) {
-      out.push(...(entry as { items: T[] }).items);
+      for (const inner of (entry as { items: T[] }).items) {
+        if (inner && typeof inner === "object" && "items" in inner && Array.isArray((inner as any).items)) {
+          out.push(...(inner as any).items);
+        } else {
+          out.push(inner);
+        }
+      }
+    } else if (entry && typeof entry === "object" && "items" in entry && (entry as any).items === null) {
+      // skip
     } else {
       out.push(entry as T);
     }

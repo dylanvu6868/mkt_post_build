@@ -51,7 +51,15 @@ function flattenItems(raw: (KeywordItem | { items?: KeywordItem[] })[]): Keyword
   const out: KeywordItem[] = [];
   for (const entry of raw) {
     if ("items" in entry && Array.isArray(entry.items)) {
-      out.push(...entry.items);
+      for (const inner of entry.items) {
+        if (inner && typeof inner === "object" && "items" in inner && Array.isArray((inner as any).items)) {
+          out.push(...(inner as any).items);
+        } else {
+          out.push(inner);
+        }
+      }
+    } else if ("items" in entry && (entry as any).items === null) {
+      // skip
     } else {
       out.push(entry as KeywordItem);
     }
