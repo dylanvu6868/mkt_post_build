@@ -118,7 +118,7 @@ Các sections: {sections_str}
 
 Tạo nội dung tiếng Việt chuyên nghiệp cho Landing Page."""
 
-    llm = get_chat_model("smart").with_structured_output(LandingContent)
+    llm = get_chat_model("smart", max_tokens=8192).with_structured_output(LandingContent)
     with trace_request("landing.generate", user_id=user.id, metadata={"purpose": body.purpose, "product": body.product}):
         content = await llm.ainvoke([
             {"role": "system", "content": system},
@@ -314,8 +314,8 @@ Tạo landing page hoàn chỉnh, chuyên nghiệp, độc quyền Vitba."""
     from langchain_core.messages import SystemMessage, HumanMessage
     from app.core.tracing import trace_request
 
-    llm = get_chat_model("smart", max_tokens=8192)
     with trace_request("landing.generate_custom", user_id=user.id, metadata={"prompt": body.prompt[:200]}):
+        llm = get_chat_model("smart", max_tokens=8192)
         resp = await llm.ainvoke([SystemMessage(content=system), HumanMessage(content=user_msg)])
 
     html = (resp.content if isinstance(resp.content, str) else str(resp.content)).strip()
@@ -370,8 +370,8 @@ async def onboard_generate(body: OnboardReq, user: User = Depends(get_current_us
 
 Viết toàn bộ nội dung tiếng Việt cho trang Landing Page."""
 
-    llm = get_chat_model("smart").with_structured_output(LandingContent)
     with trace_request("landing.onboard", user_id=user.id, metadata={"purpose": body.purpose[:100]}):
+        llm = get_chat_model("smart", max_tokens=8192).with_structured_output(LandingContent)
         content = await llm.ainvoke([
             {"role": "system", "content": system},
             {"role": "user", "content": user_msg}

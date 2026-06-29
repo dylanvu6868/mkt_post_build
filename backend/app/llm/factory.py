@@ -3,7 +3,7 @@ from typing import Any
 from langchain.chat_models import init_chat_model
 
 from app.core.config import settings
-from app.core.tracing import langfuse_handler, get_langfuse_handler
+from app.core.tracing import get_langfuse_handler, current_trace_id
 
 
 def provider_available() -> bool:
@@ -44,8 +44,9 @@ def get_chat_model(tier: str, max_tokens: int | None = None, trace_id: str | Non
             max_tokens=tokens,
         )
 
-    # Use per-request handler with trace_id when available, fallback to global handler
-    handler = get_langfuse_handler(trace_id) if trace_id else langfuse_handler
+    # Auto-attach Langfuse callback if trace_id available (from param or ContextVar)
+    effective_trace_id = trace_id or current_trace_id.get()
+    handler = get_langfuse_handler(effective_trace_id) if effective_trace_id else None
     if handler:
         chat_model = chat_model.with_config({"callbacks": [handler]})
 

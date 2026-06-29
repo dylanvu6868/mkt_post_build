@@ -14,7 +14,7 @@ import sqlalchemy as sa
 
 
 revision: str = "generate_idx_gen_jobs_created_at"
-down_revision: str | None = "943c8a40b464"
+down_revision: str | None = "f1a2b3c4d5e6"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 

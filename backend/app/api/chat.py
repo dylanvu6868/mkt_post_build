@@ -79,7 +79,7 @@ Các content_type hợp lệ: facebook_post, seo_blog, email, landing_page, tikt
 """
 
 
-def _build_system_prompt(user: User, doc_context: str = "") -> str:
+async def _build_system_prompt(user: User, doc_context: str = "") -> str:
     plan = get_user_plan(user)
     allowed = ", ".join(sorted(get_limits(user)["content_types"]))
     prompt = (
@@ -91,6 +91,19 @@ def _build_system_prompt(user: User, doc_context: str = "") -> str:
         '"Tính năng này cần gói Pro hoặc Max. Bạn vui lòng nâng cấp gói tại trang Pricing để sử dụng."\n'
         "- Nếu người dùng hết lượt tạo trong ngày, thông báo nâng cấp gói thay vì generate."
     )
+    # Inject session memory
+    try:
+        from app.services.memory import get_memory_context
+        memory_ctx = await get_memory_context(user.id)
+        if memory_ctx:
+            prompt += (
+                "\n\n## THÔNG TIN ĐÃ LƯU VỀ NGƯỜI DÙNG:\n"
+                "Dưới đây là thông tin bạn đã ghi nhớ từ các cuộc trò chuyện trước. "
+                "Sử dụng để cá nhân hóa câu trả lời, không cần hỏi lại.\n"
+                f"{memory_ctx}"
+            )
+    except Exception:
+        pass
     if doc_context:
         prompt += (
             "\n\n## TÀI LIỆU NGƯỜI DÙNG ĐÃ TẢI LÊN (ƯU TIÊN CAO NHẤT):\n"
@@ -103,15 +116,37 @@ def _build_system_prompt(user: User, doc_context: str = "") -> str:
     return prompt
 
 
-async def _build_messages(session: AsyncSession, conversation_id: int, limit: int = 12):
+async def _build_messages(session: AsyncSession, conversation_id: int, max_tokens: int = 6000) -> list[dict]:
+    """Build chat history with dynamic token-budget limit.
+
+    Fetches up to 30 recent messages, then trims from the oldest
+    until estimated token count fits within budget. Always keeps
+    the last 6 messages for immediate context.
+    """
     result = await session.execute(
         select(Message)
         .where(Message.conversation_id == conversation_id)
         .order_by(desc(Message.created_at))
-        .limit(limit)
+        .limit(30)
     )
-    messages = list(reversed(result.scalars().all()))
-    return [{"role": m.role, "content": m.content} for m in messages]
+    all_messages = list(reversed(result.scalars().all()))
+
+    # Estimate tokens: ~4 chars per token for Vietnamese text
+    def est_tokens(text: str) -> int:
+        return len(text) // 4 + 1
+
+    # Always keep last 6 messages
+    min_keep = 6
+    if len(all_messages) <= min_keep:
+        return [{"role": m.role, "content": m.content} for m in all_messages]
+
+    # Trim from oldest until within budget
+    total_tokens = sum(est_tokens(m.content) for m in all_messages)
+    while total_tokens > max_tokens and len(all_messages) > min_keep:
+        removed = all_messages.pop(0)
+        total_tokens -= est_tokens(removed.content)
+
+    return [{"role": m.role, "content": m.content} for m in all_messages]
 
 
 async def _analyze_images(image_data: list[dict]) -> str:
@@ -560,7 +595,7 @@ async def send_message(
 
     history = await _build_messages(session, conversation_id)
 
-    system_prompt = _build_system_prompt(current_user, doc_context)
+    system_prompt = await _build_system_prompt(current_user, doc_context)
     if image_description:
         system_prompt += (
             "\n\n## Nội dung ảnh đính kèm (đã được phân tích):\n"

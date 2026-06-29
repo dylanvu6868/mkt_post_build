@@ -36,3 +36,8 @@ SKILL.md
 # Data
 qdrant_storage/
 postgres_data/
+
+# Uploads
+backend/uploads/
+.playwright-mcp/
+

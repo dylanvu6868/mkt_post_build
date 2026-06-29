@@ -103,7 +103,7 @@ export function ChatSidebar() {
       >
         <div className="flex items-center justify-between px-5 py-4">
           <div className="flex items-center gap-2">
-            <h1 className="flex items-center gap-2.5 text-[17px] font-bold text-foreground tracking-tight">
+            <h1 className="flex items-center gap-2.5 text-[15px] font-bold text-foreground tracking-tight">
               <img src="/logo.png" alt="Vitba" className="h-6 w-auto object-contain" />
               {!leftSidebarCollapsed && <>Vitba</>}
             </h1>

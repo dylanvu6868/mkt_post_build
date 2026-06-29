@@ -137,7 +137,7 @@ export default function HubLayout({ children }: { children: React.ReactNode }) {
           </div>
 
           <nav className="flex-1 overflow-y-auto px-3 py-3 space-y-0.5 no-scrollbar">
-            <p className="px-3 pb-1.5 pt-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/50">Marketing</p>
+            <p className="px-3 pb-1.5 pt-1 text-[11px] font-bold uppercase tracking-wider text-muted-foreground/50">Marketing</p>
             {NAV.map((item) => {
               const isLocked =
                 item.toolKey !== null &&
@@ -179,7 +179,7 @@ export default function HubLayout({ children }: { children: React.ReactNode }) {
             })}
 
             <div className="pt-4 pb-1.5">
-                <p className="px-3 text-[10px] font-bold uppercase tracking-wider text-primary/70">Độc Quyền</p>
+                <p className="px-3 text-[11px] font-bold uppercase tracking-wider text-primary/70">Độc Quyền</p>
               </div>
             {LAB_NAV.map((item) => (
               <button

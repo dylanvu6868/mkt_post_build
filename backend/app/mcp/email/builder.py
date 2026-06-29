@@ -12,7 +12,6 @@ from app.services.storage import save_upload
 from app.mcp.landing.template_engine import (
     render_email,
     list_email_templates,
-    get_email_style_reference,
 )
 
 router = APIRouter(prefix="/mcp/email/builder", tags=["email-builder"])
@@ -101,8 +100,8 @@ Tạo nội dung cho các phần của email."""
     from langchain_core.messages import SystemMessage, HumanMessage
     from app.core.tracing import trace_request
 
-    llm = get_chat_model("smart").with_structured_output(EmailContent)
     with trace_request("email.generate_custom", user_id=user.id, metadata={"prompt": body.prompt[:200]}):
+        llm = get_chat_model("smart", max_tokens=8192).with_structured_output(EmailContent)
         content = await llm.ainvoke([SystemMessage(content=system), HumanMessage(content=user_msg)])
 
     # Inject static elements from user input
@@ -166,8 +165,8 @@ Viết nội dung cho tất cả các phần của email."""
     from langchain_core.messages import SystemMessage, HumanMessage
     from app.core.tracing import trace_request
 
-    llm = get_chat_model("smart").with_structured_output(EmailContent)
     with trace_request("email.onboard", user_id=user.id, metadata={"purpose": body.purpose[:100]}):
+        llm = get_chat_model("smart", max_tokens=8192).with_structured_output(EmailContent)
         content = await llm.ainvoke([SystemMessage(content=system), HumanMessage(content=user_msg)])
 
     # Inject user settings + extracted content

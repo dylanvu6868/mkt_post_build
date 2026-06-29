@@ -82,10 +82,8 @@ async def run_generation_job(
             user_id=user_id,
             metadata={"job_id": job_id, "content_type": initial_state.get("content_type")},
         ) as trace:
-            trace_id = trace  # REST API trace_id string
-            # Propagate trace_id vào ContextVar để tất cả agent calls đều ghi nhận
-            from app.agents.base import current_trace_id
-            current_trace_id.set(trace_id)
+            # trace_request already sets current_trace_id ContextVar
+            # No need to set it again here
 
             # Timeout 300s cho toàn bộ pipeline generation
             stream = graph.astream(initial_state, {}, stream_mode="updates")
@@ -130,10 +128,7 @@ async def run_generation_job(
                     score=score,
                 )
             logger.info("Generation completed job_id=%s score=%s", job_id, score)
-            # Flush Langfuse buffer ngay sau generation để trace xuất hiện
-            from app.core.tracing import langfuse_client
-            if langfuse_client:
-                langfuse_client.flush()
+            # REST API posts synchronously — no flush needed
     except Exception as exc:  # noqa: BLE001 — any agent/LLM failure marks the job errored
         logger.error("Generation failed job_id=%s error=%s", job_id, exc)
         async with session_maker() as session:

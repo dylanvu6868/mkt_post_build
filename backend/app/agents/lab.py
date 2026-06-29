@@ -4,7 +4,6 @@ from langgraph.prebuilt import create_react_agent
 from langchain_core.messages import HumanMessage
 from app.llm.factory import get_chat_model
 from app.agents.tools.marketing_tools import get_marketing_tools
-from app.core.tracing import langfuse_handler
 
 STRICT_RULES = """
 
@@ -282,30 +281,33 @@ YÊU CẦU VỀ PHONG CÁCH VIẾT:
             user += f"- {k}: {v}\n"
             
     # --- PHASE 1: RESEARCHER AGENT ---
-    model = get_chat_model("fast")
-    tools = get_marketing_tools()
-    researcher_system = "Bạn là Chuyên gia Nghiên cứu Thị trường. Nhiệm vụ của bạn là tìm kiếm thông tin mới nhất trên mạng về ngành hàng, đối thủ cạnh tranh, và xu hướng dựa trên thông tin dự án. Trả về một bản tóm tắt ngắn gọn các insight quan trọng tìm được."
-    researcher_agent = create_react_agent(model, tools, state_modifier=researcher_system)
-    
-    config = {"callbacks": [langfuse_handler]} if langfuse_handler else {}
-    research_prompt = f"Tìm kiếm thông tin thị trường, đối thủ cạnh tranh và xu hướng nổi bật cho dự án sau: {user}"
-    writer_prompt = system + "\n\nTHÔNG TIN NGHIÊN CỨU THỊ TRƯỜNG THỰC TẾ (Dùng để bổ sung vào báo cáo):\n{research_data}\n\nTiến hành phân tích và tạo Vitba Report chi tiết dựa trên thông tin dự án ở trên."
-    writer_agent = create_react_agent(get_chat_model("smart"), [], state_modifier=system)
+    from app.core.tracing import trace_request, get_langfuse_handler, current_trace_id
+    with trace_request("lab.report", metadata={"phase": "research+write"}):
+        model = get_chat_model("fast", max_tokens=8192)
+        tools = get_marketing_tools()
+        researcher_system = "Bạn là Chuyên gia Nghiên cứu Thị trường. Nhiệm vụ của bạn là tìm kiếm thông tin mới nhất trên mạng về ngành hàng, đối thủ cạnh tranh, và xu hướng dựa trên thông tin dự án. Trả về một bản tóm tắt ngắn gọn các insight quan trọng tìm được."
+        researcher_agent = create_react_agent(model, tools, state_modifier=researcher_system)
 
-    # Execute the two-stage pipeline
-    # 1. Research Phase
-    research_result = await researcher_agent.ainvoke(
-        {"messages": [HumanMessage(content=research_prompt)]},
-        config=config
-    )
-    research_data = research_result["messages"][-1].content
+        handler = get_langfuse_handler(current_trace_id.get())
+        config = {"callbacks": [handler]} if handler else {}
+        research_prompt = f"Tìm kiếm thông tin thị trường, đối thủ cạnh tranh và xu hướng nổi bật cho dự án sau: {user}"
+        writer_prompt = system + "\n\nTHÔNG TIN NGHIÊN CỨU THỊ TRƯỜNG THỰC TẾ (Dùng để bổ sung vào báo cáo):\n{research_data}\n\nTiến hành phân tích và tạo Vitba Report chi tiết dựa trên thông tin dự án ở trên."
+        writer_agent = create_react_agent(get_chat_model("smart", max_tokens=8192), [], state_modifier=system)
 
-    # 2. Writing Phase
-    writer_result = await writer_agent.ainvoke(
-        {"messages": [HumanMessage(content=writer_prompt.format(research_data=research_data))]},
-        config=config
-    )
-    final_report = writer_result["messages"][-1].content
+        # Execute the two-stage pipeline
+        # 1. Research Phase
+        research_result = await researcher_agent.ainvoke(
+            {"messages": [HumanMessage(content=research_prompt)]},
+            config=config
+        )
+        research_data = research_result["messages"][-1].content
+
+        # 2. Writing Phase
+        writer_result = await writer_agent.ainvoke(
+            {"messages": [HumanMessage(content=writer_prompt.format(research_data=research_data))]},
+            config=config
+        )
+        final_report = writer_result["messages"][-1].content
 
     return ReportResponse(markdown_content=final_report)
 
@@ -627,9 +629,9 @@ async def run_seo_analysis_agent(req: SeoAnalysisRequest) -> str:
 
     user_msg = "\n".join(parts)
 
-    llm = get_chat_model("smart", max_tokens=8192)
     from app.core.tracing import trace_request
     with trace_request("lab.seo_analysis", metadata={"domain": req.domain}):
+        llm = get_chat_model("smart", max_tokens=8192)
         resp = await llm.ainvoke([
             SystemMessage(content=SEO_ANALYSIS_SYSTEM),
             HumanMessage(content=user_msg),

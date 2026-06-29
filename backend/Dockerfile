@@ -15,5 +15,8 @@ COPY --from=builder /install /usr/local
 
 COPY . .
 
+# Create uploads directory at runtime (not in image)
+RUN mkdir -p /app/uploads
+
 EXPOSE 8000
 CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]

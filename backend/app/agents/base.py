@@ -1,7 +1,6 @@
 import json
 import re
 import uuid
-from contextvars import ContextVar
 from datetime import datetime, timezone
 from typing import TypeVar
 
@@ -12,28 +11,8 @@ from app.llm.factory import get_chat_model
 
 T = TypeVar("T", bound=BaseModel)
 
-# Langfuse trace_id tự động propagate qua ContextVar
-current_trace_id: ContextVar[str | None] = ContextVar("current_trace_id", default=None)
-
-
-def _post_langfuse(path: str, data: dict) -> None:
-    """POST to Langfuse API — silently skip if not configured."""
-    import os, base64, requests
-    pk = os.getenv("LANGFUSE_PUBLIC_KEY") or ""
-    sk = os.getenv("LANGFUSE_SECRET_KEY") or ""
-    if not pk or not sk:
-        return
-    host = os.getenv("LANGFUSE_HOST") or os.getenv("LANGFUSE_BASE_URL") or "https://us.cloud.langfuse.com"
-    auth = base64.b64encode(f"{pk}:{sk}".encode()).decode()
-    try:
-        requests.post(
-            f"{host}/api/public/{path}",
-            json=data,
-            headers={"Authorization": f"Basic {auth}"},
-            timeout=5,
-        )
-    except Exception:
-        pass
+# Import the unified ContextVar from tracing.py
+from app.core.tracing import current_trace_id, _post as _post_langfuse
 
 
 def _classify_span_type(schema_name: str) -> str:

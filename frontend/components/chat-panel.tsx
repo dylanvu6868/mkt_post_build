@@ -11,6 +11,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { api } from "@/services/api";
+import { FeedbackButtons } from "@/components/feedback-buttons";
 
 const DASHBOARD_CARDS = [
   { title: "Facebook Post", desc: "Bài đăng mạng xã hội", type: "facebook_post", minPlan: "free" as PlanId },
@@ -1152,6 +1153,7 @@ export function ChatPanel() {
                   : "bg-card text-foreground rounded-2xl sm:rounded-3xl rounded-tl-sm border border-border shadow-[0_4px_24px_-8px_rgba(0,0,0,0.08)] dark:shadow-[0_4px_24px_-8px_rgba(0,0,0,0.5)]"
               )}>
                 {msg.role === "assistant" ? <MarkdownContent content={msg.content} /> : <span className="whitespace-pre-wrap break-words">{msg.content}</span>}
+                {msg.role === "assistant" && msg.id && <FeedbackButtons messageId={msg.id} />}
               </div>
             </motion.div>
           );
