@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useLabTool } from "@/hooks/use-lab-tool";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useRef } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { btn, inp } from "@/lib/ui-tokens";
 import {
@@ -836,6 +836,23 @@ function DeepAnalysisTab({ result, loading, domain }: { result: SeoAnalysisResul
   );
 }
 
+const NAV_ITEMS = [
+  { id: "overview", label: "Tổng quan", icon: Award },
+  { id: "keywords", label: "Từ khóa", icon: Search },
+  { id: "backlinks", label: "Backlinks", icon: Link },
+  { id: "serp", label: "SERP & Đối thủ", icon: Crosshair },
+  { id: "deep", label: "Phân tích", icon: FileText },
+] as const;
+
+function SectionAnchor({ id, label, icon: Icon }: { id: string; label: string; icon: typeof Award }) {
+  return (
+    <div id={id} className="scroll-mt-20 pt-8 pb-2 flex items-center gap-2 border-b border-border/40">
+      <Icon size={16} className="text-primary" />
+      <h2 className="text-base font-semibold text-foreground">{label}</h2>
+    </div>
+  );
+}
+
 export default function VitbaSeoPage() {
   const [domain, setDomain] = useState("");
   const [industry, setIndustry] = useState("");
@@ -844,24 +861,26 @@ export default function VitbaSeoPage() {
   const [competitors, setCompetitors] = useState("");
   const [generating, setGenerating] = useState(false);
   const [generated, setGenerated] = useState(false);
+  const [formOpen, setFormOpen] = useState(true);
 
   const kwResearch = useLabTool<KeywordResearchResult>("/keyword-research");
   const rankTracker = useLabTool<RankTrackerResult>("/rank-tracker");
-  const backlinks = useLabTool<BacklinksResult>("/backlinks");
+  const backlinksHook = useLabTool<BacklinksResult>("/backlinks");
   const serpSpy = useLabTool<SerpSpyResult>("/serp-spy");
   const seoAnalysis = useLabTool<SeoAnalysisResult>("/seo-analysis");
+  const contentRef = useRef<HTMLDivElement>(null);
 
   const handleGenerate = async () => {
     if (!domain.trim() || generating) return;
     setGenerating(true);
     setGenerated(false);
-    kwResearch.reset(); rankTracker.reset(); backlinks.reset(); serpSpy.reset(); seoAnalysis.reset();
+    kwResearch.reset(); rankTracker.reset(); backlinksHook.reset(); serpSpy.reset(); seoAnalysis.reset();
 
     const cleanDomain = domain.trim().split("#")[0].split("?")[0].replace(/\/+$/, "");
     await Promise.allSettled([
       kwResearch.run({ keyword: cleanDomain, location_code: LOCATION_CODE }),
       rankTracker.run({ domain: cleanDomain, location_code: LOCATION_CODE }),
-      backlinks.run({ domain: cleanDomain }),
+      backlinksHook.run({ domain: cleanDomain }),
       serpSpy.run({ keyword: cleanDomain, location_code: LOCATION_CODE }),
       seoAnalysis.run({
         domain: cleanDomain,
@@ -873,73 +892,133 @@ export default function VitbaSeoPage() {
     ]);
     setGenerating(false);
     setGenerated(true);
+    setFormOpen(false);
+    setTimeout(() => contentRef.current?.scrollIntoView({ behavior: "smooth" }), 200);
   };
 
-  const anyError = kwResearch.error || rankTracker.error || backlinks.error || serpSpy.error || seoAnalysis.error;
+  const anyError = kwResearch.error || rankTracker.error || backlinksHook.error || serpSpy.error || seoAnalysis.error;
+  const showResults = generating || generated;
+
+  function scrollTo(id: string) {
+    document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+  }
 
   return (
-    <div className="mx-auto max-w-6xl space-y-8 pb-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div>
-        <h1 className="flex items-center gap-2 text-3xl font-bold tracking-tight text-foreground">
-          <Search className="h-8 w-8 text-primary" />
+    <div className="mx-auto max-w-6xl pb-16 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      {/* Header */}
+      <div className="mb-6">
+        <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight text-foreground">
+          <Search className="h-7 w-7 text-primary" />
           <span className="bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">Vitba SEO</span>
         </h1>
-        <p className="mt-2 text-lg text-muted-foreground">Báo cáo SEO toàn diện: keyword research, rank tracking, backlinks, SERP intelligence &amp; phân tích chuyên sâu.</p>
+        <p className="mt-1 text-sm text-muted-foreground">Báo cáo SEO toàn diện — lướt xuống để xem tất cả các phần.</p>
       </div>
 
-      <Card className="border-border/50 bg-card/50 backdrop-blur-sm overflow-hidden">
+      {/* Collapsible Form */}
+      <Card className="border-border/50 bg-card/50 backdrop-blur-sm overflow-hidden mb-6">
         <div className="h-1 bg-gradient-to-r from-primary via-primary/70 to-primary/40" />
-        <CardContent className="pt-6">
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-            <div className="md:col-span-2 lg:col-span-1">
-              <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-muted-foreground/60"><Globe className="mr-1 inline h-3 w-3" />Domain *</label>
-              <input className={inp} placeholder="vitba.ai" value={domain} onChange={e => setDomain(e.target.value)} onKeyDown={e => { if (e.key === "Enter" && domain.trim()) handleGenerate(); }} />
-            </div>
-            <div>
-              <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-muted-foreground/60">Ngành nghề</label>
-              <input className={inp} placeholder="SaaS, AI Marketing, F&B..." value={industry} onChange={e => setIndustry(e.target.value)} />
-            </div>
-            <div>
-              <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-muted-foreground/60">Khu vực</label>
-              <input className={inp} placeholder="Việt Nam" value={targetRegion} onChange={e => setTargetRegion(e.target.value)} />
-            </div>
-            <div>
-              <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-muted-foreground/60"><Search className="mr-1 inline h-3 w-3" />Từ khóa chính (phẩy)</label>
-              <input className={inp} placeholder="marketing AI, SEO automation..." value={keywords} onChange={e => setKeywords(e.target.value)} />
-            </div>
-            <div>
-              <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-muted-foreground/60"><Users className="mr-1 inline h-3 w-3" />Đối thủ (phẩy)</label>
-              <input className={inp} placeholder="canva.com, copy.ai..." value={competitors} onChange={e => setCompetitors(e.target.value)} />
-            </div>
-            <div className="flex items-end">
-              <button className={`${btn} w-full`} onClick={handleGenerate} disabled={generating || !domain.trim()}>
-                {generating ? <><Clock className="mr-2 h-4 w-4 animate-spin" />Đang tạo báo cáo...</> : <><Target className="mr-2 h-4 w-4" />Tạo báo cáo SEO</>}
-              </button>
-            </div>
+        <div
+          className="flex items-center justify-between px-5 py-3 cursor-pointer hover:bg-muted/20 transition-colors"
+          onClick={() => setFormOpen(!formOpen)}
+        >
+          <div className="flex items-center gap-2">
+            <Globe size={14} className="text-primary" />
+            <span className="text-sm font-semibold">{domain.trim() || "Nhập domain để bắt đầu"}</span>
+            {generated && <span className="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">Đã tạo</span>}
           </div>
-          {anyError && (
-            <div className="mt-4 rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-3">
-              <p className="text-xs font-medium text-red-600 dark:text-red-400">Một số API gặp lỗi — kết quả có thể không đầy đủ.</p>
+          <span className={`text-muted-foreground transition-transform ${formOpen ? "rotate-180" : ""}`}>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          </span>
+        </div>
+        {formOpen && (
+          <CardContent className="pt-0 pb-5">
+            <div className="grid grid-cols-2 gap-3 lg:grid-cols-6">
+              <div className="col-span-2 lg:col-span-1">
+                <label className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60">Domain *</label>
+                <input className={inp} placeholder="vitba.ai" value={domain} onChange={e => setDomain(e.target.value)} onKeyDown={e => { if (e.key === "Enter" && domain.trim()) handleGenerate(); }} />
+              </div>
+              <div>
+                <label className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60">Ngành</label>
+                <input className={inp} placeholder="SaaS, F&B..." value={industry} onChange={e => setIndustry(e.target.value)} />
+              </div>
+              <div>
+                <label className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60">Khu vực</label>
+                <input className={inp} placeholder="Việt Nam" value={targetRegion} onChange={e => setTargetRegion(e.target.value)} />
+              </div>
+              <div>
+                <label className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60">Từ khóa</label>
+                <input className={inp} placeholder="marketing AI..." value={keywords} onChange={e => setKeywords(e.target.value)} />
+              </div>
+              <div>
+                <label className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60">Đối thủ</label>
+                <input className={inp} placeholder="canva.com..." value={competitors} onChange={e => setCompetitors(e.target.value)} />
+              </div>
+              <div className="flex items-end">
+                <button className={`${btn} w-full`} onClick={handleGenerate} disabled={generating || !domain.trim()}>
+                  {generating ? <><Clock className="mr-1.5 h-3.5 w-3.5 animate-spin" />Đang tạo...</> : <><Target className="mr-1.5 h-3.5 w-3.5" />Tạo báo cáo</>}
+                </button>
+              </div>
             </div>
-          )}
-        </CardContent>
+            {anyError && (
+              <div className="mt-3 rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-2">
+                <p className="text-[11px] font-medium text-red-600 dark:text-red-400">Một số API gặp lỗi — kết quả có thể không đầy đủ.</p>
+              </div>
+            )}
+          </CardContent>
+        )}
       </Card>
 
-      {(generating || generated) && (
-        <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="flex-wrap gap-1 bg-muted/50 p-1">
-            <TabsTrigger value="overview" className="rounded-lg data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm"><Award className="mr-1.5 h-3.5 w-3.5" />Tổng quan</TabsTrigger>
-            <TabsTrigger value="keywords" className="rounded-lg data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm"><Search className="mr-1.5 h-3.5 w-3.5" />Từ khóa</TabsTrigger>
-            <TabsTrigger value="backlinks" className="rounded-lg data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm"><Link className="mr-1.5 h-3.5 w-3.5" />Backlinks</TabsTrigger>
-            <TabsTrigger value="serp" className="rounded-lg data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm"><Crosshair className="mr-1.5 h-3.5 w-3.5" />SERP &amp; Đối thủ</TabsTrigger>
-            <TabsTrigger value="deep" className="rounded-lg data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm"><FileText className="mr-1.5 h-3.5 w-3.5" />Phân tích chuyên sâu</TabsTrigger>
-          </TabsList>
-          <TabsContent value="overview"><OverviewTab rankResult={rankTracker.result} rankLoading={rankTracker.loading} backlinksResult={backlinks.result} backlinksLoading={backlinks.loading} kwResult={kwResearch.result} kwLoading={kwResearch.loading} serpResult={serpSpy.result} serpLoading={serpSpy.loading} /></TabsContent>
-          <TabsContent value="keywords"><KeywordsTab kwResult={kwResearch.result} kwLoading={kwResearch.loading} rankResult={rankTracker.result} rankLoading={rankTracker.loading} /></TabsContent>
-          <TabsContent value="backlinks"><BacklinksTab result={backlinks.result} loading={backlinks.loading} /></TabsContent>
-          <TabsContent value="serp"><SerpTab result={serpSpy.result} loading={serpSpy.loading} /></TabsContent>
-          <TabsContent value="deep"><DeepAnalysisTab result={seoAnalysis.result} loading={seoAnalysis.loading} domain={domain.trim()} /></TabsContent>
-        </Tabs>
+      {/* Sticky section nav */}
+      {showResults && (
+        <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-md border-b border-border/40 -mx-4 px-4 mb-4">
+          <div className="flex gap-1 py-2 overflow-x-auto no-scrollbar max-w-6xl mx-auto">
+            {NAV_ITEMS.map(n => (
+              <button
+                key={n.id}
+                onClick={() => scrollTo(n.id)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors whitespace-nowrap shrink-0"
+              >
+                <n.icon size={12} />
+                {n.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* All sections stacked vertically */}
+      {showResults && (
+        <div ref={contentRef} className="space-y-2">
+          {/* 1. Overview / Rubric */}
+          <SectionAnchor id="overview" label="Tổng quan & SEO Health" icon={Award} />
+          <div className="mt-4">
+            <OverviewTab rankResult={rankTracker.result} rankLoading={rankTracker.loading} backlinksResult={backlinksHook.result} backlinksLoading={backlinksHook.loading} kwResult={kwResearch.result} kwLoading={kwResearch.loading} serpResult={serpSpy.result} serpLoading={serpSpy.loading} />
+          </div>
+
+          {/* 2. Keywords */}
+          <SectionAnchor id="keywords" label="Từ khóa" icon={Search} />
+          <div className="mt-4">
+            <KeywordsTab kwResult={kwResearch.result} kwLoading={kwResearch.loading} rankResult={rankTracker.result} rankLoading={rankTracker.loading} />
+          </div>
+
+          {/* 3. Backlinks */}
+          <SectionAnchor id="backlinks" label="Backlinks" icon={Link} />
+          <div className="mt-4">
+            <BacklinksTab result={backlinksHook.result} loading={backlinksHook.loading} />
+          </div>
+
+          {/* 4. SERP & Competitors */}
+          <SectionAnchor id="serp" label="SERP & Đối thủ" icon={Crosshair} />
+          <div className="mt-4">
+            <SerpTab result={serpSpy.result} loading={serpSpy.loading} />
+          </div>
+
+          {/* 5. Deep Analysis */}
+          <SectionAnchor id="deep" label="Phân tích chuyên sâu" icon={FileText} />
+          <div className="mt-4">
+            <DeepAnalysisTab result={seoAnalysis.result} loading={seoAnalysis.loading} domain={domain.trim()} />
+          </div>
+        </div>
       )}
     </div>
   );
