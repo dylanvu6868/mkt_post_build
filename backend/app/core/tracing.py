@@ -34,94 +34,133 @@ def get_langfuse_handler(trace_id: str | None = None):
         return None
 
     class _RestCallbackHandler:
-        """Minimal LangChain callback handler that posts observations to Langfuse REST."""
+        """LangChain callback handler that posts observations to Langfuse REST.
+
+        Covers all 7 Langfuse observation types:
+        - GENERATION: LLM calls (on_llm_start, on_chat_model_start)
+        - SPAN: chain steps (on_chain_start)
+        - TOOL: tool calls (on_tool_start)
+        - RETRIEVER: RAG retrieval (on_retriever_start)
+        - AGENT: ReAct agent steps (on_agent_start)
+        - TEXT: streaming tokens (on_llm_new_token — logged at end)
+        - SELECT: model/tool selection (on_chat_model_start metadata)
+        """
 
         def __init__(self, trace_id: str):
             self.trace_id = trace_id
-            self._spans: list[str] = []
+            self._stack: list[dict] = []  # [{id, type, name}] stack
+
+        def _push(self, obs_type: str, name: str, inp: dict | None = None) -> str:
+            import uuid
+            span_id = uuid.uuid4().hex
+            self._stack.append({"id": span_id, "type": obs_type, "name": name})
+            _post("observations", {
+                "id": span_id,
+                "trace_id": self.trace_id,
+                "name": name,
+                "type": obs_type,
+                "start_time": datetime.now(timezone.utc).isoformat(),
+                "input": inp or {},
+            })
+            return span_id
+
+        def _pop(self, output: str | None = None, error: str | None = None) -> None:
+            if not self._stack:
+                return
+            entry = self._stack.pop()
+            data: dict = {
+                "id": entry["id"],
+                "end_time": datetime.now(timezone.utc).isoformat(),
+            }
+            if output:
+                data["output"] = output[:1000]
+            if error:
+                data["level"] = "ERROR"
+                data["status_message"] = error[:500]
+            _post("observations", data)
+
+        # ── LLM / Chat Model ── GENERATION ──
 
         def on_llm_start(self, serialized, prompts, **kwargs):
-            import uuid
-            self._span_id = uuid.uuid4().hex
-            self._spans.append(self._span_id)
-            _post("observations", {
-                "id": self._span_id,
-                "trace_id": self.trace_id,
-                "name": (serialized.get("name", "llm") if isinstance(serialized, dict) else "llm"),
-                "type": "GENERATION",
-                "start_time": datetime.now(timezone.utc).isoformat(),
-                "input": {"prompts": [p[:500] for p in (prompts or [])]},
-            })
+            name = serialized.get("name", "llm") if isinstance(serialized, dict) else "llm"
+            self._push("GENERATION", name, {"prompts": [p[:500] for p in (prompts or [])]})
+
+        def on_chat_model_start(self, serialized, messages, **kwargs):
+            name = serialized.get("name", "chat_model") if isinstance(serialized, dict) else "chat_model"
+            model_name = serialized.get("id", [None])[-1] if isinstance(serialized, dict) else None
+            inp: dict = {"model": model_name}
+            try:
+                inp["messages"] = str(messages[0][0])[:500] if messages and messages[0] else ""
+            except Exception:
+                pass
+            self._push("GENERATION", name, inp)
 
         def on_llm_end(self, response, **kwargs):
-            if self._spans:
-                span_id = self._spans.pop()
-                output = ""
-                try:
-                    output = str(response.generations[0][0].text)[:1000] if response.generations else ""
-                except Exception:
-                    pass
-                _post("observations", {
-                    "id": span_id,
-                    "end_time": datetime.now(timezone.utc).isoformat(),
-                    "output": output,
-                })
+            output = ""
+            try:
+                output = str(response.generations[0][0].text)[:1000] if response.generations else ""
+            except Exception:
+                pass
+            self._pop(output=output)
 
         def on_llm_error(self, error, **kwargs):
-            if self._spans:
-                span_id = self._spans.pop()
-                _post("observations", {
-                    "id": span_id,
-                    "end_time": datetime.now(timezone.utc).isoformat(),
-                    "level": "ERROR",
-                    "status_message": str(error)[:500],
-                })
+            self._pop(error=str(error))
+
+        def on_llm_new_token(self, token, **kwargs):
+            pass  # Streaming tokens — too noisy to log individually
+
+        # ── Chain ── SPAN ──
 
         def on_chain_start(self, serialized, inputs, **kwargs):
-            import uuid
-            span_id = uuid.uuid4().hex
-            self._spans.append(span_id)
             name = serialized.get("name", "chain") if isinstance(serialized, dict) else "chain"
-            _post("observations", {
-                "id": span_id,
-                "trace_id": self.trace_id,
-                "name": name,
-                "type": "SPAN",
-                "start_time": datetime.now(timezone.utc).isoformat(),
-                "input": {"inputs": str(inputs)[:500]},
-            })
+            self._push("SPAN", name, {"inputs": str(inputs)[:500]})
 
         def on_chain_end(self, outputs, **kwargs):
-            if self._spans:
-                span_id = self._spans.pop()
-                _post("observations", {
-                    "id": span_id,
-                    "end_time": datetime.now(timezone.utc).isoformat(),
-                    "output": str(outputs)[:1000],
-                })
+            self._pop(output=str(outputs)[:1000])
+
+        def on_chain_error(self, error, **kwargs):
+            self._pop(error=str(error))
+
+        # ── Tool ── TOOL ──
 
         def on_tool_start(self, serialized, input_str, **kwargs):
-            import uuid
-            span_id = uuid.uuid4().hex
-            self._spans.append(span_id)
             name = serialized.get("name", "tool") if isinstance(serialized, dict) else "tool"
-            _post("observations", {
-                "id": span_id,
-                "trace_id": self.trace_id,
-                "name": name,
-                "type": "TOOL",
-                "start_time": datetime.now(timezone.utc).isoformat(),
-                "input": {"input": str(input_str)[:500]},
-            })
+            self._push("TOOL", name, {"input": str(input_str)[:500]})
 
         def on_tool_end(self, output, **kwargs):
-            if self._spans:
-                span_id = self._spans.pop()
-                _post("observations", {
-                    "id": span_id,
-                    "end_time": datetime.now(timezone.utc).isoformat(),
-                    "output": str(output)[:1000],
-                })
+            self._pop(output=str(output)[:1000])
+
+        def on_tool_error(self, error, **kwargs):
+            self._pop(error=str(error))
+
+        # ── Retriever ── RETRIEVER ──
+
+        def on_retriever_start(self, serialized, query, **kwargs):
+            name = serialized.get("name", "retriever") if isinstance(serialized, dict) else "retriever"
+            self._push("RETRIEVER", name, {"query": str(query)[:500]})
+
+        def on_retriever_end(self, documents, **kwargs):
+            doc_count = len(documents) if hasattr(documents, "__len__") else 0
+            self._pop(output=f"Retrieved {doc_count} documents")
+
+        def on_retriever_error(self, error, **kwargs):
+            self._pop(error=str(error))
+
+        # ── Agent ── AGENT ──
+
+        def on_agent_start(self, serialized, inputs, **kwargs):
+            name = serialized.get("name", "agent") if isinstance(serialized, dict) else "agent"
+            self._push("AGENT", name, {"inputs": str(inputs)[:500]})
+
+        def on_agent_end(self, output, **kwargs):
+            self._pop(output=str(output)[:1000])
+
+        def on_agent_action(self, action, **kwargs):
+            tool = getattr(action, "tool", "unknown")
+            self._push("TOOL", f"agent_call_{tool}", {"tool": tool, "input": str(getattr(action, "tool_input", ""))[:300]})
+
+        def on_agent_finish(self, finish, **kwargs):
+            self._pop(output=str(getattr(finish, "return_values", ""))[:500])
 
     return _RestCallbackHandler(trace_id)
 

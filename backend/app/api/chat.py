@@ -13,7 +13,7 @@ from app.api.deps import get_current_user
 from app.core.config import settings
 from app.core.db import get_session, get_session_maker
 from app.core.plan_limits import get_limits, get_user_plan
-from app.core.tracing import trace_request
+from app.core.tracing import trace_request, get_langfuse_handler, current_trace_id
 from app.llm.factory import get_chat_model, provider_available
 from app.models.conversation import Conversation, Message
 from app.models.user import User
@@ -160,8 +160,6 @@ async def _analyze_images(image_data: list[dict]) -> str:
         try:
             from langchain_openai import ChatOpenAI
             from langchain_core.messages import HumanMessage as HMsg
-            from app.core.tracing import langfuse_handler
-
             vision_model = ChatOpenAI(
                 model="gpt-4o-mini",
                 api_key=zenmux_key or settings.openai_api_key,
@@ -169,8 +167,9 @@ async def _analyze_images(image_data: list[dict]) -> str:
                 max_tokens=1024,
                 timeout=30,
             )
-            if langfuse_handler:
-                vision_model = vision_model.with_config({"callbacks": [langfuse_handler]})
+            _handler = get_langfuse_handler(current_trace_id.get())
+            if _handler:
+                vision_model = vision_model.with_config({"callbacks": [_handler]})
             content_parts: list[dict] = [
                 {"type": "text", "text": "Mô tả chi tiết nội dung từng ảnh bằng tiếng Việt. Nếu có chữ trong ảnh, trích xuất toàn bộ text."}
             ]
@@ -537,10 +536,12 @@ async def send_message(
         if not guard_result.is_safe:
             # Save AI rejection message
             async with session_maker() as save_session:
+                _tid = current_trace_id.get()
                 ai_msg = Message(
                     conversation_id=conversation_id,
                     role="assistant",
                     content=guard_result.reason,
+                    metadata_json={"trace_id": _tid, "guard_blocked": True} if _tid else None,
                 )
                 save_session.add(ai_msg)
                 await save_session.commit()
@@ -569,22 +570,28 @@ async def send_message(
     try:
         from app.rag.embeddings import embed_query, sparse_embed_query
         from app.rag.qdrant_store import retrieve_by_conversation, retrieve
-        query_vec = await asyncio.to_thread(embed_query, payload.content)
-        query_sparse = await asyncio.to_thread(sparse_embed_query, payload.content)
-        chunks = await asyncio.to_thread(
-            retrieve_by_conversation, conversation_id, query_vec,
-            query_sparse=query_sparse, query_text=payload.content,
-        )
-        proj_result = await session.execute(select(Project).where(Project.user_id == current_user.id).limit(1))
-        proj = proj_result.scalar_one_or_none()
-        if proj:
-            project_chunks = await asyncio.to_thread(
-                retrieve, proj.id, query_vec,
+        with trace_request(
+            "chat.rag_retrieval",
+            user_id=current_user.id,
+            session_id=str(conversation_id),
+            metadata={"type": "retrieval", "query_preview": payload.content[:200]},
+        ):
+            query_vec = await asyncio.to_thread(embed_query, payload.content)
+            query_sparse = await asyncio.to_thread(sparse_embed_query, payload.content)
+            chunks = await asyncio.to_thread(
+                retrieve_by_conversation, conversation_id, query_vec,
                 query_sparse=query_sparse, query_text=payload.content,
             )
-            for c in project_chunks:
-                if c not in chunks:
-                    chunks.append(c)
+            proj_result = await session.execute(select(Project).where(Project.user_id == current_user.id).limit(1))
+            proj = proj_result.scalar_one_or_none()
+            if proj:
+                project_chunks = await asyncio.to_thread(
+                    retrieve, proj.id, query_vec,
+                    query_sparse=query_sparse, query_text=payload.content,
+                )
+                for c in project_chunks:
+                    if c not in chunks:
+                        chunks.append(c)
         if chunks:
             doc_context = "\n---\n".join(chunks)
             logger.info("RAG retrieved %d chunks for conv %s (context: %d chars)", len(chunks), conversation_id, len(doc_context))
@@ -625,10 +632,12 @@ async def send_message(
                 yield event
 
             async with session_maker() as save_session:
+                _tid = current_trace_id.get()
                 ai_msg = Message(
                     conversation_id=conversation_id,
                     role="assistant",
                     content=full_response,
+                    metadata_json={"trace_id": _tid} if _tid else None,
                 )
                 save_session.add(ai_msg)
                 if needs_title:

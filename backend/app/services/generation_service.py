@@ -10,7 +10,7 @@ from app.graph.build import build_graph
 from app.models.generation_job import GenerationJob
 from app.models.project import Project
 from app.services import history_service
-from app.core.tracing import get_langfuse_handler, trace_request
+from app.core.tracing import get_langfuse_handler, trace_request, current_trace_id
 
 _RESULT_KEYS = (
     "draft",
@@ -86,7 +86,10 @@ async def run_generation_job(
             # No need to set it again here
 
             # Timeout 300s cho toàn bộ pipeline generation
-            stream = graph.astream(initial_state, {}, stream_mode="updates")
+            _tid = current_trace_id.get()
+            _handler = get_langfuse_handler(_tid) if _tid else None
+            _config = {"callbacks": [_handler]} if _handler else {}
+            stream = graph.astream(initial_state, _config, stream_mode="updates")
             try:
                 async with asyncio.timeout(300):
                     async for update in stream:
