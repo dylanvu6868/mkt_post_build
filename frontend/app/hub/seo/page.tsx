@@ -301,25 +301,162 @@ function EmptySection({ icon, text }: { icon: React.ReactNode; text: string }) {
   );
 }
 
-function OverviewTab({ rankResult, rankLoading, backlinksResult, backlinksLoading, kwResult, kwLoading }: {
+/* ------------------------------------------------------------------ */
+/*  SEO Health Rubric Scoring                                           */
+/* ------------------------------------------------------------------ */
+interface RubricDimension {
+  key: string; label: string; score: number; weight: number;
+  icon: React.ReactNode; color: string; verdict: string; tip: string;
+}
+
+function computeRubric(organic: MetricBucket | undefined, summary: BacklinksSummary | undefined, serpCount: number): RubricDimension[] {
+  const clamp = (v: number) => Math.max(0, Math.min(100, Math.round(v)));
+
+  const kwCount = organic?.count ?? 0;
+  const top10 = (organic?.pos_1 ?? 0) + (organic?.pos_2_3 ?? 0) + (organic?.pos_4_10 ?? 0);
+  const top10Ratio = kwCount > 0 ? top10 / kwCount : 0;
+  const kwScore = clamp(Math.min(kwCount / 100, 50) + top10Ratio * 50);
+
+  const etv = organic?.etv ?? 0;
+  const paidValue = organic?.estimated_paid_traffic_cost ?? 0;
+  const trafficScore = clamp(Math.min(etv / 500, 50) + Math.min(paidValue / 200, 50));
+
+  const refDomains = summary?.referring_domains ?? 0;
+  const domainRank = summary?.rank ?? 0;
+  const brokenRatio = summary?.backlinks ? (summary.broken_backlinks ?? 0) / summary.backlinks : 0;
+  const backlinkScore = clamp(Math.min(refDomains / 50, 40) + domainRank * 0.4 + (1 - brokenRatio) * 20);
+
+  const serpScore = clamp(Math.min(serpCount / 5, 1) * 100);
+
+  const isNew = organic?.is_new ?? 0;
+  const isLost = organic?.is_lost ?? 0;
+  const isUp = organic?.is_up ?? 0;
+  const isDown = organic?.is_down ?? 0;
+  const growthNet = (isNew + isUp) - (isLost + isDown);
+  const growthTotal = isNew + isUp + isLost + isDown;
+  const growthScore = growthTotal > 0 ? clamp(50 + (growthNet / growthTotal) * 50) : 50;
+
+  return [
+    { key: "keywords", label: "Keyword Coverage", score: kwScore, weight: 25, icon: <Search size={16} />, color: "#6366f1",
+      verdict: kwScore >= 70 ? "Mạnh" : kwScore >= 40 ? "Trung bình" : "Yếu",
+      tip: kwScore >= 70 ? "Phủ sóng từ khóa tốt, tỷ lệ top 10 cao." : kwScore >= 40 ? "Cần tăng số keyword top 10, tập trung long-tail." : "Ít keyword xếp hạng. Cần chiến lược content dài hạn." },
+    { key: "traffic", label: "Traffic Value", score: trafficScore, weight: 20, icon: <TrendingUp size={16} />, color: "#8b5cf6",
+      verdict: trafficScore >= 70 ? "Cao" : trafficScore >= 40 ? "Trung bình" : "Thấp",
+      tip: trafficScore >= 70 ? "Lượng traffic organic có giá trị cao." : trafficScore >= 40 ? "Traffic có tiềm năng, cần tối ưu CTR và content." : "Traffic thấp. Ưu tiên keyword có search volume cao." },
+    { key: "backlinks", label: "Backlink Authority", score: backlinkScore, weight: 25, icon: <Link size={16} />, color: "#06b6d4",
+      verdict: backlinkScore >= 70 ? "Mạnh" : backlinkScore >= 40 ? "Trung bình" : "Yếu",
+      tip: backlinkScore >= 70 ? "Profile backlink lành mạnh, authority tốt." : backlinkScore >= 40 ? "Cần thêm backlink chất lượng từ domain uy tín." : "Thiếu backlink nghiêm trọng. Cần chiến lược link building." },
+    { key: "serp", label: "SERP Visibility", score: serpScore, weight: 20, icon: <Crosshair size={16} />, color: "#f59e0b",
+      verdict: serpScore >= 70 ? "Cao" : serpScore >= 40 ? "Trung bình" : "Thấp",
+      tip: serpScore >= 70 ? "Hiện diện SERP tốt, nhiều kết quả organic." : serpScore >= 40 ? "Một số vị trí SERP, cần tối ưu snippet và schema." : "Ít xuất hiện trên SERP. Cần cải thiện on-page SEO." },
+    { key: "growth", label: "Growth Momentum", score: growthScore, weight: 10, icon: <Zap size={16} />, color: "#22c55e",
+      verdict: growthScore >= 60 ? "Tích cực" : growthScore >= 40 ? "Ổn định" : "Suy giảm",
+      tip: growthScore >= 60 ? "Xu hướng tăng trưởng tốt, keyword mới nhiều hơn mất." : growthScore >= 40 ? "Ổn định, cần duy trì và mở rộng." : "Đang mất keyword. Cần audit content cũ và cập nhật." },
+  ];
+}
+
+function RubricGauge({ score, size = 120 }: { score: number; size?: number }) {
+  const r = (size - 14) / 2;
+  const circ = 2 * Math.PI * r;
+  const offset = circ - (score / 100) * circ;
+  const color = score >= 70 ? "#22c55e" : score >= 40 ? "#f59e0b" : "#ef4444";
+  const label = score >= 70 ? "Tốt" : score >= 40 ? "Trung bình" : "Cần cải thiện";
+  return (
+    <div className="flex flex-col items-center gap-2">
+      <div className="relative">
+        <svg width={size} height={size} className="-rotate-90">
+          <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="currentColor" strokeWidth={8} className="text-muted/15" />
+          <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={color} strokeWidth={8}
+            strokeDasharray={circ} strokeDashoffset={offset} strokeLinecap="round" className="transition-all duration-1000" />
+        </svg>
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
+          <span className="text-3xl font-bold tabular-nums" style={{ color }}>{score}</span>
+          <span className="text-[10px] text-muted-foreground/60">/100</span>
+        </div>
+      </div>
+      <p className="text-xs font-semibold" style={{ color }}>{label}</p>
+      <p className="text-[10px] text-muted-foreground/50 uppercase tracking-wider">SEO Health Score</p>
+    </div>
+  );
+}
+
+function DimensionRow({ dim }: { dim: RubricDimension }) {
+  const pct = Math.min(dim.score, 100);
+  return (
+    <div className="space-y-1.5">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <div style={{ color: dim.color }}>{dim.icon}</div>
+          <span className="text-xs font-semibold text-foreground">{dim.label}</span>
+          <span className="text-[9px] text-muted-foreground/50">({dim.weight}%)</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-bold tabular-nums" style={{ color: dim.color }}>{dim.score}</span>
+          <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold uppercase ${
+            dim.score >= 70 ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" :
+            dim.score >= 40 ? "bg-amber-500/10 text-amber-600 dark:text-amber-400" :
+            "bg-red-500/10 text-red-600 dark:text-red-400"
+          }`}>{dim.verdict}</span>
+        </div>
+      </div>
+      <div className="h-2 rounded-full bg-muted/30 overflow-hidden">
+        <div className="h-full rounded-full transition-all duration-700" style={{ width: `${pct}%`, backgroundColor: dim.color }} />
+      </div>
+      <p className="text-[10px] text-muted-foreground/60 leading-relaxed">{dim.tip}</p>
+    </div>
+  );
+}
+
+function OverviewTab({ rankResult, rankLoading, backlinksResult, backlinksLoading, kwResult, kwLoading, serpResult, serpLoading }: {
   rankResult: RankTrackerResult | null; rankLoading: boolean;
   backlinksResult: BacklinksResult | null; backlinksLoading: boolean;
   kwResult: KeywordResearchResult | null; kwLoading: boolean;
+  serpResult: SerpSpyResult | null; serpLoading: boolean;
 }) {
-  const loading = rankLoading || backlinksLoading || kwLoading;
+  const loading = rankLoading || backlinksLoading || kwLoading || serpLoading;
   if (loading) return <SectionSkeleton rows={6} />;
 
   const rawOverview = rankResult?.rank_overview?.items?.[0] as RankOverviewItem | undefined;
   const overview = (rawOverview?.metrics?.organic ? rawOverview : (rawOverview as any)?.items?.[0]) as RankOverviewItem | undefined;
   const organic = overview?.metrics?.organic;
   const summary = backlinksResult?.summary?.items?.[0] as BacklinksSummary | undefined;
-  const kwFlat = kwResult?.overview?.items ? flatten<KeywordItem>(kwResult.overview.items) : [];
-  const hasData = organic || summary || kwFlat.length > 0;
+  const serpItems = serpResult?.serp_results?.items ? flatten<SerpResultItem>(serpResult.serp_results.items).filter(i => i.type === "organic" || i.url) : [];
+  const hasData = organic || summary;
 
   if (!hasData) return <EmptySection icon={<Award size={20} />} text="Chưa có dữ liệu tổng quan. Hãy tạo báo cáo SEO trước." />;
 
+  const dimensions = computeRubric(organic, summary, serpItems.length);
+  const overallScore = Math.round(dimensions.reduce((s, d) => s + d.score * d.weight, 0) / 100);
+  const weakest = [...dimensions].sort((a, b) => a.score - b.score)[0];
+
   return (
     <div className="space-y-6">
+      <Card className="border-border/50 bg-card/50 backdrop-blur-sm overflow-hidden">
+        <div className="h-1 bg-gradient-to-r from-primary via-primary/70 to-primary/40" />
+        <CardHeader><CardTitle className="text-sm"><Award size={14} className="mr-1.5 inline" />SEO Health Rubric</CardTitle></CardHeader>
+        <CardContent>
+          <div className="flex flex-col sm:flex-row gap-8">
+            <div className="flex flex-col items-center justify-center shrink-0">
+              <RubricGauge score={overallScore} />
+            </div>
+            <div className="flex-1 space-y-4">
+              {dimensions.map(d => <DimensionRow key={d.key} dim={d} />)}
+            </div>
+          </div>
+          {weakest && weakest.score < 50 && (
+            <div className="mt-5 pt-4 border-t border-border/30">
+              <div className="flex items-start gap-2 rounded-lg border border-amber-500/20 bg-amber-500/5 px-4 py-3">
+                <Target size={14} className="text-amber-500 shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-xs font-semibold text-amber-600 dark:text-amber-400">Ưu tiên cải thiện: {weakest.label}</p>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">{weakest.tip}</p>
+                </div>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <div className="rounded-xl border border-border/50 bg-card/40 p-4 flex justify-center">
           <RadialGauge value={organic?.count ?? 0} max={50000} label="Tổng keyword" color="#6366f1" />
@@ -363,30 +500,6 @@ function OverviewTab({ rankResult, rankLoading, backlinksResult, backlinksLoadin
           </Card>
         );
       })()}
-
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <Card className="border-border/50 bg-card/50 backdrop-blur-sm overflow-hidden">
-          <div className="h-1 bg-gradient-to-r from-emerald-500 via-emerald-500/70 to-emerald-500/40" />
-          <CardHeader className="pb-2"><CardTitle className="flex items-center gap-2 text-sm"><Zap size={16} className="text-emerald-500" />Sức mạnh Domain</CardTitle></CardHeader>
-          <CardContent><p className="text-xs text-muted-foreground">
-            {organic ? (organic.count >= 5000 ? "Domain mạnh — có khả năng cạnh tranh cao." : organic.count >= 1000 ? "Domain trung bình — cần cải thiện authority." : "Domain yếu — cần xây dựng backlinks và nội dung.") : "Chưa có dữ liệu."}
-          </p></CardContent>
-        </Card>
-        <Card className="border-border/50 bg-card/50 backdrop-blur-sm overflow-hidden">
-          <div className="h-1 bg-gradient-to-r from-blue-500 via-blue-500/70 to-blue-500/40" />
-          <CardHeader className="pb-2"><CardTitle className="flex items-center gap-2 text-sm"><Link size={16} className="text-blue-500" />Hồ sơ Backlink</CardTitle></CardHeader>
-          <CardContent><p className="text-xs text-muted-foreground">
-            {summary ? `${formatNumber(summary.backlinks)} backlinks từ ${formatNumber(summary.referring_domains)} referring domains.` : "Chưa có dữ liệu."}
-          </p></CardContent>
-        </Card>
-        <Card className="border-border/50 bg-card/50 backdrop-blur-sm overflow-hidden">
-          <div className="h-1 bg-gradient-to-r from-purple-500 via-purple-500/70 to-purple-500/40" />
-          <CardHeader className="pb-2"><CardTitle className="flex items-center gap-2 text-sm"><Search size={16} className="text-purple-500" />Tiềm năng từ khóa</CardTitle></CardHeader>
-          <CardContent><p className="text-xs text-muted-foreground">
-            {kwFlat.length > 0 ? (() => { const k = getKw(kwFlat[0]); return `"${k.keyword}" — Vol: ${formatNumber(k.volume)}`; })() : "Chưa có dữ liệu."}
-          </p></CardContent>
-        </Card>
-      </div>
     </div>
   );
 }
@@ -821,7 +934,7 @@ export default function VitbaSeoPage() {
             <TabsTrigger value="serp" className="rounded-lg data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm"><Crosshair className="mr-1.5 h-3.5 w-3.5" />SERP &amp; Đối thủ</TabsTrigger>
             <TabsTrigger value="deep" className="rounded-lg data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm"><FileText className="mr-1.5 h-3.5 w-3.5" />Phân tích chuyên sâu</TabsTrigger>
           </TabsList>
-          <TabsContent value="overview"><OverviewTab rankResult={rankTracker.result} rankLoading={rankTracker.loading} backlinksResult={backlinks.result} backlinksLoading={backlinks.loading} kwResult={kwResearch.result} kwLoading={kwResearch.loading} /></TabsContent>
+          <TabsContent value="overview"><OverviewTab rankResult={rankTracker.result} rankLoading={rankTracker.loading} backlinksResult={backlinks.result} backlinksLoading={backlinks.loading} kwResult={kwResearch.result} kwLoading={kwResearch.loading} serpResult={serpSpy.result} serpLoading={serpSpy.loading} /></TabsContent>
           <TabsContent value="keywords"><KeywordsTab kwResult={kwResearch.result} kwLoading={kwResearch.loading} rankResult={rankTracker.result} rankLoading={rankTracker.loading} /></TabsContent>
           <TabsContent value="backlinks"><BacklinksTab result={backlinks.result} loading={backlinks.loading} /></TabsContent>
           <TabsContent value="serp"><SerpTab result={serpSpy.result} loading={serpSpy.loading} /></TabsContent>
