@@ -466,16 +466,169 @@ async def seo_analysis_endpoint(request: Request, req: SeoAnalysisRequest, curre
         raise HTTPException(status_code=500, detail="Có lỗi xảy ra khi phân tích SEO.")
 
 
-# --- DataForSEO Lab Tool Endpoints ---
+# --- AI Fallback for SEO data when DataForSEO unavailable ---
 
-def _check_dataforseo():
-    """Raise 503 if DataForSEO API key is not configured."""
-    if not DataForSEOService.get_api_key():
-        raise HTTPException(
-            status_code=503,
-            detail="DataForSEO chưa được cấu hình. Vui lòng cung cấp API key DATAFORSEO_API_KEY.",
-        )
+def _has_data(result: dict) -> bool:
+    """Check if a DataForSEO result has meaningful items."""
+    items = result.get("items", [])
+    if not items or result.get("error"):
+        return False
+    first = items[0] if items else None
+    if isinstance(first, dict):
+        inner = first.get("items")
+        if inner is None:
+            return bool(first.get("backlinks") or first.get("metrics"))
+        return isinstance(inner, list) and len(inner) > 0
+    return True
 
+
+async def _ai_keyword_research(keyword: str) -> dict:
+    from app.agents.base import generate_structured
+    from pydantic import BaseModel, Field
+    from typing import Optional
+
+    class KwItem(BaseModel):
+        keyword: str = ""
+        keyword_vi: str = ""
+        search_volume: int = 0
+        cpc: float = 0.0
+        competition: float = 0.0
+        competition_level: Optional[str] = "LOW"
+
+    class KwResult(BaseModel):
+        overview: list[KwItem] = Field(default_factory=list)
+        ideas: list[KwItem] = Field(default_factory=list)
+        related: list[KwItem] = Field(default_factory=list)
+
+    system = (
+        "Bạn là chuyên gia SEO Việt Nam. Ước tính dữ liệu từ khóa cho thị trường Việt Nam. "
+        "Mỗi danh sách 5-10 từ khóa. search_volume ước tính/tháng, competition 0.0-1.0. "
+        "keyword_vi phải có dấu tiếng Việt đầy đủ."
+    )
+    result = await generate_structured("fast", system, f"Phân tích từ khóa cho: {keyword}", KwResult)
+
+    def _wrap(items: list[KwItem]) -> dict:
+        return {"items": [{"items": [i.model_dump() for i in items], "seed_keyword": keyword}], "metadata": {"method": "ai_fallback"}, "cost": 0.0}
+
+    return {"overview": _wrap(result.overview), "ideas": _wrap(result.ideas), "related": _wrap(result.related)}
+
+
+async def _ai_rank_tracker(domain: str) -> dict:
+    from app.agents.base import generate_structured
+    from pydantic import BaseModel, Field
+
+    class RankedKw(BaseModel):
+        keyword: str = ""
+        keyword_vi: str = ""
+        search_volume: int = 0
+        cpc: float = 0.0
+        rank_absolute: int = 0
+
+    class RankResult(BaseModel):
+        estimated_keywords: int = 0
+        estimated_etv: float = 0.0
+        estimated_traffic_cost: float = 0.0
+        top_keywords: list[RankedKw] = Field(default_factory=list)
+
+    system = (
+        "Bạn là chuyên gia SEO. Ước tính chỉ số xếp hạng domain cho thị trường Việt Nam. "
+        "estimated_keywords: tổng keyword ước tính. estimated_etv: traffic value/tháng. "
+        "top_keywords: 5-10 keyword chính. keyword_vi có dấu tiếng Việt."
+    )
+    result = await generate_structured("fast", system, f"Phân tích domain: {domain}", RankResult)
+
+    organic = {
+        "pos_1": 0, "pos_2_3": 0, "pos_4_10": 0, "pos_11_20": 0,
+        "pos_21_30": 0, "pos_31_40": 0, "pos_41_50": 0,
+        "pos_51_60": 0, "pos_61_70": 0, "pos_71_80": 0,
+        "pos_81_90": 0, "pos_91_100": 0,
+        "etv": result.estimated_etv, "count": result.estimated_keywords,
+        "estimated_paid_traffic_cost": result.estimated_traffic_cost,
+        "is_new": 0, "is_up": 0, "is_down": 0, "is_lost": 0,
+    }
+    for kw in result.top_keywords:
+        r = kw.rank_absolute
+        if r == 1: organic["pos_1"] += 1
+        elif r <= 3: organic["pos_2_3"] += 1
+        elif r <= 10: organic["pos_4_10"] += 1
+        elif r <= 20: organic["pos_11_20"] += 1
+        else: organic["pos_21_30"] += 1
+
+    return {
+        "rank_overview": {"items": [{"items": [{"metrics": {"organic": organic}}], "target": domain}], "metadata": {"method": "ai_fallback"}, "cost": 0.0},
+        "ranked_keywords": {"items": [{"items": [kw.model_dump() for kw in result.top_keywords], "target": domain}], "metadata": {"method": "ai_fallback"}, "cost": 0.0},
+    }
+
+
+async def _ai_backlinks(domain: str) -> dict:
+    from app.agents.base import generate_structured
+    from pydantic import BaseModel, Field
+
+    class RefDomain(BaseModel):
+        domain: str = ""
+        backlinks: int = 1
+        rank: int = 0
+
+    class BacklinkResult(BaseModel):
+        estimated_backlinks: int = 0
+        estimated_referring_domains: int = 0
+        estimated_rank: int = 0
+        top_referring_domains: list[RefDomain] = Field(default_factory=list)
+
+    system = (
+        "Bạn là chuyên gia SEO. Ước tính profile backlink cho domain ở Việt Nam. "
+        "estimated_rank: domain authority 0-100. top_referring_domains: 5-8 domain phổ biến."
+    )
+    result = await generate_structured("fast", system, f"Phân tích backlink: {domain}", BacklinkResult)
+
+    return {
+        "summary": {"items": [{
+            "target": domain, "backlinks": result.estimated_backlinks,
+            "referring_domains": result.estimated_referring_domains,
+            "referring_domains_nofollow": 0, "referring_ips": 0,
+            "broken_backlinks": 0, "rank": result.estimated_rank,
+        }], "metadata": {"method": "ai_fallback"}, "cost": 0.0},
+        "referring_domains": {"items": [{"items": [d.model_dump() for d in result.top_referring_domains]}], "metadata": {"method": "ai_fallback"}, "cost": 0.0},
+        "backlinks": {"items": [], "metadata": {"method": "ai_fallback"}, "cost": 0.0},
+    }
+
+
+async def _ai_serp_spy(keyword: str) -> dict:
+    from app.agents.base import generate_structured
+    from pydantic import BaseModel, Field
+    from typing import Optional
+
+    class SerpItem(BaseModel):
+        rank_absolute: int = 1
+        domain: str = ""
+        title: str = ""
+        url: str = ""
+        description: Optional[str] = ""
+        type: str = "organic"
+
+    class CompItem(BaseModel):
+        domain: str = ""
+        avg_position: float = 0.0
+        intersections: int = 0
+
+    class SerpResult(BaseModel):
+        serp_items: list[SerpItem] = Field(default_factory=list)
+        competitors: list[CompItem] = Field(default_factory=list)
+
+    system = (
+        "Bạn là chuyên gia SEO Việt Nam. Ước tính kết quả SERP Google cho từ khóa ở Việt Nam. "
+        "serp_items: 10 kết quả organic hàng đầu (rank 1-10, domain, title, url thực tế). "
+        "competitors: 5 đối thủ cạnh tranh chính. URL phải là URL thực tế có thể tồn tại."
+    )
+    result = await generate_structured("fast", system, f"SERP cho: {keyword}", SerpResult)
+
+    return {
+        "serp_results": {"items": [{"items": [i.model_dump() for i in result.serp_items], "keyword": keyword}], "metadata": {"method": "ai_fallback"}, "cost": 0.0},
+        "competitors": {"items": [{"items": [c.model_dump() for c in result.competitors], "seed_keywords": [keyword]}], "metadata": {"method": "ai_fallback"}, "cost": 0.0},
+    }
+
+
+# --- DataForSEO Lab Tool Endpoints (with AI fallback) ---
 
 @router.post("/keyword-research")
 @limiter.limit("3/minute")
@@ -484,29 +637,24 @@ async def keyword_research_endpoint(
     req: KeywordResearchRequest,
     current_user: User = Depends(get_current_user),
 ):
-    """Research keywords via DataForSEO — suggestions, ideas, related keywords."""
-    _check_dataforseo()
-
     async def _run():
-        d4s = DataForSEOService()
-        overview, ideas, related = await asyncio.gather(
-            d4s.keyword_suggestions(req.keyword, req.location_code),
-            d4s.keyword_ideas(keywords=[req.keyword], location_code=req.location_code),
-            d4s.related_keywords(req.keyword, req.location_code),
-        )
-        return {
-            "overview": enrich_keywords_vietnamese(overview),
-            "ideas": enrich_keywords_vietnamese(ideas),
-            "related": enrich_keywords_vietnamese(related),
-        }
+        if DataForSEOService.get_api_key():
+            try:
+                d4s = DataForSEOService()
+                overview, ideas, related = await asyncio.gather(
+                    d4s.keyword_suggestions(req.keyword, req.location_code),
+                    d4s.keyword_ideas(keywords=[req.keyword], location_code=req.location_code),
+                    d4s.related_keywords(req.keyword, req.location_code),
+                )
+                result = {"overview": enrich_keywords_vietnamese(overview), "ideas": enrich_keywords_vietnamese(ideas), "related": enrich_keywords_vietnamese(related)}
+                if _has_data(result["overview"]) or _has_data(result["ideas"]):
+                    return result
+                logger.info("DataForSEO keyword-research empty, falling back to AI")
+            except Exception as e:
+                logger.warning("DataForSEO keyword-research failed: %s, AI fallback", e)
+        return await _ai_keyword_research(req.keyword)
 
-    return await _run_tool(
-        "keyword_research",
-        _run,
-        current_user,
-        request,
-        input_data=req.model_dump(),
-    )
+    return await _run_tool("keyword_research", _run, current_user, request, input_data=req.model_dump())
 
 
 @router.post("/rank-tracker")
@@ -516,27 +664,23 @@ async def rank_tracker_endpoint(
     req: RankTrackerRequest,
     current_user: User = Depends(get_current_user),
 ):
-    """Track domain authority & ranked keywords via DataForSEO."""
-    _check_dataforseo()
-
     async def _run():
-        d4s = DataForSEOService()
-        rank_overview, ranked_kws = await asyncio.gather(
-            d4s.domain_rank_overview(target=req.domain, location_code=req.location_code),
-            d4s.ranked_keywords(target=req.domain, location_code=req.location_code),
-        )
-        return {
-            "rank_overview": rank_overview,
-            "ranked_keywords": enrich_keywords_vietnamese(ranked_kws),
-        }
+        if DataForSEOService.get_api_key():
+            try:
+                d4s = DataForSEOService()
+                rank_overview, ranked_kws = await asyncio.gather(
+                    d4s.domain_rank_overview(target=req.domain, location_code=req.location_code),
+                    d4s.ranked_keywords(target=req.domain, location_code=req.location_code),
+                )
+                result = {"rank_overview": rank_overview, "ranked_keywords": enrich_keywords_vietnamese(ranked_kws)}
+                if _has_data(result["rank_overview"]):
+                    return result
+                logger.info("DataForSEO rank-tracker empty, falling back to AI")
+            except Exception as e:
+                logger.warning("DataForSEO rank-tracker failed: %s, AI fallback", e)
+        return await _ai_rank_tracker(req.domain)
 
-    return await _run_tool(
-        "rank_tracker",
-        _run,
-        current_user,
-        request,
-        input_data=req.model_dump(),
-    )
+    return await _run_tool("rank_tracker", _run, current_user, request, input_data=req.model_dump())
 
 
 @router.post("/backlinks")
@@ -546,25 +690,24 @@ async def backlinks_endpoint(
     req: BacklinksRequest,
     current_user: User = Depends(get_current_user),
 ):
-    """Analyze backlinks, referring domains, and link quality via DataForSEO."""
-    _check_dataforseo()
-
     async def _run():
-        d4s = DataForSEOService()
-        summary, ref_domains, bklinks = await asyncio.gather(
-            d4s.backlinks_summary(target=req.domain),
-            d4s.referring_domains(target=req.domain),
-            d4s.backlinks(target=req.domain),
-        )
-        return {"summary": summary, "referring_domains": ref_domains, "backlinks": bklinks}
+        if DataForSEOService.get_api_key():
+            try:
+                d4s = DataForSEOService()
+                summary, ref_domains, bklinks = await asyncio.gather(
+                    d4s.backlinks_summary(target=req.domain),
+                    d4s.referring_domains(target=req.domain),
+                    d4s.backlinks(target=req.domain),
+                )
+                result = {"summary": summary, "referring_domains": ref_domains, "backlinks": bklinks}
+                if _has_data(result["summary"]):
+                    return result
+                logger.info("DataForSEO backlinks empty, falling back to AI")
+            except Exception as e:
+                logger.warning("DataForSEO backlinks failed: %s, AI fallback", e)
+        return await _ai_backlinks(req.domain)
 
-    return await _run_tool(
-        "backlinks",
-        _run,
-        current_user,
-        request,
-        input_data=req.model_dump(),
-    )
+    return await _run_tool("backlinks", _run, current_user, request, input_data=req.model_dump())
 
 
 @router.post("/serp-spy")
@@ -574,24 +717,20 @@ async def serp_spy_endpoint(
     req: SerpSpyRequest,
     current_user: User = Depends(get_current_user),
 ):
-    """Spy on SERP results and competitors for a keyword via DataForSEO."""
-    _check_dataforseo()
-
     async def _run():
-        d4s = DataForSEOService()
-        serp_results, competitors = await asyncio.gather(
-            d4s.google_organic_serp(req.keyword, req.location_code),
-            d4s.serp_competitors(keywords=[req.keyword], location_code=req.location_code),
-        )
-        return {
-            "serp_results": enrich_keywords_vietnamese(serp_results),
-            "competitors": enrich_keywords_vietnamese(competitors),
-        }
+        if DataForSEOService.get_api_key():
+            try:
+                d4s = DataForSEOService()
+                serp_results, competitors = await asyncio.gather(
+                    d4s.google_organic_serp(req.keyword, req.location_code),
+                    d4s.serp_competitors(keywords=[req.keyword], location_code=req.location_code),
+                )
+                result = {"serp_results": enrich_keywords_vietnamese(serp_results), "competitors": enrich_keywords_vietnamese(competitors)}
+                if _has_data(result["serp_results"]):
+                    return result
+                logger.info("DataForSEO serp-spy empty, falling back to AI")
+            except Exception as e:
+                logger.warning("DataForSEO serp-spy failed: %s, AI fallback", e)
+        return await _ai_serp_spy(req.keyword)
 
-    return await _run_tool(
-        "serp_spy",
-        _run,
-        current_user,
-        request,
-        input_data=req.model_dump(),
-    )
+    return await _run_tool("serp_spy", _run, current_user, request, input_data=req.model_dump())
