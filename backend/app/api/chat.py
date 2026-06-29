@@ -234,8 +234,11 @@ async def _summarize_title(content: str) -> str:
         return " ".join(words[:6]) if len(words) > 6 else content[:30]
 
 
-async def _stream_llm(chat_messages: list[dict]):
+async def _stream_llm(chat_messages: list[dict], user_id: int | None = None, conversation_id: int | None = None):
     from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
+    import time as _time
+    from app.core.config import settings
+    from app.services.ai_logger import log_ai_call
 
     model = get_chat_model("fast", max_tokens=8192)
     lc_messages = []
@@ -248,11 +251,31 @@ async def _stream_llm(chat_messages: list[dict]):
             lc_messages.append(AIMessage(content=m["content"]))
 
     full_response = ""
+    _t0 = _time.perf_counter()
+    last_chunk = None
     async for chunk in model.astream(lc_messages):
         token = chunk.content
         if token:
             full_response += token
             yield f"data: {json.dumps({'type': 'token', 'content': token})}\n\n"
+        last_chunk = chunk
+    _latency = int((_time.perf_counter() - _t0) * 1000)
+
+    usage = getattr(last_chunk, "usage_metadata", None) if last_chunk else None
+    user_msg = next((m["content"] for m in chat_messages if m["role"] == "user"), "")
+    await log_ai_call(
+        call_type="chat",
+        model=settings.llm_model_fast,
+        provider=settings.llm_provider,
+        input_tokens=(usage or {}).get("input_tokens", 0),
+        output_tokens=(usage or {}).get("output_tokens", 0),
+        latency_ms=_latency,
+        user_id=user_id,
+        endpoint="/api/chat",
+        conversation_id=conversation_id,
+        input_preview=user_msg[:500],
+        output_preview=full_response[:500],
+    )
 
     import re
     suggestions_match = re.search(r"```suggestions\n(\[.*?\])\n```", full_response, re.DOTALL)
@@ -621,7 +644,7 @@ async def send_message(
             metadata={"type": "stream", "has_images": bool(image_description), "has_rag": bool(doc_context)},
         ):
             stream = (
-                _stream_llm(chat_messages)
+                _stream_llm(chat_messages, user_id=current_user.id, conversation_id=conversation_id)
                 if provider_available()
                 else _mock_stream(chat_messages)
             )

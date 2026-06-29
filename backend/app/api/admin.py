@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.deps import require_admin
 from app.core.db import get_session
 
+from app.models.ai_call_log import AICallLog
 from app.models.audit_log import AuditLog
 from app.models.content_history import ContentHistory
 from app.models.conversation import Conversation, Message
@@ -518,3 +519,228 @@ async def delete_content(
     await session.delete(item)
     await session.commit()
     logger.info("Admin %s deleted content_id=%s", admin.email, content_id)
+
+
+# ── AI Orchestration ──────────────────────────────────────────────
+
+@router.get("/ai-orchestration/overview")
+async def ai_overview(
+    days: int = Query(7, ge=1, le=90),
+    session: AsyncSession = Depends(get_session),
+):
+    """KPI overview: total calls, cost, tokens, latency, error rate."""
+    since = datetime.now(timezone.utc) - timedelta(days=days)
+    base = select(AICallLog).where(AICallLog.created_at >= since)
+
+    rows = (await session.execute(
+        select(
+            func.count(AICallLog.id).label("total_calls"),
+            func.sum(AICallLog.total_cost).label("total_cost"),
+            func.sum(AICallLog.input_tokens).label("total_input_tokens"),
+            func.sum(AICallLog.output_tokens).label("total_output_tokens"),
+            func.avg(AICallLog.latency_ms).label("avg_latency_ms"),
+            func.count(AICallLog.id).filter(AICallLog.status == "error").label("error_count"),
+        ).where(AICallLog.created_at >= since)
+    )).first()
+
+    return {
+        "period_days": days,
+        "total_calls": rows.total_calls or 0,
+        "total_cost": round(rows.total_cost or 0, 6),
+        "total_input_tokens": rows.total_input_tokens or 0,
+        "total_output_tokens": rows.total_output_tokens or 0,
+        "avg_latency_ms": int(rows.avg_latency_ms or 0),
+        "error_count": rows.error_count or 0,
+        "error_rate": round((rows.error_count or 0) / max(rows.total_calls or 1, 1) * 100, 1),
+    }
+
+
+@router.get("/ai-orchestration/by-model")
+async def ai_by_model(
+    days: int = Query(7, ge=1, le=90),
+    session: AsyncSession = Depends(get_session),
+):
+    """Breakdown by model: calls, cost, tokens, avg latency."""
+    since = datetime.now(timezone.utc) - timedelta(days=days)
+    rows = (await session.execute(
+        select(
+            AICallLog.model,
+            AICallLog.provider,
+            func.count(AICallLog.id).label("calls"),
+            func.sum(AICallLog.total_cost).label("cost"),
+            func.sum(AICallLog.input_tokens).label("input_tokens"),
+            func.sum(AICallLog.output_tokens).label("output_tokens"),
+            func.avg(AICallLog.latency_ms).label("avg_latency"),
+        )
+        .where(AICallLog.created_at >= since)
+        .group_by(AICallLog.model, AICallLog.provider)
+        .order_by(func.sum(AICallLog.total_cost).desc())
+    )).all()
+
+    return [
+        {
+            "model": r.model or "unknown",
+            "provider": r.provider or "unknown",
+            "calls": r.calls,
+            "cost": round(r.cost or 0, 6),
+            "input_tokens": r.input_tokens or 0,
+            "output_tokens": r.output_tokens or 0,
+            "avg_latency_ms": int(r.avg_latency or 0),
+        }
+        for r in rows
+    ]
+
+
+@router.get("/ai-orchestration/by-user")
+async def ai_by_user(
+    days: int = Query(7, ge=1, le=90),
+    limit: int = Query(20, ge=1, le=100),
+    session: AsyncSession = Depends(get_session),
+):
+    """Top users by AI usage."""
+    since = datetime.now(timezone.utc) - timedelta(days=days)
+    rows = (await session.execute(
+        select(
+            AICallLog.user_id,
+            User.name,
+            User.email,
+            func.count(AICallLog.id).label("calls"),
+            func.sum(AICallLog.total_cost).label("cost"),
+            func.sum(AICallLog.input_tokens + AICallLog.output_tokens).label("total_tokens"),
+        )
+        .outerjoin(User, AICallLog.user_id == User.id)
+        .where(AICallLog.created_at >= since)
+        .group_by(AICallLog.user_id, User.name, User.email)
+        .order_by(func.sum(AICallLog.total_cost).desc())
+        .limit(limit)
+    )).all()
+
+    return [
+        {
+            "user_id": r.user_id,
+            "name": r.name or "Unknown",
+            "email": r.email or "",
+            "calls": r.calls,
+            "cost": round(r.cost or 0, 6),
+            "total_tokens": r.total_tokens or 0,
+        }
+        for r in rows
+    ]
+
+
+@router.get("/ai-orchestration/by-type")
+async def ai_by_type(
+    days: int = Query(7, ge=1, le=90),
+    session: AsyncSession = Depends(get_session),
+):
+    """Breakdown by call type (chat, lab, generate, mcp)."""
+    since = datetime.now(timezone.utc) - timedelta(days=days)
+    rows = (await session.execute(
+        select(
+            AICallLog.call_type,
+            func.count(AICallLog.id).label("calls"),
+            func.sum(AICallLog.total_cost).label("cost"),
+            func.avg(AICallLog.latency_ms).label("avg_latency"),
+            func.count(AICallLog.id).filter(AICallLog.status == "error").label("errors"),
+        )
+        .where(AICallLog.created_at >= since)
+        .group_by(AICallLog.call_type)
+        .order_by(func.count(AICallLog.id).desc())
+    )).all()
+
+    return [
+        {
+            "call_type": r.call_type,
+            "calls": r.calls,
+            "cost": round(r.cost or 0, 6),
+            "avg_latency_ms": int(r.avg_latency or 0),
+            "errors": r.errors or 0,
+        }
+        for r in rows
+    ]
+
+
+@router.get("/ai-orchestration/daily-trend")
+async def ai_daily_trend(
+    days: int = Query(30, ge=1, le=90),
+    session: AsyncSession = Depends(get_session),
+):
+    """Daily calls, cost, and tokens for charting."""
+    since = datetime.now(timezone.utc) - timedelta(days=days)
+    rows = (await session.execute(
+        select(
+            func.date(AICallLog.created_at).label("day"),
+            func.count(AICallLog.id).label("calls"),
+            func.sum(AICallLog.total_cost).label("cost"),
+            func.sum(AICallLog.input_tokens + AICallLog.output_tokens).label("tokens"),
+            func.count(AICallLog.id).filter(AICallLog.status == "error").label("errors"),
+        )
+        .where(AICallLog.created_at >= since)
+        .group_by(func.date(AICallLog.created_at))
+        .order_by(func.date(AICallLog.created_at))
+    )).all()
+
+    return [
+        {
+            "day": str(r.day),
+            "calls": r.calls,
+            "cost": round(r.cost or 0, 6),
+            "tokens": r.tokens or 0,
+            "errors": r.errors or 0,
+        }
+        for r in rows
+    ]
+
+
+@router.get("/ai-orchestration/recent-calls")
+async def ai_recent_calls(
+    limit: int = Query(50, ge=1, le=200),
+    call_type: str | None = Query(None),
+    status_filter: str | None = Query(None, alias="status"),
+    session: AsyncSession = Depends(get_session),
+):
+    """Recent individual AI calls with full details."""
+    q = (
+        select(
+            AICallLog.id, AICallLog.created_at, AICallLog.call_type,
+            AICallLog.model, AICallLog.provider, AICallLog.endpoint,
+            AICallLog.tool_name, AICallLog.input_tokens, AICallLog.output_tokens,
+            AICallLog.total_cost, AICallLog.latency_ms, AICallLog.status,
+            AICallLog.error_message, AICallLog.input_preview, AICallLog.output_preview,
+            AICallLog.user_id, AICallLog.trace_id, AICallLog.conversation_id,
+            User.name.label("user_name"), User.email.label("user_email"),
+        )
+        .outerjoin(User, AICallLog.user_id == User.id)
+    )
+    if call_type:
+        q = q.where(AICallLog.call_type == call_type)
+    if status_filter:
+        q = q.where(AICallLog.status == status_filter)
+    q = q.order_by(AICallLog.created_at.desc()).limit(limit)
+    rows = (await session.execute(q)).all()
+
+    return [
+        {
+            "id": r.id,
+            "created_at": r.created_at.isoformat() if r.created_at else None,
+            "call_type": r.call_type,
+            "model": r.model,
+            "provider": r.provider,
+            "endpoint": r.endpoint,
+            "tool_name": r.tool_name,
+            "input_tokens": r.input_tokens or 0,
+            "output_tokens": r.output_tokens or 0,
+            "total_cost": round(r.total_cost or 0, 6),
+            "latency_ms": r.latency_ms or 0,
+            "status": r.status,
+            "error_message": r.error_message,
+            "input_preview": r.input_preview,
+            "output_preview": r.output_preview,
+            "user_id": r.user_id,
+            "user_name": r.user_name,
+            "user_email": r.user_email,
+            "trace_id": r.trace_id,
+            "conversation_id": r.conversation_id,
+        }
+        for r in rows
+    ]

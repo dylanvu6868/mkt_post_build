@@ -1,3 +1,4 @@
+from app.models.ai_call_log import AICallLog
 from app.models.audit_log import AuditLog
 from app.models.brand_profile import BrandProfile
 from app.models.brand_profile_history import BrandProfileHistory
@@ -27,7 +28,7 @@ from app.models.user_feedback import UserFeedback
 from app.models.user_template import UserTemplate
 
 __all__ = [
-    "AuditLog", "BrandProfile", "BrandProfileHistory", "Campaign", "ContentHistory", "ContentItem",
+    "AICallLog", "AuditLog", "BrandProfile", "BrandProfileHistory", "Campaign", "ContentHistory", "ContentItem",
     "Conversation", "Deployment", "Document", "EmailCampaign", "EmailContact",
     "EmailList", "EmailTemplate", "GenerationJob", "LabHistory", "LandingPage", "Message", "MetaPage", "OauthAccount", "PaymentOrder",
     "Project", "ScheduledEmail", "SeoAudit", "StudyBookmark", "StudyProgress", "User", "UserFeedback", "UserTemplate",

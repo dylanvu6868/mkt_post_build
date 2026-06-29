@@ -2,7 +2,8 @@ import asyncio
 import logging
 
 from fastapi import APIRouter, Depends, HTTPException, Request
-from pydantic import BaseModel, Field
+from urllib.parse import urlparse
+from pydantic import BaseModel, Field, field_validator
 
 from app.api.deps import get_current_user
 from app.core.db import async_session_maker
@@ -141,20 +142,48 @@ class ZaloPublishRequest(BaseModel):
 
 # --- DataForSEO Lab Tool Request Schemas ---
 
+def _clean_domain(v: str) -> str:
+    """Strip protocol, fragments, query params — return bare domain + path."""
+    v = v.split("#")[0].split("?")[0].strip()
+    if v.startswith(("http://", "https://")):
+        parsed = urlparse(v)
+        v = parsed.netloc + parsed.path
+    return v.rstrip("/")[:200]
+
 class KeywordResearchRequest(BaseModel):
-    keyword: str = Field(..., max_length=200)
+    keyword: str = Field(..., max_length=500)
     location_code: int = Field(2840, description="DataForSEO location code (2840 = Vietnam)")
+
+    @field_validator("keyword", mode="before")
+    @classmethod
+    def clean_keyword(cls, v: str) -> str:
+        return v.split("#")[0].split("?")[0].strip()[:500]
 
 class RankTrackerRequest(BaseModel):
-    domain: str = Field(..., max_length=200)
+    domain: str = Field(..., max_length=500)
     location_code: int = Field(2840, description="DataForSEO location code (2840 = Vietnam)")
+
+    @field_validator("domain", mode="before")
+    @classmethod
+    def clean_domain(cls, v: str) -> str:
+        return _clean_domain(v)
 
 class BacklinksRequest(BaseModel):
-    domain: str = Field(..., max_length=200)
+    domain: str = Field(..., max_length=500)
+
+    @field_validator("domain", mode="before")
+    @classmethod
+    def clean_domain(cls, v: str) -> str:
+        return _clean_domain(v)
 
 class SerpSpyRequest(BaseModel):
-    keyword: str = Field(..., max_length=200)
+    keyword: str = Field(..., max_length=500)
     location_code: int = Field(2840, description="DataForSEO location code (2840 = Vietnam)")
+
+    @field_validator("keyword", mode="before")
+    @classmethod
+    def clean_keyword(cls, v: str) -> str:
+        return v.split("#")[0].split("?")[0].strip()[:500]
 
 
 # --- Helpers ---
@@ -165,6 +194,10 @@ async def _audit(user_id: int, tool: str, ip: str | None = None):
 
 
 async def _run_tool(tool_name: str, agent_fn, user: User, request: Request, input_data: dict = None):
+    import time as _time
+    from app.services.ai_logger import log_ai_call
+    from app.core.config import settings
+
     plan = get_user_plan(user)
     async with async_session_maker() as session:
         allowed, used, limit = await check_lab_daily_limit(session, user)
@@ -177,6 +210,7 @@ async def _run_tool(tool_name: str, agent_fn, user: User, request: Request, inpu
             + upgrade_message("thêm lượt sử dụng Lab"),
         )
     await _audit(user.id, tool_name, request.client.host if request.client else None)
+    _t0 = _time.perf_counter()
     try:
         with trace_request(
             f"lab.{tool_name}",
@@ -184,7 +218,15 @@ async def _run_tool(tool_name: str, agent_fn, user: User, request: Request, inpu
             metadata={"tool": tool_name, "plan": plan, "input": input_data},
         ):
             result = await agent_fn()
+        _latency = int((_time.perf_counter() - _t0) * 1000)
         output_data = result.model_dump() if hasattr(result, "model_dump") else result
+        await log_ai_call(
+            call_type="lab", tool_name=tool_name, endpoint=f"/api/lab/{tool_name}",
+            model=settings.llm_model_smart, provider=settings.llm_provider,
+            latency_ms=_latency, user_id=user.id, status="success",
+            input_preview=str(input_data)[:500] if input_data else None,
+            output_preview=str(output_data)[:500],
+        )
 
         # Save to lab_history
         if input_data is not None:
@@ -200,9 +242,19 @@ async def _run_tool(tool_name: str, agent_fn, user: User, request: Request, inpu
 
         return output_data
     except ValueError as e:
+        _latency = int((_time.perf_counter() - _t0) * 1000)
+        await log_ai_call(
+            call_type="lab", tool_name=tool_name, endpoint=f"/api/lab/{tool_name}",
+            latency_ms=_latency, user_id=user.id, status="error", error_message=str(e),
+        )
         logger.warning("Lab tool %s failed for user %s: %s", tool_name, user.id, e)
         raise HTTPException(status_code=502, detail="AI đang quá tải, vui lòng thử lại sau.")
-    except Exception:
+    except Exception as e:
+        _latency = int((_time.perf_counter() - _t0) * 1000)
+        await log_ai_call(
+            call_type="lab", tool_name=tool_name, endpoint=f"/api/lab/{tool_name}",
+            latency_ms=_latency, user_id=user.id, status="error", error_message=str(e),
+        )
         logger.exception("Lab tool %s unexpected error for user %s", tool_name, user.id)
         raise HTTPException(status_code=500, detail="Có lỗi xảy ra khi xử lý yêu cầu.")
 

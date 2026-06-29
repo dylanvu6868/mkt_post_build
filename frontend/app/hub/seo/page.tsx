@@ -1144,12 +1144,13 @@ export default function VitbaSeoPage() {
     serpSpy.reset();
     seoAnalysis.reset();
 
-    const kwBody = { keyword: domain.trim(), location_code: LOCATION_CODE };
-    const rankBody = { domain: domain.trim(), location_code: LOCATION_CODE };
-    const backBody = { domain: domain.trim() };
-    const serpBody = { keyword: domain.trim(), location_code: LOCATION_CODE };
+    const cleanDomain = domain.trim().split("#")[0].split("?")[0].replace(/\/+$/, "");
+    const kwBody = { keyword: cleanDomain, location_code: LOCATION_CODE };
+    const rankBody = { domain: cleanDomain, location_code: LOCATION_CODE };
+    const backBody = { domain: cleanDomain };
+    const serpBody = { keyword: cleanDomain, location_code: LOCATION_CODE };
     const seoBody = {
-      domain: domain.trim(),
+      domain: cleanDomain,
       industry: industry.trim(),
       target_region: targetRegion.trim(),
       keywords: keywords
