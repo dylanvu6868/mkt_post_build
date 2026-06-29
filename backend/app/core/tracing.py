@@ -25,6 +25,20 @@ langfuse_client = None
 CallbackHandler = None
 
 
+def _log_observation_bg(**kwargs) -> None:
+    """Fire-and-forget: log an observation to ai_call_logs via background thread."""
+    import threading, asyncio
+    def _run():
+        try:
+            from app.services.ai_logger import log_ai_call
+            loop = asyncio.new_event_loop()
+            loop.run_until_complete(log_ai_call(**kwargs))
+            loop.close()
+        except Exception:
+            pass
+    threading.Thread(target=_run, daemon=True).start()
+
+
 def get_langfuse_handler(trace_id: str | None = None):
     """Return a per-request LangChain callback handler that POSTs to Langfuse REST API.
 
@@ -86,6 +100,14 @@ def get_langfuse_handler(trace_id: str | None = None):
                 data["level"] = "ERROR"
                 data["status_message"] = error[:500]
             _post("observations", data)
+            _log_observation_bg(
+                call_type="trace",
+                observation_type=entry["type"],
+                tool_name=entry["name"],
+                status="error" if error else "success",
+                error_message=error,
+                output_preview=output,
+            )
 
         # ── LLM / Chat Model ── GENERATION ──
 

@@ -28,6 +28,7 @@ def _calc_cost(model: str | None, input_tokens: int, output_tokens: int) -> floa
 async def log_ai_call(
     *,
     call_type: str,
+    observation_type: str | None = None,
     model: str | None = None,
     provider: str | None = None,
     input_tokens: int = 0,
@@ -53,6 +54,7 @@ async def log_ai_call(
                 user_id=user_id,
                 trace_id=trace_id,
                 call_type=call_type,
+                observation_type=observation_type,
                 endpoint=endpoint,
                 tool_name=tool_name,
                 model=model,

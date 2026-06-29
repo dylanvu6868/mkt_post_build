@@ -37,6 +37,10 @@ interface UserRow {
   user_id: number; name: string; email: string; calls: number; cost: number; total_tokens: number;
 }
 
+interface ObsRow {
+  observation_type: string; calls: number; cost: number; avg_latency_ms: number; errors: number;
+}
+
 interface ToolRow {
   tool_name: string; endpoint: string; calls: number; cost: number;
   avg_latency_ms: number; errors: number; avg_input_tokens: number; avg_output_tokens: number;
@@ -81,6 +85,7 @@ export default function AIOrchestrationPage() {
   const [types, setTypes] = useState<TypeRow[]>([]);
   const [daily, setDaily] = useState<DailyRow[]>([]);
   const [users, setUsers] = useState<UserRow[]>([]);
+  const [obs, setObs] = useState<ObsRow[]>([]);
   const [tools, setTools] = useState<ToolRow[]>([]);
   const [traces, setTraces] = useState<TraceRow[]>([]);
   const [recent, setRecent] = useState<RecentCall[]>([]);
@@ -97,10 +102,11 @@ export default function AIOrchestrationPage() {
       api.get<TypeRow[]>(`/admin/ai-orchestration/by-type?days=${days}`),
       api.get<DailyRow[]>(`/admin/ai-orchestration/daily-trend?days=${days}`),
       api.get<UserRow[]>(`/admin/ai-orchestration/by-user?days=${days}`),
+      api.get<ObsRow[]>(`/admin/ai-orchestration/by-observation?days=${days}`),
       api.get<ToolRow[]>(`/admin/ai-orchestration/by-tool?days=${days}`),
       api.get<TraceRow[]>(`/admin/ai-orchestration/traces?limit=30`),
-    ]).then(([o, m, t, d, u, tl, tr]) => {
-      setOverview(o); setModels(m); setTypes(t); setDaily(d); setUsers(u); setTools(tl); setTraces(tr);
+    ]).then(([o, m, t, d, u, ob, tl, tr]) => {
+      setOverview(o); setModels(m); setTypes(t); setDaily(d); setUsers(u); setObs(ob); setTools(tl); setTraces(tr);
     }).catch(() => {}).finally(() => setLoading(false));
   }, [days]);
 
@@ -245,6 +251,33 @@ export default function AIOrchestrationPage() {
               </CardContent>
             </Card>
           </div>
+
+          {/* By Observation Type */}
+          <Card>
+            <CardHeader><CardTitle className="text-sm">Theo Observation Type (Langfuse)</CardTitle></CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+                {["GENERATION", "SPAN", "TOOL", "RETRIEVER", "AGENT"].map((ot) => {
+                  const row = obs.find((o) => o.observation_type === ot);
+                  const colors: Record<string, string> = { GENERATION: "text-purple-400", SPAN: "text-blue-400", TOOL: "text-amber-400", RETRIEVER: "text-cyan-400", AGENT: "text-green-400" };
+                  return (
+                    <div key={ot} className="rounded-lg border border-border px-3 py-2">
+                      <p className={`text-xs font-bold ${colors[ot] || "text-foreground"}`}>{ot}</p>
+                      {row ? (
+                        <>
+                          <p className="text-lg font-bold text-foreground">{row.calls}</p>
+                          <p className="text-[10px] text-muted-foreground">{fmtCost(row.cost)} &middot; {row.avg_latency_ms}ms</p>
+                          {row.errors > 0 && <p className="text-[10px] text-red-400">{row.errors} lỗi</p>}
+                        </>
+                      ) : (
+                        <p className="text-lg font-bold text-muted-foreground/30">0</p>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
 
           {/* By Tool */}
           {tools.length > 0 && (

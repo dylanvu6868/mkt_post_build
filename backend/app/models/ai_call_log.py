@@ -16,6 +16,7 @@ class AICallLog(Base):
     user_id: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True)
     trace_id: Mapped[str | None] = mapped_column(String(64), index=True)
     call_type: Mapped[str] = mapped_column(String(30), index=True)
+    observation_type: Mapped[str | None] = mapped_column(String(20), index=True)  # GENERATION, SPAN, TOOL, RETRIEVER, AGENT
     endpoint: Mapped[str | None] = mapped_column(String(100))
     tool_name: Mapped[str | None] = mapped_column(String(100))
     model: Mapped[str | None] = mapped_column(String(50))

@@ -746,6 +746,39 @@ async def ai_recent_calls(
     ]
 
 
+@router.get("/ai-orchestration/by-observation")
+async def ai_by_observation(
+    days: int = Query(7, ge=1, le=90),
+    session: AsyncSession = Depends(get_session),
+):
+    """Breakdown by observation type: GENERATION, SPAN, TOOL, RETRIEVER, AGENT."""
+    since = datetime.now(timezone.utc) - timedelta(days=days)
+    rows = (await session.execute(
+        select(
+            AICallLog.observation_type,
+            func.count(AICallLog.id).label("calls"),
+            func.sum(AICallLog.total_cost).label("cost"),
+            func.avg(AICallLog.latency_ms).label("avg_latency"),
+            func.count(AICallLog.id).filter(AICallLog.status == "error").label("errors"),
+        )
+        .where(AICallLog.created_at >= since)
+        .where(AICallLog.observation_type.is_not(None))
+        .group_by(AICallLog.observation_type)
+        .order_by(func.count(AICallLog.id).desc())
+    )).all()
+
+    return [
+        {
+            "observation_type": r.observation_type,
+            "calls": r.calls,
+            "cost": round(r.cost or 0, 6),
+            "avg_latency_ms": int(r.avg_latency or 0),
+            "errors": r.errors or 0,
+        }
+        for r in rows
+    ]
+
+
 @router.get("/ai-orchestration/by-tool")
 async def ai_by_tool(
     days: int = Query(7, ge=1, le=90),
