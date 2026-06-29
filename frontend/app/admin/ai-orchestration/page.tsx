@@ -256,13 +256,14 @@ export default function AIOrchestrationPage() {
           <Card>
             <CardHeader><CardTitle className="text-sm">Theo Observation Type (Langfuse)</CardTitle></CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
-                {["GENERATION", "SPAN", "TOOL", "RETRIEVER", "AGENT"].map((ot) => {
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
+                {["GENERATION", "SPAN", "TOOL", "RETRIEVER", "AGENT", "INGESTION"].map((ot) => {
                   const row = obs.find((o) => o.observation_type === ot);
-                  const colors: Record<string, string> = { GENERATION: "text-purple-400", SPAN: "text-blue-400", TOOL: "text-amber-400", RETRIEVER: "text-cyan-400", AGENT: "text-green-400" };
+                  const colors: Record<string, string> = { GENERATION: "text-purple-400", SPAN: "text-blue-400", TOOL: "text-amber-400", RETRIEVER: "text-cyan-400", AGENT: "text-green-400", INGESTION: "text-orange-400" };
+                  const labels: Record<string, string> = { GENERATION: "GENERATION", SPAN: "SPAN", TOOL: "TOOL", RETRIEVER: "RETRIEVER", AGENT: "AGENT", INGESTION: "INGESTION (RAG)" };
                   return (
                     <div key={ot} className="rounded-lg border border-border px-3 py-2">
-                      <p className={`text-xs font-bold ${colors[ot] || "text-foreground"}`}>{ot}</p>
+                      <p className={`text-xs font-bold ${colors[ot] || "text-foreground"}`}>{labels[ot] || ot}</p>
                       {row ? (
                         <>
                           <p className="text-lg font-bold text-foreground">{row.calls}</p>

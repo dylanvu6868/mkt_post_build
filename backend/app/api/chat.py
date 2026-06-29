@@ -395,6 +395,10 @@ async def _process_chat_upload(
     from app.rag.qdrant_store import upsert_chunks_with_conv
     from app.core.config import settings
 
+    import time as _time
+    from app.services.ai_logger import log_ai_call
+    _t0 = _time.perf_counter()
+    n_chunks = 0
     try:
         suffix = Path(filename).suffix.lower()
         with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
@@ -406,6 +410,7 @@ async def _process_chat_upload(
             text = await asyncio.to_thread(extract_text, tmp_path)
             if text.strip():
                 chunks = chunk_text(text, chunk_size=settings.rag_chunk_size, overlap=settings.rag_chunk_overlap)
+                n_chunks = len(chunks) if chunks else 0
                 if chunks:
                     vectors = await asyncio.to_thread(embed_texts, chunks)
                     sparse_vecs = await asyncio.to_thread(sparse_embed_texts, chunks)
@@ -417,9 +422,26 @@ async def _process_chat_upload(
             tmp_path.unlink(missing_ok=True)
 
         status = "ready"
+        await log_ai_call(
+            call_type="rag", observation_type="INGESTION",
+            tool_name="document_ingest", endpoint="/api/chat/upload",
+            latency_ms=int((_time.perf_counter() - _t0) * 1000),
+            user_id=user_id, conversation_id=conversation_id,
+            input_preview=f"File: {filename} ({len(file_bytes)} bytes)",
+            output_preview=f"{n_chunks} chunks embedded & upserted",
+            metadata={"filename": filename, "chunks": n_chunks, "doc_id": document_id},
+        )
     except Exception as e:
         logger.error(f"Failed to process chat file: {e}")
         status = "failed"
+        await log_ai_call(
+            call_type="rag", observation_type="INGESTION",
+            tool_name="document_ingest", endpoint="/api/chat/upload",
+            latency_ms=int((_time.perf_counter() - _t0) * 1000),
+            user_id=user_id, conversation_id=conversation_id, status="error",
+            error_message=str(e)[:500],
+            input_preview=f"File: {filename} ({len(file_bytes)} bytes)",
+        )
 
     async with session_maker() as s:
         from app.models.document import Document
@@ -591,8 +613,11 @@ async def send_message(
 
     doc_context = ""
     try:
+        import time as _t
         from app.rag.embeddings import embed_query, sparse_embed_query
         from app.rag.qdrant_store import retrieve_by_conversation, retrieve
+        from app.services.ai_logger import log_ai_call as _log_ai
+        _r0 = _t.perf_counter()
         with trace_request(
             "chat.rag_retrieval",
             user_id=current_user.id,
@@ -615,13 +640,32 @@ async def send_message(
                 for c in project_chunks:
                     if c not in chunks:
                         chunks.append(c)
+        _r_lat = int((_t.perf_counter() - _r0) * 1000)
         if chunks:
             doc_context = "\n---\n".join(chunks)
             logger.info("RAG retrieved %d chunks for conv %s (context: %d chars)", len(chunks), conversation_id, len(doc_context))
         else:
             logger.info("RAG retrieved 0 chunks for conv %s — query: %s", conversation_id, payload.content[:100])
+        await _log_ai(
+            call_type="rag", observation_type="RETRIEVER",
+            tool_name="rag_retrieval", endpoint="/api/chat",
+            latency_ms=_r_lat, user_id=current_user.id, conversation_id=conversation_id,
+            input_preview=payload.content[:500],
+            output_preview=f"{len(chunks)} chunks, {len(doc_context)} chars" if chunks else "0 chunks",
+            metadata={"chunk_count": len(chunks), "context_chars": len(doc_context), "has_project": proj is not None},
+        )
     except Exception as e:
         logger.warning("RAG retrieval failed for conv %s: %s", conversation_id, e)
+        try:
+            await _log_ai(
+                call_type="rag", observation_type="RETRIEVER",
+                tool_name="rag_retrieval", endpoint="/api/chat",
+                user_id=current_user.id, conversation_id=conversation_id,
+                status="error", error_message=str(e)[:500],
+                input_preview=payload.content[:500],
+            )
+        except Exception:
+            pass
 
     history = await _build_messages(session, conversation_id)
 
