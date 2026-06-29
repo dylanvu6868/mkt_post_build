@@ -70,6 +70,13 @@ app.add_middleware(SecurityHeadersMiddleware)
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
+from fastapi.exceptions import RequestValidationError
+@app.exception_handler(RequestValidationError)
+async def _validation_error_handler(request: Request, exc: RequestValidationError):
+    logger.error("422 Validation Error on %s %s: %s", request.method, request.url.path, exc.errors())
+    from fastapi.responses import JSONResponse
+    return JSONResponse(status_code=422, content={"detail": exc.errors()})
+
 from fastapi.staticfiles import StaticFiles
 from app.services.storage import UPLOAD_DIR
 app.mount("/uploads", StaticFiles(directory=str(UPLOAD_DIR)), name="uploads")
