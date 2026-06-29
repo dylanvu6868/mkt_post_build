@@ -47,9 +47,9 @@ interface RecentCall {
 }
 
 const PERIOD_OPTIONS = [
-  { label: "7 ngay", value: 7 },
-  { label: "14 ngay", value: 14 },
-  { label: "30 ngay", value: 30 },
+  { label: "7 ngày", value: 7 },
+  { label: "14 ngày", value: 14 },
+  { label: "30 ngày", value: 30 },
 ];
 
 function fmt(n: number): string {
