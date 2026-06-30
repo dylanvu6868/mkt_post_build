@@ -37,7 +37,7 @@ interface ChatState {
   streaming: boolean;
   streamContent: string;
   suggestions: string[];
-  contentPanel: { visible: boolean; generating: boolean; result: Record<string, unknown> | null };
+  contentPanel: { visible: boolean; generating: boolean; result: Record<string, unknown> | null; contentType?: string | null };
   sidebarWidth: number;
   contentPanelWidth: number;
   leftSidebarCollapsed: boolean;
@@ -329,11 +329,14 @@ export const useChatStore = create<ChatState>()(
                 fullContent = data.content;
                 const generateMatch = fullContent.match(/```generate\n([\s\S]*?)\n```/);
                 if (generateMatch) {
-                  if (isFg()) {
-                    set({ contentPanel: { visible: false, generating: true, result: null }, streamContent: "" });
-                  }
                   try {
                     const payload = JSON.parse(generateMatch[1]);
+                    if (isFg()) {
+                      set({
+                        contentPanel: { visible: false, generating: true, result: null, contentType: payload.content_type },
+                        streamContent: "",
+                      });
+                    }
                     let projectId = useProjectStore.getState().activeProject?.id;
                     if (!projectId) {
                       const createRes = await fetch(`${baseUrl}/projects`, {

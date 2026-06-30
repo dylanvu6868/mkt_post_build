@@ -802,10 +802,15 @@ const AGENT_STEPS = [
   { key: "reviewer", label: "Kiểm duyệt & Đánh giá" },
 ];
 
-function GeneratingIndicator({ streamContent }: { streamContent: string }) {
+// Only seo_blog/marketing_plan still run the multi-agent pipeline; everything
+// else is a single LLM call now and should not be narrated as "agent" work.
+const AGENT_PIPELINE_TYPES = new Set(["seo_blog", "marketing_plan"]);
+
+function GeneratingIndicator({ streamContent, contentType }: { streamContent: string; contentType: string | null }) {
   const contentRef = useRef<HTMLDivElement>(null);
   const isProcessing = streamContent.startsWith("Đang xử lý:");
   const isStreaming = !!streamContent && !isProcessing;
+  const isAgentPipeline = !!contentType && AGENT_PIPELINE_TYPES.has(contentType);
 
   const currentStep = isProcessing
     ? AGENT_STEPS.find((s) => streamContent.includes(s.label))?.key || ""
@@ -836,7 +841,9 @@ function GeneratingIndicator({ streamContent }: { streamContent: string }) {
                   <span className="w-2 h-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: "150ms" }} />
                   <span className="w-2 h-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: "300ms" }} />
                 </div>
-                <span className="text-[13px] font-medium text-primary">Vitba Agents đang làm việc...</span>
+                <span className="text-[13px] font-medium text-primary">
+                  {isAgentPipeline ? "Vitba Agents đang làm việc..." : "Đang viết nội dung..."}
+                </span>
               </>
             )}
           </div>
@@ -1210,7 +1217,10 @@ export function ChatPanel() {
 
         {/* Inline generating indicator — mutually exclusive with streaming */}
         {showGenerating && !streaming && (
-          <GeneratingIndicator streamContent={contentPanel.generating ? streamContent : ""} />
+          <GeneratingIndicator
+            streamContent={contentPanel.generating ? streamContent : ""}
+            contentType={contentPanel.contentType ?? null}
+          />
         )}
 
         {/* Inline result — only when not generating and not streaming */}
