@@ -671,12 +671,29 @@ function InlineResult({ result, onRedo }: {
   const score = review?.score as number | undefined;
   const [expanded, setExpanded] = useState(false);
   const [showDownload, setShowDownload] = useState(false);
+  const [sendingToLanding, setSendingToLanding] = useState(false);
   const htmlBody = getHtmlBody(result);
   const isLandingPage = contentType === "landing_page" && htmlBody;
 
   const handleCopy = () => {
     navigator.clipboard.writeText(isLandingPage ? htmlBody! : formatResultText(result));
     toast.success(isLandingPage ? "Đã sao chép mã nguồn!" : "Đã sao chép!");
+  };
+
+  const handleSendToLanding = async () => {
+    if (!htmlBody) return;
+    setSendingToLanding(true);
+    try {
+      await api.post("/mcp/landing/save-from-template", {
+        title: "Landing Page (Vitba Agent)",
+        html: htmlBody,
+      });
+      toast.success("Đã gửi sang Vitba Landing! Mở Vitba Landing để chỉnh sửa tiếp.");
+    } catch {
+      toast.error("Gửi sang Vitba Landing thất bại, thử lại sau.");
+    } finally {
+      setSendingToLanding(false);
+    }
   };
 
   if (result.error) {
@@ -746,6 +763,16 @@ function InlineResult({ result, onRedo }: {
                     Phóng to
                   </button>
                 </>
+              )}
+              {isLandingPage && (
+                <button
+                  onClick={handleSendToLanding}
+                  disabled={sendingToLanding}
+                  className="flex items-center gap-1.5 rounded-xl border border-primary/30 bg-primary/10 px-3 py-1.5 text-[12px] font-medium text-primary hover:bg-primary/20 transition-all disabled:opacity-50"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4 20-7z"/></svg>
+                  {sendingToLanding ? "Đang gửi..." : "Gửi sang Vitba Landing"}
+                </button>
               )}
               <button onClick={onRedo} className={cn("flex items-center gap-1.5 rounded-xl border border-border px-3 py-1.5 text-[12px] font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-all", !isLandingPage && "ml-auto")}>
                 <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
