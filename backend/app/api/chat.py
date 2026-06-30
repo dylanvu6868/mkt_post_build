@@ -669,6 +669,15 @@ async def send_message(
 
     history = await _build_messages(session, conversation_id)
 
+    # `session` is not used again after this point — the streaming phase below
+    # can take many seconds, and FastAPI keeps `Depends(get_session)` checked
+    # out for the full StreamingResponse duration. End the transaction now so
+    # the underlying DB connection is released back to the pool immediately,
+    # instead of being held idle for the whole stream (which was exhausting
+    # the pool under concurrent chat load and causing unrelated queries
+    # elsewhere to hit statement_timeout).
+    await session.commit()
+
     system_prompt = await _build_system_prompt(current_user, doc_context)
     if image_description:
         system_prompt += (
