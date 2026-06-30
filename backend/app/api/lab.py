@@ -6,7 +6,8 @@ from urllib.parse import urlparse
 from pydantic import BaseModel, Field, field_validator
 
 from app.api.deps import get_current_user
-from app.core.db import async_session_maker
+from app.core.db import get_session_maker
+from sqlalchemy.ext.asyncio import async_sessionmaker
 from app.core.plan_limits import check_lab_daily_limit, get_user_plan, upgrade_message
 from app.core.rate_limit import limiter
 from app.core.tracing import trace_request
@@ -198,18 +199,18 @@ class SerpSpyRequest(BaseModel):
 
 # --- Helpers ---
 
-async def _audit(user_id: int, tool: str, ip: str | None = None):
-    async with async_session_maker() as session:
+async def _audit(session_maker: async_sessionmaker, user_id: int, tool: str, ip: str | None = None):
+    async with session_maker() as session:
         await log_action(session, user_id, f"lab.{tool}", resource_type="lab_tool", ip_address=ip)
 
 
-async def _run_tool(tool_name: str, agent_fn, user: User, request: Request, input_data: dict = None):
+async def _run_tool(session_maker: async_sessionmaker, tool_name: str, agent_fn, user: User, request: Request, input_data: dict = None):
     import time as _time
     from app.services.ai_logger import log_ai_call
     from app.core.config import settings
 
     plan = get_user_plan(user)
-    async with async_session_maker() as session:
+    async with session_maker() as session:
         allowed, used, limit = await check_lab_daily_limit(session, user)
     if not allowed:
         if limit == 0:
@@ -219,7 +220,7 @@ async def _run_tool(tool_name: str, agent_fn, user: User, request: Request, inpu
             detail=f"Bạn đã dùng hết {limit} lượt Lab hôm nay ({used}/{limit}). "
             + upgrade_message("thêm lượt sử dụng Lab"),
         )
-    await _audit(user.id, tool_name, request.client.host if request.client else None)
+    await _audit(session_maker, user.id, tool_name, request.client.host if request.client else None)
     _t0 = _time.perf_counter()
     try:
         with trace_request(
@@ -240,7 +241,7 @@ async def _run_tool(tool_name: str, agent_fn, user: User, request: Request, inpu
 
         # Save to lab_history
         if input_data is not None:
-            async with async_session_maker() as session:
+            async with session_maker() as session:
                 history_entry = LabHistory(
                     user_id=user.id,
                     tool_name=tool_name,
@@ -279,8 +280,9 @@ import uuid
 async def get_lab_history(
     tool_name: Optional[str] = None,
     current_user: User = Depends(get_current_user),
+    session_maker: async_sessionmaker = Depends(get_session_maker),
 ):
-    async with async_session_maker() as session:
+    async with session_maker() as session:
         stmt = select(LabHistory).where(LabHistory.user_id == current_user.id)
         if tool_name:
             stmt = stmt.where(LabHistory.tool_name == tool_name)
@@ -304,8 +306,9 @@ async def get_lab_history(
 async def delete_lab_history(
     history_id: str,
     current_user: User = Depends(get_current_user),
+    session_maker: async_sessionmaker = Depends(get_session_maker),
 ):
-    async with async_session_maker() as session:
+    async with session_maker() as session:
         try:
             h_uuid = uuid.UUID(history_id)
         except ValueError:
@@ -327,115 +330,115 @@ async def delete_lab_history(
 
 @router.post("/shield")
 @limiter.limit("5/minute")
-async def shield_endpoint(request: Request, req: ShieldRequest, current_user: User = Depends(get_current_user)):
-    return await _run_tool("shield", lambda: run_shield_agent(req.content), current_user, request, input_data=req.model_dump())
+async def shield_endpoint(request: Request, req: ShieldRequest, current_user: User = Depends(get_current_user), session_maker: async_sessionmaker = Depends(get_session_maker)):
+    return await _run_tool(session_maker, "shield", lambda: run_shield_agent(req.content), current_user, request, input_data=req.model_dump())
 
 @router.post("/psycho")
 @limiter.limit("5/minute")
-async def psycho_endpoint(request: Request, req: PsychoRequest, current_user: User = Depends(get_current_user)):
-    return await _run_tool("psycho", lambda: run_psycho_agent(req.content, req.target_emotion), current_user, request, input_data=req.model_dump())
+async def psycho_endpoint(request: Request, req: PsychoRequest, current_user: User = Depends(get_current_user), session_maker: async_sessionmaker = Depends(get_session_maker)):
+    return await _run_tool(session_maker, "psycho", lambda: run_psycho_agent(req.content, req.target_emotion), current_user, request, input_data=req.model_dump())
 
 @router.post("/persona")
 @limiter.limit("5/minute")
-async def persona_endpoint(request: Request, req: PersonaRequest, current_user: User = Depends(get_current_user)):
-    return await _run_tool("persona", lambda: run_persona_agent(req.content, req.persona), current_user, request, input_data=req.model_dump())
+async def persona_endpoint(request: Request, req: PersonaRequest, current_user: User = Depends(get_current_user), session_maker: async_sessionmaker = Depends(get_session_maker)):
+    return await _run_tool(session_maker, "persona", lambda: run_persona_agent(req.content, req.persona), current_user, request, input_data=req.model_dump())
 
 @router.post("/dna")
 @limiter.limit("5/minute")
-async def dna_endpoint(request: Request, req: DNARequest, current_user: User = Depends(get_current_user)):
-    return await _run_tool("dna", lambda: run_dna_agent(req.viral_content, req.user_topic), current_user, request, input_data=req.model_dump())
+async def dna_endpoint(request: Request, req: DNARequest, current_user: User = Depends(get_current_user), session_maker: async_sessionmaker = Depends(get_session_maker)):
+    return await _run_tool(session_maker, "dna", lambda: run_dna_agent(req.viral_content, req.user_topic), current_user, request, input_data=req.model_dump())
 
 @router.post("/simulator")
 @limiter.limit("5/minute")
-async def simulator_endpoint(request: Request, req: SimulatorRequest, current_user: User = Depends(get_current_user)):
-    return await _run_tool("simulator", lambda: run_simulator_agent(req.content), current_user, request, input_data=req.model_dump())
+async def simulator_endpoint(request: Request, req: SimulatorRequest, current_user: User = Depends(get_current_user), session_maker: async_sessionmaker = Depends(get_session_maker)):
+    return await _run_tool(session_maker, "simulator", lambda: run_simulator_agent(req.content), current_user, request, input_data=req.model_dump())
 
 @router.post("/cinematic")
 @limiter.limit("5/minute")
-async def cinematic_endpoint(request: Request, req: CinematicRequest, current_user: User = Depends(get_current_user)):
-    return await _run_tool("cinematic", lambda: run_cinematic_agent(req.content, req.style), current_user, request, input_data=req.model_dump())
+async def cinematic_endpoint(request: Request, req: CinematicRequest, current_user: User = Depends(get_current_user), session_maker: async_sessionmaker = Depends(get_session_maker)):
+    return await _run_tool(session_maker, "cinematic", lambda: run_cinematic_agent(req.content, req.style), current_user, request, input_data=req.model_dump())
 
 @router.post("/reverse")
 @limiter.limit("5/minute")
-async def reverse_endpoint(request: Request, req: ReverseRequest, current_user: User = Depends(get_current_user)):
-    return await _run_tool("reverse", lambda: run_reverse_agent(req.content), current_user, request, input_data=req.model_dump())
+async def reverse_endpoint(request: Request, req: ReverseRequest, current_user: User = Depends(get_current_user), session_maker: async_sessionmaker = Depends(get_session_maker)):
+    return await _run_tool(session_maker, "reverse", lambda: run_reverse_agent(req.content), current_user, request, input_data=req.model_dump())
 
 @router.post("/hexbreaker")
 @limiter.limit("5/minute")
-async def hexbreaker_endpoint(request: Request, req: HexBreakerRequest, current_user: User = Depends(get_current_user)):
-    return await _run_tool("hexbreaker", lambda: run_hexbreaker_agent(req.content, req.platform), current_user, request, input_data=req.model_dump())
+async def hexbreaker_endpoint(request: Request, req: HexBreakerRequest, current_user: User = Depends(get_current_user), session_maker: async_sessionmaker = Depends(get_session_maker)):
+    return await _run_tool(session_maker, "hexbreaker", lambda: run_hexbreaker_agent(req.content, req.platform), current_user, request, input_data=req.model_dump())
 
 @router.post("/trendjack")
 @limiter.limit("5/minute")
-async def trendjack_endpoint(request: Request, req: TrendJackRequest, current_user: User = Depends(get_current_user)):
-    return await _run_tool("trendjack", lambda: run_trendjack_agent(req.content, req.current_trends), current_user, request, input_data=req.model_dump())
+async def trendjack_endpoint(request: Request, req: TrendJackRequest, current_user: User = Depends(get_current_user), session_maker: async_sessionmaker = Depends(get_session_maker)):
+    return await _run_tool(session_maker, "trendjack", lambda: run_trendjack_agent(req.content, req.current_trends), current_user, request, input_data=req.model_dump())
 
 @router.post("/blindspot")
 @limiter.limit("5/minute")
-async def blindspot_endpoint(request: Request, req: BlindspotRequest, current_user: User = Depends(get_current_user)):
-    return await _run_tool("blindspot", lambda: run_blindspot_agent(req.content, req.target_region), current_user, request, input_data=req.model_dump())
+async def blindspot_endpoint(request: Request, req: BlindspotRequest, current_user: User = Depends(get_current_user), session_maker: async_sessionmaker = Depends(get_session_maker)):
+    return await _run_tool(session_maker, "blindspot", lambda: run_blindspot_agent(req.content, req.target_region), current_user, request, input_data=req.model_dump())
 
 @router.post("/evergreen")
 @limiter.limit("5/minute")
-async def evergreen_endpoint(request: Request, req: EvergreenRequest, current_user: User = Depends(get_current_user)):
-    return await _run_tool("evergreen", lambda: run_evergreen_agent(req.old_content, req.target_year_context), current_user, request, input_data=req.model_dump())
+async def evergreen_endpoint(request: Request, req: EvergreenRequest, current_user: User = Depends(get_current_user), session_maker: async_sessionmaker = Depends(get_session_maker)):
+    return await _run_tool(session_maker, "evergreen", lambda: run_evergreen_agent(req.old_content, req.target_year_context), current_user, request, input_data=req.model_dump())
 
 @router.post("/audiohook")
 @limiter.limit("5/minute")
-async def audiohook_endpoint(request: Request, req: AudioHookRequest, current_user: User = Depends(get_current_user)):
-    return await _run_tool("audiohook", lambda: run_audiohook_agent(req.content, req.music_bpm), current_user, request, input_data=req.model_dump())
+async def audiohook_endpoint(request: Request, req: AudioHookRequest, current_user: User = Depends(get_current_user), session_maker: async_sessionmaker = Depends(get_session_maker)):
+    return await _run_tool(session_maker, "audiohook", lambda: run_audiohook_agent(req.content, req.music_bpm), current_user, request, input_data=req.model_dump())
 
 @router.post("/report")
 @limiter.limit("2/minute")
-async def report_endpoint(request: Request, req: ReportRequest, current_user: User = Depends(get_current_user)):
-    return await _run_tool("report", lambda: run_report_agent(req.model_dump()), current_user, request, input_data=req.model_dump())
+async def report_endpoint(request: Request, req: ReportRequest, current_user: User = Depends(get_current_user), session_maker: async_sessionmaker = Depends(get_session_maker)):
+    return await _run_tool(session_maker, "report", lambda: run_report_agent(req.model_dump()), current_user, request, input_data=req.model_dump())
 
 
 # --- New Lab Tool endpoints ---
 
 @router.post("/hook")
 @limiter.limit("5/minute")
-async def hook_endpoint(request: Request, req: HookRequest, current_user: User = Depends(get_current_user)):
-    return await _run_tool("hook", lambda: run_hook_agent(req.content, req.goal), current_user, request, input_data=req.model_dump())
+async def hook_endpoint(request: Request, req: HookRequest, current_user: User = Depends(get_current_user), session_maker: async_sessionmaker = Depends(get_session_maker)):
+    return await _run_tool(session_maker, "hook", lambda: run_hook_agent(req.content, req.goal), current_user, request, input_data=req.model_dump())
 
 @router.post("/abtest")
 @limiter.limit("5/minute")
-async def abtest_endpoint(request: Request, req: ABTestRequest, current_user: User = Depends(get_current_user)):
-    return await _run_tool("abtest", lambda: run_abtest_agent(req.variant_a, req.variant_b, req.platform), current_user, request, input_data=req.model_dump())
+async def abtest_endpoint(request: Request, req: ABTestRequest, current_user: User = Depends(get_current_user), session_maker: async_sessionmaker = Depends(get_session_maker)):
+    return await _run_tool(session_maker, "abtest", lambda: run_abtest_agent(req.variant_a, req.variant_b, req.platform), current_user, request, input_data=req.model_dump())
 
 @router.post("/competitor-spy")
 @limiter.limit("3/minute")
-async def competitor_spy_endpoint(request: Request, req: CompetitorSpyRequest, current_user: User = Depends(get_current_user)):
-    return await _run_tool("competitor_spy", lambda: run_competitor_spy_agent(req.competitor_info, req.niche), current_user, request, input_data=req.model_dump())
+async def competitor_spy_endpoint(request: Request, req: CompetitorSpyRequest, current_user: User = Depends(get_current_user), session_maker: async_sessionmaker = Depends(get_session_maker)):
+    return await _run_tool(session_maker, "competitor_spy", lambda: run_competitor_spy_agent(req.competitor_info, req.niche), current_user, request, input_data=req.model_dump())
 
 @router.post("/repurposer")
 @limiter.limit("5/minute")
-async def repurposer_endpoint(request: Request, req: RepurposerRequest, current_user: User = Depends(get_current_user)):
-    return await _run_tool("repurposer", lambda: run_repurposer_agent(req.source_content, req.target_formats), current_user, request, input_data=req.model_dump())
+async def repurposer_endpoint(request: Request, req: RepurposerRequest, current_user: User = Depends(get_current_user), session_maker: async_sessionmaker = Depends(get_session_maker)):
+    return await _run_tool(session_maker, "repurposer", lambda: run_repurposer_agent(req.source_content, req.target_formats), current_user, request, input_data=req.model_dump())
 
 @router.post("/influencer")
 @limiter.limit("3/minute")
-async def influencer_endpoint(request: Request, req: InfluencerRequest, current_user: User = Depends(get_current_user)):
-    return await _run_tool("influencer", lambda: run_influencer_agent(req.niche, req.budget, req.platform), current_user, request, input_data=req.model_dump())
+async def influencer_endpoint(request: Request, req: InfluencerRequest, current_user: User = Depends(get_current_user), session_maker: async_sessionmaker = Depends(get_session_maker)):
+    return await _run_tool(session_maker, "influencer", lambda: run_influencer_agent(req.niche, req.budget, req.platform), current_user, request, input_data=req.model_dump())
 
 @router.post("/hashtag")
 @limiter.limit("5/minute")
-async def hashtag_endpoint(request: Request, req: HashtagRequest, current_user: User = Depends(get_current_user)):
-    return await _run_tool("hashtag", lambda: run_hashtag_agent(req.niche, req.platform, req.region), current_user, request, input_data=req.model_dump())
+async def hashtag_endpoint(request: Request, req: HashtagRequest, current_user: User = Depends(get_current_user), session_maker: async_sessionmaker = Depends(get_session_maker)):
+    return await _run_tool(session_maker, "hashtag", lambda: run_hashtag_agent(req.niche, req.platform, req.region), current_user, request, input_data=req.model_dump())
 
 
 # --- Vietnam Pack endpoints ---
 
 @router.post("/dialect")
 @limiter.limit("5/minute")
-async def dialect_endpoint(request: Request, req: DialectRequest, current_user: User = Depends(get_current_user)):
-    return await _run_tool("dialect", lambda: run_dialect_adapter_agent(req.content), current_user, request, input_data=req.model_dump())
+async def dialect_endpoint(request: Request, req: DialectRequest, current_user: User = Depends(get_current_user), session_maker: async_sessionmaker = Depends(get_session_maker)):
+    return await _run_tool(session_maker, "dialect", lambda: run_dialect_adapter_agent(req.content), current_user, request, input_data=req.model_dump())
 
 @router.post("/zalo-publish")
 @limiter.limit("3/minute")
-async def zalo_publish_endpoint(request: Request, req: ZaloPublishRequest, current_user: User = Depends(get_current_user)):
+async def zalo_publish_endpoint(request: Request, req: ZaloPublishRequest, current_user: User = Depends(get_current_user), session_maker: async_sessionmaker = Depends(get_session_maker)):
     """Publish to Zalo OA — no daily lab limit, just rate limit."""
-    await _audit(current_user.id, "zalo_publish", request.client.host if request.client else None)
+    await _audit(session_maker, current_user.id, "zalo_publish", request.client.host if request.client else None)
     result = await publish_to_zalo_oa(req.access_token, req.content, req.image_url)
     return result.model_dump()
 
@@ -453,13 +456,13 @@ async def lunar_festivals_endpoint(current_user: User = Depends(get_current_user
 
 @router.post("/seo-analysis")
 @limiter.limit("3/minute")
-async def seo_analysis_endpoint(request: Request, req: SeoAnalysisRequest, current_user: User = Depends(get_current_user)):
+async def seo_analysis_endpoint(request: Request, req: SeoAnalysisRequest, current_user: User = Depends(get_current_user), session_maker: async_sessionmaker = Depends(get_session_maker)):
     """Run full SEO analysis report — returns markdown text."""
-    await _audit(current_user.id, "seo_analysis", request.client.host if request.client else None)
+    await _audit(session_maker, current_user.id, "seo_analysis", request.client.host if request.client else None)
     try:
         report = await run_seo_analysis_agent(req)
         # Save to lab_history
-        async with async_session_maker() as session:
+        async with session_maker() as session:
             entry = LabHistory(
                 user_id=current_user.id,
                 tool_name="seo_analysis",
@@ -646,6 +649,7 @@ async def keyword_research_endpoint(
     request: Request,
     req: KeywordResearchRequest,
     current_user: User = Depends(get_current_user),
+    session_maker: async_sessionmaker = Depends(get_session_maker),
 ):
     async def _run():
         if DataForSEOService.get_api_key():
@@ -664,7 +668,7 @@ async def keyword_research_endpoint(
                 logger.warning("DataForSEO keyword-research failed: %s, AI fallback", e)
         return await _ai_keyword_research(req.keyword)
 
-    return await _run_tool("keyword_research", _run, current_user, request, input_data=req.model_dump())
+    return await _run_tool(session_maker, "keyword_research", _run, current_user, request, input_data=req.model_dump())
 
 
 @router.post("/rank-tracker")
@@ -673,6 +677,7 @@ async def rank_tracker_endpoint(
     request: Request,
     req: RankTrackerRequest,
     current_user: User = Depends(get_current_user),
+    session_maker: async_sessionmaker = Depends(get_session_maker),
 ):
     async def _run():
         if DataForSEOService.get_api_key():
@@ -690,7 +695,7 @@ async def rank_tracker_endpoint(
                 logger.warning("DataForSEO rank-tracker failed: %s, AI fallback", e)
         return await _ai_rank_tracker(req.domain)
 
-    return await _run_tool("rank_tracker", _run, current_user, request, input_data=req.model_dump())
+    return await _run_tool(session_maker, "rank_tracker", _run, current_user, request, input_data=req.model_dump())
 
 
 @router.post("/backlinks")
@@ -699,6 +704,7 @@ async def backlinks_endpoint(
     request: Request,
     req: BacklinksRequest,
     current_user: User = Depends(get_current_user),
+    session_maker: async_sessionmaker = Depends(get_session_maker),
 ):
     async def _run():
         if DataForSEOService.get_api_key():
@@ -717,7 +723,7 @@ async def backlinks_endpoint(
                 logger.warning("DataForSEO backlinks failed: %s, AI fallback", e)
         return await _ai_backlinks(req.domain)
 
-    return await _run_tool("backlinks", _run, current_user, request, input_data=req.model_dump())
+    return await _run_tool(session_maker, "backlinks", _run, current_user, request, input_data=req.model_dump())
 
 
 @router.post("/serp-spy")
@@ -726,6 +732,7 @@ async def serp_spy_endpoint(
     request: Request,
     req: SerpSpyRequest,
     current_user: User = Depends(get_current_user),
+    session_maker: async_sessionmaker = Depends(get_session_maker),
 ):
     async def _run():
         if DataForSEOService.get_api_key():
@@ -743,7 +750,7 @@ async def serp_spy_endpoint(
                 logger.warning("DataForSEO serp-spy failed: %s, AI fallback", e)
         return await _ai_serp_spy(req.keyword)
 
-    return await _run_tool("serp_spy", _run, current_user, request, input_data=req.model_dump())
+    return await _run_tool(session_maker, "serp_spy", _run, current_user, request, input_data=req.model_dump())
 
 
 @router.post("/generic/{tool_id}")
@@ -753,11 +760,13 @@ async def generic_tool_endpoint(
     request: Request,
     req: GenericToolRequest,
     current_user: User = Depends(get_current_user),
+    session_maker: async_sessionmaker = Depends(get_session_maker),
 ):
     if tool_id not in GENERIC_TOOLS:
         raise HTTPException(status_code=404, detail="Công cụ không tồn tại.")
     tool_name = tool_id.replace("-", "_")
     return await _run_tool(
+        session_maker,
         tool_name,
         lambda: run_generic_tool_agent(tool_id, req.inputs),
         current_user,
