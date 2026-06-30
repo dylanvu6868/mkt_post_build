@@ -432,6 +432,76 @@ export const useChatStore = create<ChatState>()(
         const baseUrl = API_BASE_URL;
         const isFg = () => get().activeConversationId === convId;
 
+        const handleResult = (statusData: any) => {
+          if (statusData.status === "error") {
+            if (isFg()) {
+              set({
+                contentPanel: { visible: false, generating: false, result: { error: statusData.error } },
+                streamContent: "",
+              });
+            }
+            set((s) => {
+              if (!s.backgroundTasks[convId]) return s;
+              return { backgroundTasks: { ...s.backgroundTasks, [convId]: { ...s.backgroundTasks[convId], status: "error" } } };
+            });
+            return;
+          }
+
+          if (statusData.status === "done" && statusData.result) {
+            let draftText = "";
+            if (statusData.result.draft) {
+              const d = statusData.result.draft;
+              if (payload.content_type === "facebook_post") {
+                draftText = [d.hook, "", d.body, "", d.cta, "", d.hashtags?.join(" ")].filter(Boolean).join("\n");
+              } else if (payload.content_type === "seo_blog") {
+                const faqText = d.faq?.map((f: any) => `Q: ${f.question}\nA: ${f.answer}`).join("\n\n") ?? "";
+                draftText = [d.seo_title, d.meta_description, "", d.blog_content, "", faqText].filter(Boolean).join("\n");
+              } else if (payload.content_type === "email") {
+                draftText = [`Subject: ${d.subject}`, "", d.body, "", d.cta].filter(Boolean).join("\n");
+              } else if (payload.content_type === "landing_page") {
+                draftText = [d.headline, d.subheadline, "", d.benefits?.map((b: string) => `• ${b}`).join("\n"), "", d.cta].filter(Boolean).join("\n");
+              } else if (payload.content_type === "tiktok_script") {
+                draftText = [`[HOOK] ${d.hook}`, "", d.script, "", `[CTA] ${d.cta}`].filter(Boolean).join("\n");
+              } else {
+                draftText = JSON.stringify(d, null, 2);
+              }
+            } else if (statusData.result.final) {
+              const f = statusData.result.final;
+              draftText = f.body || JSON.stringify(f, null, 2);
+            }
+
+            if (isFg()) {
+              set({ contentPanel: { visible: false, generating: false, result: null }, streamContent: "" });
+              _saveGenerationResult(baseUrl, token, convId, draftText, set, get);
+              const resultMsg: ChatMessage = {
+                id: Date.now() + 1,
+                conversation_id: convId,
+                role: "assistant",
+                content: draftText,
+                metadata_json: { ...statusData.result, _contentType: payload.content_type } as Record<string, unknown> | null,
+                created_at: new Date().toISOString(),
+              };
+              set((s) => ({
+                messages: [...s.messages, resultMsg],
+                conversations: s.conversations.map((c) =>
+                  c.id === convId ? { ...c, updated_at: new Date().toISOString() } : c
+                ),
+              }));
+            } else {
+              _saveGenerationResult(baseUrl, token, convId, draftText, set, get);
+              set((s) => ({
+                backgroundTasks: {
+                  ...s.backgroundTasks,
+                  [convId]: {
+                    ...(s.backgroundTasks[convId] || { convId, title: "Cuộc trò chuyện", type: "generation" as const }),
+                    status: "done" as const,
+                  },
+                },
+              }));
+            }
+          }
+        };
+
         try {
           const res = await fetch(`${baseUrl}/generate`, {
             method: "POST",
@@ -457,8 +527,13 @@ export const useChatStore = create<ChatState>()(
             return;
           }
           const data = await res.json();
-          const jobId = data.job_id;
 
+          if (data.status === "done" || data.status === "error") {
+            handleResult(data);
+            return;
+          }
+
+          const jobId = data.job_id;
           let isPolling = true;
           while (isPolling) {
             await sleepUntilVisible(800);
@@ -468,78 +543,8 @@ export const useChatStore = create<ChatState>()(
             if (!statusRes.ok) continue;
             const statusData = await statusRes.json();
 
-            if (statusData.status === "error") {
-              if (isFg()) {
-                set({ contentPanel: { visible: false, generating: false, result: { error: statusData.error } }, streamContent: "" });
-              }
-              set((s) => {
-                if (!s.backgroundTasks[convId]) return s;
-                return { backgroundTasks: { ...s.backgroundTasks, [convId]: { ...s.backgroundTasks[convId], status: "error" } } };
-              });
-              isPolling = false;
-              break;
-            }
-
-            if (statusData.status === "done" && statusData.result) {
-              let draftText = "";
-              if (statusData.result.draft) {
-                const d = statusData.result.draft;
-                if (payload.content_type === "facebook_post") {
-                  draftText = [d.hook, "", d.body, "", d.cta, "", d.hashtags?.join(" ")].filter(Boolean).join("\n");
-                } else if (payload.content_type === "seo_blog") {
-                  const faqText = d.faq?.map((f: any) => `Q: ${f.question}\nA: ${f.answer}`).join("\n\n") ?? "";
-                  draftText = [d.seo_title, d.meta_description, "", d.blog_content, "", faqText].filter(Boolean).join("\n");
-                } else if (payload.content_type === "email") {
-                  draftText = [`Subject: ${d.subject}`, "", d.body, "", d.cta].filter(Boolean).join("\n");
-                } else if (payload.content_type === "landing_page") {
-                  draftText = [d.headline, d.subheadline, "", d.benefits?.map((b: string) => `• ${b}`).join("\n"), "", d.cta].filter(Boolean).join("\n");
-                } else if (payload.content_type === "tiktok_script") {
-                  draftText = [`[HOOK] ${d.hook}`, "", d.script, "", `[CTA] ${d.cta}`].filter(Boolean).join("\n");
-                } else {
-                  draftText = JSON.stringify(d, null, 2);
-                }
-              } else if (statusData.result.final) {
-                const f = statusData.result.final;
-                draftText = f.body || JSON.stringify(f, null, 2);
-              }
-
-              if (isFg()) {
-                set({
-                  contentPanel: { visible: false, generating: false, result: null },
-                  streamContent: "",
-                });
-                _saveGenerationResult(baseUrl, token, convId, draftText, set, get);
-                // Add result to local messages as InlineResult card
-                const resultMsg: ChatMessage = {
-                  id: Date.now() + 1,
-                  conversation_id: convId,
-                  role: "assistant",
-                  content: draftText,
-                  metadata_json: { ...statusData.result, _contentType: payload.content_type } as Record<string, unknown> | null,
-                  created_at: new Date().toISOString(),
-                };
-                set((s) => ({
-                  messages: [...s.messages, resultMsg],
-                  conversations: s.conversations.map((c) =>
-                    c.id === convId
-                      ? { ...c, updated_at: new Date().toISOString() }
-                      : c
-                  ),
-                }));
-              } else {
-                // Background: skip animation, save directly
-                _saveGenerationResult(baseUrl, token, convId, draftText, set, get);
-                set((s) => ({
-                  backgroundTasks: {
-                    ...s.backgroundTasks,
-                    [convId]: {
-                      ...(s.backgroundTasks[convId] || { convId, title: "Cuộc trò chuyện", type: "generation" as const }),
-                      status: "done" as const,
-                    },
-                  },
-                }));
-              }
-
+            if (statusData.status === "error" || (statusData.status === "done" && statusData.result)) {
+              handleResult(statusData);
               isPolling = false;
               break;
             } else {
@@ -556,7 +561,6 @@ export const useChatStore = create<ChatState>()(
               if (isFg()) {
                 set({ streamContent: `Đang xử lý: ${stepMap[step] || step}...` });
               }
-              // Update background task step
               set((s) => {
                 if (!s.backgroundTasks[convId]) return s;
                 return {

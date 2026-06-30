@@ -16,6 +16,8 @@ class GenerateRequest(BaseModel):
 class JobResponse(BaseModel):
     job_id: int
     status: str
+    result: dict | None = None
+    error: str | None = None
 
 
 class JobStatusResponse(BaseModel):

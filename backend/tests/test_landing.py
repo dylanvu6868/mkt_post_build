@@ -1,5 +1,5 @@
 import pytest
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from sqlalchemy.pool import StaticPool
@@ -20,6 +20,37 @@ async def _register(client, email="landing@example.com"):
     )
     data = resp.json()
     return data["access_token"], data["user"]["id"]
+
+
+@patch("app.llm.factory.provider_available", return_value=True)
+async def test_generate_custom_landing_uses_brand_profile_when_project_id_given(mock_avail, client, promote):
+    token, user_id = await _register(client, "lb1@example.com")
+    await promote(user_id, "pro")
+    headers = {"Authorization": f"Bearer {token}"}
+    proj = await client.post("/projects", json={"name": "P"}, headers=headers)
+    project_id = proj.json()["id"]
+    await client.post(
+        "/brand-profile",
+        json={"project_id": project_id, "brand_name": "EcoBottle", "tone": "friendly"},
+        headers=headers,
+    )
+
+    fake_resp = AsyncMock()
+    fake_resp.content = "<!DOCTYPE html><html><body>generic</body></html>"
+    mock_llm = AsyncMock()
+    mock_llm.ainvoke = AsyncMock(return_value=fake_resp)
+    with patch("app.llm.factory.get_chat_model_for_tier") as mock_factory:
+        mock_factory.return_value = mock_llm
+        resp = await client.post(
+            "/mcp/landing/generate-custom",
+            json={"prompt": "Landing page bán nước hữu cơ", "project_id": project_id},
+            headers=headers,
+        )
+    assert resp.status_code == 200
+    # Verify the BrandProfile actually reached the LLM prompt (not just the mocked output)
+    sent_messages = mock_llm.ainvoke.call_args[0][0]
+    user_message_content = sent_messages[1].content
+    assert "EcoBottle" in user_message_content
 
 
 # ── Model unit test ───────────────────────────────────────────────────
