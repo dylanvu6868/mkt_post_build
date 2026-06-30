@@ -14,6 +14,7 @@ from app.core.tracing import trace_request
 from app.models.landing_page import LandingPage
 from app.models.user import User
 from app.services.audit import log_action
+from app.services.brand_profile_service import load_brand_profile, format_brand_voice
 from app.services.storage import save_upload
 from app.mcp.landing.template_engine import (
     render_landing,
@@ -44,6 +45,7 @@ class PageUpdate(BaseModel):
 class GenerateReq(BaseModel):
     purpose: str
     product: str
+    project_id: int | None = None
     tone: str = "professional"
     cta: str = "Sign up"
     color_scheme: str = "blue"
@@ -87,7 +89,13 @@ async def generate_page(body: GenerateReq, user: User = Depends(get_current_user
     from app.llm.factory import get_chat_model_for_tier as get_chat_model, provider_available
     if not provider_available():
         raise HTTPException(503, "LLM provider not configured")
-        
+
+    brand_profile = {}
+    if body.project_id is not None:
+        brand_profile = await load_brand_profile(session, body.project_id, user.id)
+    brand_voice = format_brand_voice(brand_profile)
+    effective_brand_name = brand_profile.get("brand_name") or body.product
+
     from pydantic import Field
     class LandingContent(BaseModel):
         hero_title: str = Field(description="Tiêu đề chính của hero section")
@@ -108,13 +116,14 @@ async def generate_page(body: GenerateReq, user: User = Depends(get_current_user
         footer_copyright: str = Field(description="Dòng bản quyền footer")
 
     system = "Bạn là AI Copywriter cho Vitba AI. Nhiệm vụ: Viết nội dung cho landing page. Không bỏ trống các trường."
-    
+
     sections_str = ", ".join(body.sections) if body.sections else "hero, features, CTA"
     user_msg = f"""Mục đích: {body.purpose}
 Sản phẩm: {body.product}
 Tone: {body.tone}
 CTA: {body.cta}
 Các sections: {sections_str}
+{brand_voice}
 
 Tạo nội dung tiếng Việt chuyên nghiệp cho Landing Page."""
 
@@ -126,7 +135,7 @@ Tạo nội dung tiếng Việt chuyên nghiệp cho Landing Page."""
         ])
 
     content_dict = content.model_dump()
-    content_dict["brand_name"] = body.product
+    content_dict["brand_name"] = effective_brand_name
     content_dict["logo_url"] = body.logo_url
     if body.hero_image_url:
         content_dict["hero_image_url"] = body.hero_image_url
@@ -260,6 +269,7 @@ async def save_from_template(
 
 class GenerateCustomReq(BaseModel):
     prompt: str
+    project_id: int | None = None
     brand_name: str = ""
     logo_url: str = ""
     hero_image_url: str = ""
@@ -269,12 +279,22 @@ class GenerateCustomReq(BaseModel):
 
 
 @router.post("/mcp/landing/generate-custom")
-async def generate_custom_landing(body: GenerateCustomReq, user: User = Depends(get_current_user)):
+async def generate_custom_landing(
+    body: GenerateCustomReq,
+    user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+):
     """AI generates a custom landing page from user's description,
     using template patterns as style reference (not slot-filling)."""
     from app.llm.factory import get_chat_model_for_tier as get_chat_model, provider_available
     if not provider_available():
         raise HTTPException(503, "LLM provider not configured")
+
+    brand_profile = {}
+    if body.project_id is not None:
+        brand_profile = await load_brand_profile(session, body.project_id, user.id)
+    brand_name = brand_profile.get("brand_name") or body.brand_name
+    brand_voice = format_brand_voice(brand_profile)
 
     style_ref = get_landing_style_reference()
 
@@ -306,8 +326,9 @@ Nhiệm vụ: tạo landing page HTML hoàn chỉnh, responsive, đẹp, chuyể
 10. KHÔNG markdown fence, KHÔNG giải thích"""
 
     user_msg = f"""Mô tả landing page: {body.prompt}
-Brand: {body.brand_name or "(tự đặt tên phù hợp)"}
+Brand: {brand_name or "(tự đặt tên phù hợp)"}
 {images_context}{color_context}{cta_context}
+{brand_voice}
 
 Tạo landing page hoàn chỉnh, chuyên nghiệp, độc quyền Vitba."""
 
@@ -331,17 +352,28 @@ class OnboardReq(BaseModel):
     purpose: str
     color_palette: str
     typography: str
+    project_id: int | None = None
     brand_name: str = ""
     logo_url: str = ""
     hero_image_url: str = ""
 
 
 @router.post("/mcp/landing/onboard")
-async def onboard_generate(body: OnboardReq, user: User = Depends(get_current_user)):
+async def onboard_generate(
+    body: OnboardReq,
+    user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+):
     """AI generates landing page from onboarding wizard answers."""
     from app.llm.factory import get_chat_model_for_tier as get_chat_model, provider_available
     if not provider_available():
         raise HTTPException(503, "LLM provider not configured")
+
+    brand_profile = {}
+    if body.project_id is not None:
+        brand_profile = await load_brand_profile(session, body.project_id, user.id)
+    brand_name = brand_profile.get("brand_name") or body.brand_name
+    brand_voice = format_brand_voice(brand_profile)
 
     from pydantic import Field
     class LandingContent(BaseModel):
@@ -366,7 +398,8 @@ async def onboard_generate(body: OnboardReq, user: User = Depends(get_current_us
 
     user_msg = f"""## Câu trả lời Onboarding:
 - Mục đích trang: {body.purpose}
-- Brand: {body.brand_name or "(tự đặt phù hợp)"}
+- Brand: {brand_name or "(tự đặt phù hợp)"}
+{brand_voice}
 
 Viết toàn bộ nội dung tiếng Việt cho trang Landing Page."""
 
@@ -378,11 +411,11 @@ Viết toàn bộ nội dung tiếng Việt cho trang Landing Page."""
         ])
 
     content_dict = content.model_dump()
-    content_dict["brand_name"] = body.brand_name
+    content_dict["brand_name"] = brand_name
     content_dict["logo_url"] = body.logo_url
     if body.hero_image_url:
         content_dict["hero_image_url"] = body.hero_image_url
-        
+
     colors = body.color_palette.split(":")[-1].split(",") if ":" in body.color_palette else []
     primary = colors[0].strip() if colors else "#2563EB"
     content_dict["primary_color"] = primary
