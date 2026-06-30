@@ -25,6 +25,7 @@ from app.agents.lab import (
     run_dialect_adapter_agent, publish_to_zalo_oa,
     run_seo_analysis_agent, SeoAnalysisRequest,
 )
+from app.agents.lab_generic import GENERIC_TOOLS, run_generic_tool_agent
 
 logger = logging.getLogger(__name__)
 
@@ -138,6 +139,15 @@ class ZaloPublishRequest(BaseModel):
     access_token: str = Field(..., max_length=1000)
     content: str = Field(..., max_length=MAX_CONTENT)
     image_url: str | None = Field(None, max_length=2000)
+
+
+class GenericToolRequest(BaseModel):
+    inputs: dict[str, str] = Field(default_factory=dict)
+
+    @field_validator("inputs")
+    @classmethod
+    def clean_inputs(cls, v: dict[str, str]) -> dict[str, str]:
+        return {str(k)[:100]: str(val)[:MAX_CONTENT] for k, val in v.items()}
 
 
 # --- DataForSEO Lab Tool Request Schemas ---
@@ -734,3 +744,23 @@ async def serp_spy_endpoint(
         return await _ai_serp_spy(req.keyword)
 
     return await _run_tool("serp_spy", _run, current_user, request, input_data=req.model_dump())
+
+
+@router.post("/generic/{tool_id}")
+@limiter.limit("5/minute")
+async def generic_tool_endpoint(
+    tool_id: str,
+    request: Request,
+    req: GenericToolRequest,
+    current_user: User = Depends(get_current_user),
+):
+    if tool_id not in GENERIC_TOOLS:
+        raise HTTPException(status_code=404, detail="Công cụ không tồn tại.")
+    tool_name = tool_id.replace("-", "_")
+    return await _run_tool(
+        tool_name,
+        lambda: run_generic_tool_agent(tool_id, req.inputs),
+        current_user,
+        request,
+        input_data=req.model_dump(),
+    )
