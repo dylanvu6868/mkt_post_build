@@ -128,7 +128,7 @@ function MarkdownContent({ content }: { content: string }) {
     <ReactMarkdown
       remarkPlugins={[remarkGfm]}
       components={{
-        p: ({ children }) => <p className="mb-3 last:mb-0 leading-relaxed text-[15px]">{children}</p>,
+        p: ({ children }) => <p className="mb-3 last:mb-0 leading-relaxed text-[15px] whitespace-pre-line">{children}</p>,
         ul: ({ children }) => <ul className="mb-4 ml-6 list-disc last:mb-0 space-y-1">{children}</ul>,
         ol: ({ children }) => <ol className="mb-4 ml-6 list-decimal last:mb-0 space-y-1">{children}</ol>,
         li: ({ children }) => <li className="mb-1 text-[15px] text-muted-foreground">{children}</li>,
