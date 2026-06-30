@@ -50,11 +50,17 @@ async def get_job_for_user(
 async def _set_step(
     session_maker: async_sessionmaker[AsyncSession], job_id: int, step: str
 ) -> None:
-    async with session_maker() as session:
-        job = await session.get(GenerationJob, job_id)
-        if job is not None:
-            job.current_step = step
-            await session.commit()
+    """Best-effort progress update. Must never fail the generation job —
+    this only feeds the UI's "current step" indicator, not the actual
+    pipeline output."""
+    try:
+        async with session_maker() as session:
+            job = await session.get(GenerationJob, job_id)
+            if job is not None:
+                job.current_step = step
+                await session.commit()
+    except Exception as exc:
+        logger.warning("Step update failed job_id=%s step=%s error=%s", job_id, step, exc)
 
 
 async def run_generation_job(
@@ -108,7 +114,7 @@ async def run_generation_job(
                     job = await session.get(GenerationJob, job_id)
                     if job is not None:
                         job.status = "error"
-                        job.error = "Pipeline timed out after 300 seconds"
+                        job.error = "Quá trình tạo nội dung mất quá nhiều thời gian. Vui lòng thử lại."
                         await session.commit()
                 return
 
@@ -138,5 +144,5 @@ async def run_generation_job(
             job = await session.get(GenerationJob, job_id)
             if job is not None:
                 job.status = "error"
-                job.error = str(exc)
+                job.error = "Có lỗi xảy ra trong quá trình tạo nội dung. Vui lòng thử lại sau ít phút."
                 await session.commit()
