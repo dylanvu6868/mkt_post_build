@@ -1,6 +1,21 @@
 from unittest.mock import patch
 
 
+def test_job_response_accepts_result_and_error_fields():
+    from app.schemas.generation import JobResponse
+
+    r1 = JobResponse(job_id=1, status="done", result={"draft": {"hook": "x"}})
+    assert r1.result == {"draft": {"hook": "x"}}
+    assert r1.error is None
+
+    r2 = JobResponse(job_id=1, status="error", error="Có lỗi xảy ra.")
+    assert r2.error == "Có lỗi xảy ra."
+    assert r2.result is None
+
+    r3 = JobResponse(job_id=1, status="queued")
+    assert r3.result is None and r3.error is None
+
+
 async def _register(client, email="gen@example.com"):
     resp = await client.post(
         "/auth/register",
