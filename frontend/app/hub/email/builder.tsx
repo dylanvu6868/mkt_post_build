@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, useMemo } from "react";
 import { api, API_BASE_URL, getToken } from "@/services/api";
+import { useProjectStore } from "@/store/project";
 import { toast } from "sonner";
 import {
   Sparkles,
@@ -152,6 +153,7 @@ export function MailBuilder({ onSendTest }: { onSendTest?: (html: string) => voi
         typography: finalFont,
         brand_name: brandName,
         logo_url: logoUrl,
+        project_id: useProjectStore.getState().activeProject?.id,
       });
       setPreviewHtml(res.html);
       editableHtmlRef.current = ""; // Reset ref on new generation
