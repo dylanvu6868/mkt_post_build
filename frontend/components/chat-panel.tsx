@@ -112,6 +112,7 @@ const GUIDE_STEPS: { title: string; icon: JSX.Element; desc: string; tip: string
 function cleanContent(content: string) {
   if (!content) return "";
   let c = content
+    .replace(/^\[QUICKPOST:\w+\]\n?/, "")
     .replace(/```generate\n[\s\S]*?\n```/g, "")
     .replace(/```suggestions\n[\s\S]*?\n```/g, "")
     .replace(/```(generate|suggestions)\n[\s\S]*$/g, "")

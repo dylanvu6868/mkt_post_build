@@ -85,6 +85,37 @@ function sleepUntilVisible(ms: number): Promise<void> {
   });
 }
 
+// Renders a generation result's structured fields into readable text for the
+// chat bubble / history save. Shared by startGeneration's polling/sync path
+// and sendMessage's inline quickpost path (chat-stream, no /generate call).
+function buildDraftText(contentType: string, result: Record<string, unknown>): string {
+  const draft = result.draft as Record<string, any> | undefined;
+  if (draft) {
+    if (contentType === "facebook_post") {
+      return [draft.hook, "", draft.body, "", draft.cta, "", draft.hashtags?.join(" ")].filter(Boolean).join("\n");
+    }
+    if (contentType === "seo_blog") {
+      const faqText = draft.faq?.map((f: any) => `Q: ${f.question}\nA: ${f.answer}`).join("\n\n") ?? "";
+      return [draft.seo_title, draft.meta_description, "", draft.blog_content, "", faqText].filter(Boolean).join("\n");
+    }
+    if (contentType === "email") {
+      return [`Subject: ${draft.subject}`, "", draft.body, "", draft.cta].filter(Boolean).join("\n");
+    }
+    if (contentType === "landing_page") {
+      return [draft.headline, draft.subheadline, "", draft.benefits?.map((b: string) => `• ${b}`).join("\n"), "", draft.cta].filter(Boolean).join("\n");
+    }
+    if (contentType === "tiktok_script") {
+      return [`[HOOK] ${draft.hook}`, "", draft.script, "", `[CTA] ${draft.cta}`].filter(Boolean).join("\n");
+    }
+    return JSON.stringify(draft, null, 2);
+  }
+  const final = result.final as Record<string, any> | undefined;
+  if (final) {
+    return final.body || JSON.stringify(final, null, 2);
+  }
+  return "";
+}
+
 export const useChatStore = create<ChatState>()(
   persist(
     (set, get) => ({
@@ -301,6 +332,7 @@ export const useChatStore = create<ChatState>()(
         let fullContent = "";
         let buffer = "";
         let receivedDone = false;
+        let quickResult: { content_type: string; result: Record<string, unknown> } | null = null;
 
         while (true) {
           let done: boolean, value: Uint8Array | undefined;
@@ -327,6 +359,10 @@ export const useChatStore = create<ChatState>()(
               } else if (data.type === "done") {
                 receivedDone = true;
                 fullContent = data.content;
+                if (data.quick_result) {
+                  quickResult = data.quick_result;
+                  continue;
+                }
                 const generateMatch = fullContent.match(/```generate\n([\s\S]*?)\n```/);
                 if (generateMatch) {
                   try {
@@ -363,8 +399,53 @@ export const useChatStore = create<ChatState>()(
         _controllers.delete(targetConvId);
         if (controller.signal.aborted) return;
 
-        let hasGenerate = fullContent.includes("```generate\n");
         const wasNew = get().conversations.find((c) => c.id === targetConvId)?.title === "New conversation";
+
+        if (quickResult) {
+          // facebook_post/email/tiktok_script: the post was already written
+          // inline in this same SSE stream (real-time) and persisted
+          // server-side — no /generate round-trip, just render it.
+          const draftText = buildDraftText(quickResult.content_type, quickResult.result);
+          if (isFg()) {
+            const resultMsg: ChatMessage = {
+              id: Date.now() + 1,
+              conversation_id: targetConvId,
+              role: "assistant",
+              content: draftText,
+              metadata_json: { ...quickResult.result, _contentType: quickResult.content_type } as Record<string, unknown> | null,
+              created_at: new Date().toISOString(),
+            };
+            set((s) => ({
+              messages: [...s.messages, resultMsg],
+              streaming: false,
+              streamContent: "",
+              conversations: s.conversations.map((c) =>
+                c.id === targetConvId
+                  ? { ...c, title: c.title === "New conversation" ? content.split(/\s+/).slice(0, 6).join(" ").slice(0, 30) : c.title, updated_at: new Date().toISOString() }
+                  : c
+              ),
+            }));
+          } else {
+            set((s) => ({
+              backgroundTasks: {
+                ...s.backgroundTasks,
+                [targetConvId]: {
+                  ...(s.backgroundTasks[targetConvId] || { convId: targetConvId, title: "Cuộc trò chuyện", type: "chat" as const }),
+                  status: "done" as const,
+                },
+              },
+              conversations: s.conversations.map((c) =>
+                c.id === targetConvId
+                  ? { ...c, title: c.title === "New conversation" ? content.split(/\s+/).slice(0, 6).join(" ").slice(0, 30) : c.title }
+                  : c
+              ),
+            }));
+          }
+          if (wasNew) get().loadConversations();
+          return;
+        }
+
+        let hasGenerate = fullContent.includes("```generate\n");
 
         // Handle network timeouts/disconnects where the stream didn't finish properly
         if (!receivedDone) {
@@ -451,27 +532,7 @@ export const useChatStore = create<ChatState>()(
           }
 
           if (statusData.status === "done" && statusData.result) {
-            let draftText = "";
-            if (statusData.result.draft) {
-              const d = statusData.result.draft;
-              if (payload.content_type === "facebook_post") {
-                draftText = [d.hook, "", d.body, "", d.cta, "", d.hashtags?.join(" ")].filter(Boolean).join("\n");
-              } else if (payload.content_type === "seo_blog") {
-                const faqText = d.faq?.map((f: any) => `Q: ${f.question}\nA: ${f.answer}`).join("\n\n") ?? "";
-                draftText = [d.seo_title, d.meta_description, "", d.blog_content, "", faqText].filter(Boolean).join("\n");
-              } else if (payload.content_type === "email") {
-                draftText = [`Subject: ${d.subject}`, "", d.body, "", d.cta].filter(Boolean).join("\n");
-              } else if (payload.content_type === "landing_page") {
-                draftText = [d.headline, d.subheadline, "", d.benefits?.map((b: string) => `• ${b}`).join("\n"), "", d.cta].filter(Boolean).join("\n");
-              } else if (payload.content_type === "tiktok_script") {
-                draftText = [`[HOOK] ${d.hook}`, "", d.script, "", `[CTA] ${d.cta}`].filter(Boolean).join("\n");
-              } else {
-                draftText = JSON.stringify(d, null, 2);
-              }
-            } else if (statusData.result.final) {
-              const f = statusData.result.final;
-              draftText = f.body || JSON.stringify(f, null, 2);
-            }
+            const draftText = buildDraftText(payload.content_type, statusData.result);
 
             if (isFg()) {
               set({ contentPanel: { visible: false, generating: false, result: null }, streamContent: "" });
