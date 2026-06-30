@@ -39,9 +39,9 @@ class Insights(BaseModel):
 # --- Content type drafts ---
 
 class FacebookPostDraft(BaseModel):
-    hook: str = Field(description="Câu mở đầu gây ấn tượng mạnh, dừng scroll.")
-    body: str = Field(description="Nội dung chính của bài viết. BẮT BUỘC PHẢI DÀI VÀ RẤT CHI TIẾT (300-500 từ), phân tích sâu sắc các luận điểm theo framework, không được viết ngắn hời hợt.")
-    cta: str = Field(description="Lời kêu gọi hành động mạnh mẽ.")
+    hook: str = Field(description="Câu mở đầu gây ấn tượng mạnh, dừng scroll (1-2 câu, có thể kèm emoji 🔥).")
+    body: str = Field(description="Nội dung chính: Pain Point đúng tâm lý khách hàng, giới thiệu giải pháp, liệt kê 5-8 lợi ích nổi bật (mục ✅), bằng chứng xã hội nếu có (mục 📈, dùng ✔), ưu đãi nếu có (mục 🎁). Chia đoạn ngắn, dùng emoji hợp lý. NGẮN GỌN, SÚC TÍCH — tổng độ dài CẢ BÀI (hook+body+cta) không quá 300 từ.")
+    cta: str = Field(description="Lời kêu gọi hành động mạnh mẽ, ngắn gọn (có thể kèm emoji 👇).")
     hashtags: list[str] = Field(description="Danh sách 5-8 hashtag, MỖI HASHTAG BẮT BUỘC BẮT ĐẦU BẰNG DẤU '#' (ví dụ: '#marketing').")
 
 
@@ -60,8 +60,8 @@ class SeoBlogDraft(BaseModel):
 
 class EmailDraft(BaseModel):
     subject: str = Field(description="Tiêu đề email gây tò mò, hấp dẫn (tối đa 50 ký tự).")
-    body: str = Field(description="Nội dung chi tiết của email. Đảm bảo ngôn từ thuyết phục, cá nhân hóa, chạm đúng nỗi đau và đưa ra giải pháp rõ ràng.")
-    cta: str = Field(description="Lời kêu gọi hành động rõ ràng và nổi bật.")
+    body: str = Field(description="Nội dung email: lời chào, hook thu hút, phân tích nỗi đau khách hàng, giới thiệu giải pháp, 5-8 lợi ích nổi bật, bằng chứng xã hội nếu có, ưu đãi nếu có, lời kết chuyên nghiệp. Chia đoạn ngắn, dễ đọc. Độ dài 200-500 từ.")
+    cta: str = Field(description="Lời kêu gọi hành động rõ ràng và nổi bật (chỉ 1 CTA chính).")
 
 
 class LandingPageDraft(BaseModel):
@@ -72,9 +72,9 @@ class LandingPageDraft(BaseModel):
 
 
 class TikTokScriptDraft(BaseModel):
-    hook: str = Field(description="3 giây đầu tiên của kịch bản, cực kỳ ấn tượng.")
-    script: str = Field(description="Nội dung chi tiết của kịch bản video. BẮT BUỘC PHẢI DÀI VÀ CỰC KỲ CHI TIẾT cho video 60-90 giây, chia rõ từng cảnh quay (Thời gian, Hình ảnh, Voiceover, Text overlay, Âm thanh). Kèm theo Caption bài đăng và Hashtag (BẮT BUỘC dùng '#').")
-    cta: str = Field(description="Kêu gọi hành động ở cuối video.")
+    hook: str = Field(description="Hook cực mạnh trong 3 giây đầu, gây tò mò, giữ chân người xem.")
+    script: str = Field(description="Kịch bản cho video 30-60 giây: nêu vấn đề người xem gặp phải, giới thiệu giải pháp, hướng dẫn/demo ngắn, kết quả/lợi ích. Câu ngắn gọn, tự nhiên, dễ nói, nhịp điệu nhanh. Tập trung vào giá trị thay vì quảng cáo. KHÔNG viết dài dòng — văn nói súc tích cho video ngắn.")
+    cta: str = Field(description="Kêu gọi hành động ở cuối video, nhẹ nhàng, không quá 'ép bán'.")
 
 
 DRAFT_SCHEMAS: dict[str, type[BaseModel]] = {
