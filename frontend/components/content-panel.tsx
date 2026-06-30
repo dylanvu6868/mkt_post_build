@@ -11,6 +11,7 @@ import { useCallback, useState, useRef } from "react";
 function cleanContent(content: string) {
   if (!content) return "";
   let c = content
+    .replace(/^\[QUICKPOST:\w+\]\n?/, "")
     .replace(/```generate\n[\s\S]*?\n```/g, "")
     .replace(/```suggestions\n[\s\S]*?\n```/g, "");
   c = c.replace(/```(generate|suggestions)\n[\s\S]*$/, "");

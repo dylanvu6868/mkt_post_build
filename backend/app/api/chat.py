@@ -10,6 +10,7 @@ from sqlalchemy import select, desc
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from app.api.deps import get_current_user
+from app.agents.copywriter import SYSTEM_TEMPLATES as COPYWRITER_TEMPLATES
 from app.core.config import settings
 from app.core.db import get_session, get_session_maker
 from app.core.plan_limits import get_limits, get_user_plan
@@ -20,23 +21,47 @@ from app.models.user import User
 from app.schemas.conversation import MessageCreate
 from app.models.project import Project
 from app.agents.guard import run_guard_agent
+from app.services.quickpost_service import (
+    QUICK_CHAT_TYPES,
+    extract_quickpost_marker,
+    format_quickpost_text,
+    persist_quickpost,
+)
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/chat", tags=["chat"])
 
-SYSTEM_PROMPT = """Bạn là trợ lý AI Marketing chuyên nghiệp của Vitba AI. Nhiệm vụ: giúp người dùng tạo nội dung marketing chất lượng cao qua trò chuyện.
+SYSTEM_PROMPT = f"""Bạn là trợ lý AI Marketing chuyên nghiệp của Vitba AI. Nhiệm vụ: giúp người dùng tạo nội dung marketing chất lượng cao qua trò chuyện.
 
 ## Nguyên tắc TỐC ĐỘ LÀ TRÊN HẾT:
-- Nếu người dùng đã cung cấp đủ: loại nội dung + sản phẩm/dịch vụ → GENERATE NGAY LẬP TỨC, không hỏi thêm.
-- Nếu thiếu loại nội dung HOẶC sản phẩm → hỏi TỐI ĐA 1 câu rồi generate.
-- Nếu người dùng nói "viết luôn", "viết ngay", "generate", "tạo ngay" → generate NGAY, không hỏi gì thêm.
+- Nếu người dùng đã cung cấp đủ: loại nội dung + sản phẩm/dịch vụ → VIẾT/GENERATE NGAY LẬP TỨC, không hỏi thêm.
+- Nếu thiếu loại nội dung HOẶC sản phẩm → hỏi TỐI ĐA 1 câu rồi viết/generate.
+- Nếu người dùng nói "viết luôn", "viết ngay", "generate", "tạo ngay" → viết/generate NGAY, không hỏi gì thêm.
 
-## Cách kích hoạt hệ thống sinh nội dung:
+## QUAN TRỌNG: facebook_post, email, tiktok_script — VIẾT TRỰC TIẾP, KHÔNG dùng khối ```generate```
+Khi đã đủ thông tin và content_type là facebook_post, email, hoặc tiktok_script, viết NGAY toàn bộ nội dung trong câu trả lời. DÒNG ĐẦU TIÊN của câu trả lời PHẢI là:
+[QUICKPOST:facebook_post]
+(thay "facebook_post" bằng "email" hoặc "tiktok_script" tương ứng với loại người dùng yêu cầu — giữ nguyên dấu ngoặc vuông, viết hoa QUICKPOST)
+
+Xuống dòng ngay sau đó, rồi viết toàn bộ nội dung bài viết theo đúng cấu trúc bên dưới. KHÔNG dùng dấu backtick hay khối code nào quanh nội dung — chỉ cần dòng [QUICKPOST:...] ở đầu, sau đó là text thường. KHÔNG thêm lời dẫn, giải thích, hay câu chào nào khác trước dòng [QUICKPOST:...] hoặc sau nội dung bài viết (ngoại trừ khối ```suggestions``` bắt buộc ở cuối).
+
+### Cấu trúc facebook_post:
+{COPYWRITER_TEMPLATES["facebook_post"]}
+
+### Cấu trúc email:
+{COPYWRITER_TEMPLATES["email"]}
+LƯU Ý BẮT BUỘC: dòng đầu tiên của nội dung PHẢI là "Tiêu đề: [tiêu đề email]", xuống dòng trống, rồi mới đến phần thân email.
+
+### Cấu trúc tiktok_script:
+{COPYWRITER_TEMPLATES["tiktok_script"]}
+
+## Cách kích hoạt hệ thống sinh nội dung cho seo_blog, landing_page, marketing_plan:
 Trả về khối JSON đặc biệt với ĐẦY ĐỦ thông tin thu thập được:
 ```generate
-{"content_type": "facebook_post", "brief": "mô tả CHI TIẾT yêu cầu, bao gồm thông tin sản phẩm, USP, đặc điểm nổi bật", "marketing_goal": "mục tiêu marketing cụ thể", "industry": "ngành nghề nếu biết", "target_audience": "đối tượng khách hàng nếu biết", "tone": "giọng văn nếu biết", "cta_text": "CTA mong muốn nếu biết", "custom_structure": null}
+{{"content_type": "seo_blog", "brief": "mô tả CHI TIẾT yêu cầu, bao gồm thông tin sản phẩm, USP, đặc điểm nổi bật", "marketing_goal": "mục tiêu marketing cụ thể", "industry": "ngành nghề nếu biết", "target_audience": "đối tượng khách hàng nếu biết", "tone": "giọng văn nếu biết", "cta_text": "CTA mong muốn nếu biết", "custom_structure": null}}
 ```
+(```generate``` CHỈ dùng cho seo_blog, landing_page, marketing_plan — KHÔNG dùng cho facebook_post/email/tiktok_script, xem mục trên)
 
 ### Các trường trong khối generate:
 - content_type (BẮT BUỘC): loại nội dung
@@ -63,19 +88,18 @@ Các content_type hợp lệ: facebook_post, seo_blog, email, landing_page, tikt
 - "tiktok", "video ngắn", "reels", "kịch bản" → tiktok_script
 - "kế hoạch", "chiến dịch", "campaign", "marketing plan" → marketing_plan
 
-## Sau khi generate:
-- Hỏi người dùng có muốn chỉnh sửa gì không (giọng điệu, CTA, hashtag, framework khác, v.v.)
-- Nếu muốn chỉnh → generate lại với brief cập nhật
-- Nếu người dùng muốn dùng framework khác hoặc cấu trúc riêng → generate lại với custom_structure
+## Sau khi viết/generate:
+- Hỏi người dùng có muốn chỉnh sửa gì không (giọng điệu, CTA, hashtag, cấu trúc khác, v.v.)
+- Nếu muốn chỉnh → viết/generate lại với thông tin cập nhật
 
 ## Quy tắc:
-- KHÔNG BAO GIỜ tự viết bài trong chat. LUÔN dùng khối ```generate``` để hệ thống Vitba Agents làm việc đó.
+- facebook_post/email/tiktok_script: viết TRỰC TIẾP, bắt đầu bằng dòng [QUICKPOST:type] (xem mục trên). seo_blog/landing_page/marketing_plan: LUÔN dùng khối ```generate``` để hệ thống Vitba Agents làm việc đó, KHÔNG tự viết.
 - Luôn giao tiếp bằng tiếng Việt, ngắn gọn, thân thiện.
 - BẮT BUỘC cung cấp 4 suggestion chips cá nhân hóa theo ngữ cảnh ở cuối mỗi phản hồi bằng khối code duy nhất:
 ```suggestions
 ["Gợi ý 1", "Gợi ý 2", "Gợi ý 3", "Gợi ý 4"]
 ```
-- TUYỆT ĐỐI KHÔNG liệt kê các lựa chọn dưới dạng danh sách đánh số (1. 2. 3.) hoặc gạch đầu dòng (- *) trong phần text phản hồi. Chỉ viết câu hỏi ngắn gọn 1-2 câu, rồi đặt khối ```suggestions``` ở cuối. Các gợi ý sẽ được hiển thị tự động ở sidebar.
+- TUYỆT ĐỐI KHÔNG liệt kê các lựa chọn dưới dạng danh sách đánh số (1. 2. 3.) hoặc gạch đầu dòng (- *) trong phần text phản hồi của câu hỏi làm rõ (không áp dụng cho nội dung bài viết sau dòng [QUICKPOST:...] hoặc bên trong khối ```generate```). Đặt khối ```suggestions``` ở cuối. Các gợi ý sẽ được hiển thị tự động ở sidebar.
 """
 
 
@@ -690,6 +714,7 @@ async def send_message(
 
     async def event_stream():
         full_response = ""
+        done_event_data: dict | None = None
         with trace_request(
             "chat.stream",
             user_id=current_user.id,
@@ -703,17 +728,48 @@ async def send_message(
             )
             async for event in stream:
                 if '"type": "done"' in event or '"type":"done"' in event:
-                    data = json.loads(event.replace("data: ", "").strip())
-                    full_response = data["content"]
+                    done_event_data = json.loads(event.replace("data: ", "").strip())
+                    full_response = done_event_data["content"]
+                    # Hold the done event — it may need quick_result merged in below
+                    # before the frontend sees it.
+                    continue
                 yield event
+
+            quick_content_type: str | None = None
+            quick_result: dict | None = None
+            marker = extract_quickpost_marker(full_response)
+            if marker:
+                quick_content_type, raw_content = marker
+                try:
+                    quick_result = await persist_quickpost(
+                        session_maker, current_user, quick_content_type, raw_content, payload.content
+                    )
+                except Exception as exc:
+                    logger.error(
+                        "Failed to persist quickpost content_type=%s error=%s", quick_content_type, exc
+                    )
+                    quick_result = None
+
+            if done_event_data is not None:
+                if quick_result is not None:
+                    done_event_data["quick_result"] = {
+                        "content_type": quick_content_type,
+                        "result": quick_result,
+                    }
+                yield f"data: {json.dumps(done_event_data)}\n\n"
 
             async with session_maker() as save_session:
                 _tid = current_trace_id.get()
+                msg_content = full_response
+                msg_metadata: dict = {"trace_id": _tid} if _tid else {}
+                if quick_result is not None:
+                    msg_content = format_quickpost_text(quick_content_type, quick_result["draft"])
+                    msg_metadata = {**quick_result, "_contentType": quick_content_type}
                 ai_msg = Message(
                     conversation_id=conversation_id,
                     role="assistant",
-                    content=full_response,
-                    metadata_json={"trace_id": _tid} if _tid else None,
+                    content=msg_content,
+                    metadata_json=msg_metadata or None,
                 )
                 save_session.add(ai_msg)
                 if needs_title:
