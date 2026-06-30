@@ -16,6 +16,21 @@
 - Reviewer (quality score) step stays **premium-gated**, same plan check used by the existing graph (`build.py` gates `reviewer` on plan — mirror that same check in the quick path).
 - All Vietnamese-facing copy (errors, etc.) must be 100% Vietnamese, matching existing convention.
 - No new guard-agent call at `/generate` — the brief reaching `/generate` already passed `run_guard_agent` once in the chat flow that produced the ```generate block (`chat.py:573-580`). `/generate` remains reachable directly (not chat-only), same as today; this spec does not change that exposure.
+- **Plan-tier consistency (explicit ask):** the redesign must not fragment plan-tier behavior. `check_content_type_allowed`, `PLAN_RATE_LIMITS`, `check_daily_generation_limit`, and the premium reviewer gate all already vary correctly by plan today — `run_quick_generation` reuses every one of those checks unchanged (Section 4 above). The implementation plan must include a test matrix asserting, for each plan (free/lite/pro/max) × each of the 6 content types, that rate limit, content-type access, and reviewer-on/off behavior match what the old pipeline enforced — this is a verification task, not new logic.
+
+---
+
+## Part 2: Email/Landing Builder — Brand Profile Wiring
+
+**Problem (confirmed root cause from earlier this session):** Vitba Mail (`backend/app/mcp/email/builder.py`) and Vitba Landing (`backend/app/mcp/landing/tools.py`) are standalone builder pages — reached directly, not through chat — whose `generate-custom`/`onboard` endpoints (`GenerateCustomReq`, `OnboardReq`, and landing's `GenerateReq`) take only free-text fields (`prompt`, `brand_name`, `logo_url`, `primary_color`, `cta_text`, `cta_link`, etc.) and **no `project_id`**. They never look up the customer's saved `BrandProfile`, unlike `/generate` (`backend/app/api/generate.py:102-117`), which already does this correctly. This is the "RAG/personalization not connecting" the user is observing.
+
+**Fix:**
+- Add `project_id: int` to `GenerateCustomReq`, `OnboardReq` (email + landing), and landing's `GenerateReq`.
+- In each endpoint, mirror `generate.py:83-87, 102-117` exactly: verify `Project.user_id == current_user.id` (ownership check), then `select(BrandProfile).where(BrandProfile.project_id == payload.project_id)`, build the same `brand_profile_data` dict (brand_name, tone, writing_style, preferred_words, forbidden_words).
+- Merge into the prompt: when a `BrandProfile` exists, its fields take precedence over the free-text `brand_name`/`primary_color` etc. the user typed in the builder form (the form fields remain as a fallback for users with no saved profile, not removed).
+- Frontend (`frontend/app/hub/email/builder.tsx`, `frontend/app/hub/landing/builder.tsx`): send `project_id` from the same `useProjectStore` active-project state already used elsewhere in the app (e.g. `frontend/store/chat.ts:337`, `useProjectStore.getState().activeProject?.id`). **Open verification item:** confirm during planning whether these two builder pages already read `useProjectStore` for anything else — if not, this is a new wire-up, not a rename.
+
+**Testing:** new tests asserting `generate-custom`/`onboard` for both email and landing load and apply an existing `BrandProfile` when `project_id` is supplied, and fall back to form fields when no profile exists or `project_id` is omitted (backward compatible — existing callers without `project_id` must not break).
 
 ---
 
