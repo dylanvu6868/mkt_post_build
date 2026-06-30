@@ -40,12 +40,12 @@ async def test_generate_requires_auth(client):
 @patch("app.api.generate.provider_available", return_value=False)
 @patch("app.agents.brand.retrieve", return_value=[])
 @patch("app.agents.brand.embed_query", return_value=[0.1] * 384)
-async def test_generate_then_poll_completes_in_mock_mode(mock_embed, mock_retrieve, mock_provider, client):
+async def test_generate_facebook_post_returns_synchronously(mock_embed, mock_retrieve, mock_provider, client):
     token = await _register(client)
     headers = {"Authorization": f"Bearer {token}"}
     project_id = await _project(client, headers)
 
-    start = await client.post(
+    resp = await client.post(
         "/generate",
         json={
             "project_id": project_id,
@@ -55,19 +55,39 @@ async def test_generate_then_poll_completes_in_mock_mode(mock_embed, mock_retrie
         },
         headers=headers,
     )
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["status"] == "done"
+    assert body["job_id"]
+    assert body["result"]["draft"]["hook"]
+    assert body["error"] is None
+
+
+@patch("app.api.generate.provider_available", return_value=False)
+@patch("app.agents.brand.retrieve", return_value=[])
+@patch("app.agents.brand.embed_query", return_value=[0.1] * 384)
+async def test_generate_seo_blog_still_returns_202_and_polls(mock_embed, mock_retrieve, mock_provider, client):
+    token = await _register(client, "seo@example.com")
+    headers = {"Authorization": f"Bearer {token}"}
+    project_id = await _project(client, headers)
+
+    start = await client.post(
+        "/generate",
+        json={
+            "project_id": project_id,
+            "content_type": "seo_blog",
+            "brief": "eco-friendly water bottles",
+            "marketing_goal": "awareness",
+        },
+        headers=headers,
+    )
     assert start.status_code == 202
     job_id = start.json()["job_id"]
     assert start.json()["status"] in ("queued", "running", "done")
 
-    # FastAPI runs the BackgroundTask before the ASGI response is fully consumed,
-    # so by the time the POST returns (mock mode), the job is already done.
     poll = await client.get(f"/generate/{job_id}", headers=headers)
     assert poll.status_code == 200
-    body = poll.json()
-    assert body["status"] == "done"
-    assert body["current_step"] == "copywriter"
-    assert body["result"]["draft"]["hook"]
-    assert body["error"] is None
+    assert poll.json()["status"] == "done"
 
 
 async def test_generate_rejects_unsupported_content_type(client):
@@ -129,7 +149,7 @@ async def test_generate_uses_brand_profile_in_output(mock_embed, mock_retrieve, 
     )
 
     # Generate — should pick up the brand profile
-    start = await client.post(
+    resp = await client.post(
         "/generate",
         json={
             "project_id": project_id,
@@ -139,12 +159,8 @@ async def test_generate_uses_brand_profile_in_output(mock_embed, mock_retrieve, 
         },
         headers=headers,
     )
-    assert start.status_code == 202
-    job_id = start.json()["job_id"]
-
-    poll = await client.get(f"/generate/{job_id}", headers=headers)
-    assert poll.status_code == 200
-    body = poll.json()
+    assert resp.status_code == 200
+    body = resp.json()
     assert body["status"] == "done"
     # The mock copywriter should have injected the brand name into the hook
     assert "EcoBottle" in body["result"]["draft"]["hook"]

@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta, timezone
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request, Response, status
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
@@ -36,6 +36,7 @@ async def start_generation(
     request: Request,
     payload: GenerateRequest,
     background_tasks: BackgroundTasks,
+    response: Response,
     current_user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
     session_maker: async_sessionmaker[AsyncSession] = Depends(get_session_maker),
@@ -151,10 +152,19 @@ async def start_generation(
         "provider_available": provider_available(),
         "errors": [],
     }
-    background_tasks.add_task(
-        generation_service.run_generation_job, session_maker, job.id, initial_state
+    if payload.content_type == "seo_blog":
+        background_tasks.add_task(
+            generation_service.run_generation_job, session_maker, job.id, initial_state
+        )
+        return JobResponse(job_id=job.id, status=job.status)
+
+    response.status_code = status.HTTP_200_OK
+    result, error = await generation_service.run_quick_generation(
+        session_maker, job.id, initial_state
     )
-    return JobResponse(job_id=job.id, status=job.status)
+    if error:
+        return JobResponse(job_id=job.id, status="error", error=error)
+    return JobResponse(job_id=job.id, status="done", result=result)
 
 
 @router.get("/{job_id}", response_model=JobStatusResponse)
