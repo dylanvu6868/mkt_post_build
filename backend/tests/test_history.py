@@ -29,7 +29,7 @@ async def test_history_populated_after_generate(mock_embed, mock_retrieve, mock_
     headers = {"Authorization": f"Bearer {token}"}
     project_id = await _project(client, headers)
 
-    # Generate a post
+    # Generate a post (facebook_post is now synchronous — no polling needed)
     start = await client.post(
         "/generate",
         json={
@@ -40,12 +40,8 @@ async def test_history_populated_after_generate(mock_embed, mock_retrieve, mock_
         },
         headers=headers,
     )
-    assert start.status_code == 202
-
-    # Poll until done
-    job_id = start.json()["job_id"]
-    poll = await client.get(f"/generate/{job_id}", headers=headers)
-    assert poll.json()["status"] == "done"
+    assert start.status_code == 200
+    assert start.json()["status"] == "done"
 
     # History should have one entry
     hist = await client.get(f"/history?project_id={project_id}", headers=headers)
