@@ -55,11 +55,22 @@ export function SuggestionPanel() {
   if (!activeConversationId) return null;
 
   const lastAssistantMsg = [...messages].reverse().find((m) => m.role === "assistant");
-  const question = lastAssistantMsg?.content
-    ?.replace(/```generate\n[\s\S]*?\n```/g, "")
-    ?.replace(/```suggestions\n[\s\S]*?\n```/g, "")
-    ?.replace(/```(generate|suggestions)\n[\s\S]*$/, "")
-    ?.trim() || "";
+  const question = (() => {
+    const raw = lastAssistantMsg?.content || "";
+    const cleaned = raw
+      .replace(/^\[QUICKPOST:\w+\]\n?/, "")
+      .replace(/```generate\n[\s\S]*?\n```/g, "")
+      .replace(/```suggestions\n[\s\S]*?\n```/g, "")
+      .replace(/```(generate|suggestions)\n[\s\S]*$/, "")
+      .replace(/^#+\s+/gm, "")
+      .replace(/\*\*([^*]+)\*\*/g, "$1")
+      .replace(/\*([^*]+)\*/g, "$1")
+      .replace(/^---+$/gm, "")
+      .replace(/^[-*]\s+/gm, "")
+      .replace(/\n{3,}/g, "\n\n")
+      .trim();
+    return cleaned.length > 150 ? cleaned.slice(0, 150).trimEnd() + "..." : cleaned;
+  })();
 
   const handleSelect = (s: string) => {
     setSelected(s);
