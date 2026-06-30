@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from typing import Any
 
@@ -6,7 +7,7 @@ from sqlalchemy import select
 logger = logging.getLogger(__name__)
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-from app.graph.build import build_graph
+from app.graph.build import build_graph, PREMIUM_PLANS
 from app.models.generation_job import GenerationJob
 from app.models.project import Project
 from app.services import history_service
@@ -79,7 +80,6 @@ async def run_generation_job(
         job.status = "running"
         await session.commit()
 
-    import asyncio
     logger.info("Generation started job_id=%s", job_id)
     state: dict[str, Any] = dict(initial_state)
     try:
@@ -146,3 +146,75 @@ async def run_generation_job(
                 job.status = "error"
                 job.error = "Có lỗi xảy ra trong quá trình tạo nội dung. Vui lòng thử lại sau ít phút."
                 await session.commit()
+
+
+async def _inject_brand_rag(state: dict[str, Any]) -> dict[str, Any]:
+    """Best-effort brand-doc RAG lookup, folded into a synthetic fused_output
+    so copywriter()'s existing fused_output handling picks it up unmodified."""
+    from app.agents.brand import brand
+
+    brand_delta = await brand(state)
+    brand_output = brand_delta.get("brand_output") or {}
+    chunks = brand_output.get("relevant_context") or []
+    if chunks:
+        state["fused_output"] = {"unified_brief": "\n".join(chunks)}
+    return state
+
+
+async def run_quick_generation(
+    session_maker: async_sessionmaker[AsyncSession],
+    job_id: int,
+    initial_state: dict[str, Any],
+) -> tuple[dict | None, str | None]:
+    """Synchronous 1-2 LLM-call generation for non-SEO-blog content types.
+    Returns (result, error) -- exactly one is non-None."""
+    from app.agents.copywriter import copywriter
+    from app.agents.reviewer import reviewer
+    from app.agents.landing_page_coder import landing_page_coder
+    from app.agents.marketing_planner_rag import marketing_planner_rag
+
+    state = dict(initial_state)
+    user_plan = state.get("user_plan", "free")
+    content_type = state.get("content_type")
+
+    try:
+        async with asyncio.timeout(45):
+            if content_type == "landing_page":
+                delta = await landing_page_coder(state)
+            elif content_type == "marketing_plan":
+                delta = await marketing_planner_rag(state)
+            else:
+                state = await _inject_brand_rag(state)
+                delta = await copywriter(state)
+                state.update(delta)
+                if user_plan in PREMIUM_PLANS:
+                    review_delta = await reviewer(state)
+                    state.update(review_delta)
+                    delta = state
+    except Exception as exc:
+        logger.error("Quick generation failed job_id=%s error=%s", job_id, exc)
+        message = (
+            "Quá trình tạo nội dung mất quá nhiều thời gian. Vui lòng thử lại."
+            if isinstance(exc, asyncio.TimeoutError)
+            else "Có lỗi xảy ra trong quá trình tạo nội dung. Vui lòng thử lại sau ít phút."
+        )
+        async with session_maker() as session:
+            job = await session.get(GenerationJob, job_id)
+            if job is not None:
+                job.status = "error"
+                job.error = message
+                await session.commit()
+        return None, message
+
+    result = {key: delta.get(key) for key in _RESULT_KEYS}
+    async with session_maker() as session:
+        job = await session.get(GenerationJob, job_id)
+        if job is not None:
+            job.status = "done"
+            job.result_json = result
+            await session.commit()
+        score = (delta.get("review") or {}).get("score")
+        await history_service.save_to_history(
+            session, state["project_id"], content_type, state["brief"], result, score=score
+        )
+    return result, None
