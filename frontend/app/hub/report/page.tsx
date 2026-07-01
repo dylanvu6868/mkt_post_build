@@ -125,7 +125,10 @@ export default function ReportPage() {
           "Content-Type": "application/json",
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          markdown_content: displayResult?.markdown_content ?? "",
+        }),
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
@@ -321,7 +324,7 @@ export default function ReportPage() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto h-[calc(100vh-4rem)] flex flex-col py-6">
+    <div className="max-w-6xl mx-auto flex flex-col py-6 px-4">
       {/* Header section (fixed top) */}
       <div className="shrink-0 space-y-4 mb-6">
         <div className="flex items-center gap-2 text-sm">
@@ -351,7 +354,7 @@ export default function ReportPage() {
         </div>
       </div>
 
-      <div className={`relative flex flex-col gap-6 transition-all duration-500 ease-in-out ${displayResult || showHistory ? "h-[calc(100vh-180px)]" : "h-auto"}`}>
+      <div className={`relative flex flex-col gap-6 transition-all duration-500 ease-in-out ${displayResult || showHistory ? "min-h-[calc(100vh-180px)]" : "h-auto"}`}>
 
         {showHistory ? (
           <div className="flex-1 min-h-0 bg-card border-2 border-border/80 rounded-[1.5rem] overflow-y-auto p-6 md:p-10 shadow-xl custom-scrollbar animate-in fade-in slide-in-from-bottom-8 duration-500">
@@ -515,14 +518,14 @@ export default function ReportPage() {
             </div>
             
             <div ref={reportRef} className="flex-1 overflow-y-auto p-6 md:p-10 custom-scrollbar">
-              <article ref={articleRef} className="prose prose-sm md:prose-base max-w-none dark:prose-invert
-                prose-headings:font-bold 
+              <article ref={articleRef} className="prose prose-sm md:prose-base max-w-none
+                prose-headings:font-bold
                 prose-h1:text-2xl prose-h2:text-xl prose-h3:text-lg
                 prose-p:leading-relaxed
                 prose-a:text-primary prose-a:no-underline hover:prose-a:underline
-                prose-blockquote:border-l-4 prose-blockquote:border-primary prose-blockquote:bg-primary/5 dark:prose-blockquote:bg-primary/10 prose-blockquote:py-2 prose-blockquote:px-4 prose-blockquote:rounded-r-lg prose-blockquote:not-italic
-                prose-pre:bg-slate-900 prose-pre:text-slate-50 prose-pre:rounded-xl
-                prose-code:text-primary dark:prose-code:text-primary/70 prose-code:bg-primary/5 dark:prose-code:bg-primary/10 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded-md prose-code:before:content-none prose-code:after:content-none"
+                prose-blockquote:border-l-4 prose-blockquote:border-primary prose-blockquote:bg-primary/5 prose-blockquote:py-2 prose-blockquote:px-4 prose-blockquote:rounded-r-lg prose-blockquote:not-italic
+                prose-pre:bg-muted/40 prose-pre:text-foreground prose-pre:rounded-xl prose-pre:border prose-pre:border-border
+                prose-code:text-primary prose-code:bg-primary/5 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded-md prose-code:before:content-none prose-code:after:content-none"
               >
                 <ReactMarkdown remarkPlugins={[remarkGfm]}>
                   {displayResult.markdown_content}
