@@ -11,6 +11,15 @@ FROM python:3.12-slim
 
 WORKDIR /app
 
+# Chromium for Headless Chrome PDF export (Vitba Report)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    chromium \
+    fonts-liberation \
+    libxss1 \
+    && rm -rf /var/lib/apt/lists/*
+
+ENV CHROME_EXECUTABLE_PATH=/usr/bin/chromium
+
 COPY --from=builder /install /usr/local
 
 COPY . .

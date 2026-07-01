@@ -115,83 +115,34 @@ export default function ReportPage() {
   }
 
   async function exportToPDF() {
-    const target = articleRef.current;
-    if (!target) return;
     setExportingPdf(true);
     try {
-      const { default: jsPDF } = await import("jspdf");
-      const { default: html2canvas } = await import("html2canvas");
-
-      // Temporarily expand to capture full content
-      const originalStyle = target.style.cssText;
-      target.style.maxHeight = "none";
-      target.style.overflow = "visible";
-
-      const canvas = await html2canvas(target, {
-        scale: 2,
-        useCORS: true,
-        logging: false,
-        backgroundColor: "#ffffff",
-        windowWidth: 900,
+      const { API_BASE_URL, getToken } = await import("@/services/api");
+      const token = getToken();
+      const res = await fetch(`${API_BASE_URL}/api/report/export-pdf`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify(formData),
       });
-
-      // Restore styles
-      target.style.cssText = originalStyle;
-
-      const imgData = canvas.toDataURL("image/jpeg", 0.95);
-      const pdf = new jsPDF({
-        orientation: "portrait",
-        unit: "mm",
-        format: "a4",
-      });
-
-      const pageWidth = pdf.internal.pageSize.getWidth();
-      const pageHeight = pdf.internal.pageSize.getHeight();
-      const margin = 15;
-      const contentWidth = pageWidth - margin * 2;
-      const imgWidth = canvas.width;
-      const imgHeight = canvas.height;
-      const ratio = contentWidth / imgWidth;
-      const totalImgHeight = imgHeight * ratio;
-
-      let yPosition = margin;
-      let remainingHeight = totalImgHeight;
-      let sourceY = 0;
-
-      while (remainingHeight > 0) {
-        const sliceHeight = Math.min(remainingHeight, pageHeight - margin * 2);
-        const sourceSliceHeight = sliceHeight / ratio;
-
-        const sliceCanvas = document.createElement("canvas");
-        sliceCanvas.width = imgWidth;
-        sliceCanvas.height = Math.ceil(sourceSliceHeight);
-        const ctx = sliceCanvas.getContext("2d")!;
-        const img = new Image();
-        await new Promise<void>((resolve) => {
-          img.onload = () => {
-            ctx.drawImage(img, 0, sourceY, imgWidth, sourceSliceHeight, 0, 0, imgWidth, sourceSliceHeight);
-            resolve();
-          };
-          img.src = imgData;
-        });
-
-        const sliceData = sliceCanvas.toDataURL("image/jpeg", 0.95);
-        pdf.addImage(sliceData, "JPEG", margin, yPosition, contentWidth, sliceHeight);
-
-        sourceY += sourceSliceHeight;
-        remainingHeight -= sliceHeight;
-
-        if (remainingHeight > 0) {
-          pdf.addPage();
-          yPosition = margin;
-        }
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.detail || "Xuất PDF thất bại");
       }
-
-      const filename = `vitba-report-${(formData.name || "bao-cao").toLowerCase().replace(/[^a-z0-9]/gi, "-")}-${new Date().toISOString().slice(0, 10)}.pdf`;
-      pdf.save(filename);
-    } catch (err) {
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `vitba-report-${(formData.name || "bao-cao").toLowerCase().replace(/[^a-z0-9]/gi, "-")}-${new Date().toISOString().slice(0, 10)}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (err: any) {
       console.error("Lỗi xuất PDF:", err);
-      alert("Có lỗi khi xuất PDF. Vui lòng thử lại.");
+      alert(err?.message || "Có lỗi khi xuất PDF. Vui lòng thử lại.");
     } finally {
       setExportingPdf(false);
     }
