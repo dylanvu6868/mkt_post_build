@@ -12,10 +12,11 @@ FROM python:3.12-slim
 WORKDIR /app
 
 # Chromium for Headless Chrome PDF export (Vitba Report)
+# libxss1 does not exist on Debian Bookworm — omit it
 RUN apt-get update && apt-get install -y --no-install-recommends \
     chromium \
     fonts-liberation \
-    libxss1 \
+    libnss3 \
     && rm -rf /var/lib/apt/lists/*
 
 ENV CHROME_EXECUTABLE_PATH=/usr/bin/chromium
