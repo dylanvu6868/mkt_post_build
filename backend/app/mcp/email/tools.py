@@ -22,16 +22,22 @@ async def send_email(
     session: AsyncSession, user_id: int,
     to: list[str], subject: str, html: str,
     from_email: str | None = None,
+    cc: list[str] | None = None,
+    bcc: list[str] | None = None,
+    smtp_config: dict | None = None,
 ) -> dict:
     from app.services.email_service import email_service
     if not email_service.enabled:
         raise ValueError("Dịch vụ gửi email chưa được cấu hình (Thiếu RESEND_API_KEY hoặc SMTP settings).")
 
-    success_count = 0
-    for recipient in to:
-        success = await email_service.send_email(recipient, subject, html)
-        if success:
-            success_count += 1
+    # We can pass the whole `to` list to send_email if we modify it to support lists,
+    # but for now let's just pass the whole list and handle it inside email_service.
+    # We will assume email_service.send_email can take a list or single string.
+    success = await email_service.send_email(
+        to=to, subject=subject, html_content=html, 
+        cc=cc, bcc=bcc, smtp_config=smtp_config, from_email=from_email
+    )
+    success_count = len(to) if success else 0
 
     if success_count == 0 and len(to) > 0:
         raise ValueError("Gửi email thất bại. Vui lòng kiểm tra lại cấu hình SMTP hoặc Resend.")

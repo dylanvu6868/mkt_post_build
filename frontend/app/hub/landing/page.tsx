@@ -611,6 +611,10 @@ function EditorTab({ initialPage, initialHtml }: {
   const [fullscreenOpen, setFullscreenOpen] = useState(false);
   const [codeTab, setCodeTab] = useState<"html" | "css">("html");
 
+  // AI Modifier State
+  const [aiPrompt, setAiPrompt] = useState("");
+  const [modifying, setModifying] = useState(false);
+
   const prevInitialHtmlRef = useRef(initialHtml);
   const editableHtmlRef = useRef("");
 
@@ -769,6 +773,26 @@ function EditorTab({ initialPage, initialHtml }: {
     navigator.clipboard.writeText(publicUrl).then(() => toast.success("Đã sao chép liên kết!"));
   };
 
+  const handleAiModify = async () => {
+    if (!aiPrompt.trim() || !htmlContent) return;
+    setModifying(true);
+    try {
+      const res = await api.post<{ html: string }>("/mcp/landing/modify", {
+        current_html: editableHtmlRef.current || htmlContent,
+        prompt: aiPrompt,
+        project_id: useProjectStore.getState().activeProject?.id,
+      });
+      setHtmlContent(res.html);
+      editableHtmlRef.current = "";
+      setAiPrompt("");
+      toast.success("Đã chỉnh sửa theo yêu cầu!");
+    } catch {
+      toast.error("Lỗi khi chỉnh sửa");
+    } finally {
+      setModifying(false);
+    }
+  };
+
   const [selectPageOpen, setSelectPageOpen] = useState(false);
   const handleSelectPage = async (page: LandingPageListItem) => {
     setSelectPageOpen(false);
@@ -868,17 +892,49 @@ function EditorTab({ initialPage, initialHtml }: {
           </CardContent>
         </Card>
 
-        <Card className="border-border/50 bg-card/50 backdrop-blur-sm overflow-hidden">
+        <Card className="border-border/50 bg-card/50 backdrop-blur-sm overflow-hidden flex flex-col relative">
           <div className="flex items-center justify-between px-4 py-2.5 border-b border-border bg-muted/20">
             <span className="text-sm font-medium">Xem trước</span>
-            <button onClick={() => setFullscreenOpen(true)}
-              className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs text-muted-foreground hover:bg-accent hover:text-foreground transition">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
-              Phóng to
-            </button>
+            <div className="flex items-center gap-3">
+              <span className="flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-[11px] font-medium text-primary">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m21.64 3.64-1.28-1.28a1.21 1.21 0 0 0-1.72 0L2.36 18.64a1.21 1.21 0 0 0 0 1.72l1.28 1.28a1.2 1.2 0 0 0 1.72 0L21.64 5.36a1.2 1.2 0 0 0 0-1.72Z"/><path d="m14 7 3 3"/></svg>
+                Click chữ để sửa
+              </span>
+              <button onClick={() => setFullscreenOpen(true)}
+                className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs text-muted-foreground hover:bg-accent hover:text-foreground transition">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
+                Phóng to
+              </button>
+            </div>
           </div>
-          <CardContent className="p-0">
-            <iframe srcDoc={previewDoc} className="w-full h-[500px] border-0" sandbox="allow-scripts" title="Xem trước trang đích" />
+          <CardContent className="p-0 flex-1 relative">
+            <iframe srcDoc={previewDoc} className="w-full h-full min-h-[500px] border-0" sandbox="allow-scripts" title="Xem trước trang đích" />
+            
+            {/* AI Modifier Bar */}
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 w-[90%] max-w-lg">
+              <div className="flex items-center gap-2 rounded-full border border-border bg-background/90 p-2 shadow-lg backdrop-blur-md">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="ml-2 text-primary"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
+                <input
+                  className="flex-1 bg-transparent px-2 text-sm outline-none placeholder:text-muted-foreground text-foreground"
+                  placeholder="Yêu cầu AI sửa giao diện..."
+                  value={aiPrompt}
+                  onChange={(e) => setAiPrompt(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      handleAiModify();
+                    }
+                  }}
+                />
+                <button
+                  onClick={handleAiModify}
+                  disabled={modifying || !aiPrompt.trim()}
+                  className="flex h-8 items-center justify-center rounded-full bg-primary px-4 text-xs font-semibold text-primary-foreground transition-all hover:bg-primary/90 disabled:opacity-50"
+                >
+                  {modifying ? <span className="animate-pulse">Đang sửa...</span> : "Sửa bằng AI"}
+                </button>
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>

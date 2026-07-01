@@ -17,6 +17,7 @@ import {
   Target,
   Monitor,
   Smartphone,
+  FileText,
 } from "lucide-react";
 import { btn, btnOutline, inp } from "@/lib/ui-tokens";
 
@@ -24,7 +25,7 @@ import { btn, btnOutline, inp } from "@/lib/ui-tokens";
 /*  Wizard data                                                         */
 /* ------------------------------------------------------------------ */
 
-const STEPS = ["purpose", "color", "font", "review"] as const;
+const STEPS = ["purpose", "content", "color", "font", "review"] as const;
 type Step = (typeof STEPS)[number];
 
 const PURPOSE_PRESETS = [
@@ -78,6 +79,11 @@ export function LandingBuilder({ onSaved }: { onSaved?: () => void }) {
   const [brandName, setBrandName] = useState("");
   const [logoUrl, setLogoUrl] = useState("");
   const [uploadingLogo, setUploadingLogo] = useState(false);
+  
+  // Content details
+  const [targetAudience, setTargetAudience] = useState("");
+  const [keyFeatures, setKeyFeatures] = useState("");
+  const [contactInfo, setContactInfo] = useState("");
 
   // Generation
   const [previewHtml, setPreviewHtml] = useState("");
@@ -161,6 +167,9 @@ export function LandingBuilder({ onSaved }: { onSaved?: () => void }) {
         brand_name: brandName,
         logo_url: logoUrl,
         project_id: useProjectStore.getState().activeProject?.id,
+        target_audience: targetAudience,
+        key_features: keyFeatures,
+        contact_info: contactInfo,
       });
       setPreviewHtml(res.html);
       editableHtmlRef.current = ""; // Reset ref on new generation
@@ -191,6 +200,7 @@ export function LandingBuilder({ onSaved }: { onSaved?: () => void }) {
 
   const canNext = () => {
     if (step === "purpose") return purpose !== "" && (purpose !== "Other" || customPurpose.trim());
+    if (step === "content") return targetAudience.trim() !== "" || keyFeatures.trim() !== "" || contactInfo.trim() !== "";
     if (step === "color") return colorPalette !== "" && (colorPalette !== "custom" || customColor.trim());
     if (step === "font") return fontPair !== "" && (fontPair !== "custom" || customFont.trim());
     return true;
@@ -214,7 +224,7 @@ export function LandingBuilder({ onSaved }: { onSaved?: () => void }) {
 
   const skipAll = () => {
     setStep("review");
-    setStepIndex(3);
+    setStepIndex(4);
   };
 
   /* ---- If generated, show result view ---- */
@@ -338,6 +348,35 @@ export function LandingBuilder({ onSaved }: { onSaved?: () => void }) {
             </div>
           )}
 
+          {/* Step 1.5: Content Details */}
+          {step === "content" && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <FileText className="h-5 w-5 text-primary" />
+                <h2 className="text-lg font-bold text-foreground">Chi tiết nội dung</h2>
+              </div>
+              <p className="text-sm text-muted-foreground">Giúp AI viết nội dung sát với thực tế doanh nghiệp của bạn hơn.</p>
+              
+              <div className="space-y-1.5 pt-2">
+                <label className="text-sm font-medium text-foreground">Đối tượng khách hàng mục tiêu</label>
+                <p className="text-xs text-muted-foreground mb-1">Ví dụ: Học sinh cấp 3, mẹ bỉm sữa, dân văn phòng...</p>
+                <input className={inp} placeholder="Ai sẽ mua sản phẩm này?" value={targetAudience} onChange={(e) => setTargetAudience(e.target.value)} />
+              </div>
+              
+              <div className="space-y-1.5 pt-2">
+                <label className="text-sm font-medium text-foreground">Tính năng nổi bật / Lợi ích</label>
+                <p className="text-xs text-muted-foreground mb-1">Ví dụ: Giá rẻ nhất thị trường, giao hàng 2h, bảo hành 5 năm...</p>
+                <textarea className={`${inp} min-h-[80px] resize-y`} placeholder="Liệt kê 2-3 điểm mạnh nhất của bạn..." value={keyFeatures} onChange={(e) => setKeyFeatures(e.target.value)} />
+              </div>
+              
+              <div className="space-y-1.5 pt-2">
+                <label className="text-sm font-medium text-foreground">Thông tin liên hệ</label>
+                <p className="text-xs text-muted-foreground mb-1">Ví dụ: Hotline 19001560, 123 Đường A, Quận B, TP. HCM</p>
+                <input className={inp} placeholder="Số điện thoại, địa chỉ (nếu có)..." value={contactInfo} onChange={(e) => setContactInfo(e.target.value)} />
+              </div>
+            </div>
+          )}
+
           {/* Step 2: Color */}
           {step === "color" && (
             <div className="space-y-4">
@@ -442,6 +481,12 @@ export function LandingBuilder({ onSaved }: { onSaved?: () => void }) {
                   <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground/60">Cặp font</p>
                   <p className="text-sm text-foreground">{fontPair === "custom" ? customFont : fontPair || "(chưa chọn)"}</p>
                 </div>
+                {(targetAudience || keyFeatures) && (
+                  <div>
+                    <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground/60">Khách hàng & Tính năng</p>
+                    <p className="text-sm text-foreground line-clamp-2">{[targetAudience, keyFeatures].filter(Boolean).join(" - ")}</p>
+                  </div>
+                )}
                 {brandName && (
                   <div>
                     <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground/60">Brand</p>

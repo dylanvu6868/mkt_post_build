@@ -60,6 +60,11 @@ class PreviewReq(BaseModel):
     html_content: str
     css_content: str | None = None
 
+class ModifyReq(BaseModel):
+    current_html: str
+    prompt: str
+    project_id: int | None = None
+
 
 @router.get("/mcp/landing/pages")
 async def list_pages(user: User = Depends(get_current_user), session: AsyncSession = Depends(get_session)):
@@ -194,6 +199,59 @@ async def export_page(page_id: int, user: User = Depends(get_current_user), sess
     if not page or page.user_id != user.id:
         raise HTTPException(404, "Page not found")
     return HTMLResponse(_render(page), headers={"Content-Disposition": f"attachment; filename={page.slug}.html"})
+
+
+@router.post("/mcp/landing/modify")
+async def modify_landing_html(
+    body: ModifyReq,
+    user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+):
+    """Modify existing landing page HTML using AI based on a prompt."""
+    from app.services.llm import generate_structured
+
+    system_msg = (
+        "You are an expert Frontend Developer proficient in Tailwind CSS. "
+        "The user will provide you with their current HTML landing page code, and a prompt describing what they want to change. "
+        "You must apply the requested changes to the HTML. Keep all existing Tailwind classes intact unless the prompt specifically requires changing them. "
+        "Respond ONLY with the modified valid HTML code inside ```html ... ``` block. No markdown or explanations outside."
+    )
+
+    user_msg = (
+        f"USER PROMPT:\n{body.prompt}\n\n"
+        f"CURRENT HTML:\n```html\n{body.current_html}\n```\n\n"
+        "Please provide the updated HTML."
+    )
+
+    try:
+        raw_response = await generate_structured(
+            system_msg=system_msg,
+            user_msg=user_msg,
+            response_schema=None,
+            model_tier="smart"
+        )
+        html = extract_html_from_response(raw_response)
+        
+        # Ensure we keep the live edit script if it existed
+        if 'id="live-edit-script"' not in html:
+            script_tag = """
+      <script id="live-edit-script">
+        document.body.contentEditable = 'true';
+        document.body.addEventListener('input', function() {
+          window.parent.postMessage({ type: 'html_update', html: document.documentElement.outerHTML }, '*');
+        });
+        document.body.addEventListener('click', function(e) {
+          if (e.target.closest('a')) {
+            e.preventDefault();
+          }
+        });
+      </script>
+            """
+            html = html.replace("</body>", f"{script_tag}\n</body>")
+
+        return {"html": html}
+    except Exception as e:
+        raise HTTPException(500, f"Landing modification error: {e}")
 
 
 @router.delete("/mcp/landing/pages/{page_id}", status_code=204)
@@ -354,6 +412,9 @@ class OnboardReq(BaseModel):
     brand_name: str = ""
     logo_url: str = ""
     hero_image_url: str = ""
+    target_audience: str = ""
+    key_features: str = ""
+    contact_info: str = ""
 
 
 @router.post("/mcp/landing/onboard")
@@ -406,6 +467,9 @@ Nhiệm vụ: tạo landing page HTML hoàn chỉnh, responsive, đẹp, chuyể
     user_msg = f"""## Câu trả lời Onboarding:
 - Mục đích trang: {body.purpose}
 - Brand: {brand_name or "(tự đặt phù hợp)"}
+- Đối tượng khách hàng mục tiêu: {body.target_audience or "Không xác định rõ, tự phân tích từ mục đích."}
+- Các tính năng / Lợi ích nổi bật: {body.key_features or "Tự sáng tạo dựa trên mục đích."}
+- Thông tin liên hệ (Địa chỉ, Hotline): {body.contact_info or "Để thông tin giả lập mẫu."}
 {images_context}{color_context}
 {brand_voice}
 

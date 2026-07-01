@@ -34,6 +34,11 @@ class GenerateCustomReq(BaseModel):
     cta_text: str = ""
     cta_link: str = ""
 
+class ModifyReq(BaseModel):
+    current_html: str
+    prompt: str
+    project_id: int | None = None
+
 
 @router.get("/templates")
 async def get_email_templates():
@@ -133,6 +138,9 @@ class OnboardReq(BaseModel):
     project_id: int | None = None
     brand_name: str = ""
     logo_url: str = ""
+    target_audience: str = ""
+    key_message: str = ""
+    signature_info: str = ""
 
 
 @router.post("/onboard")
@@ -181,6 +189,9 @@ Nhiệm vụ: tạo email HTML hoàn chỉnh, responsive, đẹp, chuyển đổ
     user_msg = f"""## Câu trả lời Onboarding:
 - Mục đích email: {body.purpose}
 - Brand: {brand_name or "(tự đặt phù hợp)"}
+- Khách hàng nhận email là ai: {body.target_audience or "Khách hàng chung của doanh nghiệp."}
+- Thông điệp cốt lõi / Khuyến mãi chính: {body.key_message or "Tự sáng tạo thông điệp hấp dẫn dựa trên mục đích."}
+- Thông tin chữ ký: {body.signature_info or "Trân trọng, [Tên Brand] Team"}
 {images_context}{color_context}
 {brand_voice}
 

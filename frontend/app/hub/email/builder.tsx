@@ -14,15 +14,28 @@ import {
   Type,
   Palette,
   Target,
+  Target,
   Send,
+  FileText,
+  Settings2,
+  Code,
+  Eye,
+  Sparkles,
 } from "lucide-react";
 import { btn, btnOutline, inp } from "@/lib/ui-tokens";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 /* ------------------------------------------------------------------ */
 /*  Wizard data                                                         */
 /* ------------------------------------------------------------------ */
 
-const STEPS = ["purpose", "color", "font", "review"] as const;
+const STEPS = ["purpose", "content", "color", "font", "review"] as const;
 type Step = (typeof STEPS)[number];
 
 const PURPOSE_PRESETS = [
@@ -73,12 +86,49 @@ export function MailBuilder({ onSendTest }: { onSendTest?: (html: string) => voi
   const [brandName, setBrandName] = useState("");
   const [logoUrl, setLogoUrl] = useState("");
   const [uploadingLogo, setUploadingLogo] = useState(false);
+  
+  // Content details
+  const [targetAudience, setTargetAudience] = useState("");
+  const [keyMessage, setKeyMessage] = useState("");
+  const [signatureInfo, setSignatureInfo] = useState("");
 
   const [previewHtml, setPreviewHtml] = useState("");
   const [generating, setGenerating] = useState(false);
   const [sending, setSending] = useState(false);
   const [testEmail, setTestEmail] = useState("");
   const [subject, setSubject] = useState("");
+
+  // Editor State
+  const [viewMode, setViewMode] = useState<"preview" | "code">("preview");
+  const [aiPrompt, setAiPrompt] = useState("");
+  const [modifying, setModifying] = useState(false);
+
+  // Send Modal State
+  const [isSendModalOpen, setIsSendModalOpen] = useState(false);
+  const [sendCc, setSendCc] = useState("");
+  const [sendBcc, setSendBcc] = useState("");
+  const [useCustomSmtp, setUseCustomSmtp] = useState(false);
+  const [smtpHost, setSmtpHost] = useState("");
+  const [smtpPort, setSmtpPort] = useState("587");
+  const [smtpUser, setSmtpUser] = useState("");
+  const [smtpPass, setSmtpPass] = useState("");
+  const [smtpFrom, setSmtpFrom] = useState("");
+
+  // Load saved SMTP config on mount
+  useEffect(() => {
+    const saved = localStorage.getItem("vitba_smtp_config");
+    if (saved) {
+      try {
+        const config = JSON.parse(saved);
+        setSmtpHost(config.host || "");
+        setSmtpPort(config.port || "587");
+        setSmtpUser(config.username || "");
+        setSmtpPass(config.password || "");
+        setSmtpFrom(config.from_email || "");
+        setUseCustomSmtp(true);
+      } catch (e) {}
+    }
+  }, []);
 
   const editableHtmlRef = useRef("");
 
@@ -155,6 +205,9 @@ export function MailBuilder({ onSendTest }: { onSendTest?: (html: string) => voi
         brand_name: brandName,
         logo_url: logoUrl,
         project_id: useProjectStore.getState().activeProject?.id,
+        target_audience: targetAudience,
+        key_message: keyMessage,
+        signature_info: signatureInfo,
       });
       setPreviewHtml(res.html);
       editableHtmlRef.current = ""; // Reset ref on new generation
@@ -168,23 +221,53 @@ export function MailBuilder({ onSendTest }: { onSendTest?: (html: string) => voi
 
   const handleSendTest = async () => {
     if (!testEmail || !previewHtml) {
-      toast.error("Nhập email nhận test");
+      toast.error("Vui lòng nhập ít nhất 1 email nhận");
       return;
     }
     setSending(true);
+    
+    // Parse emails
+    const parseEmails = (str: string) => str.split(",").map(e => e.trim()).filter(Boolean);
+    const toList = parseEmails(testEmail);
+    const ccList = parseEmails(sendCc);
+    const bccList = parseEmails(sendBcc);
+
+    let smtpConfig = undefined;
+    if (useCustomSmtp) {
+      if (!smtpHost || !smtpPort || !smtpUser || !smtpPass) {
+        toast.error("Vui lòng nhập đủ cấu hình SMTP");
+        setSending(false);
+        return;
+      }
+      smtpConfig = {
+        host: smtpHost,
+        port: parseInt(smtpPort, 10),
+        username: smtpUser,
+        password: smtpPass,
+        from_email: smtpFrom || smtpUser,
+      };
+      // Save for next time
+      localStorage.setItem("vitba_smtp_config", JSON.stringify(smtpConfig));
+    }
+
     try {
       if (onSendTest) {
+        // If it's used as a component with a custom onSendTest (legacy)
         onSendTest(editableHtmlRef.current || previewHtml);
       } else {
         await api.post("/mcp/email/send", {
-          to: [testEmail],
+          to: toList,
+          cc: ccList.length > 0 ? ccList : undefined,
+          bcc: bccList.length > 0 ? bccList : undefined,
+          smtp_config: smtpConfig,
           subject: subject || "Test from Vitba",
           html: (editableHtmlRef.current || previewHtml).replace(/<script id="live-edit-script">[\s\S]*?<\/script>/, ""),
         });
-        toast.success(`Đã gửi test đến ${testEmail}`);
+        toast.success(`Đã gửi email thành công!`);
+        setIsSendModalOpen(false);
       }
-    } catch {
-      toast.error("Gửi thất bại");
+    } catch (e: any) {
+      toast.error(e?.response?.data?.detail || "Gửi thất bại");
     } finally {
       setSending(false);
     }
@@ -192,6 +275,7 @@ export function MailBuilder({ onSendTest }: { onSendTest?: (html: string) => voi
 
   const canNext = () => {
     if (step === "purpose") return purpose !== "" && (purpose !== "Other" || customPurpose.trim());
+    if (step === "content") return targetAudience.trim() !== "" || keyMessage.trim() !== "" || signatureInfo.trim() !== "";
     if (step === "color") return colorPalette !== "" && (colorPalette !== "custom" || customColor.trim());
     if (step === "font") return fontPair !== "" && (fontPair !== "custom" || customFont.trim());
     return true;
@@ -215,7 +299,27 @@ export function MailBuilder({ onSendTest }: { onSendTest?: (html: string) => voi
 
   const skipAll = () => {
     setStep("review");
-    setStepIndex(3);
+    setStepIndex(4);
+  };
+
+  const handleAiModify = async () => {
+    if (!aiPrompt.trim() || !previewHtml) return;
+    setModifying(true);
+    try {
+      const res = await api.post<{ html: string }>("/mcp/email/builder/modify", {
+        current_html: editableHtmlRef.current || previewHtml,
+        prompt: aiPrompt,
+        project_id: useProjectStore.getState().activeProject?.id,
+      });
+      setPreviewHtml(res.html);
+      editableHtmlRef.current = ""; // Reset ref
+      setAiPrompt("");
+      toast.success("Đã chỉnh sửa theo yêu cầu!");
+    } catch {
+      toast.error("Lỗi khi chỉnh sửa");
+    } finally {
+      setModifying(false);
+    }
   };
 
   /* ---- Result view ---- */
@@ -224,17 +328,153 @@ export function MailBuilder({ onSendTest }: { onSendTest?: (html: string) => voi
       <div className="flex h-[calc(100vh-180px)] flex-col gap-3">
         <div className="flex items-center gap-2">
           <input className={`${inp} flex-1`} placeholder="Tiêu đề email" value={subject} onChange={(e) => setSubject(e.target.value)} />
-          <input className={`${inp} w-48`} placeholder="email@test.com" value={testEmail} onChange={(e) => setTestEmail(e.target.value)} />
-          <button onClick={handleSendTest} disabled={sending} className={`${btn} whitespace-nowrap`}>
-            {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-            Gửi test
-          </button>
+          
+          <Dialog open={isSendModalOpen} onOpenChange={setIsSendModalOpen}>
+            <DialogTrigger asChild>
+              <button className={`${btn} whitespace-nowrap`}>
+                <Send className="h-4 w-4" />
+                Cấu hình & Gửi
+              </button>
+            </DialogTrigger>
+            <DialogContent className="max-w-xl p-6">
+              <DialogHeader>
+                <DialogTitle>Gửi Email</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-6 py-4">
+                {/* Recipients */}
+                <div className="space-y-4">
+                  <h3 className="text-sm font-semibold text-foreground border-b border-border pb-1">1. Người nhận</h3>
+                  <div className="space-y-1">
+                    <label className="text-xs font-medium text-foreground">Gửi đến (To) *</label>
+                    <input className={inp} placeholder="a@gmail.com, b@gmail.com (cách nhau dấu phẩy)" value={testEmail} onChange={(e) => setTestEmail(e.target.value)} />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <label className="text-xs font-medium text-foreground">CC</label>
+                      <input className={inp} placeholder="cc1@a.com..." value={sendCc} onChange={(e) => setSendCc(e.target.value)} />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs font-medium text-foreground">BCC</label>
+                      <input className={inp} placeholder="bcc1@a.com..." value={sendBcc} onChange={(e) => setSendBcc(e.target.value)} />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Sender Config */}
+                <div className="space-y-4">
+                  <h3 className="text-sm font-semibold text-foreground border-b border-border pb-1">2. Cấu hình gửi (SMTP)</h3>
+                  <div className="flex items-center gap-2 mb-2">
+                    <input type="checkbox" id="useCustomSmtp" checked={useCustomSmtp} onChange={(e) => setUseCustomSmtp(e.target.checked)} className="rounded border-border text-primary focus:ring-primary" />
+                    <label htmlFor="useCustomSmtp" className="text-sm text-foreground">Sử dụng Email (SMTP) của riêng tôi thay vì mặc định hệ thống</label>
+                  </div>
+                  
+                  {useCustomSmtp && (
+                    <div className="grid grid-cols-2 gap-3 rounded-lg border border-border bg-card/50 p-4">
+                      <div className="space-y-1">
+                        <label className="text-xs font-medium text-foreground">SMTP Host</label>
+                        <input className={inp} placeholder="smtp.gmail.com" value={smtpHost} onChange={(e) => setSmtpHost(e.target.value)} />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-xs font-medium text-foreground">SMTP Port</label>
+                        <input className={inp} placeholder="587" value={smtpPort} onChange={(e) => setSmtpPort(e.target.value)} />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-xs font-medium text-foreground">Username</label>
+                        <input className={inp} placeholder="you@gmail.com" value={smtpUser} onChange={(e) => setSmtpUser(e.target.value)} />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-xs font-medium text-foreground">Password (App Password)</label>
+                        <input className={inp} type="password" placeholder="********" value={smtpPass} onChange={(e) => setSmtpPass(e.target.value)} />
+                      </div>
+                      <div className="space-y-1 col-span-2">
+                        <label className="text-xs font-medium text-foreground">Tên người gửi (From Name/Email)</label>
+                        <input className={inp} placeholder="John Doe <john@company.com>" value={smtpFrom} onChange={(e) => setSmtpFrom(e.target.value)} />
+                      </div>
+                      <p className="text-[10px] text-muted-foreground col-span-2">* Cấu hình này chỉ được lưu tạm trên trình duyệt của bạn (Local Storage) để bảo mật.</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div className="flex justify-end gap-2 border-t border-border pt-4">
+                <button onClick={() => setIsSendModalOpen(false)} className={btnOutline}>Hủy</button>
+                <button onClick={handleSendTest} disabled={sending} className={btn}>
+                  {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                  {sending ? "Đang gửi..." : "Gửi Email"}
+                </button>
+              </div>
+            </DialogContent>
+          </Dialog>
+          
           <button onClick={() => { setPreviewHtml(""); setStep("purpose"); setStepIndex(0); }} className={btnOutline}>
             Tạo lại
           </button>
         </div>
-        <div className="flex-1 overflow-y-auto rounded-xl border border-border bg-white min-h-0">
-          <iframe srcDoc={injectedHtml} className="h-full w-full border-0" title="Email Preview" sandbox="allow-same-origin allow-scripts" />
+        
+        {/* Editor Tabs & Badge */}
+        <div className="flex items-center justify-between px-2">
+          <div className="flex items-center gap-1 rounded-md border border-border bg-card/50 p-1">
+            <button
+              onClick={() => setViewMode("preview")}
+              className={`flex items-center gap-1.5 rounded px-3 py-1 text-xs font-medium transition-colors ${viewMode === "preview" ? "bg-background shadow text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+            >
+              <Eye className="h-3.5 w-3.5" />
+              Preview (Kéo xem & Click sửa chữ)
+            </button>
+            <button
+              onClick={() => setViewMode("code")}
+              className={`flex items-center gap-1.5 rounded px-3 py-1 text-xs font-medium transition-colors ${viewMode === "code" ? "bg-background shadow text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+            >
+              <Code className="h-3.5 w-3.5" />
+              Mã nguồn (HTML)
+            </button>
+          </div>
+          
+          {viewMode === "preview" && (
+            <div className="flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-[11px] font-medium text-primary">
+              <Sparkles className="h-3 w-3" />
+              Bật chế độ sửa: Click vào văn bản bất kỳ để sửa chữ
+            </div>
+          )}
+        </div>
+
+        {/* Content Area */}
+        <div className="flex-1 overflow-hidden rounded-xl border border-border bg-white min-h-0 flex flex-col relative">
+          {viewMode === "preview" ? (
+            <iframe srcDoc={injectedHtml} className="h-full w-full border-0" title="Email Preview" sandbox="allow-same-origin allow-scripts" />
+          ) : (
+            <textarea
+              className="h-full w-full resize-none bg-slate-900 p-4 font-mono text-sm text-slate-50 outline-none"
+              value={previewHtml}
+              onChange={(e) => setPreviewHtml(e.target.value)}
+              spellCheck={false}
+            />
+          )}
+
+          {/* AI Modifier Bar */}
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 w-[90%] max-w-2xl">
+            <div className="flex items-center gap-2 rounded-full border border-border bg-background/90 p-2 shadow-lg backdrop-blur-md">
+              <Sparkles className="ml-3 h-5 w-5 text-primary" />
+              <input
+                className="flex-1 bg-transparent px-2 text-sm outline-none placeholder:text-muted-foreground text-foreground"
+                placeholder="Ví dụ: Đổi nút thành màu đỏ, thêm một phần chào mừng..."
+                value={aiPrompt}
+                onChange={(e) => setAiPrompt(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    handleAiModify();
+                  }
+                }}
+              />
+              <button
+                onClick={handleAiModify}
+                disabled={modifying || !aiPrompt.trim()}
+                className="flex h-8 items-center justify-center rounded-full bg-primary px-4 text-xs font-semibold text-primary-foreground transition-all hover:bg-primary/90 disabled:opacity-50"
+              >
+                {modifying ? <Loader2 className="h-4 w-4 animate-spin" /> : "Sửa bằng AI"}
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -300,6 +540,35 @@ export function MailBuilder({ onSendTest }: { onSendTest?: (html: string) => voi
                     }} />
                   </label>
                 </div>
+              </div>
+            </div>
+          )}
+
+          {/* Step 1.5: Content Details */}
+          {step === "content" && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <FileText className="h-5 w-5 text-primary" />
+                <h2 className="text-lg font-bold text-foreground">Chi tiết nội dung</h2>
+              </div>
+              <p className="text-sm text-muted-foreground">Giúp AI viết nội dung email đúng mục tiêu hơn.</p>
+              
+              <div className="space-y-1.5 pt-2">
+                <label className="text-sm font-medium text-foreground">Khách hàng nhận email là ai?</label>
+                <p className="text-xs text-muted-foreground mb-1">Ví dụ: Khách hàng cũ chưa mua lại, người đăng ký mới...</p>
+                <input className={inp} placeholder="Đối tượng nhận..." value={targetAudience} onChange={(e) => setTargetAudience(e.target.value)} />
+              </div>
+              
+              <div className="space-y-1.5 pt-2">
+                <label className="text-sm font-medium text-foreground">Thông điệp cốt lõi / Khuyến mãi</label>
+                <p className="text-xs text-muted-foreground mb-1">Ví dụ: Tặng mã GIAM50, ra mắt sản phẩm mới vào 20/10...</p>
+                <textarea className={`${inp} min-h-[80px] resize-y`} placeholder="Điều quan trọng nhất bạn muốn nói..." value={keyMessage} onChange={(e) => setKeyMessage(e.target.value)} />
+              </div>
+              
+              <div className="space-y-1.5 pt-2">
+                <label className="text-sm font-medium text-foreground">Thông tin chữ ký</label>
+                <p className="text-xs text-muted-foreground mb-1">Ví dụ: John Doe - CEO tại Vitba.ai</p>
+                <input className={inp} placeholder="Tên, chức vụ, công ty..." value={signatureInfo} onChange={(e) => setSignatureInfo(e.target.value)} />
               </div>
             </div>
           )}
@@ -401,6 +670,12 @@ export function MailBuilder({ onSendTest }: { onSendTest?: (html: string) => voi
                   <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground/60">Cặp font</p>
                   <p className="text-sm text-foreground">{fontPair === "custom" ? customFont : fontPair || "(chưa chọn)"}</p>
                 </div>
+                {(targetAudience || keyMessage) && (
+                  <div>
+                    <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground/60">Nội dung cốt lõi</p>
+                    <p className="text-sm text-foreground line-clamp-2">{[targetAudience, keyMessage].filter(Boolean).join(" - ")}</p>
+                  </div>
+                )}
                 {brandName && (
                   <div>
                     <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground/60">Brand</p>

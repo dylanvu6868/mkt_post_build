@@ -27,53 +27,80 @@ class EmailService:
         self.use_resend = bool(self.resend_api_key)
         self.enabled = self.use_resend or bool(self.smtp_username and self.smtp_password)
 
-    async def _send_resend(self, to: str, subject: str, html: str) -> None:
+    async def _send_resend(self, to: list[str], subject: str, html: str, cc: list[str] = None, bcc: list[str] = None, from_email: str = None) -> None:
         async with httpx.AsyncClient(timeout=10) as client:
+            payload = {
+                "from": from_email or "Vitba.ai <onboarding@resend.dev>",
+                "to": to,
+                "subject": subject,
+                "html": html,
+            }
+            if cc:
+                payload["cc"] = cc
+            if bcc:
+                payload["bcc"] = bcc
+
             resp = await client.post(
                 RESEND_API_URL,
                 headers={
                     "Authorization": f"Bearer {self.resend_api_key}",
                     "Content-Type": "application/json",
                 },
-                json={
-                    "from": "Vitba.ai <onboarding@resend.dev>",
-                    "to": [to],
-                    "subject": subject,
-                    "html": html,
-                },
+                json=payload,
             )
             resp.raise_for_status()
 
-    def _send_smtp(self, msg: MIMEMultipart) -> None:
+    def _send_smtp(self, msg: MIMEMultipart, smtp_config: dict = None) -> None:
         _original_getaddrinfo = socket.getaddrinfo
 
         def _ipv4_only(host, port, family=0, type=0, proto=0, flags=0):
             return _original_getaddrinfo(host, port, socket.AF_INET, type, proto, flags)
 
         socket.getaddrinfo = _ipv4_only
+        
+        # Use custom config if provided
+        host = smtp_config["host"] if smtp_config else self.smtp_host
+        port = int(smtp_config["port"]) if smtp_config else self.smtp_port
+        username = smtp_config["username"] if smtp_config else self.smtp_username
+        password = smtp_config["password"] if smtp_config else self.smtp_password
+
         try:
-            if self.smtp_port == 465:
-                with smtplib.SMTP_SSL(self.smtp_host, self.smtp_port, timeout=SMTP_TIMEOUT) as server:
-                    server.login(self.smtp_username, self.smtp_password)
+            if port == 465:
+                with smtplib.SMTP_SSL(host, port, timeout=SMTP_TIMEOUT) as server:
+                    server.login(username, password)
                     server.send_message(msg)
             else:
-                with smtplib.SMTP(self.smtp_host, self.smtp_port, timeout=SMTP_TIMEOUT) as server:
+                with smtplib.SMTP(host, port, timeout=SMTP_TIMEOUT) as server:
                     server.starttls()
-                    server.login(self.smtp_username, self.smtp_password)
+                    server.login(username, password)
                     server.send_message(msg)
         finally:
             socket.getaddrinfo = _original_getaddrinfo
 
-    async def _send(self, to: str, subject: str, html_content: str) -> None:
-        if self.use_resend:
-            await self._send_resend(to, subject, html_content)
+    async def _send(self, to: list[str], subject: str, html_content: str, cc: list[str] = None, bcc: list[str] = None, smtp_config: dict = None, from_email: str = None) -> None:
+        # If smtp_config is provided, we MUST use SMTP, ignoring self.use_resend
+        use_smtp = True if smtp_config else not self.use_resend
+        
+        if not use_smtp:
+            await self._send_resend(to, subject, html_content, cc, bcc, from_email)
         else:
             msg = MIMEMultipart("alternative")
             msg["Subject"] = subject
-            msg["From"] = self.smtp_from
-            msg["To"] = to
+            
+            # Determine sender
+            sender = from_email
+            if not sender:
+                sender = smtp_config["from_email"] if (smtp_config and smtp_config.get("from_email")) else self.smtp_from
+            msg["From"] = sender
+            
+            msg["To"] = ", ".join(to)
+            if cc:
+                msg["Cc"] = ", ".join(cc)
+            if bcc:
+                msg["Bcc"] = ", ".join(bcc)
+                
             msg.attach(MIMEText(html_content, "html"))
-            await asyncio.to_thread(self._send_smtp, msg)
+            await asyncio.to_thread(self._send_smtp, msg, smtp_config)
 
     async def send_password_reset_code(self, email: str, code: str) -> bool:
         if not self.enabled:
@@ -112,7 +139,7 @@ class EmailService:
         """
 
         try:
-            await self._send(email, subject, html_content)
+            await self._send([email], subject, html_content)
             logger.info("Password reset email sent successfully to %s (via %s)", email, "resend" if self.use_resend else "smtp")
             return True
         except Exception as e:
@@ -121,17 +148,21 @@ class EmailService:
 
     async def send_email(
         self,
-        to: str,
+        to: list[str],
         subject: str,
         html_content: str,
         text_content: Optional[str] = None,
+        cc: list[str] | None = None,
+        bcc: list[str] | None = None,
+        smtp_config: dict | None = None,
+        from_email: str | None = None,
     ) -> bool:
-        if not self.enabled:
+        if not self.enabled and not smtp_config:
             logger.warning("Email service not configured, skipping email send")
             return False
 
         try:
-            await self._send(to, subject, html_content)
+            await self._send(to, subject, html_content, cc, bcc, smtp_config, from_email)
             logger.info("Email sent successfully to %s", to)
             return True
         except Exception as e:

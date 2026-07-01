@@ -70,6 +70,11 @@ class Settings(BaseSettings):
     smtp_username: str = ""
     smtp_password: str = ""
     smtp_from: str = ""
+    stripe_secret_key: str = ""
+    stripe_webhook_secret: str = ""
+    
+    # Cloud Deployments
+    vercel_token: str = ""
 
     # Scheduler
     scheduler_enabled: bool = True
