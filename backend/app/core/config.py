@@ -59,6 +59,9 @@ class Settings(BaseSettings):
     meta_redirect_uri: str = "https://vitba.ai/api/meta/oauth/callback"
     meta_api_version: str = "v21.0"
 
+    # Beeknoee API for Vitba Frame
+    beeknoee_api_key: str = "sk-bee-ed9fae4c61957a249c78fe7f5fea0cbd89d801c5799340417e55592d53375d8f"
+
     # Email — Resend API (preferred on Railway where SMTP is blocked)
     resend_api_key: str = ""
     # SMTP fallback (local dev)

@@ -1,5 +1,5 @@
 import os
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Form
 from pydantic import BaseModel
 from openai import OpenAI
 import logging
@@ -10,6 +10,7 @@ from app.api.deps import get_current_user
 from app.models.user import User
 from app.core.db import async_session_maker
 from app.models.lab_history import LabHistory
+from app.core.config import settings
 
 try:
     from google import genai
@@ -183,3 +184,56 @@ async def check_video_status(operation_name: str, current_user: User = Depends(g
     except Exception as e:
         logger.error(f"Video status check error: {e}")
         raise HTTPException(status_code=500, detail=f"Check status failed: {str(e)}")
+
+class InvoiceExtractResponse(BaseModel):
+    status: str
+    result: dict | None = None
+    confidence: float | None = None
+    processing_ms: int | None = None
+
+@router.post("/extract/invoice", response_model=InvoiceExtractResponse)
+async def extract_invoice(
+    file: UploadFile = File(...),
+    language: str = Form("vi"),
+    current_user: User = Depends(get_current_user)
+):
+    api_key = settings.beeknoee_api_key
+    if not api_key:
+        raise HTTPException(status_code=500, detail="Missing beeknoee_api_key")
+
+    try:
+        import httpx
+        async with httpx.AsyncClient(timeout=60.0) as client:
+            file_bytes = await file.read()
+            files = {"file": (file.filename, file_bytes, file.content_type)}
+            data = {"language": language}
+            headers = {"Authorization": f"Bearer {api_key}"}
+            
+            resp = await client.post(
+                "https://platform.beeknoee.com/v1/extract/invoice",
+                headers=headers,
+                data=data,
+                files=files
+            )
+            
+            if resp.status_code != 200:
+                logger.error(f"Invoice extract failed: {resp.text}")
+                raise Exception(f"API Error {resp.status_code}")
+                
+            resp_data = resp.json()
+            
+            # Optionally log to LabHistory
+            async with async_session_maker() as session:
+                history_entry = LabHistory(
+                    user_id=current_user.id,
+                    tool_name="invoice_extract",
+                    input_data={"filename": file.filename, "language": language},
+                    output_data=resp_data
+                )
+                session.add(history_entry)
+                await session.commit()
+                
+            return InvoiceExtractResponse(**resp_data)
+    except Exception as e:
+        logger.error(f"Invoice extraction error: {e}")
+        raise HTTPException(status_code=500, detail=f"Extraction failed: {str(e)}")
