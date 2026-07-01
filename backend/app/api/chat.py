@@ -121,7 +121,9 @@ Các content_type hợp lệ: facebook_post, seo_blog, email, landing_page, tikt
 """
 
 
-async def _build_system_prompt(user: User, doc_context: str = "") -> str:
+async def _build_system_prompt(user: User, doc_context: str = "", memory_ctx: str = "") -> str:
+    """Build the chat system prompt. Pass pre-fetched memory_ctx to avoid
+    an extra sequential DB round-trip when it can be fetched in parallel."""
     plan = get_user_plan(user)
     allowed = ", ".join(sorted(get_limits(user)["content_types"]))
     prompt = (
@@ -133,19 +135,19 @@ async def _build_system_prompt(user: User, doc_context: str = "") -> str:
         '"Tính năng này cần gói Pro hoặc Max. Bạn vui lòng nâng cấp gói tại trang Pricing để sử dụng."\n'
         "- Nếu người dùng hết lượt tạo trong ngày, thông báo nâng cấp gói thay vì generate."
     )
-    # Inject session memory
-    try:
-        from app.services.memory import get_memory_context
-        memory_ctx = await get_memory_context(user.id)
-        if memory_ctx:
-            prompt += (
-                "\n\n## THÔNG TIN ĐÃ LƯU VỀ NGƯỜI DÙNG:\n"
-                "Dưới đây là thông tin bạn đã ghi nhớ từ các cuộc trò chuyện trước. "
-                "Sử dụng để cá nhân hóa câu trả lời, không cần hỏi lại.\n"
-                f"{memory_ctx}"
-            )
-    except Exception:
-        pass
+    if not memory_ctx:
+        try:
+            from app.services.memory import get_memory_context
+            memory_ctx = await get_memory_context(user.id)
+        except Exception:
+            memory_ctx = ""
+    if memory_ctx:
+        prompt += (
+            "\n\n## THÔNG TIN ĐÃ LƯU VỀ NGƯỜI DÙNG:\n"
+            "Dưới đây là thông tin bạn đã ghi nhớ từ các cuộc trò chuyện trước. "
+            "Sử dụng để cá nhân hóa câu trả lời, không cần hỏi lại.\n"
+            f"{memory_ctx}"
+        )
     if doc_context:
         prompt += (
             "\n\n## TÀI LIỆU NGƯỜI DÙNG ĐÃ TẢI LÊN (ƯU TIÊN CAO NHẤT):\n"
@@ -698,12 +700,23 @@ async def send_message(
         except Exception:
             pass
 
-    history = await _build_messages(session, conversation_id)
+    # Fetch memory_ctx and history in parallel — both are DB reads and independent.
+    async def _fetch_memory() -> str:
+        try:
+            from app.services.memory import get_memory_context
+            return await get_memory_context(current_user.id) or ""
+        except Exception:
+            return ""
+
+    history, memory_ctx = await asyncio.gather(
+        _build_messages(session, conversation_id),
+        _fetch_memory(),
+    )
 
     # Release the DB connection before the long-running stream.
     await session.commit()
 
-    system_prompt = await _build_system_prompt(current_user, doc_context)
+    system_prompt = await _build_system_prompt(current_user, doc_context, memory_ctx=memory_ctx)
     if image_description:
         system_prompt += (
             "\n\n## Nội dung ảnh đính kèm (đã được phân tích):\n"
@@ -714,6 +727,11 @@ async def send_message(
     chat_messages = [{"role": "system", "content": system_prompt}] + history
 
     async def event_stream():
+        # Send an SSE comment immediately — this flushes the HTTP response
+        # headers through Railway's proxy before the first LLM token arrives,
+        # preventing the "long wait then all text at once" buffering effect.
+        yield ": connected\n\n"
+
         full_response = ""
         done_event_data: dict | None = None
         with trace_request(
