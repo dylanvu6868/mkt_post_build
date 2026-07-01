@@ -285,7 +285,7 @@ async def test_generate_success_mocked(client, monkeypatch, promote):
     fake_llm = MagicMock()
     fake_llm.ainvoke = AsyncMock(return_value=fake_response)
 
-    monkeypatch.setattr(factory_mod, "get_chat_model", lambda tier: fake_llm)
+    monkeypatch.setattr(factory_mod, "get_chat_model", lambda tier, **kwargs: fake_llm)
 
     resp = await client.post(
         "/mcp/landing/generate",
@@ -293,7 +293,7 @@ async def test_generate_success_mocked(client, monkeypatch, promote):
         headers=h,
     )
     assert resp.status_code == 200
-    assert resp.json()["html"] == "<html><body>Generated</body></html>"
+    assert resp.json()["html"] == "<!DOCTYPE html>\n<html><body>Generated</body></html>"
 
 
 async def test_delete_page(client, promote):

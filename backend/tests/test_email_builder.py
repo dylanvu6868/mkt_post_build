@@ -24,17 +24,11 @@ async def test_generate_custom_email_uses_brand_profile_when_project_id_given(mo
     )
 
     fake_content = AsyncMock()
-    fake_content.model_dump = lambda: {
-        "hero_title": "t", "hero_subtitle": "s", "hero_body": "b", "hero_image_url": "",
-        "hero_cta_text": "Mua ngay", "hero_cta_link": "#", "about_title": "a", "about_body": "ab",
-        "about_image_url": "", "cta_title": "c", "cta_body": "cb", "cta_button_text": "Đi",
-        "cta_button_link": "#", "contact_email": "", "contact_phone": "", "contact_website": "",
-        "contact_address": "", "copyright_text": "",
-    }
+    fake_content.content = "<!DOCTYPE html><html><body>EcoBottle Content</body></html>"
     mock_llm = AsyncMock()
     mock_llm.ainvoke = AsyncMock(return_value=fake_content)
     with patch("app.llm.factory.get_chat_model_for_tier") as mock_factory:
-        mock_factory.return_value.with_structured_output.return_value = mock_llm
+        mock_factory.return_value = mock_llm
         resp = await client.post(
             "/mcp/email/builder/generate-custom",
             json={"prompt": "Email khuyến mãi", "project_id": project_id},
