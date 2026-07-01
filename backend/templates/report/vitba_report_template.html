@@ -5,6 +5,7 @@
   <title>Vitba Report – {{ name }}</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/marked@9/marked.min.js"></script>
   <style>
     :root { --bg:#FAF8F5;--text:#201B18;--muted:#6B6055;--gold:#FFB300;--gold-dark:#FF8F00;--border:#EFEAE2; }
     @page { size:A4 portrait; margin:0; }
@@ -109,8 +110,14 @@
 
 <!-- ── CONTENT PAGES ── -->
 <div class="content-area">
-{% if content_html %}
-  <div class="report-content">{{ content_html | safe }}</div>
+{% if markdown_raw %}
+  <div class="report-content" id="md-body"></div>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      var md = {{ markdown_raw | tojson }};
+      document.getElementById('md-body').innerHTML = marked.parse(md);
+    });
+  </script>
 {% else %}
   <div class="report-content">
     <h1>A. Executive Summary</h1>

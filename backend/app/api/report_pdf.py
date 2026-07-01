@@ -21,11 +21,8 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/report", tags=["report-pdf"])
 
 _TEMPLATE_DIR = Path(__file__).resolve().parent.parent.parent / "templates" / "report"
-# Logo path: works in both local dev and Railway container
-_LOGO_CANDIDATES = [
-    Path(__file__).resolve().parent.parent.parent.parent.parent / "frontend" / "public" / "logo.png",
-    Path("/app/frontend/public/logo.png"),
-]
+# Logo lives alongside the template — always available in Docker
+_LOGO_PATH = _TEMPLATE_DIR / "logo.png"
 
 _jinja_env = Environment(
     loader=FileSystemLoader(str(_TEMPLATE_DIR)),
@@ -34,25 +31,11 @@ _jinja_env = Environment(
 
 
 def _get_logo_b64() -> str:
-    for path in _LOGO_CANDIDATES:
-        if path.is_file():
-            data = path.read_bytes()
-            return f"data:image/png;base64,{base64.b64encode(data).decode()}"
+    """Read logo from backend/templates/report/logo.png (committed to git)."""
+    if _LOGO_PATH.is_file():
+        data = _LOGO_PATH.read_bytes()
+        return f"data:image/png;base64,{base64.b64encode(data).decode()}"
     return ""
-
-
-def _markdown_to_html(md: str) -> str:
-    try:
-        import markdown as md_lib
-        return md_lib.markdown(md, extensions=["tables", "fenced_code", "nl2br", "sane_lists"])
-    except ImportError:
-        import re
-        html = md
-        for level in range(6, 0, -1):
-            html = re.sub(rf"^{'#' * level}\s+(.+)$", rf"<h{level}>\1</h{level}>", html, flags=re.MULTILINE)
-        html = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", html)
-        html = re.sub(r"\*(.+?)\*", r"<em>\1</em>", html)
-        return html
 
 
 def _get_chrome_path() -> str:
@@ -103,7 +86,6 @@ async def export_report_pdf(
         raise HTTPException(500, "Report template not found on server.")
 
     logo_b64 = _get_logo_b64()
-    content_html = _markdown_to_html(body.markdown_content) if body.markdown_content else ""
 
     html_content = template.render(
         name=body.name or "Dự án của bạn",
@@ -124,7 +106,7 @@ async def export_report_pdf(
         weaknesses=body.weaknesses or "—",
         created_date=datetime.now().strftime("%d/%m/%Y"),
         logo_b64=logo_b64,
-        content_html=content_html,
+        markdown_raw=body.markdown_content or "",
     )
 
     run_id = uuid.uuid4().hex[:8]
