@@ -91,9 +91,13 @@
 <div class="content-area">
 {% if markdown_raw %}
   <div class="report-content" id="md-body"></div>
+  <script id="markdown-raw-data" type="application/json">
+    {{ markdown_raw | tojson }}
+  </script>
   <script>
     document.addEventListener('DOMContentLoaded', function() {
-      var md = {{ markdown_raw | tojson }};
+      var mdEl = document.getElementById('markdown-raw-data');
+      var md = mdEl ? JSON.parse(mdEl.textContent) : "";
       document.getElementById('md-body').innerHTML = marked.parse(md);
     });
   </script>
