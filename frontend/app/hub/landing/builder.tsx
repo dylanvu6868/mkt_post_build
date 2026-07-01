@@ -131,7 +131,8 @@ export function LandingBuilder({ onSaved }: { onSaved?: () => void }) {
       });
       if (!res.ok) throw new Error("Upload failed");
       const data = await res.json();
-      setLogoUrl(data.url);
+      const fullUrl = data.url.startsWith("http") ? data.url : `${API_BASE_URL}${data.url}`;
+      setLogoUrl(fullUrl);
       toast.success("Tải logo thành công");
     } catch {
       toast.error("Tải logo thất bại");
