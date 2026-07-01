@@ -96,55 +96,56 @@ async def generate_page(body: GenerateReq, user: User = Depends(get_current_user
     brand_voice = format_brand_voice(brand_profile)
     effective_brand_name = brand_profile.get("brand_name") or body.product
 
-    from pydantic import Field
-    class LandingContent(BaseModel):
-        hero_title: str = Field(description="Tiêu đề chính của hero section")
-        hero_highlight: str = Field(description="Từ khóa nổi bật trong tiêu đề")
-        hero_subtitle: str = Field(description="Phụ đề hero section")
-        hero_image_url: str = Field(description="URL ảnh hero")
-        hero_cta_text: str = Field(description="Chữ trên nút CTA chính")
-        hero_cta_link: str = Field(description="Link cho nút CTA chính")
-        about_title: str = Field(description="Tiêu đề phần giới thiệu/tính năng")
-        about_text: str = Field(description="Nội dung giới thiệu/tính năng")
-        cta_title: str = Field(description="Tiêu đề phần CTA cuối")
-        cta_text: str = Field(description="Nội dung CTA cuối")
-        cta_button_text: str = Field(description="Chữ trên nút CTA cuối")
-        cta_button_link: str = Field(description="Link nút CTA cuối")
-        contact_email: str = Field(description="Email liên hệ")
-        contact_phone: str = Field(description="Số điện thoại liên hệ")
-        contact_address: str = Field(description="Địa chỉ")
-        footer_copyright: str = Field(description="Dòng bản quyền footer")
+    style_ref = get_landing_style_reference()
 
-    system = "Bạn là AI Copywriter cho Vitba AI. Nhiệm vụ: Viết nội dung cho landing page. Không bỏ trống các trường."
+    images_context = ""
+    if body.logo_url:
+        images_context += f"\nLogo URL: {body.logo_url}"
+    if body.hero_image_url:
+        images_context += f"\nHero image URL: {body.hero_image_url}"
+    if body.additional_images:
+        images_context += f"\nAdditional images: {', '.join(body.additional_images)}"
 
+    color_context = f"\nPrimary color: {body.color_scheme}"
+    cta_context = f"\nCTA button text: {body.cta}"
     sections_str = ", ".join(body.sections) if body.sections else "hero, features, CTA"
+
+    system = f"""Bạn là AI Landing Page Designer độc quyền của Vitba AI.
+Nhiệm vụ: tạo landing page HTML hoàn chỉnh, responsive, đẹp, chuyển đổi cao từ mô tả của người dùng.
+
+## STYLE REFERENCE (học từ cấu trúc mẫu, đừng copy nguyên nội dung):
+{style_ref}
+
+## YÊU CẦU KỸ THUẬT:
+1. HTML hoàn chỉnh với inline CSS trong <style> tag
+2. Responsive, mobile-first, sử dụng CSS Grid/Flexbox
+3. Sử dụng Tailwind CSS qua CDN: <script src="https://cdn.tailwindcss.com"></script>
+4. Nếu có logo/hero image URL, dùng <img src="URL"> trực tiếp
+5. Smooth animations, hover effects, gradient accents
+6. Typography hierarchy rõ ràng, font Google Fonts
+7. Các sections cần có: {sections_str}
+8. Tất cả sections phải đầy đủ nội dung (không placeholder)
+9. Viết bằng tiếng Việt
+10. Trả về DUY NHẤT mã HTML bắt đầu bằng <!DOCTYPE html>
+11. KHÔNG markdown fence, KHÔNG giải thích"""
+
     user_msg = f"""Mục đích: {body.purpose}
 Sản phẩm: {body.product}
+Brand: {effective_brand_name}
 Tone: {body.tone}
-CTA: {body.cta}
-Các sections: {sections_str}
+Style yêu cầu: {body.style}
+{images_context}{color_context}{cta_context}
 {brand_voice}
 
-Tạo nội dung tiếng Việt chuyên nghiệp cho Landing Page."""
+Tạo landing page hoàn chỉnh, chuyên nghiệp, tối ưu conversion."""
 
-    llm = get_chat_model("smart", max_tokens=8192).with_structured_output(LandingContent)
+    from langchain_core.messages import SystemMessage, HumanMessage
     with trace_request("landing.generate", user_id=user.id, metadata={"purpose": body.purpose, "product": body.product}):
-        content = await llm.ainvoke([
-            {"role": "system", "content": system},
-            {"role": "user", "content": user_msg}
-        ])
+        llm = get_chat_model("smart", max_tokens=8192)
+        resp = await llm.ainvoke([SystemMessage(content=system), HumanMessage(content=user_msg)])
 
-    content_dict = content.model_dump()
-    content_dict["brand_name"] = effective_brand_name
-    content_dict["logo_url"] = body.logo_url
-    if body.hero_image_url:
-        content_dict["hero_image_url"] = body.hero_image_url
-    content_dict["primary_color"] = body.color_scheme
-    content_dict["social_facebook"] = "https://facebook.com"
-    content_dict["social_twitter"] = "https://twitter.com"
-
-    template_id = body.template if body.template and body.template in ["m1", "m2", "m3"] else "m1"
-    html = render_landing(template_id, content_dict)
+    from app.mcp.landing.template_engine import extract_html_from_response
+    html = extract_html_from_response(resp.content if isinstance(resp.content, str) else str(resp.content))
     
     await log_action(session, user.id, "landing.generate", "landing_page", None)
     return {"html": html}
@@ -339,11 +340,8 @@ Tạo landing page hoàn chỉnh, chuyên nghiệp, độc quyền Vitba."""
         llm = get_chat_model("smart", max_tokens=8192)
         resp = await llm.ainvoke([SystemMessage(content=system), HumanMessage(content=user_msg)])
 
-    html = (resp.content if isinstance(resp.content, str) else str(resp.content)).strip()
-    if html.startswith("```"):
-        html = html.split("\n", 1)[-1].rsplit("```", 1)[0].strip()
-    if not html.startswith("<!DOCTYPE"):
-        html = f"<!DOCTYPE html>\n{html}"
+    from app.mcp.landing.template_engine import extract_html_from_response
+    html = extract_html_from_response(resp.content if isinstance(resp.content, str) else str(resp.content))
 
     return {"html": html}
 
@@ -364,7 +362,7 @@ async def onboard_generate(
     user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
 ):
-    """AI generates landing page from onboarding wizard answers."""
+    """AI generates dynamic landing page HTML from onboarding wizard answers."""
     from app.llm.factory import get_chat_model_for_tier as get_chat_model, provider_available
     if not provider_available():
         raise HTTPException(503, "LLM provider not configured")
@@ -375,52 +373,52 @@ async def onboard_generate(
     brand_name = brand_profile.get("brand_name") or body.brand_name
     brand_voice = format_brand_voice(brand_profile)
 
-    from pydantic import Field
-    class LandingContent(BaseModel):
-        hero_title: str = Field(description="Tiêu đề chính của hero section")
-        hero_highlight: str = Field(description="Từ khóa nổi bật trong tiêu đề")
-        hero_subtitle: str = Field(description="Phụ đề hero section")
-        hero_image_url: str = Field(description="URL ảnh hero")
-        hero_cta_text: str = Field(description="Chữ trên nút CTA chính")
-        hero_cta_link: str = Field(description="Link cho nút CTA chính")
-        about_title: str = Field(description="Tiêu đề phần giới thiệu/tính năng")
-        about_text: str = Field(description="Nội dung giới thiệu/tính năng")
-        cta_title: str = Field(description="Tiêu đề phần CTA cuối")
-        cta_text: str = Field(description="Nội dung CTA cuối")
-        cta_button_text: str = Field(description="Chữ trên nút CTA cuối")
-        cta_button_link: str = Field(description="Link nút CTA cuối")
-        contact_email: str = Field(description="Email liên hệ")
-        contact_phone: str = Field(description="Số điện thoại liên hệ")
-        contact_address: str = Field(description="Địa chỉ")
-        footer_copyright: str = Field(description="Dòng bản quyền footer")
+    style_ref = get_landing_style_reference()
 
-    system = "Bạn là AI Copywriter chuyên nghiệp của Vitba AI. Nhiệm vụ: Viết nội dung cho landing page. Không bỏ trống các trường."
+    images_context = ""
+    if body.logo_url:
+        images_context += f"\nLogo URL: {body.logo_url}"
+    if body.hero_image_url:
+        images_context += f"\nHero image URL: {body.hero_image_url}"
+
+    colors = body.color_palette.split(":")[-1].split(",") if ":" in body.color_palette else []
+    primary = colors[0].strip() if colors else "#2563EB"
+    color_context = f"\nPrimary color: {primary}"
+
+    system = f"""Bạn là AI Landing Page Designer độc quyền của Vitba AI.
+Nhiệm vụ: tạo landing page HTML hoàn chỉnh, responsive, đẹp, chuyển đổi cao từ kết quả onboarding.
+
+## STYLE REFERENCE (học từ cấu trúc mẫu, đừng copy nguyên nội dung):
+{style_ref}
+
+## YÊU CẦU KỸ THUẬT:
+1. HTML hoàn chỉnh với inline CSS trong <style> tag
+2. Responsive, mobile-first, sử dụng CSS Grid/Flexbox
+3. Sử dụng Tailwind CSS qua CDN: <script src="https://cdn.tailwindcss.com"></script>
+4. Nếu có logo/hero image URL, dùng <img src="URL"> trực tiếp
+5. Smooth animations, hover effects, gradient accents
+6. Typography hierarchy rõ ràng, sử dụng font thuộc họ: {body.typography}
+7. Tất cả sections phải đầy đủ nội dung (không placeholder)
+8. Viết bằng tiếng Việt
+9. Trả về DUY NHẤT mã HTML bắt đầu bằng <!DOCTYPE html>
+10. KHÔNG markdown fence, KHÔNG giải thích"""
 
     user_msg = f"""## Câu trả lời Onboarding:
 - Mục đích trang: {body.purpose}
 - Brand: {brand_name or "(tự đặt phù hợp)"}
+{images_context}{color_context}
 {brand_voice}
 
-Viết toàn bộ nội dung tiếng Việt cho trang Landing Page."""
+Viết toàn bộ HTML hoàn chỉnh cho trang Landing Page."""
 
+    from langchain_core.messages import SystemMessage, HumanMessage
     with trace_request("landing.onboard", user_id=user.id, metadata={"purpose": body.purpose[:100]}):
-        llm = get_chat_model("smart", max_tokens=8192).with_structured_output(LandingContent)
-        content = await llm.ainvoke([
-            {"role": "system", "content": system},
-            {"role": "user", "content": user_msg}
-        ])
+        llm = get_chat_model("smart", max_tokens=8192)
+        resp = await llm.ainvoke([SystemMessage(content=system), HumanMessage(content=user_msg)])
 
-    content_dict = content.model_dump()
-    content_dict["brand_name"] = brand_name
-    content_dict["logo_url"] = body.logo_url
-    if body.hero_image_url:
-        content_dict["hero_image_url"] = body.hero_image_url
+    from app.mcp.landing.template_engine import extract_html_from_response
+    html = extract_html_from_response(resp.content if isinstance(resp.content, str) else str(resp.content))
 
-    colors = body.color_palette.split(":")[-1].split(",") if ":" in body.color_palette else []
-    primary = colors[0].strip() if colors else "#2563EB"
-    content_dict["primary_color"] = primary
-
-    html = render_landing("m1", content_dict)
     return {"html": html}
 
 

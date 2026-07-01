@@ -14,6 +14,25 @@ from typing import Any
 
 from bs4 import BeautifulSoup
 
+def extract_html_from_response(content: str) -> str:
+    """Robustly extract HTML from LLM response, handling markdown blocks and conversational padding."""
+    html = content.strip()
+    # Find everything from <!DOCTYPE html> or <html> to </html>
+    match = re.search(r'(<!DOCTYPE\s+html[^>]*>.*?</html>|<html[^>]*>.*?</html>)', html, re.IGNORECASE | re.DOTALL)
+    if match:
+        html = match.group(1)
+    else:
+        # Fallback: strip markdown blocks if present
+        if "```html" in html:
+            html = html.split("```html")[1].split("```")[0].strip()
+        elif "```" in html:
+            html = html.split("```")[1].split("```")[0].strip()
+    
+    # Ensure it has a DOCTYPE if it looks like a full document
+    if "<html" in html.lower() and not html.lower().startswith("<!doctype"):
+        html = f"<!DOCTYPE html>\n{html}"
+    return html.strip()
+
 TEMPLATES_ROOT = Path(os.getenv(
     "TEMPLATES_DIR",
     Path(__file__).resolve().parents[3] / "templates" / "landing",
@@ -380,13 +399,21 @@ def get_landing_style_reference() -> str:
 def get_email_style_reference() -> str:
     """Extract key patterns from email templates for AI reference."""
     parts = []
+    # Provide the first template as a structural example
+    first_template_id = list(EMAIL_TEMPLATES.keys())[0]
+    first_html = EMAIL_TEMPLATES[first_template_id]["file"].read_text(encoding="utf-8")
+    
+    # Extract the skeleton (first 2500 chars to show <head>, CSS, and outer tables)
+    skeleton = first_html[:2500]
+    parts.append("## MẪU CẤU TRÚC CODE EMAIL (Học từ mẫu này, sử dụng table layout và inline CSS):")
+    parts.append(skeleton + "\n...\n<!-- End of structure example -->\n")
+    
     for tid, meta in EMAIL_TEMPLATES.items():
         html = meta["file"].read_text(encoding="utf-8")
-        # Extract section comments + color palette (condensed)
         sections = re.findall(r"<!--\s*([^<>]+?)\s*-->", html)
         sections = [s for s in sections if not s.startswith("[if") and not s.startswith("endif")]
         colors = set(re.findall(r"#[0-9A-Fa-f]{6}", html))
         parts.append(
             f"Template {tid} ({meta['name']}): sections={sections}, colors={colors}"
         )
-    return "\n".join(parts)[:2000]
+    return "\n".join(parts)[:4000]

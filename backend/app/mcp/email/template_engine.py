@@ -12,3 +12,4 @@ from app.mcp.landing.template_engine import (
 )
 
 __all__ = ["render_email", "list_email_templates", "EMAIL_TEMPLATES", "EMAIL_SLOTS"]
+
