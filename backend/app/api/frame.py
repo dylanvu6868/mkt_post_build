@@ -25,11 +25,17 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/frame", tags=["Frame"])
 
-async def enhance_prompt(original_prompt: str, media_type: str) -> str:
+async def enhance_prompt(original_prompt: str, media_type: str, size: str = None) -> str:
     llm = get_chat_model("fast")
     if media_type == "image":
-        system = """Bạn là một chuyên gia viết prompt (Prompt Engineer) cho AI tạo ảnh nghệ thuật.
-Nhiệm vụ: Viết lại/Mở rộng yêu cầu của người dùng thành một prompt tạo ảnh (banner quảng cáo, marketing, minh họa) thật chi tiết, chất lượng cao, mô tả rõ ánh sáng, màu sắc, phong cách (style).
+        orientation_hint = ""
+        if size == "1024x1536":
+            orientation_hint = "\nLưu ý: Ảnh này có tỷ lệ Dọc (Portrait). Hãy tối ưu mô tả bố cục (composition) cho khung hình dọc."
+        elif size == "1536x1024":
+            orientation_hint = "\nLưu ý: Ảnh này có tỷ lệ Ngang (Landscape). Hãy tối ưu mô tả bố cục (composition) cho khung hình ngang."
+            
+        system = f"""Bạn là một chuyên gia viết prompt (Prompt Engineer) cho AI tạo ảnh nghệ thuật.
+Nhiệm vụ: Viết lại/Mở rộng yêu cầu của người dùng thành một prompt tạo ảnh (banner quảng cáo, marketing, minh họa) thật chi tiết, chất lượng cao, mô tả rõ ánh sáng, màu sắc, phong cách (style).{orientation_hint}
 BẮT BUỘC TRẢ VỀ BẰNG TIẾNG ANH. CHỈ TRẢ VỀ NỘI DUNG PROMPT, KHÔNG GIẢI THÍCH, KHÔNG MARKDOWN."""
     else:
         system = """Bạn là một chuyên gia viết prompt (Prompt Engineer) cho AI tạo video (như Sora).
@@ -55,7 +61,11 @@ async def generate_image(request: GenerateImageRequest, current_user: User = Dep
         raise HTTPException(status_code=500, detail="Missing Beeknoee API key")
 
     try:
-        enhanced_prompt = await enhance_prompt(request.prompt, "image")
+        import re
+        size_match = re.search(r'(\d+x\d+)', request.size)
+        actual_size = size_match.group(1) if size_match else "1024x1024"
+
+        enhanced_prompt = await enhance_prompt(request.prompt, "image", actual_size)
         
         import httpx
         async with httpx.AsyncClient(timeout=120.0) as client:
@@ -63,7 +73,7 @@ async def generate_image(request: GenerateImageRequest, current_user: User = Dep
             payload = {
                 "prompt": enhanced_prompt,
                 "model": request.model,
-                "size": request.size,
+                "size": actual_size,
                 "n": 1
             }
             resp = await client.post("https://platform.beeknoee.com/api/v1/image/generations", headers=headers, json=payload)
