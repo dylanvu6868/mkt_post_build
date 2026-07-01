@@ -91,7 +91,7 @@
 <div class="content-area">
 {% if markdown_raw %}
   <div class="report-content" id="md-body"></div>
-  <script id="markdown-raw-data" type="application/json">
+  <script id="markdown-raw-data" type="text/plain">
     {{ markdown_raw | tojson }}
   </script>
   <script>
