@@ -10,6 +10,11 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 const PLANS = ["free", "lite", "pro", "max"] as const;
+const HUB_TOOLS_ALL = ["email", "seo", "calendar", "analytics", "landing", "meta"] as const;
+const HUB_TOOL_LABELS: Record<string, string> = {
+  email: "Vitba Mail", seo: "Vitba SEO", calendar: "Content Calendar",
+  analytics: "Analytics", landing: "Vitba Landing", meta: "Meta Publisher",
+};
 type PlanId = (typeof PLANS)[number];
 
 const PLAN_COLORS: Record<PlanId, string> = {
@@ -25,6 +30,18 @@ const PLAN_BAR_COLORS: Record<PlanId, string> = {
   pro: "bg-amber-500",
   max: "bg-violet-500",
 };
+
+interface PlanLimits {
+  daily_generations: number;
+  max_projects: number;
+  max_kb_files: number;
+  max_brand_profiles: number;
+  daily_lab_uses: number;
+  hub_tools: string[];
+  daily_email_sends: number;
+  daily_landing_generates: number;
+  history_retention_days: number | null;
+}
 
 interface PlanStats {
   distribution: Record<string, number>;
@@ -45,6 +62,9 @@ export default function AdminPlansPage() {
   const [stats, setStats] = useState<PlanStats | null>(null);
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
+  const [planLimits, setPlanLimits] = useState<Record<string, PlanLimits>>({});
+  const [editingLimits, setEditingLimits] = useState<string | null>(null);
+  const [limitDraft, setLimitDraft] = useState<Partial<PlanLimits>>({});
 
   // Bulk action state
   const [bulkPlan, setBulkPlan] = useState<PlanId>("lite");
@@ -59,13 +79,24 @@ export default function AdminPlansPage() {
   const [editDays, setEditDays] = useState("");
 
   const refresh = async () => {
-    const [s, u] = await Promise.all([
+    const [s, u, lim] = await Promise.all([
       api.get<PlanStats>("/admin/plan-stats"),
       api.get<AdminUser[]>("/admin/users"),
+      api.get<Record<string, PlanLimits>>("/admin/plan-limits"),
     ]);
     setStats(s);
     setUsers(u);
+    setPlanLimits(lim);
     setLoading(false);
+  };
+
+  const saveLimits = async (plan: string) => {
+    try {
+      await api.patch(`/admin/plan-limits/${plan}`, limitDraft);
+      toast.success(`Đã cập nhật giới hạn gói ${plan.toUpperCase()}`);
+      setEditingLimits(null);
+      await refresh();
+    } catch { toast.error("Không thể cập nhật"); }
   };
 
   useEffect(() => { refresh(); }, []);
@@ -402,6 +433,116 @@ export default function AdminPlansPage() {
               );
             })}
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Plan Limits Configuration */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-[15px] flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+            Cấu hình hạn mức theo gói
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto">
+            <table className="w-full text-[12px]">
+              <thead>
+                <tr className="border-b border-border">
+                  <th className="text-left py-2 pr-4 text-muted-foreground font-medium w-52">Tính năng</th>
+                  {PLANS.map(p => (
+                    <th key={p} className="text-center py-2 px-3">
+                      <div className="flex flex-col items-center gap-1">
+                        <Badge className={cn("text-[10px] font-bold uppercase", PLAN_COLORS[p])}>{p}</Badge>
+                        {editingLimits !== p ? (
+                          <button onClick={() => { setEditingLimits(p); setLimitDraft({ ...planLimits[p] }); }}
+                            className="text-[10px] text-primary hover:underline">Chỉnh</button>
+                        ) : (
+                          <div className="flex gap-1">
+                            <button onClick={() => saveLimits(p)} className="text-[10px] text-green-500 hover:underline">Lưu</button>
+                            <button onClick={() => setEditingLimits(null)} className="text-[10px] text-muted-foreground hover:underline">Hủy</button>
+                          </div>
+                        )}
+                      </div>
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border/50">
+                {([
+                  ["daily_generations", "Gen nội dung/ngày"],
+                  ["max_projects", "Dự án tối đa"],
+                  ["max_kb_files", "File KB tối đa"],
+                  ["max_brand_profiles", "Brand Profile"],
+                  ["daily_lab_uses", "Vitba Tool/ngày"],
+                  ["daily_email_sends", "Email gửi/ngày"],
+                  ["daily_landing_generates", "Landing Page/ngày"],
+                ] as [keyof PlanLimits, string][]).map(([key, label]) => (
+                  <tr key={key} className="hover:bg-accent/30">
+                    <td className="py-2 pr-4 text-muted-foreground">{label}</td>
+                    {PLANS.map(p => {
+                      const lim = planLimits[p];
+                      const val = lim ? (lim[key] as number) : 0;
+                      const isEditing = editingLimits === p;
+                      return (
+                        <td key={p} className="text-center py-1.5 px-3">
+                          {isEditing ? (
+                            <input type="number" min={0}
+                              value={(limitDraft[key] as number) ?? val}
+                              onChange={e => setLimitDraft(d => ({ ...d, [key]: parseInt(e.target.value) || 0 }))}
+                              className="w-20 rounded border border-border bg-card px-2 py-0.5 text-center text-[12px] focus:outline-none focus:ring-1 focus:ring-primary/50"
+                            />
+                          ) : (
+                            <span className={cn("font-medium", val >= 999999 ? "text-muted-foreground" : "text-foreground")}>
+                              {val >= 999999 ? "∞" : val.toLocaleString()}
+                            </span>
+                          )}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+                {/* Hub Tools row */}
+                <tr className="hover:bg-accent/30">
+                  <td className="py-2 pr-4 text-muted-foreground font-medium" colSpan={5}>
+                    Trung tâm Marketing (Hub Tools)
+                  </td>
+                </tr>
+                {HUB_TOOLS_ALL.map(tool => (
+                  <tr key={tool} className="hover:bg-accent/30">
+                    <td className="py-1.5 pr-4 pl-4 text-muted-foreground">{HUB_TOOL_LABELS[tool]}</td>
+                    {PLANS.map(p => {
+                      const tools = planLimits[p]?.hub_tools ?? [];
+                      const has = tools.includes(tool);
+                      const isEditing = editingLimits === p;
+                      const draftTools = (limitDraft.hub_tools as string[]) ?? tools;
+                      const draftHas = draftTools.includes(tool);
+                      return (
+                        <td key={p} className="text-center py-1 px-3">
+                          {isEditing ? (
+                            <input type="checkbox" checked={draftHas}
+                              onChange={e => setLimitDraft(d => ({
+                                ...d,
+                                hub_tools: e.target.checked
+                                  ? [...(d.hub_tools as string[] ?? tools), tool]
+                                  : (d.hub_tools as string[] ?? tools).filter(t => t !== tool),
+                              }))}
+                              className="accent-primary w-3.5 h-3.5"
+                            />
+                          ) : (
+                            has
+                              ? <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-green-500 mx-auto"><polyline points="20 6 9 17 4 12"/></svg>
+                              : <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-muted-foreground/30 mx-auto"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                          )}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p className="mt-3 text-[11px] text-muted-foreground">⚠️ Thay đổi hạn mức chỉ có hiệu lực cho đến khi server khởi động lại. Để thay đổi vĩnh viễn, cập nhật <code>plan_limits.py</code> và redeploy.</p>
         </CardContent>
       </Card>
 

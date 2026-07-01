@@ -867,3 +867,44 @@ async def ai_traces(
         }
         for r in rows
     ]
+
+
+# ── Plan Limits Management ─────────────────────────────────────────────────
+from app.core.plan_limits import PLAN_LIMITS, HISTORY_RETENTION_DAYS
+
+@router.get("/plan-limits")
+async def get_plan_limits():
+    """Return current plan limits for all plans."""
+    result = {}
+    for plan, limits in PLAN_LIMITS.items():
+        result[plan] = {
+            **{k: (list(v) if isinstance(v, set) else v) for k, v in limits.items()},
+            "history_retention_days": HISTORY_RETENTION_DAYS.get(plan),
+        }
+    return result
+
+
+@router.patch("/plan-limits/{plan_name}")
+async def update_plan_limits(
+    plan_name: str,
+    body: dict,
+    admin: User = Depends(require_admin),
+):
+    """Update specific limits for a plan (runtime only — resets on redeploy)."""
+    if plan_name not in PLAN_LIMITS:
+        raise HTTPException(status_code=404, detail=f"Plan '{plan_name}' not found.")
+    allowed_keys = {
+        "daily_generations", "max_projects", "max_kb_files",
+        "max_brand_profiles", "daily_lab_uses",
+        "daily_email_sends", "daily_landing_generates",
+        "hub_tools",
+    }
+    for key, value in body.items():
+        if key not in allowed_keys:
+            raise HTTPException(status_code=400, detail=f"Field '{key}' is not adjustable.")
+        if key == "hub_tools":
+            PLAN_LIMITS[plan_name]["hub_tools"] = set(value) if isinstance(value, list) else value
+        else:
+            PLAN_LIMITS[plan_name][key] = int(value)
+    logger.info("Admin %s updated plan=%s limits: %s", admin.email, plan_name, body)
+    return {"plan": plan_name, "updated": list(body.keys())}
