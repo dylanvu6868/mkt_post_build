@@ -1,127 +1,406 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
   <meta charset="UTF-8">
   <title>Vitba Report – {{ name }}</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap"
+    rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/marked@9/marked.min.js"></script>
   <style>
-    :root { --bg:#FAF8F5;--text:#201B18;--muted:#6B6055;--gold:#FFB300;--gold-dark:#FF8F00;--border:#EFEAE2; }
-    @page { size:A4 portrait; margin:0; }
-    *{ box-sizing:border-box; margin:0; padding:0; }
-    body{ background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-size:13px;line-height:1.65;
-          -webkit-print-color-adjust:exact;print-color-adjust:exact; }
+    :root {
+      --bg: #FAF8F5;
+      --text: #201B18;
+      --muted: #6B6055;
+      --gold: #FFB300;
+      --gold-dark: #FF8F00;
+      --border: #EFEAE2;
+    }
+
+    @page {
+      size: A4 portrait;
+      margin: 0;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      line-height: 1.65;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
 
     /* COVER */
-    .cover{ width:210mm;height:297mm;padding:28mm 22mm 24mm 22mm;display:flex;flex-direction:column;
-            justify-content:space-between;page-break-after:always;break-after:page;overflow:hidden;
-            background:radial-gradient(circle at 8% 15%,rgba(255,179,0,0.07) 0%,transparent 55%),var(--bg); }
-    .cover-logo-row{ display:flex;align-items:center;gap:10px; }
-    .cover-logo{ width:40px;height:40px;object-fit:contain; }
-    .cover-logo-text{ font-family:'Manrope',sans-serif;font-size:26px;font-weight:800;color:var(--text);letter-spacing:-0.5px; }
-    .cover-body{ margin-top:30mm; }
-    .cover-badge{ display:inline-block;padding:5px 14px;border-radius:50px;background:rgba(255,179,0,0.12);
-                  border:1px solid rgba(255,179,0,0.3);color:var(--gold-dark);font-size:10px;font-weight:700;
-                  text-transform:uppercase;letter-spacing:1.2px;margin-bottom:16px; }
-    .cover-title{ font-family:'Manrope',sans-serif;font-size:38px;font-weight:800;line-height:1.2;color:var(--text);margin-bottom:14px; }
-    .cover-subtitle{ font-size:14.5px;color:var(--muted);line-height:1.65;max-width:520px; }
-    .cover-footer{ border-top:2px solid var(--border);padding-top:20px;display:flex;justify-content:space-between;align-items:flex-end; }
-    .meta-grid{ display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:12px; }
-    .meta-label{ color:var(--muted); } .meta-val{ font-weight:600; }
-    .cover-tagline{ font-size:11px;font-style:italic;color:var(--muted);text-align:right; }
+    .cover {
+      width: 210mm;
+      height: 297mm;
+      padding: 28mm 22mm 24mm 22mm;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      page-break-after: always;
+      break-after: page;
+      overflow: hidden;
+      background: radial-gradient(circle at 8% 15%, rgba(255, 179, 0, 0.07) 0%, transparent 55%), var(--bg);
+    }
+
+    .cover-logo-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .cover-logo {
+      width: 40px;
+      height: 40px;
+      object-fit: contain;
+    }
+
+    .cover-logo-text {
+      font-family: 'Manrope', sans-serif;
+      font-size: 26px;
+      font-weight: 800;
+      color: var(--text);
+      letter-spacing: -0.5px;
+    }
+
+    .cover-body {
+      margin-top: 30mm;
+    }
+
+    .cover-badge {
+      display: inline-block;
+      padding: 5px 14px;
+      border-radius: 50px;
+      background: rgba(255, 179, 0, 0.12);
+      border: 1px solid rgba(255, 179, 0, 0.3);
+      color: var(--gold-dark);
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      margin-bottom: 16px;
+    }
+
+    .cover-title {
+      font-family: 'Manrope', sans-serif;
+      font-size: 38px;
+      font-weight: 800;
+      line-height: 1.2;
+      color: var(--text);
+      margin-bottom: 14px;
+    }
+
+    .cover-subtitle {
+      font-size: 14.5px;
+      color: var(--muted);
+      line-height: 1.65;
+      max-width: 520px;
+    }
+
+    .cover-footer {
+      border-top: 2px solid var(--border);
+      padding-top: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+    }
+
+    .meta-grid {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 6px 14px;
+      font-size: 12px;
+    }
+
+    .meta-label {
+      color: var(--muted);
+    }
+
+    .meta-val {
+      font-weight: 600;
+    }
+
+    .cover-tagline {
+      font-size: 11px;
+      font-style: italic;
+      color: var(--muted);
+      text-align: right;
+    }
 
     /* CONTENT */
-    .content-area{ padding:18mm 18mm 18mm 18mm; }
-    .report-content h1{ font-family:'Manrope',sans-serif;font-size:21px;font-weight:800;margin:28px 0 10px;
-                        border-left:5px solid var(--gold);padding-left:10px;color:var(--text);page-break-after:avoid; break-after:avoid; }
-    .report-content h2{ font-family:'Manrope',sans-serif;font-size:16px;font-weight:700;margin:20px 0 8px;
-                        border-left:4px solid var(--gold);padding-left:8px;color:var(--text);page-break-after:avoid; break-after:avoid; }
-    .report-content h3{ font-family:'Manrope',sans-serif;font-size:14px;font-weight:700;margin:16px 0 6px;color:var(--text);page-break-after:avoid; break-after:avoid; }
-    .report-content h4{ font-size:13px;font-weight:700;margin:12px 0 5px;page-break-after:avoid; break-after:avoid; }
-    .report-content h5,.report-content h6{ font-size:12px;font-weight:600;margin:10px 0 4px;page-break-after:avoid; break-after:avoid; }
-    .report-content p{ margin-bottom:9px;line-height:1.7; }
-    .report-content ul,.report-content ol{ margin:6px 0 10px 22px; }
-    .report-content li{ margin-bottom:4px;line-height:1.65;page-break-inside:avoid; break-inside:avoid; }
-    .report-content strong{ font-weight:700; }
-    .report-content em{ font-style:italic; }
-    .report-content blockquote{ border-left:4px solid var(--gold);background:rgba(255,179,0,0.06);
-                                padding:10px 14px;margin:12px 0;border-radius:0 8px 8px 0;page-break-inside:avoid; break-inside:avoid; }
-    .report-content table{ width:100%;border-collapse:collapse;margin:12px 0 16px;font-size:12px;page-break-inside:auto; break-inside:auto; }
-    .report-content tr{ page-break-inside:avoid; break-inside:avoid; }
-    .report-content thead tr{ background:rgba(239,234,226,0.7); }
-    .report-content th{ border:1px solid var(--border);padding:8px 10px;font-weight:700;text-align:left; }
-    .report-content td{ border:1px solid var(--border);padding:7px 10px; }
-    .report-content tr:nth-child(even) td{ background:rgba(239,234,226,0.3); }
+    .content-area {
+      padding: 18mm 18mm 18mm 18mm;
+    }
+
+    .report-content h1 {
+      font-family: 'Manrope', sans-serif;
+      font-size: 21px;
+      font-weight: 800;
+      margin: 28px 0 10px;
+      border-left: 5px solid var(--gold);
+      padding-left: 10px;
+      color: var(--text);
+      page-break-after: avoid;
+      break-after: avoid;
+    }
+
+    .report-content h2 {
+      font-family: 'Manrope', sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+      margin: 20px 0 8px;
+      border-left: 4px solid var(--gold);
+      padding-left: 8px;
+      color: var(--text);
+      page-break-after: avoid;
+      break-after: avoid;
+    }
+
+    .report-content h3 {
+      font-family: 'Manrope', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      margin: 16px 0 6px;
+      color: var(--text);
+      page-break-after: avoid;
+      break-after: avoid;
+    }
+
+    .report-content h4 {
+      font-size: 13px;
+      font-weight: 700;
+      margin: 12px 0 5px;
+      page-break-after: avoid;
+      break-after: avoid;
+    }
+
+    .report-content h5,
+    .report-content h6 {
+      font-size: 12px;
+      font-weight: 600;
+      margin: 10px 0 4px;
+      page-break-after: avoid;
+      break-after: avoid;
+    }
+
+    .report-content p {
+      margin-bottom: 9px;
+      line-height: 1.7;
+    }
+
+    .report-content ul,
+    .report-content ol {
+      margin: 6px 0 10px 22px;
+    }
+
+    .report-content li {
+      margin-bottom: 4px;
+      line-height: 1.65;
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+
+    .report-content strong {
+      font-weight: 700;
+    }
+
+    .report-content em {
+      font-style: italic;
+    }
+
+    .report-content blockquote {
+      border-left: 4px solid var(--gold);
+      background: rgba(255, 179, 0, 0.06);
+      padding: 10px 14px;
+      margin: 12px 0;
+      border-radius: 0 8px 8px 0;
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+
+    .report-content table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0 16px;
+      font-size: 12px;
+      page-break-inside: auto;
+      break-inside: auto;
+    }
+
+    .report-content tr {
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+
+    .report-content thead tr {
+      background: rgba(239, 234, 226, 0.7);
+    }
+
+    .report-content th {
+      border: 1px solid var(--border);
+      padding: 8px 10px;
+      font-weight: 700;
+      text-align: left;
+    }
+
+    .report-content td {
+      border: 1px solid var(--border);
+      padding: 7px 10px;
+    }
+
+    .report-content tr:nth-child(even) td {
+      background: rgba(239, 234, 226, 0.3);
+    }
+
     /* Code blocks LIGHT — not dark */
-    .report-content pre{ background:#F5F3F0;border:1px solid var(--border);border-radius:8px;padding:12px 14px;
-                         font-size:11.5px;white-space:pre-wrap;word-break:break-word;margin:10px 0 14px;page-break-inside:avoid; break-inside:avoid; }
-    .report-content code{ background:rgba(255,179,0,0.1);color:var(--gold-dark);border-radius:4px;padding:1px 5px;font-size:11.5px; }
-    .report-content pre code{ background:none;color:#444;padding:0; }
-    .report-content hr{ border:none;border-top:1.5px solid var(--border);margin:20px 0; }
-    .report-footer{ margin-top:40px;padding-top:12px;border-top:1px solid var(--border);
-                    display:flex;justify-content:space-between;font-size:10px;color:var(--muted); }
+    .report-content pre {
+      background: #F5F3F0;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 14px;
+      font-size: 11.5px;
+      white-space: pre-wrap;
+      word-break: break-word;
+      margin: 10px 0 14px;
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+
+    .report-content code {
+      background: rgba(255, 179, 0, 0.1);
+      color: var(--gold-dark);
+      border-radius: 4px;
+      padding: 1px 5px;
+      font-size: 11.5px;
+    }
+
+    .report-content pre code {
+      background: none;
+      color: #444;
+      padding: 0;
+    }
+
+    .report-content hr {
+      border: none;
+      border-top: 1.5px solid var(--border);
+      margin: 20px 0;
+    }
+
+    .report-footer {
+      margin-top: 40px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      font-size: 10px;
+      color: var(--muted);
+    }
   </style>
 </head>
+
 <body>
 
-<!-- ── COVER ── -->
-<div class="cover">
-  <div class="cover-logo-row">
-    {% if logo_b64 %}<img class="cover-logo" src="{{ logo_b64 }}" alt="Vitba">{% endif %}
-    <span class="cover-logo-text">Vitba.ai</span>
-  </div>
-  <div class="cover-body">
-    <div class="cover-badge">Strategist AI Report</div>
-    <div class="cover-title">BÁO CÁO TƯ VẤN CHIẾN LƯỢC TOÀN DIỆN</div>
-    <p class="cover-subtitle">Chẩn đoán doanh nghiệp · Phân tích thị trường · Kế hoạch Marketing · Lộ trình 30–60–90 ngày cho <strong>{{ name }}</strong>.</p>
-  </div>
-  <div class="cover-footer">
-    <div class="meta-grid">
-      <span class="meta-label">Doanh nghiệp:</span><span class="meta-val">{{ name }}</span>
-      <span class="meta-label">Lĩnh vực:</span><span class="meta-val">{{ industry }}</span>
-      <span class="meta-label">Giai đoạn:</span><span class="meta-val">{{ stage }}</span>
-      <span class="meta-label">Ngày tạo:</span><span class="meta-val">{{ created_date }}</span>
+  <!-- ── COVER ── -->
+  <div class="cover">
+    <div class="cover-logo-row">
+      {% if logo_b64 %}<img class="cover-logo" src="{{ logo_b64 }}" alt="Vitba">{% endif %}
+      <span class="cover-logo-text">Vitba.ai</span>
     </div>
-    <div class="cover-tagline">Powered by Vitba Strategist AI</div>
+    <div class="cover-body">
+      <div class="cover-badge">Strategist AI Report</div>
+      <div class="cover-title">BÁO CÁO TƯ VẤN CHIẾN LƯỢC TOÀN DIỆN</div>
+      <p class="cover-subtitle">Chẩn đoán doanh nghiệp · Phân tích thị trường · Kế hoạch Marketing · Lộ trình 30–60–90
+        ngày cho <strong>{{ name }}</strong>.</p>
+    </div>
+    <div class="cover-footer">
+      <div class="meta-grid">
+        <span class="meta-label">Doanh nghiệp:</span><span class="meta-val">{{ name }}</span>
+        <span class="meta-label">Lĩnh vực:</span><span class="meta-val">{{ industry }}</span>
+        <span class="meta-label">Giai đoạn:</span><span class="meta-val">{{ stage }}</span>
+        <span class="meta-label">Ngày tạo:</span><span class="meta-val">{{ created_date }}</span>
+      </div>
+      <div class="cover-tagline">Powered by Vitba Strategist AI</div>
+    </div>
   </div>
-</div>
 
-<!-- ── CONTENT PAGES ── -->
-<div class="content-area">
-{% if markdown_raw %}
-  <div class="report-content" id="md-body"></div>
-  <script id="markdown-raw-data" type="text/plain">
-    {{ markdown_raw | tojson }}
-  </script>
-  <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      var mdEl = document.getElementById('markdown-raw-data');
-      var md = mdEl ? JSON.parse(mdEl.textContent) : "";
-      document.getElementById('md-body').innerHTML = marked.parse(md);
-    });
-  </script>
-{% else %}
-  <div class="report-content">
-    <h1>A. Executive Summary</h1>
-    <p>Báo cáo chiến lược toàn diện cho <strong>{{ name }}</strong> — ngành <strong>{{ industry }}</strong>. Sản phẩm: <strong>{{ product }}</strong> · Mô hình: <strong>{{ business_model }}</strong> · Giai đoạn: <strong>{{ stage }}</strong>.</p>
-    <h1>B. SWOT Analysis</h1>
-    <table><tr><th>Điểm mạnh</th><th>Điểm yếu</th></tr><tr><td>{{ strengths }}</td><td>{{ weaknesses }}</td></tr></table>
-    <h1>C. Market &amp; Customer</h1>
-    <p><strong>Thị trường:</strong> {{ target_market }}<br><strong>Khách hàng:</strong> {{ target_customer }}<br><strong>Đối thủ:</strong> {{ competitors }}</p>
-    <h1>D. Budget &amp; Resources</h1>
-    <p><strong>Nhân sự:</strong> {{ resources }}<br><strong>Ngân sách:</strong> {{ budget }}/tháng</p>
-    <h1>E. Roadmap 30–60–90 Days</h1>
-    <table><thead><tr><th>Mốc</th><th>Mục tiêu</th></tr></thead>
-    <tbody><tr><td>3 tháng</td><td>{{ goal_3m }}</td></tr>
-    <tr><td>6 tháng</td><td>{{ goal_6m }}</td></tr>
-    <tr><td>12 tháng</td><td>{{ goal_12m }}</td></tr></tbody></table>
+  <!-- ── CONTENT PAGES ── -->
+  <div class="content-area">
+    {% if markdown_raw %}
+    <div class="report-content" id="md-body"></div>
+    <script id="markdown-raw-data" type="text/plain">
+      {{ markdown_raw | tojson }}
+    </script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        var mdEl = document.getElementById('markdown-raw-data');
+        var md = mdEl ? JSON.parse(mdEl.textContent) : "";
+        document.getElementById('md-body').innerHTML = marked.parse(md);
+      });
+    </script>
+    {% else %}
+    <div class="report-content">
+      <h1>A. Executive Summary</h1>
+      <p>Báo cáo chiến lược toàn diện cho <strong>{{ name }}</strong> — ngành <strong>{{ industry }}</strong>. Sản phẩm:
+        <strong>{{ product }}</strong> · Mô hình: <strong>{{ business_model }}</strong> · Giai đoạn: <strong>{{ stage
+          }}</strong>.
+      </p>
+      <h1>B. SWOT Analysis</h1>
+      <table>
+        <tr>
+          <th>Điểm mạnh</th>
+          <th>Điểm yếu</th>
+        </tr>
+        <tr>
+          <td>{{ strengths }}</td>
+          <td>{{ weaknesses }}</td>
+        </tr>
+      </table>
+      <h1>C. Market &amp; Customer</h1>
+      <p><strong>Thị trường:</strong> {{ target_market }}<br><strong>Khách hàng:</strong> {{ target_customer
+        }}<br><strong>Đối thủ:</strong> {{ competitors }}</p>
+      <h1>D. Budget &amp; Resources</h1>
+      <p><strong>Nhân sự:</strong> {{ resources }}<br><strong>Ngân sách:</strong> {{ budget }}/tháng</p>
+      <h1>E. Roadmap 30–60–90 Days</h1>
+      <table>
+        <thead>
+          <tr>
+            <th>Mốc</th>
+            <th>Mục tiêu</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>3 tháng</td>
+            <td>{{ goal_3m }}</td>
+          </tr>
+          <tr>
+            <td>6 tháng</td>
+            <td>{{ goal_6m }}</td>
+          </tr>
+          <tr>
+            <td>12 tháng</td>
+            <td>{{ goal_12m }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    {% endif %}
+    <div class="report-footer">
+      <span>Tài liệu chiến lược nội bộ · Vitba.ai · Confidential</span>
+      <span>{{ created_date }}</span>
+    </div>
   </div>
-{% endif %}
-  <div class="report-footer">
-    <span>Tài liệu chiến lược nội bộ · Vitba.ai · Confidential</span>
-    <span>{{ created_date }}</span>
-  </div>
-</div>
 </body>
+
 </html>
