@@ -92,35 +92,13 @@ async def test_save_from_template_no_html(client, session_maker, promote):
 # ── Onboard endpoint (mocked LLM) ────────────────────────────────────
 
 
-@patch("app.llm.factory.get_chat_model")
+@patch("app.llm.factory.get_chat_model_for_tier")
 async def test_onboard_generate(mock_get_model, client, session_maker, promote):
-    from unittest.mock import MagicMock
+    from unittest.mock import MagicMock, AsyncMock
     mock_llm = MagicMock()
-    mock_structured = MagicMock()
     mock_resp = MagicMock()
-    mock_resp.model_dump.return_value = {
-        "brand_name": "TestBrand",
-        "hero_title": "Test Hero",
-        "hero_subtitle": "Test Subtitle",
-        "hero_cta_text": "Get Started",
-        "hero_cta_link": "#",
-        "about_title": "About",
-        "about_text": "About text",
-        "cta_title": "CTA",
-        "cta_text": "CTA text",
-        "cta_button_text": "Sign Up",
-        "cta_button_link": "#",
-        "contact_phone": "",
-        "contact_email": "",
-        "contact_address": "",
-        "social_facebook": "",
-        "social_twitter": "",
-        "social_instagram": "",
-        "social_linkedin": "",
-                "footer_copyright": "© 2026 TestBrand",
-    }
-    mock_structured.ainvoke = AsyncMock(return_value=mock_resp)
-    mock_llm.with_structured_output.return_value = mock_structured
+    mock_resp.content = "<!DOCTYPE html>\n<html><body>Onboard HTML</body></html>"
+    mock_llm.ainvoke = AsyncMock(return_value=mock_resp)
     mock_get_model.return_value = mock_llm
 
     token, uid = await _register(client)

@@ -95,7 +95,7 @@ async def check_daily_generation_limit(session: AsyncSession, user: User) -> tup
     limits = get_limits(user)
     limit = limits["daily_generations"]
 
-    today_start = datetime.combine(date.today(), datetime.min.time(), tzinfo=timezone.utc)
+    today_start = datetime.combine(datetime.now(timezone.utc).date(), datetime.min.time(), tzinfo=timezone.utc)
     count_result = await session.execute(
         select(func.count(GenerationJob.id))
         .join(Project, GenerationJob.project_id == Project.id)
@@ -133,7 +133,7 @@ async def check_daily_email_sends(session: AsyncSession, user: User) -> tuple[bo
     if limit <= 0:
         return False, 0, 0
 
-    today_start = datetime.combine(date.today(), datetime.min.time(), tzinfo=timezone.utc)
+    today_start = datetime.combine(datetime.now(timezone.utc).date(), datetime.min.time(), tzinfo=timezone.utc)
     count_result = await session.execute(
         select(func.count(AuditLog.id)).where(
             AuditLog.user_id == user.id,
@@ -154,7 +154,7 @@ async def check_daily_landing_generates(session: AsyncSession, user: User) -> tu
     if limit <= 0:
         return False, 0, 0
 
-    today_start = datetime.combine(date.today(), datetime.min.time(), tzinfo=timezone.utc)
+    today_start = datetime.combine(datetime.now(timezone.utc).date(), datetime.min.time(), tzinfo=timezone.utc)
     count_result = await session.execute(
         select(func.count(AuditLog.id)).where(
             AuditLog.user_id == user.id,
@@ -174,7 +174,7 @@ async def check_lab_daily_limit(session: AsyncSession, user: User) -> tuple[bool
     if limit == 0:
         return False, 0, 0
 
-    today_start = datetime.combine(date.today(), datetime.min.time(), tzinfo=timezone.utc)
+    today_start = datetime.combine(datetime.now(timezone.utc).date(), datetime.min.time(), tzinfo=timezone.utc)
     count_result = await session.execute(
         select(func.count(AuditLog.id)).where(
             AuditLog.user_id == user.id,
