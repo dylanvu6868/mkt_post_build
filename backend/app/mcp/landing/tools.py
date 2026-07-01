@@ -120,7 +120,7 @@ Nhiệm vụ: tạo landing page HTML hoàn chỉnh, responsive, đẹp, chuyể
 1. HTML hoàn chỉnh với inline CSS trong <style> tag
 2. Responsive, mobile-first, sử dụng CSS Grid/Flexbox
 3. Sử dụng Tailwind CSS qua CDN: <script src="https://cdn.tailwindcss.com"></script>
-4. Nếu có logo/hero image URL, dùng <img src="URL"> trực tiếp
+4. VỀ HÌNH ẢNH: Nếu có cung cấp URL ảnh (logo, hero), dùng trực tiếp. NẾU KHÔNG CUNG CẤP URL, TUYỆT ĐỐI KHÔNG TỰ BỊA ĐƯỜNG DẪN ẢNH (hãy dùng dạng Text để hiển thị tên Brand).
 5. Smooth animations, hover effects, gradient accents
 6. Typography hierarchy rõ ràng, font Google Fonts
 7. Các sections cần có: {sections_str}
@@ -395,7 +395,7 @@ Nhiệm vụ: tạo landing page HTML hoàn chỉnh, responsive, đẹp, chuyể
 1. HTML hoàn chỉnh với inline CSS trong <style> tag
 2. Responsive, mobile-first, sử dụng CSS Grid/Flexbox
 3. Sử dụng Tailwind CSS qua CDN: <script src="https://cdn.tailwindcss.com"></script>
-4. Nếu có logo/hero image URL, dùng <img src="URL"> trực tiếp
+4. VỀ HÌNH ẢNH: Nếu có cung cấp URL ảnh (logo, hero), dùng trực tiếp. NẾU KHÔNG CUNG CẤP URL, TUYỆT ĐỐI KHÔNG TỰ BỊA ĐƯỜNG DẪN ẢNH (hãy dùng dạng Text để hiển thị tên Brand).
 5. Smooth animations, hover effects, gradient accents
 6. Typography hierarchy rõ ràng, sử dụng font thuộc họ: {body.typography}
 7. Tất cả sections phải đầy đủ nội dung (không placeholder)

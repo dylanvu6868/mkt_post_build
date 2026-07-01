@@ -101,7 +101,7 @@ Nhiệm vụ: tạo email HTML hoàn chỉnh, responsive, đẹp, chuyển đổ
 1. Bắt buộc dùng table layout (<table>, <tr>, <td>) thay vì div flex/grid để đảm bảo tương thích với Outlook/Gmail.
 2. Tất cả CSS phải là inline CSS trong các thẻ HTML (style="...").
 3. Bắt buộc có thẻ <!DOCTYPE html> ở đầu.
-4. Mọi hình ảnh (nếu có logo) phải dùng thẻ <img> với thuộc tính width/height, alt rõ ràng và display:block.
+4. VỀ HÌNH ẢNH: Nếu có cung cấp URL ảnh (logo, banner), dùng thẻ <img> với thuộc tính width/height, alt. NẾU KHÔNG CUNG CẤP URL LOGO, TUYỆT ĐỐI KHÔNG TỰ BỊA ĐƯỜNG DẪN ẢNH (hãy dùng dạng Text để hiển thị tên Brand).
 5. Viết nội dung bằng tiếng Việt chuyên nghiệp, hấp dẫn.
 6. KHÔNG dùng markdown fence. Chỉ trả về mã nguồn HTML thuần túy.
 7. Đảm bảo cấu trúc đầy đủ: Header, Hero, Nội dung chính, Nút CTA nổi bật và Footer."""
@@ -173,7 +173,7 @@ Nhiệm vụ: tạo email HTML hoàn chỉnh, responsive, đẹp, chuyển đổ
 1. Bắt buộc dùng table layout (<table>, <tr>, <td>) thay vì div flex/grid để đảm bảo tương thích với Outlook/Gmail.
 2. Tất cả CSS phải là inline CSS trong các thẻ HTML (style="...").
 3. Bắt buộc có thẻ <!DOCTYPE html> ở đầu.
-4. Mọi hình ảnh (nếu có logo) phải dùng thẻ <img> với thuộc tính width/height, alt rõ ràng và display:block.
+4. VỀ HÌNH ẢNH: Nếu có cung cấp URL ảnh (logo, banner), dùng thẻ <img> với thuộc tính width/height, alt. NẾU KHÔNG CUNG CẤP URL LOGO, TUYỆT ĐỐI KHÔNG TỰ BỊA ĐƯỜNG DẪN ẢNH (hãy dùng dạng Text để hiển thị tên Brand).
 5. Viết nội dung bằng tiếng Việt chuyên nghiệp, hấp dẫn.
 6. KHÔNG dùng markdown fence. Chỉ trả về mã nguồn HTML thuần túy.
 7. Cấu trúc đầy đủ, bao gồm Header, phần giải quyết bài toán/mục đích của email, và Footer."""
