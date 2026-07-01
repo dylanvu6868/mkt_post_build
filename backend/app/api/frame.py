@@ -11,6 +11,8 @@ from app.models.user import User
 from app.core.db import async_session_maker
 from app.models.lab_history import LabHistory
 from app.core.config import settings
+from app.llm.factory import get_chat_model_for_tier as get_chat_model
+from langchain_core.messages import SystemMessage, HumanMessage
 
 try:
     from google import genai
@@ -22,6 +24,20 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/frame", tags=["Frame"])
+
+async def enhance_prompt(original_prompt: str, media_type: str) -> str:
+    llm = get_chat_model("fast")
+    if media_type == "image":
+        system = """Bạn là một chuyên gia viết prompt (Prompt Engineer) cho AI tạo ảnh nghệ thuật.
+Nhiệm vụ: Viết lại/Mở rộng yêu cầu của người dùng thành một prompt tạo ảnh (banner quảng cáo, marketing, minh họa) thật chi tiết, chất lượng cao, mô tả rõ ánh sáng, màu sắc, phong cách (style).
+BẮT BUỘC TRẢ VỀ BẰNG TIẾNG ANH. CHỈ TRẢ VỀ NỘI DUNG PROMPT, KHÔNG GIẢI THÍCH, KHÔNG MARKDOWN."""
+    else:
+        system = """Bạn là một chuyên gia viết prompt (Prompt Engineer) cho AI tạo video (như Sora).
+Nhiệm vụ: Viết lại/Mở rộng yêu cầu của người dùng thành một prompt tạo video quảng cáo hoặc video marketing chất lượng cao, chuẩn điện ảnh (cinematic), mượt mà, mô tả rõ chuyển động camera, ánh sáng, màu sắc.
+BẮT BUỘC TRẢ VỀ BẰNG TIẾNG ANH. CHỈ TRẢ VỀ NỘI DUNG PROMPT, KHÔNG GIẢI THÍCH, KHÔNG MARKDOWN."""
+
+    resp = await llm.ainvoke([SystemMessage(content=system), HumanMessage(content=original_prompt)])
+    return resp.content.strip()
 
 class GenerateImageRequest(BaseModel):
     prompt: str
@@ -39,11 +55,13 @@ async def generate_image(request: GenerateImageRequest, current_user: User = Dep
         raise HTTPException(status_code=500, detail="Missing Beeknoee API key")
 
     try:
+        enhanced_prompt = await enhance_prompt(request.prompt, "image")
+        
         import httpx
         async with httpx.AsyncClient(timeout=120.0) as client:
             headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
             payload = {
-                "prompt": request.prompt,
+                "prompt": enhanced_prompt,
                 "model": request.model,
                 "size": request.size,
                 "n": 1
@@ -74,7 +92,7 @@ async def generate_image(request: GenerateImageRequest, current_user: User = Dep
             history_entry = LabHistory(
                 user_id=current_user.id,
                 tool_name="frame_image",
-                input_data=request.model_dump(),
+                input_data={**request.model_dump(), "enhanced_prompt": enhanced_prompt},
                 output_data={"b64_json": b64_json[:100] + "..."} # limit storage size for history if needed, but previously full b64 was stored.
             )
             history_entry.output_data = {"b64_json": b64_json}
@@ -105,11 +123,13 @@ async def generate_video(request: GenerateVideoRequest, current_user: User = Dep
         raise HTTPException(status_code=500, detail="Missing beeknoee_api_key")
 
     try:
+        enhanced_prompt = await enhance_prompt(request.prompt, "video")
+        
         import httpx
         async with httpx.AsyncClient(timeout=120.0) as client:
             headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
             payload = {
-                "prompt": request.prompt,
+                "prompt": enhanced_prompt,
                 "model": request.model
             }
             resp = await client.post("https://platform.beeknoee.com/api/v1/video/generations", headers=headers, json=payload)
