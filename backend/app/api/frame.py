@@ -112,7 +112,10 @@ async def generate_image(request: GenerateImageRequest, current_user: User = Dep
         return GenerateImageResponse(b64_json=b64_json)
     except Exception as e:
         logger.error(f"Image generation error: {e}")
-        raise HTTPException(status_code=500, detail=f"Image generation failed: {str(e)}")
+        error_msg = str(e)
+        if "Số dư không đủ" in error_msg or "invalid_request" in error_msg:
+            raise HTTPException(status_code=500, detail="Tạm thời bị gián đoạn, vui lòng chờ trong chốc lát!")
+        raise HTTPException(status_code=500, detail=f"Image generation failed: {error_msg}")
 
 class InvoiceExtractResponse(BaseModel):
     status: str
