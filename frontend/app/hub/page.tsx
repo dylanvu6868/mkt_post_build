@@ -18,6 +18,7 @@ import {
   LayoutGrid,
   type LucideIcon,
 } from "lucide-react";
+import AnalyticsPage from "./analytics/page";
 import { FacebookIcon } from "@/components/brand-icons";
 
 type ToolIcon = LucideIcon | ((props: { size?: number; className?: string }) => JSX.Element);
@@ -154,6 +155,13 @@ export default function HubOverviewPage() {
           })}
         </div>
       </div>
+
+      {/* Analytics gộp vào Tổng quan — biểu đồ chi tiết ngay dưới công cụ */}
+      {!analyticsLocked && (
+        <div className="border-t border-border pt-8">
+          <AnalyticsPage />
+        </div>
+      )}
     </div>
   );
 }

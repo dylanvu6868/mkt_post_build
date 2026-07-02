@@ -35,7 +35,6 @@ const NAV = [
   { label: "Lịch sử của tôi", href: "/hub/history", icon: "history", toolKey: null },
   { label: "Meta Publisher", href: "/hub/meta", icon: "meta", toolKey: "meta" },
   { label: "Content Calendar", href: "/hub/calendar", icon: "calendar", toolKey: "calendar" },
-  { label: "Analytics", href: "/hub/analytics", icon: "analytics", toolKey: "analytics" },
 ];
 
 const LAB_NAV = [
