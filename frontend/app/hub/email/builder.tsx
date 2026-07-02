@@ -501,7 +501,7 @@ export function MailBuilder({ onSendTest }: { onSendTest?: (html: string) => voi
                 Cấu hình & Gửi
               </button>
             </DialogTrigger>
-            <DialogContent className="max-w-xl p-6">
+            <DialogContent className="max-w-xl max-h-[85vh] overflow-y-auto p-6">
               <DialogHeader>
                 <DialogTitle>Gửi Email</DialogTitle>
               </DialogHeader>

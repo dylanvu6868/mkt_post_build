@@ -18,6 +18,8 @@ import {
   Monitor,
   Smartphone,
   FileText,
+  Code,
+  Eye,
 } from "lucide-react";
 import { btn, btnOutline, inp } from "@/lib/ui-tokens";
 import { useLocalDraft } from "@/hooks/use-local-draft";
@@ -294,6 +296,31 @@ export function LandingBuilder({ onSaved }: { onSaved?: () => void }) {
     }
   };
 
+  // Editor state (đồng bộ với Mail Builder)
+  const [viewMode, setViewMode] = useState<"preview" | "code">("preview");
+  const [aiPrompt, setAiPrompt] = useState("");
+  const [modifying, setModifying] = useState(false);
+
+  const handleAiModify = async () => {
+    if (!aiPrompt.trim() || !previewHtml) return;
+    setModifying(true);
+    try {
+      const res = await api.post<{ html: string }>("/mcp/landing/modify", {
+        current_html: getCleanHtml(),
+        prompt: aiPrompt,
+      });
+      setPreviewHtml(res.html);
+      editableHtmlRef.current = "";
+      setAiPrompt("");
+      setLiveTick((t) => t + 1); // trigger autosave bản nháp
+      toast.success("Đã chỉnh sửa theo yêu cầu!");
+    } catch {
+      toast.error("Lỗi khi chỉnh sửa");
+    } finally {
+      setModifying(false);
+    }
+  };
+
   const canNext = () => {
     if (step === "purpose") return purpose !== "" && (purpose !== "Other" || customPurpose.trim());
     if (step === "content") return targetAudience.trim() !== "" || keyFeatures.trim() !== "" || contactInfo.trim() !== "";
@@ -376,15 +403,76 @@ export function LandingBuilder({ onSaved }: { onSaved?: () => void }) {
           </div>
         )}
 
-        {/* Preview iframe */}
-        <div className="flex-1 overflow-hidden rounded-xl border border-border bg-white min-h-0">
-          <iframe
-            srcDoc={injectedHtml}
-            className="h-full w-full border-0"
-            style={{ maxWidth: previewMode === "mobile" ? "390px" : "100%", margin: "0 auto", display: "block" }}
-            title="Landing Preview"
-            sandbox="allow-same-origin allow-scripts"
-          />
+        {/* Editor tabs & live-edit badge (đồng bộ với Mail Builder) */}
+        <div className="flex items-center justify-between px-2">
+          <div className="flex items-center gap-1 rounded-md border border-border bg-card/50 p-1">
+            <button
+              onClick={() => setViewMode("preview")}
+              className={`flex items-center gap-1.5 rounded px-3 py-1 text-xs font-medium transition-colors ${viewMode === "preview" ? "bg-background shadow text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+            >
+              <Eye className="h-3.5 w-3.5" />
+              Preview (Click sửa chữ)
+            </button>
+            <button
+              onClick={() => setViewMode("code")}
+              className={`flex items-center gap-1.5 rounded px-3 py-1 text-xs font-medium transition-colors ${viewMode === "code" ? "bg-background shadow text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+            >
+              <Code className="h-3.5 w-3.5" />
+              Mã nguồn (HTML)
+            </button>
+          </div>
+          {viewMode === "preview" && (
+            <div className="flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-[11px] font-medium text-primary">
+              <Sparkles className="h-3 w-3" />
+              Bật chế độ sửa: Click vào văn bản bất kỳ để sửa chữ
+            </div>
+          )}
+        </div>
+
+        {/* Content area */}
+        <div className="relative flex-1 overflow-hidden rounded-xl border border-border bg-white min-h-0 flex flex-col">
+          {viewMode === "preview" ? (
+            <iframe
+              srcDoc={injectedHtml}
+              className="h-full w-full border-0"
+              style={{ maxWidth: previewMode === "mobile" ? "390px" : "100%", margin: "0 auto", display: "block" }}
+              title="Landing Preview"
+              sandbox="allow-same-origin allow-scripts"
+            />
+          ) : (
+            <textarea
+              className="h-full w-full resize-none bg-slate-900 p-4 font-mono text-sm text-slate-50 outline-none"
+              value={previewHtml}
+              onChange={(e) => { setPreviewHtml(e.target.value); editableHtmlRef.current = ""; setLiveTick((t) => t + 1); }}
+              spellCheck={false}
+            />
+          )}
+
+          {/* AI Modifier Bar */}
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 w-[90%] max-w-2xl">
+            <div className="flex items-center gap-2 rounded-full border border-border bg-background/90 p-2 shadow-lg backdrop-blur-md">
+              <Sparkles className="ml-3 h-5 w-5 text-primary" />
+              <input
+                className="flex-1 bg-transparent px-2 text-sm outline-none placeholder:text-muted-foreground text-foreground"
+                placeholder="Ví dụ: Đổi nền thành màu tối, thêm phần FAQ ở cuối trang..."
+                value={aiPrompt}
+                onChange={(e) => setAiPrompt(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    handleAiModify();
+                  }
+                }}
+              />
+              <button
+                onClick={handleAiModify}
+                disabled={modifying || !aiPrompt.trim()}
+                className="flex h-8 items-center justify-center rounded-full bg-primary px-4 text-xs font-semibold text-primary-foreground transition-all hover:bg-primary/90 disabled:opacity-50"
+              >
+                {modifying ? <Loader2 className="h-4 w-4 animate-spin" /> : "Sửa bằng AI"}
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     );
