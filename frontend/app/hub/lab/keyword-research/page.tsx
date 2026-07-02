@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useLocalDraft } from "@/hooks/use-local-draft";
 import { useLabTool } from "@/hooks/use-lab-tool";
 import { LabBreadcrumb, ToolHeader, RunButton, ErrorBox, ResultBox, LabInput } from "@/components/lab-ui";
 import { Search, TrendingUp, DollarSign, Activity, Sparkles } from "lucide-react";
@@ -211,7 +211,7 @@ function KeywordTable({ items, title }: { items: KeywordItem[]; title: string })
 }
 
 export default function KeywordResearchPage() {
-  const [keyword, setKeyword] = useState("");
+  const [keyword, setKeyword] = useLocalDraft("vitba_lab_draft_keyword-research_keyword", "");
   const locationCode = 2840;
   const { run, result, loading, error } = useLabTool<KeywordResearchResult>("/keyword-research");
 

@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { useLocalDraft } from "@/hooks/use-local-draft";
 import { useLabTool } from "@/hooks/use-lab-tool";
 import { LabBreadcrumb, ToolHeader, RunButton, ErrorBox, LabTextarea, ChipGroup } from "@/components/lab-ui";
 
@@ -12,8 +13,8 @@ const SEVERITY_COLOR: Record<string, string> = {
   "Thấp": "text-emerald-500", "Trung bình": "text-amber-500", "Cao": "text-red-500", "Nguy hiểm": "text-red-600",
 };
 
-export default function BlindspotPage() {const [content, setContent] = useState("");
-  const [region, setRegion] = useState(REGIONS[0]);
+export default function BlindspotPage() {const [content, setContent] = useLocalDraft("vitba_lab_draft_blindspot_content", "");
+  const [region, setRegion] = useLocalDraft("vitba_lab_draft_blindspot_region", REGIONS[0]);
   const [copied, setCopied] = useState(false);
   const { run, result, loading, error } = useLabTool<BlindspotResult>("/blindspot");
 

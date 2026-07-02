@@ -208,13 +208,17 @@ async def modify_landing_html(
     session: AsyncSession = Depends(get_session),
 ):
     """Modify existing landing page HTML using AI based on a prompt."""
-    from app.services.llm import generate_structured
+    from app.llm.factory import get_chat_model_for_tier as get_chat_model, provider_available
+    from app.mcp.landing.template_engine import extract_html_from_response
+    if not provider_available():
+        raise HTTPException(503, "LLM provider not configured")
 
     system_msg = (
         "You are an expert Frontend Developer proficient in Tailwind CSS. "
         "The user will provide you with their current HTML landing page code, and a prompt describing what they want to change. "
         "You must apply the requested changes to the HTML. Keep all existing Tailwind classes intact unless the prompt specifically requires changing them. "
-        "Respond ONLY with the modified valid HTML code inside ```html ... ``` block. No markdown or explanations outside."
+        "Do NOT invent new image URLs; keep existing image URLs as-is. "
+        "Respond ONLY with the modified valid HTML code, starting with <!DOCTYPE html>. No markdown fences or explanations."
     )
 
     user_msg = (
@@ -224,12 +228,11 @@ async def modify_landing_html(
     )
 
     try:
-        raw_response = await generate_structured(
-            system_msg=system_msg,
-            user_msg=user_msg,
-            response_schema=None,
-            model_tier="smart"
-        )
+        from langchain_core.messages import SystemMessage, HumanMessage
+        with trace_request("landing.modify", user_id=user.id, metadata={"prompt": body.prompt[:200]}):
+            llm = get_chat_model("smart", max_tokens=8192)
+            resp = await llm.ainvoke([SystemMessage(content=system_msg), HumanMessage(content=user_msg)])
+        raw_response = resp.content if isinstance(resp.content, str) else str(resp.content)
         html = extract_html_from_response(raw_response)
         
         # Ensure we keep the live edit script if it existed

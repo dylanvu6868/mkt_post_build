@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useLocalDraft } from "@/hooks/use-local-draft";
 import { useLabTool } from "@/hooks/use-lab-tool";
 import { LabBreadcrumb, ToolHeader, RunButton, ErrorBox, ResultBox, LabInput, ChipGroup } from "@/components/lab-ui";
 
@@ -12,9 +12,9 @@ interface InfluencerResult {
 }
 
 export default function InfluencerPage() {
-  const [niche, setNiche] = useState("");
-  const [budget, setBudget] = useState("5-20 triệu VND");
-  const [platform, setPlatform] = useState<"TikTok" | "Instagram" | "Facebook" | "YouTube">("TikTok");
+  const [niche, setNiche] = useLocalDraft("vitba_lab_draft_influencer_niche", "");
+  const [budget, setBudget] = useLocalDraft("vitba_lab_draft_influencer_budget", "5-20 triệu VND");
+  const [platform, setPlatform] = useLocalDraft<"TikTok" | "Instagram" | "Facebook" | "YouTube">("vitba_lab_draft_influencer_platform", "TikTok");
   const { run, result, loading, error } = useLabTool<InfluencerResult>("/influencer");
 
   return (

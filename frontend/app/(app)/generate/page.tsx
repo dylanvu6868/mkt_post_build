@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useProjectStore } from "@/store/project";
 import { useGenerate } from "@/hooks/use-generate";
+import { useLocalDraft } from "@/hooks/use-local-draft";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -230,9 +231,9 @@ export default function GeneratePage() {
       locked: false,
     }));
 
-  const [brief, setBrief] = useState("");
-  const [goal, setGoal] = useState("");
-  const [contentType, setContentType] = useState("facebook_post");
+  const [brief, setBrief] = useLocalDraft("vitba_generate_draft_brief", "");
+  const [goal, setGoal] = useLocalDraft("vitba_generate_draft_goal", "");
+  const [contentType, setContentType] = useLocalDraft("vitba_generate_draft_type", "facebook_post");
   const [loading, setLoading] = useState(false);
   
   const scrollRef = useRef<HTMLDivElement>(null);

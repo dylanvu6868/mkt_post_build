@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { useLocalDraft } from "@/hooks/use-local-draft";
 import { useLabTool } from "@/hooks/use-lab-tool";
 import { LabBreadcrumb, ToolHeader, RunButton, ErrorBox, LabTextarea, ChipGroup } from "@/components/lab-ui";
 
@@ -7,7 +8,7 @@ import { LabBreadcrumb, ToolHeader, RunButton, ErrorBox, LabTextarea, ChipGroup 
 interface ReverseResult { analysis: string; reversed_hook: string; reversed_content: string; psychology_used: string; }
 
 export default function ReversePage() {
-  const [content, setContent] = useState("");
+  const [content, setContent] = useLocalDraft("vitba_lab_draft_reverse_content", "");
   const [copied, setCopied] = useState(false);
   const { run, result, loading, error } = useLabTool<ReverseResult>("/reverse");
 

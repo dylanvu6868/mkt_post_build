@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { useLocalDraft } from "@/hooks/use-local-draft";
 import { useLabTool } from "@/hooks/use-lab-tool";
 import { LabBreadcrumb, ToolHeader, RunButton, ErrorBox, ResultBox, LabTextarea } from "@/components/lab-ui";
 
@@ -13,7 +14,7 @@ const REGION_COLORS: Record<string, string> = {
 };
 
 export default function DialectPage() {
-  const [content, setContent] = useState("");
+  const [content, setContent] = useLocalDraft("vitba_lab_draft_dialect_content", "");
   const { run, result, loading, error } = useLabTool<DialectResult>("/dialect");
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
 

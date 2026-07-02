@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { useLocalDraft } from "@/hooks/use-local-draft";
 import { useLabTool } from "@/hooks/use-lab-tool";
 import { LabBreadcrumb, ToolHeader, RunButton, ErrorBox, ResultBox, LabTextarea } from "@/components/lab-ui";
 
@@ -10,8 +11,8 @@ interface DNAResult {
 }
 
 export default function DNAPage() {
-  const [viralContent, setViralContent] = useState("");
-  const [userTopic, setUserTopic] = useState("");
+  const [viralContent, setViralContent] = useLocalDraft("vitba_lab_draft_dna_viralContent", "");
+  const [userTopic, setUserTopic] = useLocalDraft("vitba_lab_draft_dna_userTopic", "");
   const [copied, setCopied] = useState(false);
   const { run, result, loading, error } = useLabTool<DNAResult>("/dna");
 

@@ -20,6 +20,19 @@ import {
   FileText,
 } from "lucide-react";
 import { btn, btnOutline, inp } from "@/lib/ui-tokens";
+import { useLocalDraft } from "@/hooks/use-local-draft";
+
+const WIZARD_DRAFT_PREFIX = "vitba_landing_wizard_";
+const WIZARD_DRAFT_FIELDS = [
+  "purpose", "customPurpose", "colorPalette", "customColor", "fontPair", "customFont",
+  "brandName", "logoUrl", "targetAudience", "keyFeatures", "contactInfo", "title",
+] as const;
+
+function clearWizardDraft() {
+  try {
+    WIZARD_DRAFT_FIELDS.forEach((f) => localStorage.removeItem(WIZARD_DRAFT_PREFIX + f));
+  } catch {}
+}
 
 /* ------------------------------------------------------------------ */
 /*  Wizard data                                                         */
@@ -69,40 +82,64 @@ export function LandingBuilder({ onSaved }: { onSaved?: () => void }) {
   const [step, setStep] = useState<Step>("purpose");
   const [stepIndex, setStepIndex] = useState(0);
 
-  // Answers
-  const [purpose, setPurpose] = useState("");
-  const [customPurpose, setCustomPurpose] = useState("");
-  const [colorPalette, setColorPalette] = useState("");
-  const [customColor, setCustomColor] = useState("");
-  const [fontPair, setFontPair] = useState("");
-  const [customFont, setCustomFont] = useState("");
-  const [brandName, setBrandName] = useState("");
-  const [logoUrl, setLogoUrl] = useState("");
+  // Answers (autosave localStorage — khôi phục nếu thoát giữa chừng)
+  const [purpose, setPurpose] = useLocalDraft(WIZARD_DRAFT_PREFIX + "purpose", "");
+  const [customPurpose, setCustomPurpose] = useLocalDraft(WIZARD_DRAFT_PREFIX + "customPurpose", "");
+  const [colorPalette, setColorPalette] = useLocalDraft(WIZARD_DRAFT_PREFIX + "colorPalette", "");
+  const [customColor, setCustomColor] = useLocalDraft(WIZARD_DRAFT_PREFIX + "customColor", "");
+  const [fontPair, setFontPair] = useLocalDraft(WIZARD_DRAFT_PREFIX + "fontPair", "");
+  const [customFont, setCustomFont] = useLocalDraft(WIZARD_DRAFT_PREFIX + "customFont", "");
+  const [brandName, setBrandName] = useLocalDraft(WIZARD_DRAFT_PREFIX + "brandName", "");
+  const [logoUrl, setLogoUrl] = useLocalDraft(WIZARD_DRAFT_PREFIX + "logoUrl", "");
   const [uploadingLogo, setUploadingLogo] = useState(false);
-  
+
   // Content details
-  const [targetAudience, setTargetAudience] = useState("");
-  const [keyFeatures, setKeyFeatures] = useState("");
-  const [contactInfo, setContactInfo] = useState("");
+  const [targetAudience, setTargetAudience] = useLocalDraft(WIZARD_DRAFT_PREFIX + "targetAudience", "");
+  const [keyFeatures, setKeyFeatures] = useLocalDraft(WIZARD_DRAFT_PREFIX + "keyFeatures", "");
+  const [contactInfo, setContactInfo] = useLocalDraft(WIZARD_DRAFT_PREFIX + "contactInfo", "");
 
   // Generation
   const [previewHtml, setPreviewHtml] = useState("");
   const [generating, setGenerating] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [title, setTitle] = useState("");
+  const [title, setTitle] = useLocalDraft(WIZARD_DRAFT_PREFIX + "title", "");
   const [previewMode, setPreviewMode] = useState<"desktop" | "mobile">("desktop");
-  
+
+  // Bản nháp DB (autosave sau khi AI generate)
+  const [savedPageId, setSavedPageId] = useState<number | null>(null);
+  const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
+  const [liveTick, setLiveTick] = useState(0);
+
   const editableHtmlRef = useRef("");
 
   useEffect(() => {
     const handleMessage = (e: MessageEvent) => {
       if (e.data?.type === "html_update") {
         editableHtmlRef.current = e.data.html;
+        setLiveTick((t) => t + 1);
       }
     };
     window.addEventListener("message", handleMessage);
     return () => window.removeEventListener("message", handleMessage);
   }, []);
+
+  const getCleanHtml = () => {
+    const finalHtml = editableHtmlRef.current || previewHtml;
+    return finalHtml.replace(/<script id="live-edit-script">[\s\S]*?<\/script>/, "");
+  };
+
+  // Autosave chỉnh sửa trực tiếp (live edit) vào bản nháp DB — debounce 3s
+  useEffect(() => {
+    if (!savedPageId || liveTick === 0) return;
+    const t = setTimeout(async () => {
+      try {
+        await api.patch(`/mcp/landing/pages/${savedPageId}`, { html_content: getCleanHtml() });
+        setLastSavedAt(new Date());
+      } catch {}
+    }, 3000);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [liveTick, savedPageId]);
 
   const injectedHtml = useMemo(() => {
     if (!previewHtml) return "";
@@ -173,7 +210,22 @@ export function LandingBuilder({ onSaved }: { onSaved?: () => void }) {
       });
       setPreviewHtml(res.html);
       editableHtmlRef.current = ""; // Reset ref on new generation
-      setTitle(finalPurpose.slice(0, 50));
+      const autoTitle = finalPurpose.slice(0, 50);
+      setTitle(autoTitle);
+
+      // Tự động lưu bản nháp vào DB ngay sau khi AI tạo xong — không mất khi thoát
+      try {
+        const created = await api.post<{ id: number }>("/mcp/landing/save-from-template", {
+          title: autoTitle || "Bản nháp Landing",
+          slug: `draft-${Date.now()}`,
+          html: res.html,
+        });
+        setSavedPageId(created.id);
+        setLastSavedAt(new Date());
+        toast.success("Đã tự lưu bản nháp — xem lại ở tab Danh sách");
+      } catch {
+        /* autosave lỗi không chặn luồng chính */
+      }
     } catch {
       toast.error("Tạo thất bại, thử lại");
     } finally {
@@ -186,9 +238,16 @@ export function LandingBuilder({ onSaved }: { onSaved?: () => void }) {
     if (!finalHtml) return;
     setSaving(true);
     // Remove the injected script before saving
-    const cleanHtml = finalHtml.replace(/<script id="live-edit-script">[\s\S]*?<\/script>/, "");
+    const cleanHtml = getCleanHtml();
     try {
-      await api.post("/mcp/landing/save-from-template", { title, html: cleanHtml });
+      if (savedPageId) {
+        await api.patch(`/mcp/landing/pages/${savedPageId}`, { title, html_content: cleanHtml });
+      } else {
+        const created = await api.post<{ id: number }>("/mcp/landing/save-from-template", { title, html: cleanHtml });
+        setSavedPageId(created.id);
+      }
+      setLastSavedAt(new Date());
+      clearWizardDraft();
       toast.success("Đã lưu landing page");
       onSaved?.();
     } catch {
@@ -248,7 +307,12 @@ export function LandingBuilder({ onSaved }: { onSaved?: () => void }) {
               <Smartphone className="h-4 w-4" />
             </button>
           </div>
-          <button onClick={() => { setPreviewHtml(""); setStep("purpose"); setStepIndex(0); }} className={btnOutline}>
+          {lastSavedAt && (
+            <span className="whitespace-nowrap text-[11px] text-muted-foreground">
+              Đã tự lưu {lastSavedAt.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })}
+            </span>
+          )}
+          <button onClick={() => { setPreviewHtml(""); setStep("purpose"); setStepIndex(0); setSavedPageId(null); setLiveTick(0); editableHtmlRef.current = ""; }} className={btnOutline}>
             Tạo lại
           </button>
           <button onClick={handleSave} disabled={saving} className={`${btn} whitespace-nowrap`}>

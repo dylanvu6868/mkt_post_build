@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { useLocalDraft } from "@/hooks/use-local-draft";
 import { useLabTool } from "@/hooks/use-lab-tool";
 import { LabBreadcrumb, ToolHeader, RunButton, ErrorBox, ResultBox, LabTextarea } from "@/components/lab-ui";
 import { inp } from "@/lib/ui-tokens";
@@ -15,8 +16,8 @@ const FORMAT_PRESETS = [
 ];
 
 export default function RepurposerPage() {
-  const [content, setContent] = useState("");
-  const [formats, setFormats] = useState(FORMAT_PRESETS[0]);
+  const [content, setContent] = useLocalDraft("vitba_lab_draft_repurposer_content", "");
+  const [formats, setFormats] = useLocalDraft("vitba_lab_draft_repurposer_formats", FORMAT_PRESETS[0]);
   const { run, result, loading, error } = useLabTool<RepurposerResult>("/repurposer");
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
 

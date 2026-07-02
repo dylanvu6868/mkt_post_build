@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { useLocalDraft } from "@/hooks/use-local-draft";
 import { useLabTool } from "@/hooks/use-lab-tool";
 import { LabBreadcrumb, ToolHeader, RunButton, ErrorBox, LabTextarea, ScoreBar } from "@/components/lab-ui";
 
@@ -10,7 +11,7 @@ interface ShieldResult {
 }
 
 export default function ShieldPage() {
-  const [content, setContent] = useState("");
+  const [content, setContent] = useLocalDraft("vitba_lab_draft_shield_content", "");
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
   const { run, result, loading, error } = useLabTool<ShieldResult>("/shield");
 

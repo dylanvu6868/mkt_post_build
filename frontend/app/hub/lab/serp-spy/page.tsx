@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useLocalDraft } from "@/hooks/use-local-draft";
 import { useLabTool } from "@/hooks/use-lab-tool";
 import { LabBreadcrumb, ToolHeader, RunButton, ErrorBox, ResultBox, LabInput } from "@/components/lab-ui";
 import { Crosshair, Globe, ExternalLink, Users, BarChart3 } from "lucide-react";
@@ -118,7 +118,7 @@ function SerpOverview({ items }: { items: SerpResultItem[] }) {
 }
 
 export default function SerpSpyPage() {
-  const [keyword, setKeyword] = useState("");
+  const [keyword, setKeyword] = useLocalDraft("vitba_lab_draft_serp-spy_keyword", "");
   const locationCode = 2840;
   const { run, result, loading, error } = useLabTool<SerpSpyResult>("/serp-spy");
 

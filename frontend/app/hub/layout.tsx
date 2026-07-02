@@ -19,6 +19,7 @@ import {
   BookOpen,
   FileText,
   Frame,
+  History,
   ArrowLeft,
   LogOut,
   type LucideIcon,
@@ -31,6 +32,7 @@ type IconComp = LucideIcon | ((props: { size?: number; className?: string }) => 
 
 const NAV = [
   { label: "Tổng quan", href: "/hub", icon: "overview", toolKey: null },
+  { label: "Lịch sử của tôi", href: "/hub/history", icon: "history", toolKey: null },
   { label: "Meta Publisher", href: "/hub/meta", icon: "meta", toolKey: "meta" },
   { label: "Content Calendar", href: "/hub/calendar", icon: "calendar", toolKey: "calendar" },
   { label: "Analytics", href: "/hub/analytics", icon: "analytics", toolKey: "analytics" },
@@ -67,6 +69,7 @@ const ICONS: Record<string, IconComp> = {
   study: BookOpen,
   report: FileText,
   frame: Frame,
+  history: History,
 };
 
 function UpgradeGate({ tool }: { tool: string }) {

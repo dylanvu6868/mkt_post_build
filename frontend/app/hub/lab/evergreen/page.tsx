@@ -1,13 +1,14 @@
 "use client";
 import { useState } from "react";
+import { useLocalDraft } from "@/hooks/use-local-draft";
 import { useLabTool } from "@/hooks/use-lab-tool";
 import { LabBreadcrumb, ToolHeader, RunButton, ErrorBox, LabTextarea, ChipGroup } from "@/components/lab-ui";
 
 
 interface EvergreenResult { original_core: string; refreshed_content: string; updated_elements: string[]; repost_tips: string; }
 
-export default function EvergreenPage() {const [oldContent, setOldContent] = useState("");
-  const [yearCtx, setYearCtx] = useState("Giữa năm 2025 — thế hệ Alpha, AI bùng nổ, xu hướng slow living");
+export default function EvergreenPage() {const [oldContent, setOldContent] = useLocalDraft("vitba_lab_draft_evergreen_oldContent", "");
+  const [yearCtx, setYearCtx] = useLocalDraft("vitba_lab_draft_evergreen_yearCtx", "Giữa năm 2025 — thế hệ Alpha, AI bùng nổ, xu hướng slow living");
   const [copied, setCopied] = useState(false);
   const { run, result, loading, error } = useLabTool<EvergreenResult>("/evergreen");
 

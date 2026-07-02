@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useLocalDraft } from "@/hooks/use-local-draft";
 import { useLabTool } from "@/hooks/use-lab-tool";
 import { LabBreadcrumb, ToolHeader, RunButton, ErrorBox, ResultBox, LabTextarea, LabInput } from "@/components/lab-ui";
 
@@ -15,8 +15,8 @@ interface CompetitorSpyResult {
 }
 
 export default function CompetitorSpyPage() {
-  const [info, setInfo] = useState("");
-  const [niche, setNiche] = useState("");
+  const [info, setInfo] = useLocalDraft("vitba_lab_draft_competitor-spy_info", "");
+  const [niche, setNiche] = useLocalDraft("vitba_lab_draft_competitor-spy_niche", "");
   const { run, result, loading, error } = useLabTool<CompetitorSpyResult>("/competitor-spy");
 
   return (

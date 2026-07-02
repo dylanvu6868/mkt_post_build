@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { useLocalDraft } from "@/hooks/use-local-draft";
 import { useLabTool } from "@/hooks/use-lab-tool";
 import { LabBreadcrumb, ToolHeader, RunButton, ErrorBox, ResultBox, LabTextarea, ChipGroup } from "@/components/lab-ui";
 
@@ -19,8 +20,8 @@ interface PsychoResult {
 }
 
 export default function PsychoPage() {
-  const [content, setContent] = useState("");
-  const [emotion, setEmotion] = useState(EMOTIONS[0].id);
+  const [content, setContent] = useLocalDraft("vitba_lab_draft_psycho_content", "");
+  const [emotion, setEmotion] = useLocalDraft("vitba_lab_draft_psycho_emotion", EMOTIONS[0].id);
   const [copied, setCopied] = useState(false);
   const { run, result, loading, error } = useLabTool<PsychoResult>("/psycho");
 

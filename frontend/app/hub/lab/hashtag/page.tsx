@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { useLocalDraft } from "@/hooks/use-local-draft";
 import { useLabTool } from "@/hooks/use-lab-tool";
 import { LabBreadcrumb, ToolHeader, RunButton, ErrorBox, ResultBox, LabInput, ChipGroup } from "@/components/lab-ui";
 
@@ -18,9 +19,9 @@ const GROUP_COLORS: Record<string, string> = {
 };
 
 export default function HashtagPage() {
-  const [niche, setNiche] = useState("");
-  const [platform, setPlatform] = useState<"Facebook" | "TikTok" | "Instagram" | "YouTube">("Facebook");
-  const [region, setRegion] = useState("Việt Nam");
+  const [niche, setNiche] = useLocalDraft("vitba_lab_draft_hashtag_niche", "");
+  const [platform, setPlatform] = useLocalDraft<"Facebook" | "TikTok" | "Instagram" | "YouTube">("vitba_lab_draft_hashtag_platform", "Facebook");
+  const [region, setRegion] = useLocalDraft("vitba_lab_draft_hashtag_region", "Việt Nam");
   const { run, result, loading, error } = useLabTool<HashtagResult>("/hashtag");
   const [copied, setCopied] = useState(false);
 

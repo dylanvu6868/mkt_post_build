@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useLocalDraft } from "@/hooks/use-local-draft";
 import { useLabTool } from "@/hooks/use-lab-tool";
 import { LabBreadcrumb, ToolHeader, RunButton, ErrorBox } from "@/components/lab-ui";
 import { btn } from "@/lib/ui-tokens";
@@ -12,12 +13,12 @@ interface SeoAnalysisResult {
 }
 
 export default function SeoAnalysisPage() {
-  const [domain, setDomain] = useState("");
-  const [industry, setIndustry] = useState("");
-  const [targetRegion, setTargetRegion] = useState("Việt Nam");
-  const [keywords, setKeywords] = useState("");
-  const [competitors, setCompetitors] = useState("");
-  const [gscData, setGscData] = useState("");
+  const [domain, setDomain] = useLocalDraft("vitba_lab_draft_seo-analysis_domain", "");
+  const [industry, setIndustry] = useLocalDraft("vitba_lab_draft_seo-analysis_industry", "");
+  const [targetRegion, setTargetRegion] = useLocalDraft("vitba_lab_draft_seo-analysis_targetRegion", "Việt Nam");
+  const [keywords, setKeywords] = useLocalDraft("vitba_lab_draft_seo-analysis_keywords", "");
+  const [competitors, setCompetitors] = useLocalDraft("vitba_lab_draft_seo-analysis_competitors", "");
+  const [gscData, setGscData] = useLocalDraft("vitba_lab_draft_seo-analysis_gscData", "");
   const [copied, setCopied] = useState(false);
 
   const { run, result, loading, error } = useLabTool<SeoAnalysisResult>("/seo-analysis");

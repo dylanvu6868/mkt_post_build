@@ -5,10 +5,12 @@ Provides AI generation, template gallery, render, and image upload endpoints.
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from pydantic import BaseModel
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_user
 from app.core.db import get_session
+from app.models.email_draft import EmailDraft
 from app.models.user import User
 from app.services.brand_profile_service import load_brand_profile, format_brand_voice
 from app.services.storage import save_upload
@@ -129,6 +131,154 @@ Viết toàn bộ HTML hoàn chỉnh cho email."""
     html = extract_html_from_response(resp.content if isinstance(resp.content, str) else str(resp.content))
 
     return {"html": html}
+
+
+@router.post("/modify")
+async def modify_email_html(
+    body: ModifyReq,
+    user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+):
+    """Modify existing email HTML using AI based on a natural-language prompt."""
+    from app.llm.factory import get_chat_model_for_tier as get_chat_model, provider_available
+    if not provider_available():
+        raise HTTPException(503, "LLM provider not configured")
+
+    system = """Bạn là chuyên gia phát triển Email HTML (table layout, inline CSS, tương thích Outlook/Gmail).
+Người dùng cung cấp mã HTML email hiện tại và một yêu cầu chỉnh sửa.
+YÊU CẦU BẮT BUỘC:
+1. Áp dụng đúng thay đổi được yêu cầu, giữ nguyên toàn bộ phần còn lại (table layout, inline CSS).
+2. TUYỆT ĐỐI KHÔNG tự bịa URL ảnh mới; giữ nguyên các URL ảnh sẵn có.
+3. Trả về DUY NHẤT mã HTML hoàn chỉnh bắt đầu bằng <!DOCTYPE html>, KHÔNG markdown fence, KHÔNG giải thích."""
+
+    user_msg = (
+        f"YÊU CẦU CHỈNH SỬA:\n{body.prompt}\n\n"
+        f"HTML HIỆN TẠI:\n{body.current_html}\n\n"
+        "Trả về toàn bộ HTML đã cập nhật."
+    )
+
+    from langchain_core.messages import SystemMessage, HumanMessage
+    from app.core.tracing import trace_request
+
+    with trace_request("email.modify", user_id=user.id, metadata={"prompt": body.prompt[:200]}):
+        llm = get_chat_model("smart", max_tokens=8192)
+        resp = await llm.ainvoke([SystemMessage(content=system), HumanMessage(content=user_msg)])
+
+    from app.mcp.landing.template_engine import extract_html_from_response
+    html = extract_html_from_response(resp.content if isinstance(resp.content, str) else str(resp.content))
+    return {"html": html}
+
+
+# ---------------------------------------------------------------------------
+# Drafts — autosave email đang soạn để khôi phục khi thoát giữa chừng
+# ---------------------------------------------------------------------------
+
+MAX_DRAFTS_PER_USER = 10
+
+
+class DraftCreate(BaseModel):
+    subject: str = ""
+    html_body: str = ""
+    meta: dict | None = None
+
+
+class DraftUpdate(BaseModel):
+    subject: str | None = None
+    html_body: str | None = None
+    meta: dict | None = None
+
+
+def _draft_out(d: EmailDraft, include_html: bool = True) -> dict:
+    out = {
+        "id": d.id,
+        "subject": d.subject,
+        "meta": d.meta,
+        "created_at": str(d.created_at),
+        "updated_at": str(d.updated_at),
+    }
+    if include_html:
+        out["html_body"] = d.html_body
+    return out
+
+
+@router.get("/drafts")
+async def list_email_drafts(
+    user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+):
+    rows = (await session.execute(
+        select(EmailDraft)
+        .where(EmailDraft.user_id == user.id)
+        .order_by(EmailDraft.updated_at.desc())
+    )).scalars().all()
+    return [_draft_out(d, include_html=False) for d in rows]
+
+
+@router.post("/drafts", status_code=201)
+async def create_email_draft(
+    body: DraftCreate,
+    user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+):
+    draft = EmailDraft(user_id=user.id, subject=body.subject, html_body=body.html_body, meta=body.meta)
+    session.add(draft)
+    await session.flush()
+    await session.refresh(draft)
+    out = _draft_out(draft)
+    # Prune: keep only the newest MAX_DRAFTS_PER_USER drafts per user
+    rows = (await session.execute(
+        select(EmailDraft)
+        .where(EmailDraft.user_id == user.id)
+        .order_by(EmailDraft.created_at.desc(), EmailDraft.id.desc())
+    )).scalars().all()
+    for old in rows[MAX_DRAFTS_PER_USER:]:
+        await session.delete(old)
+    await session.commit()
+    return out
+
+
+@router.get("/drafts/{draft_id}")
+async def get_email_draft(
+    draft_id: int,
+    user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+):
+    draft = await session.get(EmailDraft, draft_id)
+    if not draft or draft.user_id != user.id:
+        raise HTTPException(404, "Draft not found")
+    return _draft_out(draft)
+
+
+@router.patch("/drafts/{draft_id}")
+async def update_email_draft(
+    draft_id: int,
+    body: DraftUpdate,
+    user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+):
+    draft = await session.get(EmailDraft, draft_id)
+    if not draft or draft.user_id != user.id:
+        raise HTTPException(404, "Draft not found")
+    for field, val in body.model_dump(exclude_unset=True).items():
+        setattr(draft, field, val)
+    await session.flush()
+    await session.refresh(draft)
+    out = _draft_out(draft)
+    await session.commit()
+    return out
+
+
+@router.delete("/drafts/{draft_id}", status_code=204)
+async def delete_email_draft(
+    draft_id: int,
+    user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+):
+    draft = await session.get(EmailDraft, draft_id)
+    if not draft or draft.user_id != user.id:
+        raise HTTPException(404, "Draft not found")
+    await session.delete(draft)
+    await session.commit()
 
 
 class OnboardReq(BaseModel):

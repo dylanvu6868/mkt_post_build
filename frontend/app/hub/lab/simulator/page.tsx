@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { useLocalDraft } from "@/hooks/use-local-draft";
 import { useLabTool } from "@/hooks/use-lab-tool";
 import { LabBreadcrumb, ToolHeader, RunButton, ErrorBox, LabTextarea, ChipGroup } from "@/components/lab-ui";
 
@@ -14,7 +15,7 @@ const TYPE_MAP: Record<string, { label: string; dot: string }> = {
   question: { label: "Thắc mắc", dot: "bg-primary" },
 };
 
-export default function SimulatorPage() {const [content, setContent] = useState("");
+export default function SimulatorPage() {const [content, setContent] = useLocalDraft("vitba_lab_draft_simulator_content", "");
   const [filter, setFilter] = useState<string>("all");
   const { run, result, loading, error } = useLabTool<SimResult>("/simulator");
 

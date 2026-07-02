@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { useLocalDraft } from "@/hooks/use-local-draft";
 import { useLabTool } from "@/hooks/use-lab-tool";
 import { LabBreadcrumb, ToolHeader, RunButton, ErrorBox, LabTextarea, ChipGroup } from "@/components/lab-ui";
 
@@ -8,8 +9,8 @@ const PLATFORMS = ["Facebook", "TikTok", "Instagram", "LinkedIn", "Twitter/X"];
 interface Issue { issue: string; fix: string; }
 interface HexResult { reach_score: number; issues: Issue[]; optimized_content: string; hashtag_suggestions: string[]; }
 
-export default function HexBreakerPage() {const [content, setContent] = useState("");
-  const [platform, setPlatform] = useState("Facebook");
+export default function HexBreakerPage() {const [content, setContent] = useLocalDraft("vitba_lab_draft_hexbreaker_content", "");
+  const [platform, setPlatform] = useLocalDraft("vitba_lab_draft_hexbreaker_platform", "Facebook");
   const [copied, setCopied] = useState(false);
   const { run, result, loading, error } = useLabTool<HexResult>("/hexbreaker");
 

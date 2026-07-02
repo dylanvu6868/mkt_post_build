@@ -10,6 +10,7 @@ from app.models.deployment import Deployment
 from app.models.document import Document
 from app.models.email_campaign import EmailCampaign
 from app.models.email_contact import EmailContact
+from app.models.email_draft import EmailDraft
 from app.models.email_list import EmailList
 from app.models.email_template import EmailTemplate
 from app.models.generation_job import GenerationJob
@@ -30,6 +31,6 @@ from app.models.user_template import UserTemplate
 __all__ = [
     "AICallLog", "AuditLog", "BrandProfile", "BrandProfileHistory", "Campaign", "ContentHistory", "ContentItem",
     "Conversation", "Deployment", "Document", "EmailCampaign", "EmailContact",
-    "EmailList", "EmailTemplate", "GenerationJob", "LabHistory", "LandingPage", "Message", "MetaPage", "OauthAccount", "PaymentOrder",
+    "EmailDraft", "EmailList", "EmailTemplate", "GenerationJob", "LabHistory", "LandingPage", "Message", "MetaPage", "OauthAccount", "PaymentOrder",
     "Project", "ScheduledEmail", "SeoAudit", "StudyBookmark", "StudyProgress", "User", "UserFeedback", "UserTemplate",
 ]

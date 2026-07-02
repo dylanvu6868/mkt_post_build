@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useLocalDraft } from "@/hooks/use-local-draft";
 import { useLabTool } from "@/hooks/use-lab-tool";
 import { LabBreadcrumb, ToolHeader, RunButton, ErrorBox, ResultBox, LabTextarea, ChipGroup } from "@/components/lab-ui";
 
@@ -7,8 +7,8 @@ interface HookVariant { formula: string; hook: string; psychology: string }
 interface HookResult { hooks: HookVariant[]; best_for_engagement: string; best_for_conversion: string }
 
 export default function HookPage() {
-  const [content, setContent] = useState("");
-  const [goal, setGoal] = useState<"engagement" | "conversion" | "awareness">("engagement");
+  const [content, setContent] = useLocalDraft("vitba_lab_draft_hook_content", "");
+  const [goal, setGoal] = useLocalDraft<"engagement" | "conversion" | "awareness">("vitba_lab_draft_hook_goal", "engagement");
   const { run, result, loading, error } = useLabTool<HookResult>("/hook");
 
   return (

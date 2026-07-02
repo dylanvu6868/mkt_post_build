@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { api } from "@/services/api";
+import { useLocalDraft } from "@/hooks/use-local-draft";
 
 interface GeneratedImage {
   id: number;
@@ -17,8 +18,8 @@ interface GeneratedImage {
 }
 
 export default function VitbaFramePage() {
-  const [prompt, setPrompt] = useState("");
-  const [size, setSize] = useState("1024x1024");
+  const [prompt, setPrompt] = useLocalDraft("vitba_frame_draft_prompt", "");
+  const [size, setSize] = useLocalDraft("vitba_frame_draft_size", "1024x1024");
   const [isGenerating, setIsGenerating] = useState(false);
   const [history, setHistory] = useState<GeneratedImage[]>([]);
 

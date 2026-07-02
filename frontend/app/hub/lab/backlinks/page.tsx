@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useLocalDraft } from "@/hooks/use-local-draft";
 import { useLabTool } from "@/hooks/use-lab-tool";
 import { LabBreadcrumb, ToolHeader, RunButton, ErrorBox, ResultBox, LabInput } from "@/components/lab-ui";
 import { Globe, Link, ExternalLink, Share2, Shield, ArrowUpRight } from "lucide-react";
@@ -104,7 +104,7 @@ function truncateUrl(url: string, max = 50): string {
 }
 
 export default function BacklinksPage() {
-  const [domain, setDomain] = useState("");
+  const [domain, setDomain] = useLocalDraft("vitba_lab_draft_backlinks_domain", "");
   const { run, result, loading, error } = useLabTool<BacklinksResult>("/backlinks");
 
   async function handleRun() {

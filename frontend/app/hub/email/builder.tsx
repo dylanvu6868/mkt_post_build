@@ -14,15 +14,33 @@ import {
   Type,
   Palette,
   Target,
-  Target,
   Send,
   FileText,
   Settings2,
   Code,
   Eye,
-  Sparkles,
+  History,
 } from "lucide-react";
 import { btn, btnOutline, inp } from "@/lib/ui-tokens";
+import { useLocalDraft } from "@/hooks/use-local-draft";
+
+const MAIL_DRAFT_PREFIX = "vitba_mail_wizard_";
+const MAIL_DRAFT_FIELDS = [
+  "purpose", "customPurpose", "colorPalette", "customColor", "fontPair", "customFont",
+  "brandName", "logoUrl", "targetAudience", "keyMessage", "signatureInfo", "subject",
+] as const;
+
+function clearMailWizardDraft() {
+  try {
+    MAIL_DRAFT_FIELDS.forEach((f) => localStorage.removeItem(MAIL_DRAFT_PREFIX + f));
+  } catch {}
+}
+
+interface DraftListItem {
+  id: number;
+  subject: string;
+  updated_at: string;
+}
 import {
   Dialog,
   DialogContent,
@@ -77,26 +95,32 @@ export function MailBuilder({ onSendTest }: { onSendTest?: (html: string) => voi
   const [step, setStep] = useState<Step>("purpose");
   const [stepIndex, setStepIndex] = useState(0);
 
-  const [purpose, setPurpose] = useState("");
-  const [customPurpose, setCustomPurpose] = useState("");
-  const [colorPalette, setColorPalette] = useState("");
-  const [customColor, setCustomColor] = useState("");
-  const [fontPair, setFontPair] = useState("");
-  const [customFont, setCustomFont] = useState("");
-  const [brandName, setBrandName] = useState("");
-  const [logoUrl, setLogoUrl] = useState("");
+  const [purpose, setPurpose] = useLocalDraft(MAIL_DRAFT_PREFIX + "purpose", "");
+  const [customPurpose, setCustomPurpose] = useLocalDraft(MAIL_DRAFT_PREFIX + "customPurpose", "");
+  const [colorPalette, setColorPalette] = useLocalDraft(MAIL_DRAFT_PREFIX + "colorPalette", "");
+  const [customColor, setCustomColor] = useLocalDraft(MAIL_DRAFT_PREFIX + "customColor", "");
+  const [fontPair, setFontPair] = useLocalDraft(MAIL_DRAFT_PREFIX + "fontPair", "");
+  const [customFont, setCustomFont] = useLocalDraft(MAIL_DRAFT_PREFIX + "customFont", "");
+  const [brandName, setBrandName] = useLocalDraft(MAIL_DRAFT_PREFIX + "brandName", "");
+  const [logoUrl, setLogoUrl] = useLocalDraft(MAIL_DRAFT_PREFIX + "logoUrl", "");
   const [uploadingLogo, setUploadingLogo] = useState(false);
-  
+
   // Content details
-  const [targetAudience, setTargetAudience] = useState("");
-  const [keyMessage, setKeyMessage] = useState("");
-  const [signatureInfo, setSignatureInfo] = useState("");
+  const [targetAudience, setTargetAudience] = useLocalDraft(MAIL_DRAFT_PREFIX + "targetAudience", "");
+  const [keyMessage, setKeyMessage] = useLocalDraft(MAIL_DRAFT_PREFIX + "keyMessage", "");
+  const [signatureInfo, setSignatureInfo] = useLocalDraft(MAIL_DRAFT_PREFIX + "signatureInfo", "");
 
   const [previewHtml, setPreviewHtml] = useState("");
   const [generating, setGenerating] = useState(false);
   const [sending, setSending] = useState(false);
   const [testEmail, setTestEmail] = useState("");
-  const [subject, setSubject] = useState("");
+  const [subject, setSubject] = useLocalDraft(MAIL_DRAFT_PREFIX + "subject", "");
+
+  // Bản nháp DB (autosave email đang soạn)
+  const [draftId, setDraftId] = useState<number | null>(null);
+  const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
+  const [liveTick, setLiveTick] = useState(0);
+  const [availableDrafts, setAvailableDrafts] = useState<DraftListItem[]>([]);
 
   // Editor State
   const [viewMode, setViewMode] = useState<"preview" | "code">("preview");
@@ -136,11 +160,69 @@ export function MailBuilder({ onSendTest }: { onSendTest?: (html: string) => voi
     const handleMessage = (e: MessageEvent) => {
       if (e.data?.type === "html_update") {
         editableHtmlRef.current = e.data.html;
+        setLiveTick((t) => t + 1);
       }
     };
     window.addEventListener("message", handleMessage);
     return () => window.removeEventListener("message", handleMessage);
   }, []);
+
+  const getCleanEmailHtml = () =>
+    (editableHtmlRef.current || previewHtml).replace(/<script id="live-edit-script">[\s\S]*?<\/script>/, "");
+
+  const restoreDraft = async (id: number) => {
+    try {
+      const d = await api.get<{ id: number; subject: string; html_body: string }>(
+        `/mcp/email/builder/drafts/${id}`
+      );
+      setPreviewHtml(d.html_body);
+      setSubject(d.subject || "");
+      setDraftId(d.id);
+      editableHtmlRef.current = "";
+      toast.success("Đã khôi phục bản nháp");
+    } catch {
+      toast.error("Không tải được bản nháp");
+    }
+  };
+
+  const removeDraft = async (id: number) => {
+    try {
+      await api.delete(`/mcp/email/builder/drafts/${id}`);
+      setAvailableDrafts((prev) => prev.filter((d) => d.id !== id));
+    } catch {}
+  };
+
+  // Khi vào trang: nếu có ?draft={id} thì mở lại đúng bản nháp; nếu không, tải danh sách nháp
+  useEffect(() => {
+    const draftParam = new URLSearchParams(window.location.search).get("draft");
+    (async () => {
+      try {
+        if (draftParam) {
+          await restoreDraft(Number(draftParam));
+          return;
+        }
+        const list = await api.get<DraftListItem[]>("/mcp/email/builder/drafts");
+        setAvailableDrafts(list);
+      } catch {}
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Autosave bản nháp DB — debounce 2.5s khi nội dung/tiêu đề/live edit thay đổi
+  useEffect(() => {
+    if (!draftId || !previewHtml) return;
+    const t = setTimeout(async () => {
+      try {
+        await api.patch(`/mcp/email/builder/drafts/${draftId}`, {
+          subject,
+          html_body: getCleanEmailHtml(),
+        });
+        setLastSavedAt(new Date());
+      } catch {}
+    }, 2500);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [previewHtml, subject, liveTick, draftId]);
 
   const injectedHtml = useMemo(() => {
     if (!previewHtml) return "";
@@ -211,7 +293,26 @@ export function MailBuilder({ onSendTest }: { onSendTest?: (html: string) => voi
       });
       setPreviewHtml(res.html);
       editableHtmlRef.current = ""; // Reset ref on new generation
-      setSubject(finalPurpose.slice(0, 60));
+      const autoSubject = finalPurpose.slice(0, 60);
+      setSubject(autoSubject);
+
+      // Tự động lưu bản nháp DB ngay sau khi AI tạo xong — không mất khi thoát
+      try {
+        const d = await api.post<{ id: number }>("/mcp/email/builder/drafts", {
+          subject: autoSubject,
+          html_body: res.html,
+          meta: {
+            purpose: finalPurpose,
+            color_palette: finalColor,
+            typography: finalFont,
+            brand_name: brandName,
+          },
+        });
+        setDraftId(d.id);
+        setLastSavedAt(new Date());
+      } catch {
+        /* autosave lỗi không chặn luồng chính */
+      }
     } catch {
       toast.error("Tạo thất bại, thử lại");
     } finally {
@@ -265,6 +366,14 @@ export function MailBuilder({ onSendTest }: { onSendTest?: (html: string) => voi
         });
         toast.success(`Đã gửi email thành công!`);
         setIsSendModalOpen(false);
+        // Email đã gửi xong → dọn bản nháp
+        if (draftId) {
+          try {
+            await api.delete(`/mcp/email/builder/drafts/${draftId}`);
+          } catch {}
+          setDraftId(null);
+        }
+        clearMailWizardDraft();
       }
     } catch (e: any) {
       toast.error(e?.response?.data?.detail || "Gửi thất bại");
@@ -405,7 +514,7 @@ export function MailBuilder({ onSendTest }: { onSendTest?: (html: string) => voi
             </DialogContent>
           </Dialog>
           
-          <button onClick={() => { setPreviewHtml(""); setStep("purpose"); setStepIndex(0); }} className={btnOutline}>
+          <button onClick={() => { setPreviewHtml(""); setStep("purpose"); setStepIndex(0); setDraftId(null); setLiveTick(0); setLastSavedAt(null); editableHtmlRef.current = ""; }} className={btnOutline}>
             Tạo lại
           </button>
         </div>
@@ -429,12 +538,19 @@ export function MailBuilder({ onSendTest }: { onSendTest?: (html: string) => voi
             </button>
           </div>
           
-          {viewMode === "preview" && (
-            <div className="flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-[11px] font-medium text-primary">
-              <Sparkles className="h-3 w-3" />
-              Bật chế độ sửa: Click vào văn bản bất kỳ để sửa chữ
-            </div>
-          )}
+          <div className="flex items-center gap-3">
+            {lastSavedAt && (
+              <span className="text-[11px] text-muted-foreground">
+                Đã tự lưu {lastSavedAt.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })}
+              </span>
+            )}
+            {viewMode === "preview" && (
+              <div className="flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-[11px] font-medium text-primary">
+                <Sparkles className="h-3 w-3" />
+                Bật chế độ sửa: Click vào văn bản bất kỳ để sửa chữ
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Content Area */}
@@ -485,6 +601,32 @@ export function MailBuilder({ onSendTest }: { onSendTest?: (html: string) => voi
     <div className="flex h-[calc(100vh-180px)] gap-3">
       {/* Left: Questions (50%) */}
       <div className="flex w-1/2 flex-col">
+        {availableDrafts.length > 0 && (
+          <div className="mb-3 rounded-xl border border-primary/30 bg-primary/5 p-3">
+            <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold text-primary">
+              <History className="h-3.5 w-3.5" />
+              Bạn có {availableDrafts.length} bản nháp chưa hoàn tất
+            </p>
+            <div className="max-h-32 space-y-1 overflow-y-auto">
+              {availableDrafts.slice(0, 5).map((d) => (
+                <div key={d.id} className="flex items-center gap-2">
+                  <button
+                    onClick={() => restoreDraft(d.id)}
+                    className="flex-1 truncate text-left text-xs text-foreground transition-colors hover:text-primary"
+                  >
+                    {d.subject || "Email nháp"} — {new Date(d.updated_at).toLocaleString("vi-VN")}
+                  </button>
+                  <button
+                    onClick={() => removeDraft(d.id)}
+                    className="shrink-0 text-[10px] text-muted-foreground transition-colors hover:text-destructive"
+                  >
+                    Xóa
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
         <div className="mb-3 flex items-center gap-2">
           {STEPS.map((s, i) => (
             <div key={s} className={`h-1.5 flex-1 rounded-full transition-all ${i <= stepNum ? "bg-primary" : "bg-border"}`} />

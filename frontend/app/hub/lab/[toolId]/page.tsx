@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { notFound } from "next/navigation";
 import { useLabTool } from "@/hooks/use-lab-tool";
+import { useLocalDraft } from "@/hooks/use-local-draft";
 import { findLabTool } from "@/lib/lab-tools";
 import { MarkdownRenderer } from "@/lib/markdown";
 import {
@@ -31,7 +32,8 @@ export default function GenericLabToolPage({ params }: { params: { toolId: strin
   }
 
   const fields = tool.fields!;
-  const [values, setValues] = useState<Record<string, string>>(
+  const [values, setValues] = useLocalDraft<Record<string, string>>(
+    `vitba_lab_draft_${tool.id}`,
     Object.fromEntries(fields.map((f) => [f.key, ""]))
   );
   const [copied, setCopied] = useState(false);

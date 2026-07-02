@@ -7,6 +7,7 @@ import {
   type LandingPageDetail,
 } from "@/store/mcp";
 import { API_BASE_URL, ApiError, getToken, api } from "@/services/api";
+import { useProjectStore } from "@/store/project";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -615,6 +616,12 @@ function EditorTab({ initialPage, initialHtml }: {
   const [aiPrompt, setAiPrompt] = useState("");
   const [modifying, setModifying] = useState(false);
 
+  // Autosave State
+  const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
+  const [liveTick, setLiveTick] = useState(0);
+  const autosaveInFlightRef = useRef(false);
+  const lastSnapshotRef = useRef("");
+
   const prevInitialHtmlRef = useRef(initialHtml);
   const editableHtmlRef = useRef("");
 
@@ -628,6 +635,9 @@ function EditorTab({ initialPage, initialHtml }: {
       setStatus(initialPage.status);
       setPublicSlug(initialPage.status === "published" ? initialPage.slug : null);
       editableHtmlRef.current = "";
+      lastSnapshotRef.current = JSON.stringify({
+        t: initialPage.title, h: initialPage.html_content, c: initialPage.css_content ?? "",
+      });
     } else if (initialHtml !== prevInitialHtmlRef.current) {
       setHtmlContent(initialHtml);
       prevInitialHtmlRef.current = initialHtml;
@@ -639,11 +649,60 @@ function EditorTab({ initialPage, initialHtml }: {
     const handleMessage = (e: MessageEvent) => {
       if (e.data?.type === "html_update") {
         editableHtmlRef.current = e.data.html;
+        setLiveTick((t) => t + 1);
       }
     };
     window.addEventListener("message", handleMessage);
     return () => window.removeEventListener("message", handleMessage);
   }, []);
+
+  const extractEffectiveHtml = () => {
+    if (editableHtmlRef.current) {
+      const match = editableHtmlRef.current.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+      if (match) {
+        return match[1].replace(/<script id="live-edit-script">[\s\S]*?<\/script>/, "");
+      }
+    }
+    return htmlContent;
+  };
+
+  // Autosave bản nháp — debounce 2.5s sau mỗi thay đổi (kể cả live edit)
+  useEffect(() => {
+    if (saving || publishing) return;
+    const effectiveHtml = extractEffectiveHtml();
+    if (!effectiveHtml.trim()) return;
+    const snapshot = JSON.stringify({ t: title, h: effectiveHtml, c: cssContent });
+    if (snapshot === lastSnapshotRef.current) return;
+
+    const timer = setTimeout(async () => {
+      if (autosaveInFlightRef.current) return;
+      autosaveInFlightRef.current = true;
+      try {
+        if (pageId === null) {
+          const autoTitle = title.trim() || `Bản nháp ${new Date().toLocaleDateString("vi-VN")}`;
+          const autoSlug = slug.trim() || `draft-${Date.now()}`;
+          const created = await createLandingPage({
+            title: autoTitle, slug: autoSlug, html_content: effectiveHtml, css_content: cssContent,
+          });
+          setPageId(created.id);
+          if (!title.trim()) setTitle(autoTitle);
+          if (!slug.trim()) setSlug(autoSlug);
+        } else {
+          await updateLandingPage(pageId, {
+            title: title.trim() || undefined, html_content: effectiveHtml, css_content: cssContent,
+          });
+        }
+        lastSnapshotRef.current = snapshot;
+        setLastSavedAt(new Date());
+      } catch {
+        /* autosave lỗi (vd slug trùng) — thử lại ở lần thay đổi sau */
+      } finally {
+        autosaveInFlightRef.current = false;
+      }
+    }, 2500);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [title, htmlContent, cssContent, liveTick, pageId, saving, publishing]);
 
   const handleTitleChange = (val: string) => {
     setTitle(val);
@@ -822,6 +881,11 @@ function EditorTab({ initialPage, initialHtml }: {
               <input className={inp} placeholder="duong-dan-trang" value={slug} onChange={(e) => setSlug(e.target.value)} disabled={pageId !== null} />
             </div>
             <Badge variant={status === "published" ? "default" : "secondary"} className="mb-1">{statusLabel(status)}</Badge>
+            {lastSavedAt && (
+              <span className="mb-1 whitespace-nowrap text-[11px] text-muted-foreground">
+                Đã tự lưu {lastSavedAt.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })}
+              </span>
+            )}
           </div>
 
           <div className="flex flex-wrap items-center gap-2 mt-3">
@@ -992,6 +1056,23 @@ export default function LandingPage() {
       toast.error(e instanceof Error ? e.message : "Lỗi tải trang");
     }
   };
+
+  // Mở lại trang từ Lịch sử: /hub/landing?open={id}
+  useEffect(() => {
+    const openId = new URLSearchParams(window.location.search).get("open");
+    if (!openId) return;
+    (async () => {
+      try {
+        const detail = await getLandingPage(Number(openId));
+        setEditorInitialPage(detail);
+        setEditorInitialHtml("");
+        setActiveTab("editor");
+      } catch {
+        toast.error("Không tải được trang từ lịch sử");
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="mx-auto max-w-6xl space-y-8 pb-12 animate-in fade-in slide-in-from-bottom-4 duration-500">

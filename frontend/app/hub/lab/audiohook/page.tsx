@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { useLocalDraft } from "@/hooks/use-local-draft";
 import { useLabTool } from "@/hooks/use-lab-tool";
 import { LabBreadcrumb, ToolHeader, RunButton, ErrorBox, LabTextarea, ChipGroup } from "@/components/lab-ui";
 
@@ -8,8 +9,8 @@ const BPM_PRESETS = [{ label: "Slow · 80", val: 80 }, { label: "Chill · 100", 
 interface Segment { segment: string; syllable_count: number; ssml_tags: string; delivery_tip: string; }
 interface AudioResult { total_duration_estimate: string; bpm_match_advice: string; audio_script: string; segments: Segment[]; }
 
-export default function AudioHookPage() {const [content, setContent] = useState("");
-  const [bpm, setBpm] = useState(120);
+export default function AudioHookPage() {const [content, setContent] = useLocalDraft("vitba_lab_draft_audiohook_content", "");
+  const [bpm, setBpm] = useLocalDraft("vitba_lab_draft_audiohook_bpm", 120);
   const [copied, setCopied] = useState(false);
   const { run, result, loading, error } = useLabTool<AudioResult>("/audiohook");
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useLocalDraft } from "@/hooks/use-local-draft";
 import { useLabTool } from "@/hooks/use-lab-tool";
 import { LabBreadcrumb, ToolHeader, RunButton, ErrorBox, LabTextarea, ChipGroup } from "@/components/lab-ui";
 
@@ -20,8 +21,8 @@ interface PersonaResult {
 }
 
 export default function PersonaPage() {
-  const [content, setContent] = useState("");
-  const [voice, setVoice] = useState(VOICES[0].id);
+  const [content, setContent] = useLocalDraft("vitba_lab_draft_persona_content", "");
+  const [voice, setVoice] = useLocalDraft("vitba_lab_draft_persona_voice", VOICES[0].id);
   const [copied, setCopied] = useState(false);
   const { run, result, loading, error } = useLabTool<PersonaResult>("/persona");
 

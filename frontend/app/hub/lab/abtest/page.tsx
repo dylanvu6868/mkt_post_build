@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useLocalDraft } from "@/hooks/use-local-draft";
 import { useLabTool } from "@/hooks/use-lab-tool";
 import { LabBreadcrumb, ToolHeader, RunButton, ErrorBox, ResultBox, LabTextarea, LabInput, ChipGroup } from "@/components/lab-ui";
 import { inp } from "@/lib/ui-tokens";
@@ -15,9 +15,9 @@ interface ABTestResult {
 }
 
 export default function ABTestPage() {
-  const [variantA, setVariantA] = useState("");
-  const [variantB, setVariantB] = useState("");
-  const [platform, setPlatform] = useState<"Facebook" | "TikTok" | "Instagram" | "LinkedIn">("Facebook");
+  const [variantA, setVariantA] = useLocalDraft("vitba_lab_draft_abtest_variantA", "");
+  const [variantB, setVariantB] = useLocalDraft("vitba_lab_draft_abtest_variantB", "");
+  const [platform, setPlatform] = useLocalDraft<"Facebook" | "TikTok" | "Instagram" | "LinkedIn">("vitba_lab_draft_abtest_platform", "Facebook");
   const { run, result, loading, error } = useLabTool<ABTestResult>("/abtest");
 
   return (

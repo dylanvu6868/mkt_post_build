@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { useLocalDraft } from "@/hooks/use-local-draft";
 import { useLabTool } from "@/hooks/use-lab-tool";
 import { LabBreadcrumb, ToolHeader, RunButton, ErrorBox, LabTextarea, ChipGroup } from "@/components/lab-ui";
 
@@ -8,8 +9,8 @@ const STYLES = ["Cinematic dark aesthetic", "Bright lifestyle editorial", "Minim
 interface Scene { scene_number: number; description: string; camera_angle: string; lighting: string; midjourney_prompt: string; }
 interface CinematicResult { title: string; scenes: Scene[]; style_guide: string; }
 
-export default function CinematicPage() {const [content, setContent] = useState("");
-  const [style, setStyle] = useState(STYLES[0]);
+export default function CinematicPage() {const [content, setContent] = useLocalDraft("vitba_lab_draft_cinematic_content", "");
+  const [style, setStyle] = useLocalDraft("vitba_lab_draft_cinematic_style", STYLES[0]);
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
   const { run, result, loading, error } = useLabTool<CinematicResult>("/cinematic");
 

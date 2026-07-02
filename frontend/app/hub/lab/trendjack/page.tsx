@@ -1,13 +1,14 @@
 "use client";
 import { useState } from "react";
+import { useLocalDraft } from "@/hooks/use-local-draft";
 import { useLabTool } from "@/hooks/use-lab-tool";
 import { LabBreadcrumb, ToolHeader, RunButton, ErrorBox, LabTextarea, ChipGroup } from "@/components/lab-ui";
 
 
 interface TrendResult { trend_analysis: string; injected_content: string; trend_keywords: string[]; timing_advice: string; }
 
-export default function TrendJackPage() {const [content, setContent] = useState("");
-  const [trends, setTrends] = useState("");
+export default function TrendJackPage() {const [content, setContent] = useLocalDraft("vitba_lab_draft_trendjack_content", "");
+  const [trends, setTrends] = useLocalDraft("vitba_lab_draft_trendjack_trends", "");
   const [copied, setCopied] = useState(false);
   const { run, result, loading, error } = useLabTool<TrendResult>("/trendjack");
 
