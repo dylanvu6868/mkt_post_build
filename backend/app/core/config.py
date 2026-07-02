@@ -64,6 +64,9 @@ class Settings(BaseSettings):
 
     # Email — Resend API (preferred on Railway where SMTP is blocked)
     resend_api_key: str = ""
+    # Verified sender for Resend, e.g. "Vitba <mail@vitbaai.xyz>" — sandbox
+    # onboarding@resend.dev only delivers to the Resend account owner
+    resend_from: str = ""
     # Base domain for published landing pages ({slug}.<domain>); empty disables subdomain serving
     landing_base_domain: str = "vitbaai.xyz"
     # SMTP fallback (local dev)

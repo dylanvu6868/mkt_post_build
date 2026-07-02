@@ -30,7 +30,7 @@ class EmailService:
     async def _send_resend(self, to: list[str], subject: str, html: str, cc: list[str] = None, bcc: list[str] = None, from_email: str = None) -> None:
         async with httpx.AsyncClient(timeout=10) as client:
             payload = {
-                "from": from_email or "Vitba.ai <onboarding@resend.dev>",
+                "from": from_email or settings.resend_from or "Vitba.ai <onboarding@resend.dev>",
                 "to": to,
                 "subject": subject,
                 "html": html,
