@@ -27,8 +27,42 @@ public_router = APIRouter()
 
 
 def _render(page: LandingPage) -> str:
+    import re
+
+    content = page.html_content or ""
+    # Dọn rác từ chế độ live-edit nếu lỡ được lưu kèm (script + contenteditable
+    # làm trang publish bị "sửa được chữ" và lỗi JS)
+    content = re.sub(r'<script id="live-edit-script">[\s\S]*?</script>', "", content)
+    content = re.sub(r"\scontenteditable=([\"'])(?:true)?\1", "", content, flags=re.IGNORECASE)
+
     css = f"<style>{page.css_content}</style>" if page.css_content else ""
-    return f"<!DOCTYPE html><html><head><meta charset='utf-8'><title>{html_mod.escape(page.title)}</title>{css}</head><body>{page.html_content}</body></html>"
+    stripped = content.lstrip()
+    lower = stripped.lower()
+
+    # Trường hợp 1: nội dung đã là document đầy đủ (Builder wizard lưu nguyên trang
+    # AI tạo, có sẵn <head> + Tailwind CDN) — serve nguyên vẹn, KHÔNG bọc lồng
+    if lower.startswith("<!doctype") or lower.startswith("<html"):
+        doc = stripped if lower.startswith("<!doctype") else "<!DOCTYPE html>\n" + stripped
+        if css:
+            if "</head>" in doc:
+                doc = doc.replace("</head>", f"{css}</head>", 1)
+            elif "<body" in doc:
+                doc = doc.replace("<body", f"{css}<body", 1)
+            else:
+                doc = css + doc
+        return doc
+
+    # Trường hợp 2: body-fragment (EditorTab lưu phần trong <body>) — bọc khung
+    # đầy đủ với viewport + Tailwind CDN để class Tailwind hiển thị đúng
+    tailwind = (
+        '<script src="https://cdn.tailwindcss.com"></script>' if "class=" in content else ""
+    )
+    return (
+        "<!DOCTYPE html><html lang='vi'><head><meta charset='utf-8'>"
+        "<meta name='viewport' content='width=device-width, initial-scale=1'>"
+        f"<title>{html_mod.escape(page.title)}</title>{tailwind}{css}</head>"
+        f"<body>{content}</body></html>"
+    )
 
 
 class PageCreate(BaseModel):

@@ -18,6 +18,15 @@ def _headers() -> dict:
     return {"Authorization": f"Bearer {settings.resend_api_key}", "Content-Type": "application/json"}
 
 
+def _sanitize_email_html(html: str) -> str:
+    """Email client không chạy JS — dọn <script> và contenteditable còn sót từ
+    chế độ live-edit để tránh lỗi hiển thị/spam-flag ở Gmail/Outlook."""
+    import re
+    html = re.sub(r"<script\b[\s\S]*?</script>", "", html, flags=re.IGNORECASE)
+    html = re.sub(r"\scontenteditable=([\"'])(?:true)?\1", "", html, flags=re.IGNORECASE)
+    return html
+
+
 async def send_email(
     session: AsyncSession, user_id: int,
     to: list[str], subject: str, html: str,
@@ -27,8 +36,9 @@ async def send_email(
     smtp_config: dict | None = None,
 ) -> dict:
     from app.services.email_service import email_service
-    if not email_service.enabled:
+    if not email_service.enabled and not smtp_config:
         raise ValueError("Dịch vụ gửi email chưa được cấu hình (Thiếu RESEND_API_KEY hoặc SMTP settings).")
+    html = _sanitize_email_html(html)
 
     # We can pass the whole `to` list to send_email if we modify it to support lists,
     # but for now let's just pass the whole list and handle it inside email_service.
@@ -68,6 +78,7 @@ async def send_batch(
     if not email_service.enabled and not smtp_config:
         raise ValueError("Dịch vụ gửi email chưa được cấu hình (Thiếu RESEND_API_KEY hoặc SMTP settings).")
 
+    html_template = _sanitize_email_html(html_template)
     success_count = 0
     failed: list[str] = []
     for r in recipients:

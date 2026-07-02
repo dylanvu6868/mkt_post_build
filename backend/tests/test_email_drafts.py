@@ -173,6 +173,52 @@ async def test_subdomain_serves_published_landing(client, promote):
     assert resp.status_code == 404
 
 
+async def test_published_page_render_adapts_to_content(client, promote):
+    """Trang publish phải hiển thị đúng CSS/JS ở mọi môi trường."""
+    token = await _register(client, "render@example.com", promote=promote)
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # 1) Full document (Builder wizard) có rác live-edit → serve nguyên vẹn, sạch rác
+    full_doc = (
+        '<html><head><script src="https://cdn.tailwindcss.com"></script></head>'
+        '<body contenteditable="true"><h1 class="text-xl">FullDoc</h1>'
+        '<script id="live-edit-script">document.body.contentEditable = true;</script>'
+        "</body></html>"
+    )
+    resp = await client.post(
+        "/mcp/landing/pages",
+        json={"title": "Full Doc", "slug": "full-doc", "html_content": full_doc},
+        headers=headers,
+    )
+    page_id = resp.json()["id"]
+    await client.patch(f"/mcp/landing/pages/{page_id}/publish", headers=headers)
+    served = (await client.get("/p/full-doc")).text
+    assert served.lstrip().lower().startswith("<!doctype")
+    assert served.count("<html") == 1  # không bọc lồng document
+    assert "contenteditable" not in served
+    assert "live-edit-script" not in served
+    assert "FullDoc" in served
+
+    # 2) Body-fragment (EditorTab) dùng class Tailwind → được bơm CDN + viewport
+    resp = await client.post(
+        "/mcp/landing/pages",
+        json={
+            "title": "Fragment",
+            "slug": "fragment-page",
+            "html_content": '<section class="bg-blue-500 p-8"><h1>Fragment</h1></section>',
+            "css_content": "h1 { color: red; }",
+        },
+        headers=headers,
+    )
+    page_id = resp.json()["id"]
+    await client.patch(f"/mcp/landing/pages/{page_id}/publish", headers=headers)
+    served = (await client.get("/p/fragment-page")).text
+    assert "cdn.tailwindcss.com" in served
+    assert "viewport" in served
+    assert "color: red" in served
+    assert served.count("<html") == 1
+
+
 async def test_get_lab_history_item(client):
     """GET /api/lab/history/{id} — endpoint mở lại kết quả đã lưu."""
     # Requires auth
