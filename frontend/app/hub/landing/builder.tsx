@@ -109,6 +109,8 @@ export function LandingBuilder({ onSaved }: { onSaved?: () => void }) {
   const [savedPageId, setSavedPageId] = useState<number | null>(null);
   const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
   const [liveTick, setLiveTick] = useState(0);
+  const [publishing, setPublishing] = useState(false);
+  const [publishedUrl, setPublishedUrl] = useState<string | null>(null);
 
   const editableHtmlRef = useRef("");
 
@@ -257,6 +259,39 @@ export function LandingBuilder({ onSaved }: { onSaved?: () => void }) {
     }
   };
 
+  // Xuất bản 1 chạm: lưu (nếu chưa) rồi publish thành web tĩnh public ngay
+  const handlePublishNow = async () => {
+    const finalHtml = editableHtmlRef.current || previewHtml;
+    if (!finalHtml) return;
+    setPublishing(true);
+    try {
+      let pageId = savedPageId;
+      const cleanHtml = getCleanHtml();
+      if (pageId) {
+        await api.patch(`/mcp/landing/pages/${pageId}`, { title: title || "Landing Page", html_content: cleanHtml });
+      } else {
+        const created = await api.post<{ id: number }>("/mcp/landing/save-from-template", {
+          title: title || "Landing Page",
+          html: cleanHtml,
+        });
+        pageId = created.id;
+        setSavedPageId(created.id);
+      }
+      const res = await api.patch<{ slug: string }>(`/mcp/landing/pages/${pageId}/publish`, {});
+      const url = `${API_BASE_URL}/p/${res.slug}`;
+      setPublishedUrl(url);
+      setLastSavedAt(new Date());
+      clearWizardDraft();
+      try { await navigator.clipboard.writeText(url); } catch {}
+      toast.success("Đã xuất bản! Link web đã được copy vào clipboard");
+      onSaved?.();
+    } catch (e: any) {
+      toast.error(e?.response?.data?.detail || "Xuất bản thất bại");
+    } finally {
+      setPublishing(false);
+    }
+  };
+
   const canNext = () => {
     if (step === "purpose") return purpose !== "" && (purpose !== "Other" || customPurpose.trim());
     if (step === "content") return targetAudience.trim() !== "" || keyFeatures.trim() !== "" || contactInfo.trim() !== "";
@@ -315,11 +350,29 @@ export function LandingBuilder({ onSaved }: { onSaved?: () => void }) {
           <button onClick={() => { setPreviewHtml(""); setStep("purpose"); setStepIndex(0); setSavedPageId(null); setLiveTick(0); editableHtmlRef.current = ""; }} className={btnOutline}>
             Tạo lại
           </button>
-          <button onClick={handleSave} disabled={saving} className={`${btn} whitespace-nowrap`}>
+          <button onClick={handleSave} disabled={saving} className={`${btnOutline} whitespace-nowrap`}>
             {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
             Lưu trang
           </button>
+          <button onClick={handlePublishNow} disabled={publishing} className={`${btn} whitespace-nowrap`}>
+            {publishing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+            {publishing ? "Đang xuất bản..." : "Xuất bản ngay"}
+          </button>
         </div>
+        {publishedUrl && (
+          <div className="flex items-center gap-2 rounded-lg border border-primary/30 bg-primary/5 px-3 py-2 text-sm">
+            <span className="font-medium text-primary">🌐 Web đã live:</span>
+            <a href={publishedUrl} target="_blank" rel="noopener noreferrer" className="flex-1 truncate text-primary underline">
+              {publishedUrl}
+            </a>
+            <button
+              onClick={() => { navigator.clipboard.writeText(publishedUrl); toast.success("Đã copy link"); }}
+              className="shrink-0 text-xs text-muted-foreground hover:text-foreground"
+            >
+              Copy
+            </button>
+          </div>
+        )}
 
         {/* Preview iframe */}
         <div className="flex-1 overflow-hidden rounded-xl border border-border bg-white min-h-0">

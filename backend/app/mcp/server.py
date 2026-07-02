@@ -30,10 +30,12 @@ class EmailReq(BaseModel):
     smtp_config: SmtpConfig | None = None
 
 class BatchEmailReq(BaseModel):
-    recipients: list[dict]
+    recipients: list[dict] | None = None
+    list_id: int | None = None
     subject: str
     html_template: str
     from_email: str | None = None
+    smtp_config: SmtpConfig | None = None
 
 class VercelDeployReq(BaseModel):
     name: str
@@ -64,7 +66,36 @@ async def send_batch(body: BatchEmailReq, user: User = Depends(get_current_user)
     allowed, used, limit = await check_daily_email_sends(session, user)
     if not allowed:
         raise HTTPException(429, f"Bạn đã đạt giới hạn gửi email trong ngày của gói hiện tại ({limit}/ngày). Vui lòng nâng cấp.")
-    return await email_tools.send_batch(session, user.id, body.recipients, body.subject, body.html_template, body.from_email)
+
+    recipients = body.recipients or []
+    if body.list_id is not None:
+        from sqlalchemy import select
+        from app.models.email_contact import EmailContact
+        from app.models.email_list import EmailList, email_list_contacts
+
+        lst = await session.get(EmailList, body.list_id)
+        if not lst or lst.user_id != user.id:
+            raise HTTPException(404, "Không tìm thấy danh sách liên hệ")
+        contacts = (await session.execute(
+            select(EmailContact)
+            .join(email_list_contacts, email_list_contacts.c.contact_id == EmailContact.id)
+            .where(email_list_contacts.c.list_id == body.list_id, EmailContact.user_id == user.id)
+        )).scalars().all()
+        recipients = [
+            {"email": c.email, "name": c.name or ""} for c in contacts
+        ] + recipients
+
+    if not recipients:
+        raise HTTPException(400, "Danh sách người nhận trống")
+
+    try:
+        return await email_tools.send_batch(
+            session, user.id, recipients, body.subject, body.html_template,
+            body.from_email,
+            smtp_config=body.smtp_config.model_dump() if body.smtp_config else None,
+        )
+    except ValueError as e:
+        raise HTTPException(400, str(e))
 
 
 @router.get("/email/stats")

@@ -62,21 +62,28 @@ async def send_batch(
     session: AsyncSession, user_id: int,
     recipients: list[dict], subject: str, html_template: str,
     from_email: str | None = None,
+    smtp_config: dict | None = None,
 ) -> dict:
     from app.services.email_service import email_service
-    if not email_service.enabled:
+    if not email_service.enabled and not smtp_config:
         raise ValueError("Dịch vụ gửi email chưa được cấu hình (Thiếu RESEND_API_KEY hoặc SMTP settings).")
 
     success_count = 0
+    failed: list[str] = []
     for r in recipients:
         personalized = html_template
         for key, val in r.items():
             if key != "email":
                 personalized = personalized.replace(f"{{{{{key}}}}}", str(val))
-        
-        success = await email_service.send_email(r["email"], subject, personalized)
+
+        success = await email_service.send_email(
+            r["email"], subject, personalized,
+            smtp_config=smtp_config, from_email=from_email,
+        )
         if success:
             success_count += 1
+        else:
+            failed.append(r["email"])
 
     if success_count == 0 and len(recipients) > 0:
         raise ValueError("Gửi email batch thất bại. Vui lòng kiểm tra lại cấu hình SMTP/Resend.")
@@ -86,7 +93,8 @@ async def send_batch(
     await session.flush()
 
     ec = EmailCampaign(
-        user_id=user_id, campaign_id=campaign.id, provider="resend" if email_service.use_resend else "smtp",
+        user_id=user_id, campaign_id=campaign.id,
+        provider="smtp" if smtp_config else ("resend" if email_service.use_resend else "smtp"),
         sent_count=success_count, status="sent",
     )
     session.add(ec)
@@ -94,7 +102,12 @@ async def send_batch(
 
     await log_action(session, user_id, "email.batch_send", "email_campaign", str(ec.id),
                      {"count": len(recipients), "success_count": success_count})
-    return {"batch_data": {}, "campaign_id": campaign.id}
+    return {
+        "batch_data": {},
+        "campaign_id": campaign.id,
+        "sent_count": success_count,
+        "failed": failed,
+    }
 
 
 async def get_email_stats(session: AsyncSession, user_id: int, campaign_id: int | None = None) -> dict:

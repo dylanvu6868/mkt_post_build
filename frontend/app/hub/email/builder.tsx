@@ -131,6 +131,9 @@ export function MailBuilder({ onSendTest }: { onSendTest?: (html: string) => voi
   const [isSendModalOpen, setIsSendModalOpen] = useState(false);
   const [sendCc, setSendCc] = useState("");
   const [sendBcc, setSendBcc] = useState("");
+  const [contactLists, setContactLists] = useState<{ id: number; name: string; contact_count: number }[]>([]);
+  const [selectedListId, setSelectedListId] = useState("");
+  const [bulkSending, setBulkSending] = useState(false);
   const [useCustomSmtp, setUseCustomSmtp] = useState(false);
   const [smtpHost, setSmtpHost] = useState("");
   const [smtpPort, setSmtpPort] = useState("587");
@@ -320,6 +323,59 @@ export function MailBuilder({ onSendTest }: { onSendTest?: (html: string) => voi
     }
   };
 
+  // Tải danh sách liên hệ khi mở modal gửi
+  useEffect(() => {
+    if (!isSendModalOpen) return;
+    api
+      .get<{ id: number; name: string; contact_count: number }[]>("/mcp/email/lists")
+      .then(setContactLists)
+      .catch(() => {});
+  }, [isSendModalOpen]);
+
+  const buildSmtpConfig = () => {
+    if (!useCustomSmtp) return undefined;
+    if (!smtpHost || !smtpPort || !smtpUser || !smtpPass) {
+      toast.error("Vui lòng nhập đủ cấu hình SMTP");
+      return null;
+    }
+    const cfg = {
+      host: smtpHost,
+      port: parseInt(smtpPort, 10),
+      username: smtpUser,
+      password: smtpPass,
+      from_email: smtpFrom || smtpUser,
+    };
+    localStorage.setItem("vitba_smtp_config", JSON.stringify(cfg));
+    return cfg;
+  };
+
+  const handleBulkSend = async () => {
+    if (!selectedListId) {
+      toast.error("Vui lòng chọn danh sách liên hệ");
+      return;
+    }
+    const smtpConfig = buildSmtpConfig();
+    if (smtpConfig === null) return;
+    setBulkSending(true);
+    try {
+      const res = await api.post<{ sent_count: number; failed: string[] }>("/mcp/email/batch", {
+        list_id: Number(selectedListId),
+        subject: subject || "Email từ Vitba",
+        html_template: getCleanEmailHtml(),
+        smtp_config: smtpConfig,
+      });
+      const failedCount = res.failed?.length ?? 0;
+      toast.success(
+        `Đã gửi hàng loạt: ${res.sent_count} thành công${failedCount ? `, ${failedCount} thất bại` : ""}`
+      );
+      setIsSendModalOpen(false);
+    } catch (e: any) {
+      toast.error(e?.response?.data?.detail || e?.message || "Gửi hàng loạt thất bại");
+    } finally {
+      setBulkSending(false);
+    }
+  };
+
   const handleSendTest = async () => {
     if (!testEmail || !previewHtml) {
       toast.error("Vui lòng nhập ít nhất 1 email nhận");
@@ -469,6 +525,31 @@ export function MailBuilder({ onSendTest }: { onSendTest?: (html: string) => voi
                   </div>
                 </div>
 
+                {/* Bulk send by contact list */}
+                <div className="space-y-3">
+                  <h3 className="text-sm font-semibold text-foreground border-b border-border pb-1">
+                    Hoặc: Gửi hàng loạt theo danh sách liên hệ
+                  </h3>
+                  {contactLists.length === 0 ? (
+                    <p className="text-xs text-muted-foreground">
+                      Chưa có danh sách liên hệ nào — tạo ở tab Contacts/Lists của Vitba Mail.
+                    </p>
+                  ) : (
+                    <select
+                      className={inp}
+                      value={selectedListId}
+                      onChange={(e) => setSelectedListId(e.target.value)}
+                    >
+                      <option value="">-- Chọn danh sách liên hệ --</option>
+                      {contactLists.map((l) => (
+                        <option key={l.id} value={l.id}>
+                          {l.name} ({l.contact_count} liên hệ)
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                </div>
+
                 {/* Sender Config */}
                 <div className="space-y-4">
                   <h3 className="text-sm font-semibold text-foreground border-b border-border pb-1">2. Cấu hình gửi (SMTP)</h3>
@@ -506,6 +587,15 @@ export function MailBuilder({ onSendTest }: { onSendTest?: (html: string) => voi
               </div>
               <div className="flex justify-end gap-2 border-t border-border pt-4">
                 <button onClick={() => setIsSendModalOpen(false)} className={btnOutline}>Hủy</button>
+                <button
+                  onClick={handleBulkSend}
+                  disabled={bulkSending || !selectedListId}
+                  className={btnOutline}
+                  title="Gửi cho toàn bộ danh sách liên hệ đã chọn"
+                >
+                  {bulkSending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                  {bulkSending ? "Đang gửi hàng loạt..." : "Gửi hàng loạt"}
+                </button>
                 <button onClick={handleSendTest} disabled={sending} className={btn}>
                   {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
                   {sending ? "Đang gửi..." : "Gửi Email"}
