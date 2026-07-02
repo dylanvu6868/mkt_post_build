@@ -277,8 +277,10 @@ export function LandingBuilder({ onSaved }: { onSaved?: () => void }) {
         pageId = created.id;
         setSavedPageId(created.id);
       }
-      const res = await api.patch<{ slug: string }>(`/mcp/landing/pages/${pageId}/publish`, {});
-      const url = `${API_BASE_URL}/p/${res.slug}`;
+      const res = await api.patch<{ slug: string; public_url?: string }>(`/mcp/landing/pages/${pageId}/publish`, {});
+      const url = res.public_url && res.public_url.startsWith("http")
+        ? res.public_url
+        : `${API_BASE_URL}/p/${res.slug}`;
       setPublishedUrl(url);
       setLastSavedAt(new Date());
       clearWizardDraft();

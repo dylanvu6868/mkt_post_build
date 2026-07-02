@@ -190,7 +190,13 @@ async def publish_page(page_id: int, user: User = Depends(get_current_user), ses
     page.published_at = datetime.now(timezone.utc)
     await session.commit()
     await log_action(session, user.id, "landing.publish", "landing_page", str(page.id))
-    return {"id": page.id, "status": "published", "slug": page.slug}
+    from app.core.config import settings
+    public_url = (
+        f"https://{page.slug}.{settings.landing_base_domain}"
+        if settings.landing_base_domain
+        else f"/p/{page.slug}"
+    )
+    return {"id": page.id, "status": "published", "slug": page.slug, "public_url": public_url}
 
 
 @router.get("/mcp/landing/pages/{page_id}/export")

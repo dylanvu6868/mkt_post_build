@@ -146,6 +146,33 @@ async def test_unified_history(client, promote):
     assert {i["source"] for i in only_landing} == {"landing"}
 
 
+async def test_subdomain_serves_published_landing(client, promote):
+    """{slug}.vitbaai.xyz phải serve trang landing đã publish."""
+    token = await _register(client, "subdomain@example.com", promote=promote)
+    headers = {"Authorization": f"Bearer {token}"}
+
+    resp = await client.post(
+        "/mcp/landing/pages",
+        json={"title": "Sub Test", "slug": "sub-test", "html_content": "<h1>SubdomainOK</h1>"},
+        headers=headers,
+    )
+    assert resp.status_code == 201
+    page_id = resp.json()["id"]
+
+    pub = await client.patch(f"/mcp/landing/pages/{page_id}/publish", headers=headers)
+    assert pub.status_code == 200
+    assert pub.json()["public_url"] == "https://sub-test.vitbaai.xyz"
+
+    # Request tới subdomain (middleware rewrite / → /p/{slug})
+    resp = await client.get("/", headers={"host": "sub-test.vitbaai.xyz"})
+    assert resp.status_code == 200
+    assert "SubdomainOK" in resp.text
+
+    # Subdomain không tồn tại → 404
+    resp = await client.get("/", headers={"host": "khong-ton-tai.vitbaai.xyz"})
+    assert resp.status_code == 404
+
+
 async def test_get_lab_history_item(client):
     """GET /api/lab/history/{id} — endpoint mở lại kết quả đã lưu."""
     # Requires auth

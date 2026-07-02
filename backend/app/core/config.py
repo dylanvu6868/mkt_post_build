@@ -64,6 +64,8 @@ class Settings(BaseSettings):
 
     # Email — Resend API (preferred on Railway where SMTP is blocked)
     resend_api_key: str = ""
+    # Base domain for published landing pages ({slug}.<domain>); empty disables subdomain serving
+    landing_base_domain: str = "vitbaai.xyz"
     # SMTP fallback (local dev)
     smtp_host: str = "smtp.gmail.com"
     smtp_port: int = 587

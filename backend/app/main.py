@@ -130,6 +130,23 @@ async def seed_admin():
         logger.warning("Skipping admin seed — run 'alembic upgrade head' first")
 
 
+# Serve published landing pages on wildcard subdomains: {slug}.vitbaai.xyz → /p/{slug}
+@app.middleware("http")
+async def subdomain_landing_rewrite(request, call_next):
+    base = settings.landing_base_domain
+    if base:
+        host = request.headers.get("host", "").split(":")[0].lower()
+        if (
+            host.endswith("." + base)
+            and request.method in ("GET", "HEAD")
+            and request.scope.get("path") in ("", "/")
+        ):
+            sub = host[: -(len(base) + 1)]
+            if sub and "." not in sub and sub not in ("www", "api", "app"):
+                request.scope["path"] = f"/p/{sub}"
+    return await call_next(request)
+
+
 app.include_router(admin.router)
 app.include_router(auth.router)
 app.include_router(chat.router)
