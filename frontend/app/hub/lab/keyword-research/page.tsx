@@ -2,6 +2,7 @@
 
 import { useLocalDraft } from "@/hooks/use-local-draft";
 import { useLabTool } from "@/hooks/use-lab-tool";
+import { useLabHistoryRestore } from "@/hooks/use-lab-history-restore";
 import { LabBreadcrumb, ToolHeader, RunButton, ErrorBox, ResultBox, LabInput } from "@/components/lab-ui";
 import { Search, TrendingUp, DollarSign, Activity, Sparkles } from "lucide-react";
 
@@ -213,7 +214,16 @@ function KeywordTable({ items, title }: { items: KeywordItem[]; title: string })
 export default function KeywordResearchPage() {
   const [keyword, setKeyword] = useLocalDraft("vitba_lab_draft_keyword-research_keyword", "");
   const locationCode = 2840;
-  const { run, result, loading, error } = useLabTool<KeywordResearchResult>("/keyword-research");
+  const { run, result, setResult, loading, error } = useLabTool<KeywordResearchResult>("/keyword-research");
+
+  // Mở lại kết quả đã lưu từ trang Lịch sử (?hist={id})
+  useLabHistoryRestore((item) => {
+    const inp = item.input_data as Record<string, string> | null;
+    if (inp) {
+      if (inp.keyword !== undefined) setKeyword(String(inp.keyword));
+    }
+    if (item.output_data) setResult(item.output_data as unknown as KeywordResearchResult);
+  });
 
   async function handleRun() {
     if (!keyword.trim()) return;

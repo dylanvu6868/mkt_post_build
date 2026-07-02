@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useLocalDraft } from "@/hooks/use-local-draft";
 import { useLabTool } from "@/hooks/use-lab-tool";
+import { useLabHistoryRestore } from "@/hooks/use-lab-history-restore";
 import { LabBreadcrumb, ToolHeader, RunButton, ErrorBox, LabTextarea, ChipGroup } from "@/components/lab-ui";
 
 
@@ -10,7 +11,17 @@ interface TrendResult { trend_analysis: string; injected_content: string; trend_
 export default function TrendJackPage() {const [content, setContent] = useLocalDraft("vitba_lab_draft_trendjack_content", "");
   const [trends, setTrends] = useLocalDraft("vitba_lab_draft_trendjack_trends", "");
   const [copied, setCopied] = useState(false);
-  const { run, result, loading, error } = useLabTool<TrendResult>("/trendjack");
+  const { run, result, setResult, loading, error } = useLabTool<TrendResult>("/trendjack");
+
+  // Mở lại kết quả đã lưu từ trang Lịch sử (?hist={id})
+  useLabHistoryRestore((item) => {
+    const inp = item.input_data as Record<string, string> | null;
+    if (inp) {
+      if (inp.content !== undefined) setContent(String(inp.content));
+      if (inp.current_trends !== undefined) setTrends(String(inp.current_trends));
+    }
+    if (item.output_data) setResult(item.output_data as unknown as TrendResult);
+  });
 
   async function handleRun() {
     if (!content.trim()) return;

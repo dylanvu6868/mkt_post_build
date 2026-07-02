@@ -6,6 +6,7 @@ import { api } from "@/services/api";
 interface UseLabToolReturn<T> {
   run: (body: Record<string, unknown>) => Promise<void>;
   result: T | null;
+  setResult: (value: T | null) => void;
   loading: boolean;
   error: string | null;
   reset: () => void;
@@ -39,5 +40,5 @@ export function useLabTool<T>(endpoint: string): UseLabToolReturn<T> {
     setError(null);
   }, []);
 
-  return { run, result, loading, error, reset };
+  return { run, result, setResult, loading, error, reset };
 }

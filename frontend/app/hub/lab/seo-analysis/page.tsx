@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useLocalDraft } from "@/hooks/use-local-draft";
 import { useLabTool } from "@/hooks/use-lab-tool";
+import { useLabHistoryRestore } from "@/hooks/use-lab-history-restore";
 import { LabBreadcrumb, ToolHeader, RunButton, ErrorBox } from "@/components/lab-ui";
 import { btn } from "@/lib/ui-tokens";
 import { Globe, Search, Copy, Check, FileText } from "lucide-react";
@@ -21,7 +22,21 @@ export default function SeoAnalysisPage() {
   const [gscData, setGscData] = useLocalDraft("vitba_lab_draft_seo-analysis_gscData", "");
   const [copied, setCopied] = useState(false);
 
-  const { run, result, loading, error } = useLabTool<SeoAnalysisResult>("/seo-analysis");
+  const { run, result, setResult, loading, error } = useLabTool<SeoAnalysisResult>("/seo-analysis");
+
+  // Mở lại kết quả đã lưu từ trang Lịch sử (?hist={id})
+  useLabHistoryRestore((item) => {
+    const inp = item.input_data as Record<string, unknown> | null;
+    if (inp) {
+      if (inp.domain !== undefined) setDomain(String(inp.domain));
+      if (inp.industry !== undefined) setIndustry(String(inp.industry));
+      if (inp.target_region !== undefined) setTargetRegion(String(inp.target_region));
+      if (Array.isArray(inp.keywords)) setKeywords((inp.keywords as string[]).join(", "));
+      if (Array.isArray(inp.competitors)) setCompetitors((inp.competitors as string[]).join(", "));
+      if (inp.gsc_data !== undefined) setGscData(String(inp.gsc_data));
+    }
+    if (item.output_data) setResult(item.output_data as unknown as SeoAnalysisResult);
+  });
 
   async function handleRun() {
     if (!domain.trim()) return;

@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useLocalDraft } from "@/hooks/use-local-draft";
 import { useLabTool } from "@/hooks/use-lab-tool";
+import { useLabHistoryRestore } from "@/hooks/use-lab-history-restore";
 import { LabBreadcrumb, ToolHeader, RunButton, ErrorBox, ResultBox, LabTextarea } from "@/components/lab-ui";
 
 interface DNAResult {
@@ -14,7 +15,17 @@ export default function DNAPage() {
   const [viralContent, setViralContent] = useLocalDraft("vitba_lab_draft_dna_viralContent", "");
   const [userTopic, setUserTopic] = useLocalDraft("vitba_lab_draft_dna_userTopic", "");
   const [copied, setCopied] = useState(false);
-  const { run, result, loading, error } = useLabTool<DNAResult>("/dna");
+  const { run, result, setResult, loading, error } = useLabTool<DNAResult>("/dna");
+
+  // Mở lại kết quả đã lưu từ trang Lịch sử (?hist={id})
+  useLabHistoryRestore((item) => {
+    const inp = item.input_data as Record<string, string> | null;
+    if (inp) {
+      if (inp.viral_content !== undefined) setViralContent(String(inp.viral_content));
+      if (inp.user_topic !== undefined) setUserTopic(String(inp.user_topic));
+    }
+    if (item.output_data) setResult(item.output_data as unknown as DNAResult);
+  });
 
   async function handleRun() {
     if (!viralContent.trim() || !userTopic.trim()) return;

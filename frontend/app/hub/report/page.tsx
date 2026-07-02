@@ -7,6 +7,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { ArrowRight, ArrowLeft, Check, Sparkles, Edit2, FileDown, History, Calendar, Copy, Loader2 } from "lucide-react";
 import { api } from "@/services/api";
+import { useLabHistoryRestore } from "@/hooks/use-lab-history-restore";
 
 interface ReportResult {
   markdown_content: string;
@@ -89,6 +90,17 @@ export default function ReportPage() {
   useEffect(() => {
     localStorage.setItem("vitba_report_draft", JSON.stringify(formData));
   }, [formData]);
+
+  // Mở lại báo cáo đã lưu từ trang Lịch sử (?hist={id})
+  useLabHistoryRestore((item) => {
+    if (item.input_data) {
+      setFormData((prev) => ({ ...prev, ...(item.input_data as Partial<typeof prev>) }));
+    }
+    if (item.output_data) {
+      setHistoryResult(item.output_data as unknown as ReportResult);
+      setIsWizardCollapsed(true);
+    }
+  });
 
   useEffect(() => {
     if (result) {

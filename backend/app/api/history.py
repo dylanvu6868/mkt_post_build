@@ -38,6 +38,15 @@ def _snippet(value: object, max_len: int = 160) -> str:
     return text[:max_len]
 
 
+def _lab_route(r: LabHistory) -> str:
+    """Route mở lại kèm ?hist={id} để trang tool nạp lại đúng kết quả đã lưu."""
+    base = _LAB_TOOL_ROUTES.get(r.tool_name, f"/hub/lab/{r.tool_name}")
+    # Trang Frame tự hiển thị toàn bộ ảnh đã lưu — không cần deep-link
+    if r.tool_name in ("frame_image", "invoice_extract"):
+        return base
+    return f"{base}?hist={r.id}"
+
+
 @router.get("/unified")
 async def unified_history(
     limit: int = Query(default=60, ge=1, le=200),
@@ -71,7 +80,7 @@ async def unified_history(
                 "snippet": _snippet(first_input),
                 "status": "done",
                 "created_at": r.created_at.isoformat() if r.created_at else "",
-                "route": _LAB_TOOL_ROUTES.get(r.tool_name, f"/hub/lab/{r.tool_name}"),
+                "route": _lab_route(r),
             })
 
     if want("content"):

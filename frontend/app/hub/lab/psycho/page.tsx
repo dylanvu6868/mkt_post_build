@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useLocalDraft } from "@/hooks/use-local-draft";
 import { useLabTool } from "@/hooks/use-lab-tool";
+import { useLabHistoryRestore } from "@/hooks/use-lab-history-restore";
 import { LabBreadcrumb, ToolHeader, RunButton, ErrorBox, ResultBox, LabTextarea, ChipGroup } from "@/components/lab-ui";
 
 const EMOTIONS = [
@@ -23,7 +24,17 @@ export default function PsychoPage() {
   const [content, setContent] = useLocalDraft("vitba_lab_draft_psycho_content", "");
   const [emotion, setEmotion] = useLocalDraft("vitba_lab_draft_psycho_emotion", EMOTIONS[0].id);
   const [copied, setCopied] = useState(false);
-  const { run, result, loading, error } = useLabTool<PsychoResult>("/psycho");
+  const { run, result, setResult, loading, error } = useLabTool<PsychoResult>("/psycho");
+
+  // Mở lại kết quả đã lưu từ trang Lịch sử (?hist={id})
+  useLabHistoryRestore((item) => {
+    const inp = item.input_data as Record<string, string> | null;
+    if (inp) {
+      if (inp.content !== undefined) setContent(String(inp.content));
+      if (inp.target_emotion !== undefined) setEmotion(String(inp.target_emotion));
+    }
+    if (item.output_data) setResult(item.output_data as unknown as PsychoResult);
+  });
 
   async function handleRun() {
     if (!content.trim()) return;

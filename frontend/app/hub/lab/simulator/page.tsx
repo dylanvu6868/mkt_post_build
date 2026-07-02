@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useLocalDraft } from "@/hooks/use-local-draft";
 import { useLabTool } from "@/hooks/use-lab-tool";
+import { useLabHistoryRestore } from "@/hooks/use-lab-history-restore";
 import { LabBreadcrumb, ToolHeader, RunButton, ErrorBox, LabTextarea, ChipGroup } from "@/components/lab-ui";
 
 
@@ -17,7 +18,16 @@ const TYPE_MAP: Record<string, { label: string; dot: string }> = {
 
 export default function SimulatorPage() {const [content, setContent] = useLocalDraft("vitba_lab_draft_simulator_content", "");
   const [filter, setFilter] = useState<string>("all");
-  const { run, result, loading, error } = useLabTool<SimResult>("/simulator");
+  const { run, result, setResult, loading, error } = useLabTool<SimResult>("/simulator");
+
+  // Mở lại kết quả đã lưu từ trang Lịch sử (?hist={id})
+  useLabHistoryRestore((item) => {
+    const inp = item.input_data as Record<string, string> | null;
+    if (inp) {
+      if (inp.content !== undefined) setContent(String(inp.content));
+    }
+    if (item.output_data) setResult(item.output_data as unknown as SimResult);
+  });
 
   async function handleRun() {
     if (!content.trim()) return;

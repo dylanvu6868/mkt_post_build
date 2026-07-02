@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useLocalDraft } from "@/hooks/use-local-draft";
 import { useLabTool } from "@/hooks/use-lab-tool";
+import { useLabHistoryRestore } from "@/hooks/use-lab-history-restore";
 import { LabBreadcrumb, ToolHeader, RunButton, ErrorBox, LabTextarea, ChipGroup } from "@/components/lab-ui";
 
 
@@ -12,7 +13,17 @@ interface AudioResult { total_duration_estimate: string; bpm_match_advice: strin
 export default function AudioHookPage() {const [content, setContent] = useLocalDraft("vitba_lab_draft_audiohook_content", "");
   const [bpm, setBpm] = useLocalDraft("vitba_lab_draft_audiohook_bpm", 120);
   const [copied, setCopied] = useState(false);
-  const { run, result, loading, error } = useLabTool<AudioResult>("/audiohook");
+  const { run, result, setResult, loading, error } = useLabTool<AudioResult>("/audiohook");
+
+  // Mở lại kết quả đã lưu từ trang Lịch sử (?hist={id})
+  useLabHistoryRestore((item) => {
+    const inp = item.input_data as Record<string, string> | null;
+    if (inp) {
+      if (inp.content !== undefined) setContent(String(inp.content));
+      if (inp.music_bpm !== undefined) setBpm(Number(inp.music_bpm));
+    }
+    if (item.output_data) setResult(item.output_data as unknown as AudioResult);
+  });
 
   async function handleRun() {
     if (!content.trim()) return;

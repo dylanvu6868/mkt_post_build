@@ -1,6 +1,7 @@
 "use client";
 import { useLocalDraft } from "@/hooks/use-local-draft";
 import { useLabTool } from "@/hooks/use-lab-tool";
+import { useLabHistoryRestore } from "@/hooks/use-lab-history-restore";
 import { LabBreadcrumb, ToolHeader, RunButton, ErrorBox, ResultBox, LabInput, ChipGroup } from "@/components/lab-ui";
 
 interface InfluencerProfile { tier: string; follower_range: string; profile_description: string; content_style: string; estimated_cost: string }
@@ -15,7 +16,18 @@ export default function InfluencerPage() {
   const [niche, setNiche] = useLocalDraft("vitba_lab_draft_influencer_niche", "");
   const [budget, setBudget] = useLocalDraft("vitba_lab_draft_influencer_budget", "5-20 triệu VND");
   const [platform, setPlatform] = useLocalDraft<"TikTok" | "Instagram" | "Facebook" | "YouTube">("vitba_lab_draft_influencer_platform", "TikTok");
-  const { run, result, loading, error } = useLabTool<InfluencerResult>("/influencer");
+  const { run, result, setResult, loading, error } = useLabTool<InfluencerResult>("/influencer");
+
+  // Mở lại kết quả đã lưu từ trang Lịch sử (?hist={id})
+  useLabHistoryRestore((item) => {
+    const inp = item.input_data as Record<string, string> | null;
+    if (inp) {
+      if (inp.niche !== undefined) setNiche(String(inp.niche));
+      if (inp.budget !== undefined) setBudget(String(inp.budget));
+      if (inp.platform !== undefined) setPlatform(inp.platform as "TikTok" | "Instagram" | "Facebook" | "YouTube");
+    }
+    if (item.output_data) setResult(item.output_data as unknown as InfluencerResult);
+  });
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">

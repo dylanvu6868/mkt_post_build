@@ -302,6 +302,37 @@ async def get_lab_history(
             for h in histories
         ]
 
+@router.get("/history/{history_id}")
+async def get_lab_history_item(
+    history_id: str,
+    current_user: User = Depends(get_current_user),
+    session_maker: async_sessionmaker = Depends(get_session_maker),
+):
+    """Lấy một bản ghi lịch sử để mở lại kết quả đã lưu."""
+    async with session_maker() as session:
+        try:
+            h_uuid = uuid.UUID(history_id)
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid history ID")
+
+        stmt = select(LabHistory).where(
+            LabHistory.id == h_uuid,
+            LabHistory.user_id == current_user.id
+        )
+        result = await session.execute(stmt)
+        history = result.scalars().first()
+
+        if not history:
+            raise HTTPException(status_code=404, detail="History not found")
+
+        return {
+            "id": str(history.id),
+            "tool_name": history.tool_name,
+            "input_data": history.input_data,
+            "output_data": history.output_data,
+            "created_at": history.created_at.isoformat(),
+        }
+
 @router.delete("/history/{history_id}")
 async def delete_lab_history(
     history_id: str,

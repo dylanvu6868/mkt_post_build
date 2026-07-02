@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useLocalDraft } from "@/hooks/use-local-draft";
 import { useLabTool } from "@/hooks/use-lab-tool";
+import { useLabHistoryRestore } from "@/hooks/use-lab-history-restore";
 import { LabBreadcrumb, ToolHeader, RunButton, ErrorBox, LabTextarea, ChipGroup } from "@/components/lab-ui";
 
 
@@ -10,7 +11,17 @@ interface EvergreenResult { original_core: string; refreshed_content: string; up
 export default function EvergreenPage() {const [oldContent, setOldContent] = useLocalDraft("vitba_lab_draft_evergreen_oldContent", "");
   const [yearCtx, setYearCtx] = useLocalDraft("vitba_lab_draft_evergreen_yearCtx", "Giữa năm 2025 — thế hệ Alpha, AI bùng nổ, xu hướng slow living");
   const [copied, setCopied] = useState(false);
-  const { run, result, loading, error } = useLabTool<EvergreenResult>("/evergreen");
+  const { run, result, setResult, loading, error } = useLabTool<EvergreenResult>("/evergreen");
+
+  // Mở lại kết quả đã lưu từ trang Lịch sử (?hist={id})
+  useLabHistoryRestore((item) => {
+    const inp = item.input_data as Record<string, string> | null;
+    if (inp) {
+      if (inp.old_content !== undefined) setOldContent(String(inp.old_content));
+      if (inp.target_year_context !== undefined) setYearCtx(String(inp.target_year_context));
+    }
+    if (item.output_data) setResult(item.output_data as unknown as EvergreenResult);
+  });
 
   async function handleRun() {
     if (!oldContent.trim()) return;

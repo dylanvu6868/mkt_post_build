@@ -144,3 +144,23 @@ async def test_unified_history(client, promote):
     # Source filter
     only_landing = (await client.get("/history/unified?source=landing", headers=headers)).json()
     assert {i["source"] for i in only_landing} == {"landing"}
+
+
+async def test_get_lab_history_item(client):
+    """GET /api/lab/history/{id} — endpoint mở lại kết quả đã lưu."""
+    # Requires auth
+    resp = await client.get("/api/lab/history/00000000-0000-0000-0000-000000000000")
+    assert resp.status_code in (401, 403)
+
+    token = await _register(client, "labhist@example.com")
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # Invalid UUID -> 400
+    resp = await client.get("/api/lab/history/not-a-uuid", headers=headers)
+    assert resp.status_code == 400
+
+    # Unknown UUID -> 404
+    resp = await client.get(
+        "/api/lab/history/00000000-0000-0000-0000-000000000000", headers=headers
+    )
+    assert resp.status_code == 404

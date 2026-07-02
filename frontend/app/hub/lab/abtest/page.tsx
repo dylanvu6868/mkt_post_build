@@ -1,6 +1,7 @@
 "use client";
 import { useLocalDraft } from "@/hooks/use-local-draft";
 import { useLabTool } from "@/hooks/use-lab-tool";
+import { useLabHistoryRestore } from "@/hooks/use-lab-history-restore";
 import { LabBreadcrumb, ToolHeader, RunButton, ErrorBox, ResultBox, LabTextarea, LabInput, ChipGroup } from "@/components/lab-ui";
 import { inp } from "@/lib/ui-tokens";
 
@@ -18,7 +19,18 @@ export default function ABTestPage() {
   const [variantA, setVariantA] = useLocalDraft("vitba_lab_draft_abtest_variantA", "");
   const [variantB, setVariantB] = useLocalDraft("vitba_lab_draft_abtest_variantB", "");
   const [platform, setPlatform] = useLocalDraft<"Facebook" | "TikTok" | "Instagram" | "LinkedIn">("vitba_lab_draft_abtest_platform", "Facebook");
-  const { run, result, loading, error } = useLabTool<ABTestResult>("/abtest");
+  const { run, result, setResult, loading, error } = useLabTool<ABTestResult>("/abtest");
+
+  // Mở lại kết quả đã lưu từ trang Lịch sử (?hist={id})
+  useLabHistoryRestore((item) => {
+    const inp = item.input_data as Record<string, string> | null;
+    if (inp) {
+      if (inp.variant_a !== undefined) setVariantA(String(inp.variant_a));
+      if (inp.variant_b !== undefined) setVariantB(String(inp.variant_b));
+      if (inp.platform !== undefined) setPlatform(inp.platform as "Facebook" | "TikTok" | "Instagram" | "LinkedIn");
+    }
+    if (item.output_data) setResult(item.output_data as unknown as ABTestResult);
+  });
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">

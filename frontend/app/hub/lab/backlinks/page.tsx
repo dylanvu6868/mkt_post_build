@@ -2,6 +2,7 @@
 
 import { useLocalDraft } from "@/hooks/use-local-draft";
 import { useLabTool } from "@/hooks/use-lab-tool";
+import { useLabHistoryRestore } from "@/hooks/use-lab-history-restore";
 import { LabBreadcrumb, ToolHeader, RunButton, ErrorBox, ResultBox, LabInput } from "@/components/lab-ui";
 import { Globe, Link, ExternalLink, Share2, Shield, ArrowUpRight } from "lucide-react";
 
@@ -105,7 +106,16 @@ function truncateUrl(url: string, max = 50): string {
 
 export default function BacklinksPage() {
   const [domain, setDomain] = useLocalDraft("vitba_lab_draft_backlinks_domain", "");
-  const { run, result, loading, error } = useLabTool<BacklinksResult>("/backlinks");
+  const { run, result, setResult, loading, error } = useLabTool<BacklinksResult>("/backlinks");
+
+  // Mở lại kết quả đã lưu từ trang Lịch sử (?hist={id})
+  useLabHistoryRestore((item) => {
+    const inp = item.input_data as Record<string, string> | null;
+    if (inp) {
+      if (inp.domain !== undefined) setDomain(String(inp.domain));
+    }
+    if (item.output_data) setResult(item.output_data as unknown as BacklinksResult);
+  });
 
   async function handleRun() {
     if (!domain.trim()) return;

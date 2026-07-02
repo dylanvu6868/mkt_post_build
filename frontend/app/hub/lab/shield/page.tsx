@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useLocalDraft } from "@/hooks/use-local-draft";
 import { useLabTool } from "@/hooks/use-lab-tool";
+import { useLabHistoryRestore } from "@/hooks/use-lab-history-restore";
 import { LabBreadcrumb, ToolHeader, RunButton, ErrorBox, LabTextarea, ScoreBar } from "@/components/lab-ui";
 
 interface ShieldResult {
@@ -13,7 +14,16 @@ interface ShieldResult {
 export default function ShieldPage() {
   const [content, setContent] = useLocalDraft("vitba_lab_draft_shield_content", "");
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
-  const { run, result, loading, error } = useLabTool<ShieldResult>("/shield");
+  const { run, result, setResult, loading, error } = useLabTool<ShieldResult>("/shield");
+
+  // Mở lại kết quả đã lưu từ trang Lịch sử (?hist={id})
+  useLabHistoryRestore((item) => {
+    const inp = item.input_data as Record<string, string> | null;
+    if (inp) {
+      if (inp.content !== undefined) setContent(String(inp.content));
+    }
+    if (item.output_data) setResult(item.output_data as unknown as ShieldResult);
+  });
 
   async function handleRun() {
     if (!content.trim()) return;

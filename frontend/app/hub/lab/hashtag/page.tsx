@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useLocalDraft } from "@/hooks/use-local-draft";
 import { useLabTool } from "@/hooks/use-lab-tool";
+import { useLabHistoryRestore } from "@/hooks/use-lab-history-restore";
 import { LabBreadcrumb, ToolHeader, RunButton, ErrorBox, ResultBox, LabInput, ChipGroup } from "@/components/lab-ui";
 
 interface HashtagGroup { category: string; hashtags: string[]; purpose: string }
@@ -22,7 +23,18 @@ export default function HashtagPage() {
   const [niche, setNiche] = useLocalDraft("vitba_lab_draft_hashtag_niche", "");
   const [platform, setPlatform] = useLocalDraft<"Facebook" | "TikTok" | "Instagram" | "YouTube">("vitba_lab_draft_hashtag_platform", "Facebook");
   const [region, setRegion] = useLocalDraft("vitba_lab_draft_hashtag_region", "Việt Nam");
-  const { run, result, loading, error } = useLabTool<HashtagResult>("/hashtag");
+  const { run, result, setResult, loading, error } = useLabTool<HashtagResult>("/hashtag");
+
+  // Mở lại kết quả đã lưu từ trang Lịch sử (?hist={id})
+  useLabHistoryRestore((item) => {
+    const inp = item.input_data as Record<string, string> | null;
+    if (inp) {
+      if (inp.niche !== undefined) setNiche(String(inp.niche));
+      if (inp.platform !== undefined) setPlatform(inp.platform as "Facebook" | "TikTok" | "Instagram" | "YouTube");
+      if (inp.region !== undefined) setRegion(String(inp.region));
+    }
+    if (item.output_data) setResult(item.output_data as unknown as HashtagResult);
+  });
   const [copied, setCopied] = useState(false);
 
   const copyMix = () => {

@@ -1,6 +1,7 @@
 "use client";
 import { useLocalDraft } from "@/hooks/use-local-draft";
 import { useLabTool } from "@/hooks/use-lab-tool";
+import { useLabHistoryRestore } from "@/hooks/use-lab-history-restore";
 import { LabBreadcrumb, ToolHeader, RunButton, ErrorBox, ResultBox, LabTextarea, LabInput } from "@/components/lab-ui";
 
 interface CompetitorInsight { metric: string; observation: string; vitba_recommendation: string }
@@ -17,7 +18,17 @@ interface CompetitorSpyResult {
 export default function CompetitorSpyPage() {
   const [info, setInfo] = useLocalDraft("vitba_lab_draft_competitor-spy_info", "");
   const [niche, setNiche] = useLocalDraft("vitba_lab_draft_competitor-spy_niche", "");
-  const { run, result, loading, error } = useLabTool<CompetitorSpyResult>("/competitor-spy");
+  const { run, result, setResult, loading, error } = useLabTool<CompetitorSpyResult>("/competitor-spy");
+
+  // Mở lại kết quả đã lưu từ trang Lịch sử (?hist={id})
+  useLabHistoryRestore((item) => {
+    const inp = item.input_data as Record<string, string> | null;
+    if (inp) {
+      if (inp.competitor_info !== undefined) setInfo(String(inp.competitor_info));
+      if (inp.niche !== undefined) setNiche(String(inp.niche));
+    }
+    if (item.output_data) setResult(item.output_data as unknown as CompetitorSpyResult);
+  });
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">

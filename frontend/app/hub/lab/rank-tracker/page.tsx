@@ -2,6 +2,7 @@
 
 import { useLocalDraft } from "@/hooks/use-local-draft";
 import { useLabTool } from "@/hooks/use-lab-tool";
+import { useLabHistoryRestore } from "@/hooks/use-lab-history-restore";
 import { LabBreadcrumb, ToolHeader, RunButton, ErrorBox, ResultBox, LabInput } from "@/components/lab-ui";
 import { Globe, TrendingUp, Search, DollarSign, BarChart3 } from "lucide-react";
 
@@ -153,7 +154,16 @@ function RankBadge({ rank }: { rank: number }) {
 export default function RankTrackerPage() {
   const [domain, setDomain] = useLocalDraft("vitba_lab_draft_rank-tracker_domain", "");
   const locationCode = 2840;
-  const { run, result, loading, error } = useLabTool<RankTrackerResult>("/rank-tracker");
+  const { run, result, setResult, loading, error } = useLabTool<RankTrackerResult>("/rank-tracker");
+
+  // Mở lại kết quả đã lưu từ trang Lịch sử (?hist={id})
+  useLabHistoryRestore((item) => {
+    const inp = item.input_data as Record<string, string> | null;
+    if (inp) {
+      if (inp.domain !== undefined) setDomain(String(inp.domain));
+    }
+    if (item.output_data) setResult(item.output_data as unknown as RankTrackerResult);
+  });
 
   async function handleRun() {
     if (!domain.trim()) return;

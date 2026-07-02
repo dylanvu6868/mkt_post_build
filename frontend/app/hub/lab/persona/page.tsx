@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useLocalDraft } from "@/hooks/use-local-draft";
 import { useLabTool } from "@/hooks/use-lab-tool";
+import { useLabHistoryRestore } from "@/hooks/use-lab-history-restore";
 import { LabBreadcrumb, ToolHeader, RunButton, ErrorBox, LabTextarea, ChipGroup } from "@/components/lab-ui";
 
 
@@ -24,7 +25,17 @@ export default function PersonaPage() {
   const [content, setContent] = useLocalDraft("vitba_lab_draft_persona_content", "");
   const [voice, setVoice] = useLocalDraft("vitba_lab_draft_persona_voice", VOICES[0].id);
   const [copied, setCopied] = useState(false);
-  const { run, result, loading, error } = useLabTool<PersonaResult>("/persona");
+  const { run, result, setResult, loading, error } = useLabTool<PersonaResult>("/persona");
+
+  // Mở lại kết quả đã lưu từ trang Lịch sử (?hist={id})
+  useLabHistoryRestore((item) => {
+    const inp = item.input_data as Record<string, string> | null;
+    if (inp) {
+      if (inp.content !== undefined) setContent(String(inp.content));
+      if (inp.persona !== undefined) setVoice(String(inp.persona));
+    }
+    if (item.output_data) setResult(item.output_data as unknown as PersonaResult);
+  });
 
   const activeVoice = VOICES.find((v) => v.id === voice)!;
 

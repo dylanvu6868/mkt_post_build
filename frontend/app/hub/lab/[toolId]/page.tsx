@@ -4,6 +4,7 @@ import { useState } from "react";
 import { notFound } from "next/navigation";
 import { useLabTool } from "@/hooks/use-lab-tool";
 import { useLocalDraft } from "@/hooks/use-local-draft";
+import { useLabHistoryRestore } from "@/hooks/use-lab-history-restore";
 import { findLabTool } from "@/lib/lab-tools";
 import { MarkdownRenderer } from "@/lib/markdown";
 import {
@@ -37,7 +38,14 @@ export default function GenericLabToolPage({ params }: { params: { toolId: strin
     Object.fromEntries(fields.map((f) => [f.key, ""]))
   );
   const [copied, setCopied] = useState(false);
-  const { run, result, loading, error } = useLabTool<GenericToolResult>(`/generic/${tool.id}`);
+  const { run, result, setResult, loading, error } = useLabTool<GenericToolResult>(`/generic/${tool.id}`);
+
+  // Mở lại kết quả đã lưu từ trang Lịch sử (?hist={id})
+  useLabHistoryRestore((item) => {
+    const inputs = (item.input_data?.inputs ?? item.input_data) as Record<string, string> | null;
+    if (inputs) setValues((prev) => ({ ...prev, ...inputs }));
+    if (item.output_data) setResult(item.output_data as unknown as GenericToolResult);
+  });
 
   const requiredFilled = fields
     .filter((f) => f.required)

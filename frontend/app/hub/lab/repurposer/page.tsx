@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useLocalDraft } from "@/hooks/use-local-draft";
 import { useLabTool } from "@/hooks/use-lab-tool";
+import { useLabHistoryRestore } from "@/hooks/use-lab-history-restore";
 import { LabBreadcrumb, ToolHeader, RunButton, ErrorBox, ResultBox, LabTextarea } from "@/components/lab-ui";
 import { inp } from "@/lib/ui-tokens";
 
@@ -18,7 +19,17 @@ const FORMAT_PRESETS = [
 export default function RepurposerPage() {
   const [content, setContent] = useLocalDraft("vitba_lab_draft_repurposer_content", "");
   const [formats, setFormats] = useLocalDraft("vitba_lab_draft_repurposer_formats", FORMAT_PRESETS[0]);
-  const { run, result, loading, error } = useLabTool<RepurposerResult>("/repurposer");
+  const { run, result, setResult, loading, error } = useLabTool<RepurposerResult>("/repurposer");
+
+  // Mở lại kết quả đã lưu từ trang Lịch sử (?hist={id})
+  useLabHistoryRestore((item) => {
+    const inp = item.input_data as Record<string, string> | null;
+    if (inp) {
+      if (inp.source_content !== undefined) setContent(String(inp.source_content));
+      if (inp.target_formats !== undefined) setFormats(String(inp.target_formats));
+    }
+    if (item.output_data) setResult(item.output_data as unknown as RepurposerResult);
+  });
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
 
   const copy = (text: string, idx: number) => {

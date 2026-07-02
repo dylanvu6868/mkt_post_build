@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useLocalDraft } from "@/hooks/use-local-draft";
 import { useLabTool } from "@/hooks/use-lab-tool";
+import { useLabHistoryRestore } from "@/hooks/use-lab-history-restore";
 import { LabBreadcrumb, ToolHeader, RunButton, ErrorBox, LabTextarea, ChipGroup } from "@/components/lab-ui";
 
 
@@ -12,7 +13,17 @@ interface HexResult { reach_score: number; issues: Issue[]; optimized_content: s
 export default function HexBreakerPage() {const [content, setContent] = useLocalDraft("vitba_lab_draft_hexbreaker_content", "");
   const [platform, setPlatform] = useLocalDraft("vitba_lab_draft_hexbreaker_platform", "Facebook");
   const [copied, setCopied] = useState(false);
-  const { run, result, loading, error } = useLabTool<HexResult>("/hexbreaker");
+  const { run, result, setResult, loading, error } = useLabTool<HexResult>("/hexbreaker");
+
+  // Mở lại kết quả đã lưu từ trang Lịch sử (?hist={id})
+  useLabHistoryRestore((item) => {
+    const inp = item.input_data as Record<string, string> | null;
+    if (inp) {
+      if (inp.content !== undefined) setContent(String(inp.content));
+      if (inp.platform !== undefined) setPlatform(String(inp.platform));
+    }
+    if (item.output_data) setResult(item.output_data as unknown as HexResult);
+  });
 
   async function handleRun() {
     if (!content.trim()) return;

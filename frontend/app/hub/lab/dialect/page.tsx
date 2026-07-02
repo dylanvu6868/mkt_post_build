@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useLocalDraft } from "@/hooks/use-local-draft";
 import { useLabTool } from "@/hooks/use-lab-tool";
+import { useLabHistoryRestore } from "@/hooks/use-lab-history-restore";
 import { LabBreadcrumb, ToolHeader, RunButton, ErrorBox, ResultBox, LabTextarea } from "@/components/lab-ui";
 
 interface DialectVariant { region: string; adapted_content: string; key_changes: string[] }
@@ -15,7 +16,16 @@ const REGION_COLORS: Record<string, string> = {
 
 export default function DialectPage() {
   const [content, setContent] = useLocalDraft("vitba_lab_draft_dialect_content", "");
-  const { run, result, loading, error } = useLabTool<DialectResult>("/dialect");
+  const { run, result, setResult, loading, error } = useLabTool<DialectResult>("/dialect");
+
+  // Mở lại kết quả đã lưu từ trang Lịch sử (?hist={id})
+  useLabHistoryRestore((item) => {
+    const inp = item.input_data as Record<string, string> | null;
+    if (inp) {
+      if (inp.content !== undefined) setContent(String(inp.content));
+    }
+    if (item.output_data) setResult(item.output_data as unknown as DialectResult);
+  });
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
 
   const copy = (text: string, idx: number) => {

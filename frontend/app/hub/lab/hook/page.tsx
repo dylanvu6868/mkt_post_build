@@ -1,6 +1,7 @@
 "use client";
 import { useLocalDraft } from "@/hooks/use-local-draft";
 import { useLabTool } from "@/hooks/use-lab-tool";
+import { useLabHistoryRestore } from "@/hooks/use-lab-history-restore";
 import { LabBreadcrumb, ToolHeader, RunButton, ErrorBox, ResultBox, LabTextarea, ChipGroup } from "@/components/lab-ui";
 
 interface HookVariant { formula: string; hook: string; psychology: string }
@@ -9,7 +10,21 @@ interface HookResult { hooks: HookVariant[]; best_for_engagement: string; best_f
 export default function HookPage() {
   const [content, setContent] = useLocalDraft("vitba_lab_draft_hook_content", "");
   const [goal, setGoal] = useLocalDraft<"engagement" | "conversion" | "awareness">("vitba_lab_draft_hook_goal", "engagement");
-  const { run, result, loading, error } = useLabTool<HookResult>("/hook");
+  const { run, result, setResult, loading, error } = useLabTool<HookResult>("/hook");
+
+  // Mở lại kết quả đã lưu từ trang Lịch sử (?hist={id})
+  useLabHistoryRestore((item) => {
+    const inp = item.input_data as Record<string, string> | null;
+    if (inp) {
+      if (inp.content !== undefined) setContent(String(inp.content));
+      if (inp.goal !== undefined) {
+        // body run() lưu goal dạng chuỗi tiếng Việt — map ngược về union
+        const g = String(inp.goal);
+        setGoal(g.includes("chuyển đổi") ? "conversion" : g.includes("thương hiệu") ? "awareness" : "engagement");
+      }
+    }
+    if (item.output_data) setResult(item.output_data as unknown as HookResult);
+  });
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">

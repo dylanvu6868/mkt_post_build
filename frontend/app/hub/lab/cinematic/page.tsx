@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useLocalDraft } from "@/hooks/use-local-draft";
 import { useLabTool } from "@/hooks/use-lab-tool";
+import { useLabHistoryRestore } from "@/hooks/use-lab-history-restore";
 import { LabBreadcrumb, ToolHeader, RunButton, ErrorBox, LabTextarea, ChipGroup } from "@/components/lab-ui";
 
 
@@ -12,7 +13,17 @@ interface CinematicResult { title: string; scenes: Scene[]; style_guide: string;
 export default function CinematicPage() {const [content, setContent] = useLocalDraft("vitba_lab_draft_cinematic_content", "");
   const [style, setStyle] = useLocalDraft("vitba_lab_draft_cinematic_style", STYLES[0]);
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
-  const { run, result, loading, error } = useLabTool<CinematicResult>("/cinematic");
+  const { run, result, setResult, loading, error } = useLabTool<CinematicResult>("/cinematic");
+
+  // Mở lại kết quả đã lưu từ trang Lịch sử (?hist={id})
+  useLabHistoryRestore((item) => {
+    const inp = item.input_data as Record<string, string> | null;
+    if (inp) {
+      if (inp.content !== undefined) setContent(String(inp.content));
+      if (inp.style !== undefined) setStyle(String(inp.style));
+    }
+    if (item.output_data) setResult(item.output_data as unknown as CinematicResult);
+  });
 
   async function handleRun() {
     if (!content.trim()) return;
