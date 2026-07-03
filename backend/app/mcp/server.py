@@ -52,8 +52,9 @@ async def send_email(body: EmailReq, user: User = Depends(get_current_user), ses
         raise HTTPException(429, f"Bạn đã đạt giới hạn gửi email trong ngày của gói hiện tại ({limit}/ngày). Vui lòng nâng cấp.")
     try:
         return await email_tools.send_email(
-            session, user.id, body.to, body.subject, body.html, 
-            body.from_email, cc=body.cc, bcc=body.bcc, smtp_config=body.smtp_config
+            session, user.id, body.to, body.subject, body.html,
+            body.from_email, cc=body.cc, bcc=body.bcc,
+            smtp_config=body.smtp_config.model_dump() if body.smtp_config else None,
         )
     except ValueError as e:
         raise HTTPException(400, str(e))
