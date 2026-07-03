@@ -6,6 +6,8 @@ from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from starlette.middleware.base import BaseHTTPMiddleware
 
+import os
+
 from app.api import admin, auth, brand, chat, conversations, documents, feedback, generate, history, images, memory_api, payments, projects, templates, lab, study, study_questions, frame
 from app.api.report_pdf import router as report_pdf_router
 from app.mcp.server import router as mcp_router
@@ -128,6 +130,19 @@ async def seed_admin():
             logger.info("Default admin created: %s", settings.admin_email)
     except Exception:
         logger.warning("Skipping admin seed — run 'alembic upgrade head' first")
+
+
+# Fail-fast: chặn khởi động production với secret mặc định/thiếu (P0 commercial readiness)
+if os.environ.get("RAILWAY_ENVIRONMENT") or os.environ.get("ENVIRONMENT") == "production":
+    _prod_errors = []
+    if settings.jwt_secret == "change-me":
+        _prod_errors.append("JWT_SECRET đang là default 'change-me'")
+    if settings.admin_password == "Admin@123456":
+        _prod_errors.append("ADMIN_PASSWORD đang là default")
+    if not settings.sepay_webhook_secret and not settings.sepay_api_key:
+        _prod_errors.append("SePay webhook không có auth (set SEPAY_WEBHOOK_SECRET hoặc SEPAY_API_KEY)")
+    if _prod_errors:
+        raise RuntimeError("Từ chối khởi động production: " + "; ".join(_prod_errors))
 
 
 # Serve published landing pages on wildcard subdomains: {slug}.vitbaai.xyz → /p/{slug}
