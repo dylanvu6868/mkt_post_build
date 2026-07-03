@@ -24,6 +24,20 @@ import {
 import { btn, btnOutline, inp } from "@/lib/ui-tokens";
 import { useLocalDraft } from "@/hooks/use-local-draft";
 
+function slugify(text: string): string {
+  return text
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .replace(/đ/g, "d")
+    .replace(/[^a-zA-Z0-9\s-]/g, " ")
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "")
+    .slice(0, 60);
+}
+
 const WIZARD_DRAFT_PREFIX = "vitba_landing_wizard_";
 const WIZARD_DRAFT_FIELDS = [
   "purpose", "customPurpose", "colorPalette", "customColor", "fontPair", "customFont",
@@ -221,7 +235,7 @@ export function LandingBuilder({ onSaved }: { onSaved?: () => void }) {
       try {
         const created = await api.post<{ id: number }>("/mcp/landing/save-from-template", {
           title: autoTitle || "Bản nháp Landing",
-          slug: `draft-${Date.now()}`,
+          slug: slugify(autoTitle) || "trang-moi",
           html: res.html,
         });
         setSavedPageId(created.id);

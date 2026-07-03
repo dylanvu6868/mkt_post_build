@@ -203,7 +203,17 @@ function statusLabel(status: LandingPageListItem["status"]): string {
 }
 
 function slugify(text: string): string {
-  return text.toLowerCase().replace(/[^a-z0-9\s-]/g, "").trim().replace(/\s+/g, "-");
+  return text
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "") // bỏ dấu tiếng Việt
+    .replace(/đ/g, "d")
+    .replace(/[^a-zA-Z0-9\s-]/g, " ") // ký tự lạ (/, &...) → khoảng trắng
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "")
+    .slice(0, 60);
 }
 
 /* ------------------------------------------------------------------ */

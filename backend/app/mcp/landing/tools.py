@@ -26,6 +26,34 @@ router = APIRouter(tags=["landing"])
 public_router = APIRouter()
 
 
+def _slugify(text: str) -> str:
+    """Chuẩn hóa tên trang thành slug URL-safe (bỏ dấu tiếng Việt)."""
+    import re
+    import unicodedata
+
+    text = unicodedata.normalize("NFD", text or "")
+    text = "".join(ch for ch in text if unicodedata.category(ch) != "Mn")
+    text = text.replace("đ", "d").replace("Đ", "D")
+    text = re.sub(r"[^a-zA-Z0-9\s-]", " ", text).strip().lower()
+    text = re.sub(r"[\s-]+", "-", text).strip("-")
+    return text[:60] or "trang-moi"
+
+
+async def _unique_slug(session: AsyncSession, raw: str) -> str:
+    """Đảm bảo slug không trùng (subdomain phải duy nhất): thêm -2, -3... nếu cần."""
+    base = _slugify(raw)
+    slug = base
+    n = 1
+    while True:
+        exists = (await session.execute(
+            select(LandingPage).where(LandingPage.slug == slug)
+        )).scalar_one_or_none()
+        if not exists:
+            return slug
+        n += 1
+        slug = f"{base}-{n}"
+
+
 def _render(page: LandingPage) -> str:
     import re
 
@@ -156,7 +184,7 @@ Nhiệm vụ: tạo landing page HTML hoàn chỉnh, responsive, đẹp, chuyể
 {style_ref}
 
 ## YÊU CẦU KỸ THUẬT:
-1. HTML hoàn chỉnh với inline CSS trong <style> tag
+1. TẤT CẢ TRONG MỘT FILE HTML DUY NHẤT, TỰ CHỨA (self-contained): toàn bộ CSS tùy chỉnh đặt trong <style> ở <head>; toàn bộ JavaScript đặt trong <script> ở cuối <body>. TUYỆT ĐỐI KHÔNG tách file .css/.js riêng, KHÔNG link tới file ngoài (chỉ được phép Tailwind CDN + Google Fonts). File phải mở trực tiếp là chạy đầy đủ style + tương tác
 2. Responsive, mobile-first, sử dụng CSS Grid/Flexbox
 3. Sử dụng Tailwind CSS qua CDN: <script src="https://cdn.tailwindcss.com"></script>
 4. VỀ HÌNH ẢNH: Nếu có cung cấp URL ảnh (logo, hero), dùng trực tiếp. NẾU KHÔNG CUNG CẤP URL, TUYỆT ĐỐI KHÔNG TỰ BỊA ĐƯỜNG DẪN ẢNH (hãy dùng dạng Text để hiển thị tên Brand).
@@ -352,10 +380,10 @@ async def save_from_template(
 ):
     """Save a rendered template as a new landing page."""
     title = body.get("title", "Untitled Landing Page")
-    slug = body.get("slug") or title.lower().replace(" ", "-")[:50]
     html_content = body.get("html", "")
     if not html_content:
         raise HTTPException(400, "html content is required")
+    slug = await _unique_slug(session, body.get("slug") or title)
     page = LandingPage(
         user_id=user.id,
         title=title,
@@ -416,7 +444,7 @@ Nhiệm vụ: tạo landing page HTML hoàn chỉnh, responsive, đẹp, chuyể
 {style_ref}
 
 ## YÊU CẦU KỸ THUẬT:
-1. HTML hoàn chỉnh với inline CSS trong <style> tag
+1. TẤT CẢ TRONG MỘT FILE HTML DUY NHẤT, TỰ CHỨA (self-contained): toàn bộ CSS tùy chỉnh đặt trong <style> ở <head>; toàn bộ JavaScript đặt trong <script> ở cuối <body>. TUYỆT ĐỐI KHÔNG tách file .css/.js riêng, KHÔNG link tới file ngoài (chỉ được phép Tailwind CDN + Google Fonts). File phải mở trực tiếp là chạy đầy đủ style + tương tác
 2. Responsive, mobile-first, sử dụng CSS Grid/Flexbox
 3. Sử dụng Tailwind CSS qua CDN: <script src="https://cdn.tailwindcss.com"></script>
 4. Nếu có logo/hero image URL, dùng <img src="URL"> trực tiếp
@@ -496,7 +524,7 @@ Nhiệm vụ: tạo landing page HTML hoàn chỉnh, responsive, đẹp, chuyể
 {style_ref}
 
 ## YÊU CẦU KỸ THUẬT:
-1. HTML hoàn chỉnh với inline CSS trong <style> tag
+1. TẤT CẢ TRONG MỘT FILE HTML DUY NHẤT, TỰ CHỨA (self-contained): toàn bộ CSS tùy chỉnh đặt trong <style> ở <head>; toàn bộ JavaScript đặt trong <script> ở cuối <body>. TUYỆT ĐỐI KHÔNG tách file .css/.js riêng, KHÔNG link tới file ngoài (chỉ được phép Tailwind CDN + Google Fonts). File phải mở trực tiếp là chạy đầy đủ style + tương tác
 2. Responsive, mobile-first, sử dụng CSS Grid/Flexbox
 3. Sử dụng Tailwind CSS qua CDN: <script src="https://cdn.tailwindcss.com"></script>
 4. VỀ HÌNH ẢNH: Nếu có cung cấp URL ảnh (logo, hero), dùng trực tiếp. NẾU KHÔNG CUNG CẤP URL, TUYỆT ĐỐI KHÔNG TỰ BỊA ĐƯỜNG DẪN ẢNH (hãy dùng dạng Text để hiển thị tên Brand).

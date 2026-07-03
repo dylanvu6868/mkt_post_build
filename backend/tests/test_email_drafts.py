@@ -219,6 +219,29 @@ async def test_published_page_render_adapts_to_content(client, promote):
     assert served.count("<html") == 1
 
 
+async def test_save_from_template_slug_from_title(client, promote):
+    """Slug chuẩn hóa từ tên trang tiếng Việt + tự tránh trùng."""
+    token = await _register(client, "slug@example.com", promote=promote)
+    headers = {"Authorization": f"Bearer {token}"}
+
+    r1 = await client.post(
+        "/mcp/landing/save-from-template",
+        json={"title": "Y tế / Phòng khám", "html": "<h1>a</h1>"},
+        headers=headers,
+    )
+    assert r1.status_code == 200
+    assert r1.json()["slug"] == "y-te-phong-kham"
+
+    # Trùng tên → tự thêm hậu tố -2
+    r2 = await client.post(
+        "/mcp/landing/save-from-template",
+        json={"title": "Y tế / Phòng khám", "html": "<h1>b</h1>"},
+        headers=headers,
+    )
+    assert r2.status_code == 200
+    assert r2.json()["slug"] == "y-te-phong-kham-2"
+
+
 async def test_get_lab_history_item(client):
     """GET /api/lab/history/{id} — endpoint mở lại kết quả đã lưu."""
     # Requires auth
