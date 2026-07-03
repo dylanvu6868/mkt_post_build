@@ -134,28 +134,8 @@ export function MailBuilder({ onSendTest }: { onSendTest?: (html: string) => voi
   const [contactLists, setContactLists] = useState<{ id: number; name: string; contact_count: number }[]>([]);
   const [selectedListId, setSelectedListId] = useState("");
   const [bulkSending, setBulkSending] = useState(false);
-  const [useCustomSmtp, setUseCustomSmtp] = useState(false);
-  const [smtpHost, setSmtpHost] = useState("");
-  const [smtpPort, setSmtpPort] = useState("587");
-  const [smtpUser, setSmtpUser] = useState("");
-  const [smtpPass, setSmtpPass] = useState("");
-  const [smtpFrom, setSmtpFrom] = useState("");
-
-  // Load saved SMTP config on mount
-  useEffect(() => {
-    const saved = localStorage.getItem("vitba_smtp_config");
-    if (saved) {
-      try {
-        const config = JSON.parse(saved);
-        setSmtpHost(config.host || "");
-        setSmtpPort(config.port || "587");
-        setSmtpUser(config.username || "");
-        setSmtpPass(config.password || "");
-        setSmtpFrom(config.from_email || "");
-        setUseCustomSmtp(true);
-      } catch (e) {}
-    }
-  }, []);
+  // SMTP riêng đã bỏ — mọi email gửi qua hệ thống với sender cá nhân hóa
+  // ({tên-viết-liền}@vitbaai.xyz) và Reply-To về email tài khoản.
 
   const editableHtmlRef = useRef("");
 
@@ -332,37 +312,17 @@ export function MailBuilder({ onSendTest }: { onSendTest?: (html: string) => voi
       .catch(() => {});
   }, [isSendModalOpen]);
 
-  const buildSmtpConfig = () => {
-    if (!useCustomSmtp) return undefined;
-    if (!smtpHost || !smtpPort || !smtpUser || !smtpPass) {
-      toast.error("Vui lòng nhập đủ cấu hình SMTP");
-      return null;
-    }
-    const cfg = {
-      host: smtpHost,
-      port: parseInt(smtpPort, 10),
-      username: smtpUser,
-      password: smtpPass,
-      from_email: smtpFrom || smtpUser,
-    };
-    localStorage.setItem("vitba_smtp_config", JSON.stringify(cfg));
-    return cfg;
-  };
-
   const handleBulkSend = async () => {
     if (!selectedListId) {
       toast.error("Vui lòng chọn danh sách liên hệ");
       return;
     }
-    const smtpConfig = buildSmtpConfig();
-    if (smtpConfig === null) return;
     setBulkSending(true);
     try {
       const res = await api.post<{ sent_count: number; failed: string[] }>("/mcp/email/batch", {
         list_id: Number(selectedListId),
         subject: subject || "Email từ Vitba",
         html_template: getCleanEmailHtml(),
-        smtp_config: smtpConfig,
       });
       const failedCount = res.failed?.length ?? 0;
       toast.success(
@@ -389,24 +349,6 @@ export function MailBuilder({ onSendTest }: { onSendTest?: (html: string) => voi
     const ccList = parseEmails(sendCc);
     const bccList = parseEmails(sendBcc);
 
-    let smtpConfig = undefined;
-    if (useCustomSmtp) {
-      if (!smtpHost || !smtpPort || !smtpUser || !smtpPass) {
-        toast.error("Vui lòng nhập đủ cấu hình SMTP");
-        setSending(false);
-        return;
-      }
-      smtpConfig = {
-        host: smtpHost,
-        port: parseInt(smtpPort, 10),
-        username: smtpUser,
-        password: smtpPass,
-        from_email: smtpFrom || smtpUser,
-      };
-      // Save for next time
-      localStorage.setItem("vitba_smtp_config", JSON.stringify(smtpConfig));
-    }
-
     try {
       if (onSendTest) {
         // If it's used as a component with a custom onSendTest (legacy)
@@ -416,7 +358,6 @@ export function MailBuilder({ onSendTest }: { onSendTest?: (html: string) => voi
           to: toList,
           cc: ccList.length > 0 ? ccList : undefined,
           bcc: bccList.length > 0 ? bccList : undefined,
-          smtp_config: smtpConfig,
           subject: subject || "Test from Vitba",
           html: (editableHtmlRef.current || previewHtml).replace(/<script id="live-edit-script">[\s\S]*?<\/script>/, ""),
         });
@@ -550,39 +491,11 @@ export function MailBuilder({ onSendTest }: { onSendTest?: (html: string) => voi
                   )}
                 </div>
 
-                {/* Sender Config */}
-                <div className="space-y-4">
-                  <h3 className="text-sm font-semibold text-foreground border-b border-border pb-1">2. Cấu hình gửi (SMTP)</h3>
-                  <div className="flex items-center gap-2 mb-2">
-                    <input type="checkbox" id="useCustomSmtp" checked={useCustomSmtp} onChange={(e) => setUseCustomSmtp(e.target.checked)} className="rounded border-border text-primary focus:ring-primary" />
-                    <label htmlFor="useCustomSmtp" className="text-sm text-foreground">Sử dụng Email (SMTP) của riêng tôi thay vì mặc định hệ thống</label>
-                  </div>
-                  
-                  {useCustomSmtp && (
-                    <div className="grid grid-cols-2 gap-3 rounded-lg border border-border bg-card/50 p-4">
-                      <div className="space-y-1">
-                        <label className="text-xs font-medium text-foreground">SMTP Host</label>
-                        <input className={inp} placeholder="smtp.gmail.com" value={smtpHost} onChange={(e) => setSmtpHost(e.target.value)} />
-                      </div>
-                      <div className="space-y-1">
-                        <label className="text-xs font-medium text-foreground">SMTP Port</label>
-                        <input className={inp} placeholder="587" value={smtpPort} onChange={(e) => setSmtpPort(e.target.value)} />
-                      </div>
-                      <div className="space-y-1">
-                        <label className="text-xs font-medium text-foreground">Username</label>
-                        <input className={inp} placeholder="you@gmail.com" value={smtpUser} onChange={(e) => setSmtpUser(e.target.value)} />
-                      </div>
-                      <div className="space-y-1">
-                        <label className="text-xs font-medium text-foreground">Password (App Password)</label>
-                        <input className={inp} type="password" placeholder="********" value={smtpPass} onChange={(e) => setSmtpPass(e.target.value)} />
-                      </div>
-                      <div className="space-y-1 col-span-2">
-                        <label className="text-xs font-medium text-foreground">Tên người gửi (From Name/Email)</label>
-                        <input className={inp} placeholder="John Doe <john@company.com>" value={smtpFrom} onChange={(e) => setSmtpFrom(e.target.value)} />
-                      </div>
-                      <p className="text-[10px] text-muted-foreground col-span-2">* Cấu hình này chỉ được lưu tạm trên trình duyệt của bạn (Local Storage) để bảo mật.</p>
-                    </div>
-                  )}
+                {/* Sender info — SMTP riêng đã bỏ, hệ thống tự cá nhân hóa */}
+                <div className="rounded-lg border border-primary/20 bg-primary/5 p-3 text-xs text-muted-foreground leading-relaxed">
+                  <span className="font-medium text-foreground">✉️ Người gửi:</span> email sẽ được gửi từ địa chỉ
+                  thương hiệu riêng của bạn dạng <span className="font-mono text-foreground">tencuaban@vitbaai.xyz</span> (tự
+                  tạo từ tên tài khoản). Khi người nhận bấm Trả lời, thư sẽ về đúng email đăng ký của bạn.
                 </div>
               </div>
               <div className="flex justify-end gap-2 border-t border-border pt-4">

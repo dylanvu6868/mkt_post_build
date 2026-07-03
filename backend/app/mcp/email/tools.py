@@ -34,6 +34,7 @@ async def send_email(
     cc: list[str] | None = None,
     bcc: list[str] | None = None,
     smtp_config: dict | None = None,
+    reply_to: str | None = None,
 ) -> dict:
     from app.services.email_service import email_service
     if not email_service.enabled and not smtp_config:
@@ -44,8 +45,8 @@ async def send_email(
     # but for now let's just pass the whole list and handle it inside email_service.
     # We will assume email_service.send_email can take a list or single string.
     success = await email_service.send_email(
-        to=to, subject=subject, html_content=html, 
-        cc=cc, bcc=bcc, smtp_config=smtp_config, from_email=from_email
+        to=to, subject=subject, html_content=html,
+        cc=cc, bcc=bcc, smtp_config=smtp_config, from_email=from_email, reply_to=reply_to
     )
     success_count = len(to) if success else 0
 
@@ -73,6 +74,7 @@ async def send_batch(
     recipients: list[dict], subject: str, html_template: str,
     from_email: str | None = None,
     smtp_config: dict | None = None,
+    reply_to: str | None = None,
 ) -> dict:
     from app.services.email_service import email_service
     if not email_service.enabled and not smtp_config:
@@ -89,7 +91,7 @@ async def send_batch(
 
         success = await email_service.send_email(
             r["email"], subject, personalized,
-            smtp_config=smtp_config, from_email=from_email,
+            smtp_config=smtp_config, from_email=from_email, reply_to=reply_to,
         )
         if success:
             success_count += 1

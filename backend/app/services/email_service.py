@@ -27,7 +27,7 @@ class EmailService:
         self.use_resend = bool(self.resend_api_key)
         self.enabled = self.use_resend or bool(self.smtp_username and self.smtp_password)
 
-    async def _send_resend(self, to: list[str], subject: str, html: str, cc: list[str] = None, bcc: list[str] = None, from_email: str = None) -> None:
+    async def _send_resend(self, to: list[str], subject: str, html: str, cc: list[str] = None, bcc: list[str] = None, from_email: str = None, reply_to: str = None) -> None:
         async with httpx.AsyncClient(timeout=10) as client:
             payload = {
                 "from": from_email or settings.resend_from or "Vitba.ai <onboarding@resend.dev>",
@@ -35,6 +35,8 @@ class EmailService:
                 "subject": subject,
                 "html": html,
             }
+            if reply_to:
+                payload["reply_to"] = reply_to
             if cc:
                 payload["cc"] = cc
             if bcc:
@@ -77,15 +79,17 @@ class EmailService:
         finally:
             socket.getaddrinfo = _original_getaddrinfo
 
-    async def _send(self, to: list[str], subject: str, html_content: str, cc: list[str] = None, bcc: list[str] = None, smtp_config: dict = None, from_email: str = None) -> None:
+    async def _send(self, to: list[str], subject: str, html_content: str, cc: list[str] = None, bcc: list[str] = None, smtp_config: dict = None, from_email: str = None, reply_to: str = None) -> None:
         # If smtp_config is provided, we MUST use SMTP, ignoring self.use_resend
         use_smtp = True if smtp_config else not self.use_resend
-        
+
         if not use_smtp:
-            await self._send_resend(to, subject, html_content, cc, bcc, from_email)
+            await self._send_resend(to, subject, html_content, cc, bcc, from_email, reply_to)
         else:
             msg = MIMEMultipart("alternative")
             msg["Subject"] = subject
+            if reply_to:
+                msg["Reply-To"] = reply_to
             
             # Determine sender
             sender = from_email
@@ -156,13 +160,14 @@ class EmailService:
         bcc: list[str] | None = None,
         smtp_config: dict | None = None,
         from_email: str | None = None,
+        reply_to: str | None = None,
     ) -> bool:
         if not self.enabled and not smtp_config:
             logger.warning("Email service not configured, skipping email send")
             return False
 
         try:
-            await self._send(to, subject, html_content, cc, bcc, smtp_config, from_email)
+            await self._send(to, subject, html_content, cc, bcc, smtp_config, from_email, reply_to)
             logger.info("Email sent successfully to %s", to)
             return True
         except Exception as e:

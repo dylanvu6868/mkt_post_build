@@ -45,16 +45,36 @@ class VercelDeployReq(BaseModel):
 
 # -- Email endpoints --
 
+def _user_sender(user: User) -> tuple[str, str]:
+    """Sender cá nhân hóa: 'Tên User <tenviettlien@vitbaai.xyz>' + reply-to về email tài khoản."""
+    import re
+    import unicodedata
+
+    from app.core.config import settings
+
+    base = unicodedata.normalize("NFD", user.name or "")
+    base = "".join(ch for ch in base if unicodedata.category(ch) != "Mn")
+    slug = re.sub(r"[^a-z0-9]", "", base.lower()) or f"user{user.id}"
+    domain = settings.landing_base_domain or "vitbaai.xyz"
+    display = user.name or "Vitba"
+    return f"{display} <{slug}@{domain}>", user.email
+
+
 @router.post("/email/send")
 async def send_email(body: EmailReq, user: User = Depends(get_current_user), session: AsyncSession = Depends(get_session)):
     allowed, used, limit = await check_daily_email_sends(session, user)
     if not allowed:
         raise HTTPException(429, f"Bạn đã đạt giới hạn gửi email trong ngày của gói hiện tại ({limit}/ngày). Vui lòng nâng cấp.")
+    from_email = body.from_email
+    reply_to = None
+    if not body.smtp_config and not from_email:
+        from_email, reply_to = _user_sender(user)
     try:
         return await email_tools.send_email(
             session, user.id, body.to, body.subject, body.html,
-            body.from_email, cc=body.cc, bcc=body.bcc,
+            from_email, cc=body.cc, bcc=body.bcc,
             smtp_config=body.smtp_config.model_dump() if body.smtp_config else None,
+            reply_to=reply_to,
         )
     except ValueError as e:
         raise HTTPException(400, str(e))
@@ -89,11 +109,16 @@ async def send_batch(body: BatchEmailReq, user: User = Depends(get_current_user)
     if not recipients:
         raise HTTPException(400, "Danh sách người nhận trống")
 
+    from_email = body.from_email
+    reply_to = None
+    if not body.smtp_config and not from_email:
+        from_email, reply_to = _user_sender(user)
     try:
         return await email_tools.send_batch(
             session, user.id, recipients, body.subject, body.html_template,
-            body.from_email,
+            from_email,
             smtp_config=body.smtp_config.model_dump() if body.smtp_config else None,
+            reply_to=reply_to,
         )
     except ValueError as e:
         raise HTTPException(400, str(e))
