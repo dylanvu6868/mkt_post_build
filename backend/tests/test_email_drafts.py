@@ -242,6 +242,50 @@ async def test_save_from_template_slug_from_title(client, promote):
     assert r2.json()["slug"] == "y-te-phong-kham-2"
 
 
+async def test_landing_lead_capture_flow(client, promote):
+    """Form trên trang publish → lưu lead → chủ trang xem được; render có inject script."""
+    token = await _register(client, "leadowner@example.com", promote=promote)
+    headers = {"Authorization": f"Bearer {token}"}
+
+    resp = await client.post(
+        "/mcp/landing/pages",
+        json={
+            "title": "Bán hàng",
+            "slug": "ban-hang-lead",
+            "html_content": "<form><input name='name'><input name='phone'></form>",
+        },
+        headers=headers,
+    )
+    page_id = resp.json()["id"]
+    await client.patch(f"/mcp/landing/pages/{page_id}/publish", headers=headers)
+
+    # Trang publish phải có script bắt form
+    served = (await client.get("/p/ban-hang-lead")).text
+    assert "/p/ban-hang-lead/submit" in served
+
+    # Khách submit (không cần auth)
+    r = await client.post(
+        "/p/ban-hang-lead/submit",
+        json={"data": {"Họ tên": "Nguyễn A", "phone": "0900000000", "note": "Mua 2 sản phẩm"}},
+    )
+    assert r.status_code == 200 and r.json()["ok"] is True
+
+    # Chủ trang xem lead, field name/phone được tách
+    leads = (await client.get(f"/mcp/landing/pages/{page_id}/leads", headers=headers)).json()
+    assert len(leads) == 1
+    assert leads[0]["name"] == "Nguyễn A"
+    assert leads[0]["phone"] == "0900000000"
+    assert leads[0]["data"]["note"] == "Mua 2 sản phẩm"
+
+    # User khác không xem được lead của trang này
+    other = await _register(client, "leadother@example.com", promote=promote)
+    r = await client.get(
+        f"/mcp/landing/pages/{page_id}/leads",
+        headers={"Authorization": f"Bearer {other}"},
+    )
+    assert r.status_code == 404
+
+
 async def test_get_lab_history_item(client):
     """GET /api/lab/history/{id} — endpoint mở lại kết quả đã lưu."""
     # Requires auth

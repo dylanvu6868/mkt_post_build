@@ -16,6 +16,7 @@ from app.models.email_template import EmailTemplate
 from app.models.generation_job import GenerationJob
 from app.models.lab_history import LabHistory
 from app.models.landing_page import LandingPage
+from app.models.landing_lead import LandingLead
 from app.models.meta_page import MetaPage
 from app.models.oauth_account import OauthAccount
 from app.models.payment import PaymentOrder
@@ -31,6 +32,6 @@ from app.models.user_template import UserTemplate
 __all__ = [
     "AICallLog", "AuditLog", "BrandProfile", "BrandProfileHistory", "Campaign", "ContentHistory", "ContentItem",
     "Conversation", "Deployment", "Document", "EmailCampaign", "EmailContact",
-    "EmailDraft", "EmailList", "EmailTemplate", "GenerationJob", "LabHistory", "LandingPage", "Message", "MetaPage", "OauthAccount", "PaymentOrder",
+    "EmailDraft", "EmailList", "EmailTemplate", "GenerationJob", "LabHistory", "LandingPage", "LandingLead", "Message", "MetaPage", "OauthAccount", "PaymentOrder",
     "Project", "ScheduledEmail", "SeoAudit", "StudyBookmark", "StudyProgress", "User", "UserFeedback", "UserTemplate",
 ]

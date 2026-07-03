@@ -297,6 +297,25 @@ function PagesTab({ onEdit }: { onEdit: (page: LandingPageListItem) => void }) {
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
 
+  // Xem khách hàng để lại thông tin qua form trên trang
+  type Lead = { id: number; name: string | null; email: string | null; phone: string | null; data: Record<string, string> | null; created_at: string };
+  const [leadsPage, setLeadsPage] = useState<LandingPageListItem | null>(null);
+  const [leads, setLeads] = useState<Lead[]>([]);
+  const [leadsLoading, setLeadsLoading] = useState(false);
+
+  const openLeads = async (page: LandingPageListItem) => {
+    setLeadsPage(page);
+    setLeadsLoading(true);
+    setLeads([]);
+    try {
+      setLeads(await api.get<Lead[]>(`/mcp/landing/pages/${page.id}/leads`));
+    } catch {
+      toast.error("Không tải được danh sách khách");
+    } finally {
+      setLeadsLoading(false);
+    }
+  };
+
   useEffect(() => { loadLandingPages(); }, [loadLandingPages]);
 
   const handleDelete = async (id: number) => {
@@ -344,6 +363,8 @@ function PagesTab({ onEdit }: { onEdit: (page: LandingPageListItem) => void }) {
                 <div className="flex items-center justify-between">
                   <span className="text-[11px] text-muted-foreground">{page.created_at.slice(0, 10)}</span>
                   <div className="flex gap-1.5">
+                    <button className="rounded-lg px-2.5 py-1 text-xs font-medium border border-primary/30 text-primary hover:bg-primary/10 transition"
+                      onClick={(e) => { e.stopPropagation(); openLeads(page); }}>Khách hàng</button>
                     <button className="rounded-lg px-2.5 py-1 text-xs font-medium border border-border hover:bg-accent transition"
                       onClick={(e) => { e.stopPropagation(); onEdit(page); }}>Sửa</button>
                     <button className="rounded-lg px-2.5 py-1 text-xs font-medium text-destructive hover:bg-destructive/10 transition"
@@ -358,6 +379,41 @@ function PagesTab({ onEdit }: { onEdit: (page: LandingPageListItem) => void }) {
           ))}
         </div>
       )}
+
+      <Dialog open={leadsPage !== null} onOpenChange={(open) => { if (!open) setLeadsPage(null); }}>
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Khách hàng — {leadsPage?.title}</DialogTitle>
+            <DialogDescription>Thông tin khách để lại qua form trên trang này.</DialogDescription>
+          </DialogHeader>
+          {leadsLoading ? (
+            <div className="py-8 text-center text-sm text-muted-foreground">Đang tải...</div>
+          ) : leads.length === 0 ? (
+            <div className="py-8 text-center text-sm text-muted-foreground">
+              Chưa có khách nào để lại thông tin. Khi khách điền form trên trang đã xuất bản, dữ liệu sẽ hiện ở đây và gửi vào email của bạn.
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {leads.map((l) => (
+                <div key={l.id} className="rounded-xl border border-border p-3 text-sm">
+                  <div className="mb-1.5 flex items-center justify-between">
+                    <span className="font-semibold">{l.name || l.email || l.phone || "Khách"}</span>
+                    <span className="text-[11px] text-muted-foreground">{l.created_at.slice(0, 16).replace("T", " ")}</span>
+                  </div>
+                  <div className="grid gap-1">
+                    {Object.entries(l.data || {}).map(([k, v]) => (
+                      <div key={k} className="flex gap-2 text-xs">
+                        <span className="min-w-[90px] font-medium text-muted-foreground">{k}</span>
+                        <span className="text-foreground break-all">{v}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={confirmDeleteId !== null} onOpenChange={(open) => { if (!open) setConfirmDeleteId(null); }}>
         <DialogContent>

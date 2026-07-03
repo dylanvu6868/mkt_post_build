@@ -54,6 +54,30 @@ async def _unique_slug(session: AsyncSession, raw: str) -> str:
         slug = f"{base}-{n}"
 
 
+def _lead_capture_script(slug: str) -> str:
+    """Script chặn mọi <form> trên trang publish → POST về backend lưu lead,
+    rồi hiện lời cảm ơn. Nhờ vậy trang bán hàng/đăng ký nhận được thông tin khách."""
+    return (
+        "<script>(function(){document.addEventListener('submit',function(e){"
+        "var f=e.target;if(!f||f.tagName!=='FORM')return;e.preventDefault();"
+        "var d={};new FormData(f).forEach(function(v,k){d[k]=v;});"
+        "var b=f.querySelector('[type=submit],button');if(b){b.disabled=true;}"
+        f"fetch('/p/{slug}/submit',{{method:'POST',headers:{{'Content-Type':'application/json'}},"
+        "body:JSON.stringify({data:d})}).then(function(r){if(!r.ok)throw 0;"
+        "var m=document.createElement('div');m.style.cssText='padding:24px;text-align:center;font-weight:600';"
+        "m.textContent='\\u2713 C\\u1ea3m \\u01a1n b\\u1ea1n! Ch\\u00fang t\\u00f4i \\u0111\\u00e3 nh\\u1eadn \\u0111\\u01b0\\u1ee3c th\\u00f4ng tin v\\u00e0 s\\u1ebd li\\u00ean h\\u1ec7 s\\u1edbm.';"
+        "f.replaceWith(m);}).catch(function(){if(b){b.disabled=false;}"
+        "alert('G\\u1eedi th\\u1ea5t b\\u1ea1i, vui l\\u00f2ng th\\u1eed l\\u1ea1i.');});},true);})();</script>"
+    )
+
+
+def _inject_lead_capture(doc: str, slug: str) -> str:
+    script = _lead_capture_script(slug)
+    if "</body>" in doc:
+        return doc.replace("</body>", script + "</body>", 1)
+    return doc + script
+
+
 def _render(page: LandingPage) -> str:
     import re
 
@@ -78,7 +102,7 @@ def _render(page: LandingPage) -> str:
                 doc = doc.replace("<body", f"{css}<body", 1)
             else:
                 doc = css + doc
-        return doc
+        return _inject_lead_capture(doc, page.slug)
 
     # Trường hợp 2: body-fragment (EditorTab lưu phần trong <body>) — bọc khung
     # đầy đủ với viewport + Tailwind CDN để class Tailwind hiển thị đúng
@@ -89,7 +113,7 @@ def _render(page: LandingPage) -> str:
         "<!DOCTYPE html><html lang='vi'><head><meta charset='utf-8'>"
         "<meta name='viewport' content='width=device-width, initial-scale=1'>"
         f"<title>{html_mod.escape(page.title)}</title>{tailwind}{css}</head>"
-        f"<body>{content}</body></html>"
+        f"<body>{content}{_lead_capture_script(page.slug)}</body></html>"
     )
 
 
@@ -188,7 +212,9 @@ Nhiệm vụ: tạo landing page HTML hoàn chỉnh, responsive, đẹp, chuyể
 2. Responsive, mobile-first, sử dụng CSS Grid/Flexbox
 3. Sử dụng Tailwind CSS qua CDN: <script src="https://cdn.tailwindcss.com"></script>
 4. VỀ HÌNH ẢNH: Nếu có cung cấp URL ảnh (logo, hero), dùng trực tiếp. NẾU KHÔNG CUNG CẤP URL, TUYỆT ĐỐI KHÔNG TỰ BỊA ĐƯỜNG DẪN ẢNH (hãy dùng dạng Text để hiển thị tên Brand).
-5. Smooth animations, hover effects, gradient accents
+5. Smooth animations, hover effects, gradient accents.
+   - ICON: CHỈ dùng SVG inline dạng line/stroke, đặt stroke="currentColor" để icon tự đồng bộ màu theo màu chữ của section. TUYỆT ĐỐI KHÔNG dùng emoji, KHÔNG icon font hay thư viện icon ngoài (icon nhựa xấu).
+   - FORM THU THẬP: nếu trang có mục đích đăng ký / đặt hàng / liên hệ / thu thập khách, PHẢI có <form> với các ô nhập rõ ràng (họ tên [name], số điện thoại [name=phone], email [name=email] tùy phù hợp) và nút submit. Đặt thuộc tính name có ý nghĩa cho mỗi input. Không cần thêm action/JS gửi — hệ thống tự nhận dữ liệu.
 6. Typography hierarchy rõ ràng, font Google Fonts
 7. Các sections cần có: {sections_str}
 8. Tất cả sections phải đầy đủ nội dung (không placeholder)
@@ -448,7 +474,9 @@ Nhiệm vụ: tạo landing page HTML hoàn chỉnh, responsive, đẹp, chuyể
 2. Responsive, mobile-first, sử dụng CSS Grid/Flexbox
 3. Sử dụng Tailwind CSS qua CDN: <script src="https://cdn.tailwindcss.com"></script>
 4. Nếu có logo/hero image URL, dùng <img src="URL"> trực tiếp
-5. Smooth animations, hover effects, gradient accents
+5. Smooth animations, hover effects, gradient accents.
+   - ICON: CHỈ dùng SVG inline dạng line/stroke, đặt stroke="currentColor" để icon tự đồng bộ màu theo màu chữ của section. TUYỆT ĐỐI KHÔNG dùng emoji, KHÔNG icon font hay thư viện icon ngoài (icon nhựa xấu).
+   - FORM THU THẬP: nếu trang có mục đích đăng ký / đặt hàng / liên hệ / thu thập khách, PHẢI có <form> với các ô nhập rõ ràng (họ tên [name], số điện thoại [name=phone], email [name=email] tùy phù hợp) và nút submit. Đặt thuộc tính name có ý nghĩa cho mỗi input. Không cần thêm action/JS gửi — hệ thống tự nhận dữ liệu.
 6. Typography hierarchy rõ ràng, font Google Fonts
 7. Tất cả sections phải đầy đủ nội dung (không placeholder)
 8. Viết bằng tiếng Việt
@@ -528,7 +556,9 @@ Nhiệm vụ: tạo landing page HTML hoàn chỉnh, responsive, đẹp, chuyể
 2. Responsive, mobile-first, sử dụng CSS Grid/Flexbox
 3. Sử dụng Tailwind CSS qua CDN: <script src="https://cdn.tailwindcss.com"></script>
 4. VỀ HÌNH ẢNH: Nếu có cung cấp URL ảnh (logo, hero), dùng trực tiếp. NẾU KHÔNG CUNG CẤP URL, TUYỆT ĐỐI KHÔNG TỰ BỊA ĐƯỜNG DẪN ẢNH (hãy dùng dạng Text để hiển thị tên Brand).
-5. Smooth animations, hover effects, gradient accents
+5. Smooth animations, hover effects, gradient accents.
+   - ICON: CHỈ dùng SVG inline dạng line/stroke, đặt stroke="currentColor" để icon tự đồng bộ màu theo màu chữ của section. TUYỆT ĐỐI KHÔNG dùng emoji, KHÔNG icon font hay thư viện icon ngoài (icon nhựa xấu).
+   - FORM THU THẬP: nếu trang có mục đích đăng ký / đặt hàng / liên hệ / thu thập khách, PHẢI có <form> với các ô nhập rõ ràng (họ tên [name], số điện thoại [name=phone], email [name=email] tùy phù hợp) và nút submit. Đặt thuộc tính name có ý nghĩa cho mỗi input. Không cần thêm action/JS gửi — hệ thống tự nhận dữ liệu.
 6. Typography hierarchy rõ ràng, sử dụng font thuộc họ: {body.typography}
 7. Tất cả sections phải đầy đủ nội dung (không placeholder)
 8. Viết bằng tiếng Việt
@@ -566,3 +596,97 @@ async def serve_landing_page(slug: str, session: AsyncSession = Depends(get_sess
     if not page:
         raise HTTPException(404, "Page not found")
     return HTMLResponse(_render(page))
+
+
+def _guess_field(data: dict, *keys: str) -> str | None:
+    for k, v in data.items():
+        kl = str(k).lower()
+        if any(key in kl for key in keys) and v:
+            return str(v)[:320]
+    return None
+
+
+# Public route — nhận thông tin khách để lại qua form (lead/đơn hàng), không cần auth
+@public_router.post("/p/{slug}/submit")
+async def submit_landing_lead(
+    slug: str, body: dict, session: AsyncSession = Depends(get_session)
+):
+    from app.models.landing_lead import LandingLead
+
+    page = (await session.execute(
+        select(LandingPage).where(LandingPage.slug == slug, LandingPage.status == "published")
+    )).scalar_one_or_none()
+    if not page:
+        raise HTTPException(404, "Page not found")
+
+    data = body.get("data") if isinstance(body.get("data"), dict) else body
+    if not isinstance(data, dict) or not data:
+        raise HTTPException(400, "Không có dữ liệu")
+    # Giới hạn kích thước để tránh lạm dụng
+    data = {str(k)[:100]: str(v)[:2000] for k, v in list(data.items())[:40]}
+
+    lead = LandingLead(
+        landing_page_id=page.id,
+        user_id=page.user_id,
+        name=_guess_field(data, "name", "họ", "ten", "tên"),
+        email=_guess_field(data, "email", "mail"),
+        phone=_guess_field(data, "phone", "sdt", "điện thoại", "dien thoai", "tel", "mobile"),
+        data=data,
+    )
+    session.add(lead)
+    await session.commit()
+
+    # Thông báo cho chủ trang qua email (không chặn nếu lỗi)
+    try:
+        from app.models.user import User
+        from app.services.email_service import email_service
+
+        owner = await session.get(User, page.user_id)
+        if owner and email_service.enabled:
+            rows = "".join(
+                f"<tr><td style='padding:4px 8px;font-weight:600'>{html_mod.escape(str(k))}</td>"
+                f"<td style='padding:4px 8px'>{html_mod.escape(str(v))}</td></tr>"
+                for k, v in data.items()
+            )
+            await email_service.send_email(
+                to=[owner.email],
+                subject=f"[Vitba] Khách mới từ trang '{page.title}'",
+                html_content=(
+                    f"<h3>Bạn có một khách để lại thông tin trên trang <b>{html_mod.escape(page.title)}</b></h3>"
+                    f"<table style='border-collapse:collapse'>{rows}</table>"
+                ),
+            )
+    except Exception:
+        pass
+
+    return {"ok": True}
+
+
+# Owner route — xem danh sách khách của một trang
+@router.get("/mcp/landing/pages/{page_id}/leads")
+async def list_landing_leads(
+    page_id: int,
+    user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+):
+    from app.models.landing_lead import LandingLead
+
+    page = await session.get(LandingPage, page_id)
+    if not page or page.user_id != user.id:
+        raise HTTPException(404, "Page not found")
+    rows = (await session.execute(
+        select(LandingLead)
+        .where(LandingLead.landing_page_id == page_id)
+        .order_by(LandingLead.created_at.desc())
+    )).scalars().all()
+    return [
+        {
+            "id": r.id,
+            "name": r.name,
+            "email": r.email,
+            "phone": r.phone,
+            "data": r.data,
+            "created_at": r.created_at.isoformat() if r.created_at else "",
+        }
+        for r in rows
+    ]
