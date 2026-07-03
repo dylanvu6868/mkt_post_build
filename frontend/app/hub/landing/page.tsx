@@ -309,10 +309,34 @@ function PagesTab({ onEdit }: { onEdit: (page: LandingPageListItem) => void }) {
     setLeads([]);
     try {
       setLeads(await api.get<Lead[]>(`/mcp/landing/pages/${page.id}/leads`));
+      loadLandingPages(); // làm mới badge "khách mới" về 0 sau khi xem
     } catch {
       toast.error("Không tải được danh sách khách");
     } finally {
       setLeadsLoading(false);
+    }
+  };
+
+  const exportLeadsCsv = async (page: LandingPageListItem) => {
+    try {
+      const rows = await api.get<Lead[]>(`/mcp/landing/pages/${page.id}/leads`);
+      if (rows.length === 0) { toast.error("Chưa có khách để xuất"); return; }
+      const keys: string[] = [];
+      rows.forEach((r) => Object.keys(r.data || {}).forEach((k) => { if (!keys.includes(k)) keys.push(k); }));
+      const esc = (v: string) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+      const header = ["Thời gian", "Tên", "Email", "Điện thoại", ...keys];
+      const lines = rows.map((r) => [
+        r.created_at, r.name || "", r.email || "", r.phone || "",
+        ...keys.map((k) => (r.data || {})[k] || ""),
+      ].map(esc).join(","));
+      const csv = "﻿" + [header.map(esc).join(","), ...lines].join("\r\n");
+      const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+      const a = document.createElement("a");
+      a.href = url; a.download = `khach-hang-${page.slug}.csv`;
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch {
+      toast.error("Xuất CSV thất bại");
     }
   };
 
@@ -350,29 +374,39 @@ function PagesTab({ onEdit }: { onEdit: (page: LandingPageListItem) => void }) {
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {landingPages.map((page) => (
-            <Card key={page.id} className="group hover:shadow-lg hover:border-primary/20 transition-all cursor-pointer" onClick={() => onEdit(page)}>
+            <Card key={page.id} className="group hover:shadow-lg hover:border-primary/20 transition-all">
               <CardContent className="p-5">
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 shrink-0">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-primary"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
+                {/* Vùng chính: bấm mở chi tiết khách */}
+                <div className="cursor-pointer" onClick={() => openLeads(page)}>
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 shrink-0">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-primary"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {(page.new_count ?? 0) > 0 && (
+                        <span className="flex items-center gap-1 rounded-full bg-orange-500/15 px-2 py-0.5 text-[11px] font-semibold text-orange-600 dark:text-orange-400">
+                          ● {page.new_count} khách mới
+                        </span>
+                      )}
+                      <Badge variant={statusBadgeVariant(page.status)} className="text-[11px]">{statusLabel(page.status)}</Badge>
+                    </div>
                   </div>
-                  <Badge variant={statusBadgeVariant(page.status)} className="text-[11px]">{statusLabel(page.status)}</Badge>
+                  <h3 className="font-semibold text-sm truncate mb-1 group-hover:text-primary transition-colors">{page.title}</h3>
+                  <p className="text-xs text-muted-foreground truncate mb-2">/{page.slug}</p>
+                  <p className="text-[11px] text-muted-foreground mb-3">
+                    {page.created_at.slice(0, 10)}
+                    {(page.lead_count ?? 0) > 0 && <span className="ml-2 text-primary font-medium">· {page.lead_count} khách</span>}
+                  </p>
                 </div>
-                <h3 className="font-semibold text-sm truncate mb-1 group-hover:text-primary transition-colors">{page.title}</h3>
-                <p className="text-xs text-muted-foreground truncate mb-3">/{page.slug}</p>
-                <div className="flex items-center justify-between">
-                  <span className="text-[11px] text-muted-foreground">{page.created_at.slice(0, 10)}</span>
-                  <div className="flex gap-1.5">
-                    <button className="rounded-lg px-2.5 py-1 text-xs font-medium border border-primary/30 text-primary hover:bg-primary/10 transition"
-                      onClick={(e) => { e.stopPropagation(); openLeads(page); }}>Khách hàng</button>
-                    <button className="rounded-lg px-2.5 py-1 text-xs font-medium border border-border hover:bg-accent transition"
-                      onClick={(e) => { e.stopPropagation(); onEdit(page); }}>Sửa</button>
-                    <button className="rounded-lg px-2.5 py-1 text-xs font-medium text-destructive hover:bg-destructive/10 transition"
-                      onClick={(e) => { e.stopPropagation(); setConfirmDeleteId(page.id); }}
-                      disabled={deletingId === page.id}>
-                      {deletingId === page.id ? "..." : "Xóa"}
-                    </button>
-                  </div>
+                {/* Hàng nút: tách riêng, không mở chi tiết */}
+                <div className="flex gap-1.5 border-t border-border pt-3">
+                  <button className="rounded-lg px-2.5 py-1 text-xs font-medium border border-border hover:bg-accent transition"
+                    onClick={(e) => { e.stopPropagation(); onEdit(page); }}>Sửa trang</button>
+                  <button className="rounded-lg px-2.5 py-1 text-xs font-medium text-destructive hover:bg-destructive/10 transition ml-auto"
+                    onClick={(e) => { e.stopPropagation(); setConfirmDeleteId(page.id); }}
+                    disabled={deletingId === page.id}>
+                    {deletingId === page.id ? "..." : "Xóa"}
+                  </button>
                 </div>
               </CardContent>
             </Card>
@@ -386,6 +420,13 @@ function PagesTab({ onEdit }: { onEdit: (page: LandingPageListItem) => void }) {
             <DialogTitle>Khách hàng — {leadsPage?.title}</DialogTitle>
             <DialogDescription>Thông tin khách để lại qua form trên trang này.</DialogDescription>
           </DialogHeader>
+          {leads.length > 0 && leadsPage && (
+            <div className="flex items-center justify-between text-xs text-muted-foreground">
+              <span>{leads.length} khách</span>
+              <button className="rounded-lg border border-border px-3 py-1 font-medium hover:bg-accent transition"
+                onClick={() => exportLeadsCsv(leadsPage)}>Xuất CSV (Excel)</button>
+            </div>
+          )}
           {leadsLoading ? (
             <div className="py-8 text-center text-sm text-muted-foreground">Đang tải...</div>
           ) : leads.length === 0 ? (
@@ -400,6 +441,16 @@ function PagesTab({ onEdit }: { onEdit: (page: LandingPageListItem) => void }) {
                     <span className="font-semibold">{l.name || l.email || l.phone || "Khách"}</span>
                     <span className="text-[11px] text-muted-foreground">{l.created_at.slice(0, 16).replace("T", " ")}</span>
                   </div>
+                  {(l.phone || l.email) && (
+                    <div className="mb-2 flex gap-2">
+                      {l.phone && (
+                        <a href={`tel:${l.phone}`} className="rounded-lg bg-primary/10 px-2.5 py-1 text-[11px] font-medium text-primary hover:bg-primary/20 transition">📞 Gọi {l.phone}</a>
+                      )}
+                      {l.email && (
+                        <a href={`mailto:${l.email}`} className="rounded-lg bg-primary/10 px-2.5 py-1 text-[11px] font-medium text-primary hover:bg-primary/20 transition">✉️ {l.email}</a>
+                      )}
+                    </div>
+                  )}
                   <div className="grid gap-1">
                     {Object.entries(l.data || {}).map(([k, v]) => (
                       <div key={k} className="flex gap-2 text-xs">

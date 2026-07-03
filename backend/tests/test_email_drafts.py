@@ -286,6 +286,40 @@ async def test_landing_lead_capture_flow(client, promote):
     assert r.status_code == 404
 
 
+async def test_landing_lead_counts_and_read(client, promote):
+    """List trả lead_count/new_count; mở chi tiết đánh dấu đã đọc; CSV có dữ liệu."""
+    token = await _register(client, "leadcount@example.com", promote=promote)
+    headers = {"Authorization": f"Bearer {token}"}
+
+    resp = await client.post(
+        "/mcp/landing/pages",
+        json={"title": "Đếm", "slug": "dem-lead", "html_content": "<form></form>"},
+        headers=headers,
+    )
+    page_id = resp.json()["id"]
+    await client.patch(f"/mcp/landing/pages/{page_id}/publish", headers=headers)
+
+    for i in range(3):
+        await client.post("/p/dem-lead/submit", json={"data": {"name": f"K{i}", "phone": f"090000000{i}"}})
+
+    # List: 3 tổng, 3 chưa đọc
+    pages = (await client.get("/mcp/landing/pages", headers=headers)).json()
+    p = next(x for x in pages if x["id"] == page_id)
+    assert p["lead_count"] == 3 and p["new_count"] == 3
+
+    # Mở chi tiết → đánh dấu đã đọc
+    await client.get(f"/mcp/landing/pages/{page_id}/leads", headers=headers)
+    pages = (await client.get("/mcp/landing/pages", headers=headers)).json()
+    p = next(x for x in pages if x["id"] == page_id)
+    assert p["lead_count"] == 3 and p["new_count"] == 0
+
+    # CSV
+    csv_resp = await client.get(f"/mcp/landing/pages/{page_id}/leads.csv", headers=headers)
+    assert csv_resp.status_code == 200
+    body = csv_resp.text
+    assert "Tên" in body and "Điện thoại" in body and "0900000002" in body
+
+
 async def test_get_lab_history_item(client):
     """GET /api/lab/history/{id} — endpoint mở lại kết quả đã lưu."""
     # Requires auth

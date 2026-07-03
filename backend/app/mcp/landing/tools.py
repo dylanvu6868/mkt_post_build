@@ -154,10 +154,36 @@ class ModifyReq(BaseModel):
 
 @router.get("/mcp/landing/pages")
 async def list_pages(user: User = Depends(get_current_user), session: AsyncSession = Depends(get_session)):
+    from sqlalchemy import func as sa_func
+    from app.models.landing_lead import LandingLead
+
     rows = (await session.execute(
         select(LandingPage).where(LandingPage.user_id == user.id).order_by(LandingPage.created_at.desc())
     )).scalars().all()
-    return [{"id": p.id, "title": p.title, "slug": p.slug, "status": p.status, "created_at": str(p.created_at)} for p in rows]
+
+    # Đếm tổng khách + khách chưa đọc cho từng trang trong 1 truy vấn
+    counts: dict[int, tuple[int, int]] = {}
+    if rows:
+        agg = (await session.execute(
+            select(
+                LandingLead.landing_page_id,
+                sa_func.count(LandingLead.id),
+                sa_func.count(LandingLead.id).filter(LandingLead.is_read.is_(False)),
+            )
+            .where(LandingLead.landing_page_id.in_([p.id for p in rows]))
+            .group_by(LandingLead.landing_page_id)
+        )).all()
+        counts = {pid: (total, new) for pid, total, new in agg}
+
+    return [
+        {
+            "id": p.id, "title": p.title, "slug": p.slug, "status": p.status,
+            "created_at": str(p.created_at),
+            "lead_count": counts.get(p.id, (0, 0))[0],
+            "new_count": counts.get(p.id, (0, 0))[1],
+        }
+        for p in rows
+    ]
 
 
 @router.post("/mcp/landing/pages", status_code=201)
@@ -679,7 +705,7 @@ async def list_landing_leads(
         .where(LandingLead.landing_page_id == page_id)
         .order_by(LandingLead.created_at.desc())
     )).scalars().all()
-    return [
+    result = [
         {
             "id": r.id,
             "name": r.name,
@@ -690,3 +716,60 @@ async def list_landing_leads(
         }
         for r in rows
     ]
+    # Mở chi tiết = đã xem → đánh dấu đã đọc để badge "khách mới" về 0
+    unread = [r for r in rows if not r.is_read]
+    if unread:
+        for r in unread:
+            r.is_read = True
+        await session.commit()
+    return result
+
+
+@router.get("/mcp/landing/pages/{page_id}/leads.csv")
+async def export_landing_leads_csv(
+    page_id: int,
+    user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+):
+    """Xuất toàn bộ khách của trang thành CSV (UTF-8 BOM cho Excel tiếng Việt)."""
+    import csv
+    import io
+
+    from fastapi.responses import StreamingResponse
+    from app.models.landing_lead import LandingLead
+
+    page = await session.get(LandingPage, page_id)
+    if not page or page.user_id != user.id:
+        raise HTTPException(404, "Page not found")
+    rows = (await session.execute(
+        select(LandingLead)
+        .where(LandingLead.landing_page_id == page_id)
+        .order_by(LandingLead.created_at.desc())
+    )).scalars().all()
+
+    # Cột động: gộp mọi key trong data của mọi lead
+    field_keys: list[str] = []
+    for r in rows:
+        for k in (r.data or {}):
+            if k not in field_keys:
+                field_keys.append(k)
+
+    buf = io.StringIO()
+    buf.write("﻿")  # BOM
+    writer = csv.writer(buf)
+    writer.writerow(["Thời gian", "Tên", "Email", "Điện thoại", *field_keys])
+    for r in rows:
+        d = r.data or {}
+        writer.writerow([
+            r.created_at.isoformat() if r.created_at else "",
+            r.name or "", r.email or "", r.phone or "",
+            *[d.get(k, "") for k in field_keys],
+        ])
+
+    buf.seek(0)
+    filename = f"khach-hang-{page.slug}.csv"
+    return StreamingResponse(
+        iter([buf.getvalue()]),
+        media_type="text/csv; charset=utf-8",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )

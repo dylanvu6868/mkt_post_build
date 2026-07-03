@@ -205,6 +205,8 @@ export interface LandingPageListItem {
   slug: string;
   status: "draft" | "published";
   created_at: string;
+  lead_count?: number;
+  new_count?: number;
 }
 
 export interface LandingPageDetail {
