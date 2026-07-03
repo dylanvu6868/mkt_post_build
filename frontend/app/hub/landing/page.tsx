@@ -604,10 +604,6 @@ function EditorTab({ initialPage, initialHtml }: {
   const [saving, setSaving] = useState(false);
   const [publishing, setPublishing] = useState(false);
   const [exporting, setExporting] = useState(false);
-  const [deploying, setDeploying] = useState(false);
-  const [deployingCloudflare, setDeployingCloudflare] = useState(false);
-  const [vercelUrl, setVercelUrl] = useState<string | null>(null);
-  const [cloudflareUrl, setCloudflareUrl] = useState<string | null>(null);
   const [publicSlug, setPublicSlug] = useState<string | null>(initialPage?.status === "published" ? initialPage.slug : null);
   const [fullscreenOpen, setFullscreenOpen] = useState(false);
   const [codeTab, setCodeTab] = useState<"html" | "css">("html");
@@ -790,42 +786,6 @@ function EditorTab({ initialPage, initialHtml }: {
     } finally { setExporting(false); }
   };
 
-  const handleDeployVercel = async () => {
-    if (pageId === null) { toast.error("Vui lòng lưu trang trước"); return; }
-    setDeploying(true);
-    try {
-      const fullHtml = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${title}</title><style>${cssContent}</style></head><body>${htmlContent}</body></html>`;
-      const r = await api.post<{ deployment_url?: string; error?: string; status?: string }>("/mcp/vercel/deploy", {
-        name: slug || title,
-        html: fullHtml,
-        landing_page_id: pageId,
-      });
-      if (r.error) throw new Error(r.error);
-      setVercelUrl(r.deployment_url ?? null);
-      toast.success("Đã deploy lên Vercel!");
-    } catch (e: unknown) {
-      toast.error(e instanceof Error ? e.message : "Lỗi deploy Vercel");
-    } finally { setDeploying(false); }
-  };
-
-  const handleDeployCloudflare = async () => {
-    if (pageId === null) { toast.error("Vui lòng lưu trang trước"); return; }
-    setDeployingCloudflare(true);
-    try {
-      const fullHtml = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${title}</title><style>${cssContent}</style></head><body>${htmlContent}</body></html>`;
-      const r = await api.post<{ deployment_url?: string; error?: string; status?: string }>("/mcp/cloudflare/deploy", {
-        name: slug || title,
-        html: fullHtml,
-        landing_page_id: pageId,
-      });
-      if (r.error) throw new Error(r.error);
-      setCloudflareUrl(r.deployment_url ?? null);
-      toast.success("Đã deploy lên Cloudflare!");
-    } catch (e: unknown) {
-      toast.error(e instanceof Error ? e.message : "Lỗi deploy Cloudflare");
-    } finally { setDeployingCloudflare(false); }
-  };
-
   const publicUrl = publicSlug ? `${API_BASE_URL}/p/${publicSlug}` : null;
   const handleCopyLink = () => {
     if (!publicUrl) return;
@@ -898,12 +858,6 @@ function EditorTab({ initialPage, initialHtml }: {
             <button className={btnOutline} onClick={handleExport} disabled={exporting || pageId === null}>
               {exporting ? "Đang xuất..." : "Tải HTML"}
             </button>
-            <button className={btnOutline} onClick={handleDeployVercel} disabled={deploying || pageId === null}>
-              {deploying ? "Đang deploy..." : "Deploy Vercel"}
-            </button>
-            <button className={btnOutline} onClick={handleDeployCloudflare} disabled={deployingCloudflare || pageId === null}>
-              {deployingCloudflare ? "Đang deploy..." : "Deploy Cloudflare"}
-            </button>
             <button className={btnOutline} onClick={() => { loadLandingPages(); setSelectPageOpen(true); }}>Mở trang khác</button>
             <div className="ml-auto">
               <button className={btnGhost} onClick={() => setFullscreenOpen(true)} title="Phóng to xem trước">
@@ -921,14 +875,6 @@ function EditorTab({ initialPage, initialHtml }: {
             </div>
           )}
 
-          {vercelUrl && (
-            <div className="mt-2 flex items-center gap-2 p-3 rounded-xl bg-primary/5 border border-primary/20 text-sm">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" className="text-primary shrink-0"><path d="M12 2L2 20h20L12 2z"/></svg>
-              <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Vercel:</span>
-              <a href={vercelUrl} target="_blank" rel="noopener noreferrer" className="truncate text-primary underline text-xs">{vercelUrl}</a>
-              <button className="shrink-0 rounded-lg border border-border px-2 py-1 text-[11px] font-medium hover:bg-accent transition" onClick={() => { navigator.clipboard.writeText(vercelUrl); toast.success("Đã sao chép!"); }}>Sao chép</button>
-            </div>
-          )}
         </CardContent>
       </Card>
 

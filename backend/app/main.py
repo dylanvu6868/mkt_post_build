@@ -24,10 +24,12 @@ if settings.jwt_secret == "change-me":
     logger.warning("JWT_SECRET is using the default value — change it in production!")
 
 
+# Trang landing do user tạo cần CDN ngoài (Tailwind, Google Fonts, ảnh...) —
+# script-src 'self' trước đây chặn cdn.tailwindcss.com làm trang publish mất sạch CSS/JS
 _RELAXED_CSP = (
-    "default-src 'self'; img-src * data:; font-src * data:; "
-    "style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; "
-    "frame-ancestors 'none'"
+    "default-src 'self' https: data:; img-src * data: blob:; font-src * data:; "
+    "style-src * 'unsafe-inline'; script-src * 'unsafe-inline' 'unsafe-eval'; "
+    "connect-src *; frame-ancestors 'none'"
 )
 _STRICT_CSP = "default-src 'self'; frame-ancestors 'none'"
 
