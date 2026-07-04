@@ -1078,47 +1078,7 @@ export function ChatPanel() {
             </form>
           </motion.div>
 
-          <motion.div data-tour="content-cards" initial="hidden" animate="visible" variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.1, delayChildren: 0.5 } } }} className="grid grid-cols-2 md:grid-cols-3 gap-2.5 sm:gap-4 w-full">
-            {DASHBOARD_CARDS.map((item) => {
-              const locked = !canUse(item.minPlan);
-              return (
-                <motion.button
-                  variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 100 } } }}
-                  whileHover={locked ? {} : { scale: 1.02, y: -2 }}
-                  whileTap={locked ? {} : { scale: 0.98 }}
-                  key={item.title}
-                  onClick={async () => {
-                    if (locked) { router.push("/pricing"); return; }
-                    if (!activeConversationId) await createConversation();
-                    await sendMessage(`Tôi muốn viết ${item.title}`);
-                  }}
-                  className={cn(
-                    "relative flex flex-col items-start gap-2 sm:gap-3 rounded-2xl sm:rounded-2xl border p-3.5 sm:p-5 text-left transition-all duration-300 group",
-                    locked
-                      ? "border-border/50 bg-card/30 opacity-60 cursor-not-allowed"
-                      : "border-border bg-card/60 hover:bg-muted/80 hover:border-primary/40 hover:shadow-[inset_0_0_20px_rgba(255,213,74,0.05),0_8px_20px_-8px_rgba(0,0,0,0.1)] dark:hover:shadow-[inset_0_0_20px_rgba(255,213,74,0.05),0_8px_20px_-8px_rgba(0,0,0,0.5)]"
-                  )}
-                >
-                  {locked && (
-                    <div className="absolute top-3 right-3 flex items-center gap-1 rounded-full bg-muted/80 px-2 py-0.5 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-                      {item.minPlan}
-                    </div>
-                  )}
-                  <div className={cn(
-                    "flex items-center justify-center w-10 h-10 rounded-full transition-colors text-primary",
-                    locked ? "bg-muted/50" : "bg-primary/10 group-hover:bg-primary/20"
-                  )}>
-                    {CARD_ICONS[item.type]}
-                  </div>
-                  <div>
-                    <span className={cn("block font-semibold text-[15px] transition-colors", locked ? "text-muted-foreground" : "text-foreground group-hover:text-primary")}>{item.title}</span>
-                    <span className="block text-[13px] text-muted-foreground mt-1">{item.desc}</span>
-                  </div>
-                </motion.button>
-              );
-            })}
-          </motion.div>
+
         </div>
 
         <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(128,128,128,0.1)_1px,transparent_1px),linear-gradient(to_bottom,rgba(128,128,128,0.1)_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none mix-blend-overlay" />

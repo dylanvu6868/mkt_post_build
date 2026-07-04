@@ -1,125 +1,39 @@
-# AI Marketing Multi-Agent Platform
+# Vitba.ai - Hệ Sinh Thái AI Marketing Toàn Diện
 
-An AI-powered marketing content generation platform. A multi-agent system (LangGraph) researches, gathers brand context, generates content, reviews it, and returns a polished marketing asset — all while honoring per-project brand voice.
+Vitba.ai là nền tảng AI Marketing chuyên biệt dành cho người Việt, cung cấp một hệ sinh thái đa dạng các bộ công cụ mạnh mẽ nhằm đáp ứng toàn diện mọi nhu cầu: từ phân tích chiến lược, sáng tạo nội dung hình ảnh/văn bản, cho đến học tập và vận hành. 
 
-## Features
+Dưới đây là các phân hệ cốt lõi tạo nên hệ sinh thái Vitba:
 
-- **Multi-Agent Pipeline** — 7 specialized AI agents (Planner, Research, SEO, Brand, Fusion, Copywriter, Reviewer) orchestrated via LangGraph
-- **5 Content Types** — Facebook Post, SEO Blog, Email, Landing Page, TikTok Script
-- **Brand Voice** — Per-project tone, style, preferred/forbidden words injected into generation
-- **RAG Knowledge Base** — Upload PDF/DOCX/TXT documents; Brand agent retrieves relevant context via Qdrant vector search
-- **Content History** — Auto-saved generations with score, viewable and deletable
-- **JWT Auth** — Register/login with bcrypt password hashing
-- **Dark/Light Theme** — Toggle between themes
+## 1. Vitba Tool (Vitba Lab)
+Hệ sinh thái gồm hàng chục công cụ AI nhỏ gọn, chuyên biệt (Micro-tools) được thiết kế thân thiện dưới dạng biểu mẫu (Form-based). 
+- Giúp người dùng xử lý nhanh gọn các tác vụ như: Viết bài SEO, Sáng tạo Hook/CTA, Soạn mẫu quảng cáo Facebook/Google, Phân tích SWOT, Phác họa chân dung khách hàng, Chuyển đổi phương ngữ (Bắc/Trung/Nam)...
+- **Ưu điểm**: Không cần am hiểu cách viết "Prompt" phức tạp, người dùng chỉ cần điền thông tin và AI sẽ trả về kết quả chuẩn xác ngay lập tức.
 
-## Tech Stack
+## 2. Vitba Mail
+Công cụ xây dựng và tối ưu hóa chiến dịch Email Marketing.
+- Cung cấp tính năng soạn thảo các chuỗi email (Email Sequence), email chào mừng, nuôi dưỡng hoặc bán hàng.
+- Tích hợp các thuật toán tối ưu hóa tiêu đề (Subject line) và Preheader để gia tăng tối đa tỷ lệ mở (Open Rate) và tỷ lệ click (CTR).
 
-| Layer | Technology |
-|-------|-----------|
-| Backend | FastAPI, Python 3.12+, SQLAlchemy 2.0 (async), Alembic, Pydantic v2 |
-| AI/ML | LangGraph, LangChain, OpenAI / Anthropic (provider-agnostic) |
-| Embeddings | fastembed (BAAI/bge-small-en-v1.5) — local, free |
-| Vector DB | Qdrant |
-| Database | PostgreSQL 16 |
-| Frontend | Next.js 14 (App Router), React 18, TypeScript, Tailwind CSS 3, shadcn/ui |
-| State | Zustand (client), TanStack Query (server) |
+## 3. Vitba Landing
+Trình khởi tạo trang đích (Landing Page Builder) bằng AI.
+- Tự động xây dựng cấu trúc và nội dung trang đích dựa trên mô hình AIDA (Attention - Interest - Desire - Action) và các yếu tố tạo niềm tin (Trust signals).
+- Cho phép người dùng tạo trang đích nhanh chóng, dễ dàng tinh chỉnh nội dung và xuất ra mã nguồn HTML/CSS chuẩn để sử dụng ở bất cứ đâu.
 
-## Quick Start
+## 4. Vitba Frame
+Phân hệ sáng tạo hình ảnh AI (Image Generation) chất lượng cao trực tiếp trên nền tảng.
+- Người dùng chỉ cần nhập mô tả văn bản (Prompt), Vitba Frame sẽ tạo ra các bức ảnh sắc nét, đẹp mắt phục vụ cho việc làm banner, bài đăng mạng xã hội, minh họa blog...
+- Hỗ trợ đa dạng tỷ lệ khung hình (Vuông 1024x1024, Dọc, Ngang) và lưu trữ lịch sử hình ảnh dễ dàng tải xuống.
 
-### Prerequisites
+## 5. Vitba Report
+Trợ lý phân tích và tự động xây dựng Báo cáo Chiến lược Marketing.
+- Bạn cung cấp thông tin sơ bộ: Tên dự án, lĩnh vực kinh doanh, khách hàng mục tiêu, ngân sách, mục tiêu 3-6-12 tháng...
+- Hệ thống sẽ tự động tổng hợp và xuất bản một bản báo cáo chiến lược toàn diện (hỗ trợ xuất ra định dạng PDF đẹp mắt), bao gồm phân tích đối thủ cạnh tranh, lợi thế cốt lõi và lộ trình thực thi chi tiết.
 
-- Docker & Docker Compose
-- An OpenAI or Anthropic API key (optional — runs in mock mode without one)
+## 6. Vitba Study
+Nền tảng học tập và rèn luyện tư duy Marketing thực chiến.
+- Cung cấp hệ thống câu hỏi trắc nghiệm (Quiz) chuyên sâu theo nhiều chủ đề của ngành Marketing.
+- Sau mỗi lựa chọn, hệ thống sẽ chấm điểm và đưa ra giải thích cặn kẽ kèm theo video/tài liệu tham khảo chuyên ngành.
+- Tích hợp chế độ bấm giờ tạo áp lực thực tế và tính năng lưu trữ (Bookmark) các bài học hay để ôn tập.
 
-### 1. Clone and configure
-
-```bash
-git clone https://github.com/dylanvu6868/mkt_post_build.git
-cd mkt_post_build
-cp .env.example .env
-# Edit .env — add your API key(s) or leave blank for mock mode
-```
-
-### 2. Start the stack
-
-```bash
-docker compose up --build -d
-```
-
-This starts 4 services:
-- **db** — PostgreSQL 16 on port 5432
-- **qdrant** — Qdrant vector DB on port 6333
-- **backend** — FastAPI on port 8000
-- **frontend** — Next.js on port 3000
-
-### 3. Run migrations
-
-```bash
-docker compose exec backend alembic upgrade head
-```
-
-### 4. Open the app
-
-Visit [http://localhost:3000](http://localhost:3000)
-
-1. Register an account
-2. Create a project
-3. (Optional) Upload brand documents in Knowledge Base
-4. (Optional) Configure Brand Voice
-5. Go to Generate → pick a content type → enter a brief → Generate
-6. View results in History
-
-## API Endpoints
-
-| Method | Path | Description |
-|--------|------|-------------|
-| POST | `/auth/register` | Create user, return JWT |
-| POST | `/auth/login` | Login, return JWT |
-| POST | `/projects` | Create project |
-| GET | `/projects` | List user's projects |
-| POST | `/documents/upload` | Upload + ingest document into RAG |
-| GET | `/documents` | List documents for a project |
-| POST | `/brand-profile` | Upsert brand voice config |
-| GET | `/brand-profile` | Get brand voice config |
-| POST | `/generate` | Start generation pipeline (async) |
-| GET | `/generate/{job_id}` | Poll job status + result |
-| GET | `/history` | List content history |
-| DELETE | `/history/{id}` | Delete a history item |
-| GET | `/health` | Health check |
-
-## Development
-
-### Backend (without Docker)
-
-```bash
-cd backend
-python -m venv .venv
-source .venv/bin/activate  # Windows: .venv\Scripts\activate
-pip install -r requirements.txt
-uvicorn app.main:app --reload --port 8000
-```
-
-### Frontend (without Docker)
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-### Running Tests
-
-```bash
-cd backend
-python -m pytest tests/ -v
-```
-
-Tests use in-memory SQLite and mock mode (no API keys needed).
-
-## Mock Mode
-
-When no LLM API key is configured (or `LLM_PROVIDER=mock`), every agent returns schema-valid sample data. The full pipeline runs offline — useful for development and testing.
-
-## License
-
-MIT
+---
+*Toàn bộ hệ sinh thái Vitba được tối ưu sâu về mặt ngôn ngữ tiếng Việt và am hiểu bối cảnh văn hóa - thị trường, giúp mọi cá nhân và doanh nghiệp triển khai hoạt động Marketing đạt hiệu suất cao nhất.*
