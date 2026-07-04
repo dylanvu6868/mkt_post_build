@@ -16,6 +16,33 @@ SMTP_TIMEOUT = 10
 RESEND_API_URL = "https://api.resend.com/emails"
 
 
+def _html_to_text(html: str) -> str:
+    """Bản text thô từ HTML để đính kèm cùng email (giảm điểm spam)."""
+    import re
+
+    text = re.sub(r"<(script|style)[\s\S]*?</\1>", " ", html or "", flags=re.IGNORECASE)
+    text = re.sub(r"<br\s*/?>", "\n", text, flags=re.IGNORECASE)
+    text = re.sub(r"</(p|div|tr|h[1-6]|li)>", "\n", text, flags=re.IGNORECASE)
+    text = re.sub(r"<[^>]+>", " ", text)
+    import html as _h
+    text = _h.unescape(text)
+    text = re.sub(r"[ \t]+", " ", text)
+    text = re.sub(r"\n\s*\n\s*\n+", "\n\n", text)
+    return text.strip()[:5000]
+
+
+def _unsubscribe_target(reply_to: str | None, from_field: str) -> str | None:
+    """Địa chỉ nhận yêu cầu hủy nhận (ưu tiên reply-to = email thật của người gửi)."""
+    import re
+
+    for candidate in (reply_to, from_field):
+        if candidate:
+            m = re.search(r"[\w.+-]+@[\w-]+\.[\w.-]+", candidate)
+            if m and "resend.dev" not in m.group(0):
+                return m.group(0)
+    return None
+
+
 class EmailService:
     def __init__(self):
         self.resend_api_key = settings.resend_api_key
@@ -34,9 +61,15 @@ class EmailService:
                 "to": to,
                 "subject": subject,
                 "html": html,
+                # Bản text giảm điểm spam (email chỉ-HTML dễ bị lọc)
+                "text": _html_to_text(html),
             }
             if reply_to:
                 payload["reply_to"] = reply_to
+            # Header List-Unsubscribe (Gmail/Yahoo 2024 yêu cầu cho bulk → tránh spam)
+            unsub = _unsubscribe_target(reply_to, payload["from"])
+            if unsub:
+                payload["headers"] = {"List-Unsubscribe": f"<mailto:{unsub}?subject=unsubscribe>"}
             if cc:
                 payload["cc"] = cc
             if bcc:
@@ -102,8 +135,14 @@ class EmailService:
                 msg["Cc"] = ", ".join(cc)
             if bcc:
                 msg["Bcc"] = ", ".join(bcc)
-                
-            msg.attach(MIMEText(html_content, "html"))
+
+            unsub = _unsubscribe_target(reply_to, sender)
+            if unsub:
+                msg["List-Unsubscribe"] = f"<mailto:{unsub}?subject=unsubscribe>"
+
+            # Đính cả bản text + HTML (multipart/alternative) để giảm điểm spam
+            msg.attach(MIMEText(_html_to_text(html_content), "plain", "utf-8"))
+            msg.attach(MIMEText(html_content, "html", "utf-8"))
             await asyncio.to_thread(self._send_smtp, msg, smtp_config)
 
     async def send_password_reset_code(self, email: str, code: str) -> bool:
