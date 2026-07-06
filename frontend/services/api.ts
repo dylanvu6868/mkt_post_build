@@ -46,6 +46,18 @@ async function request<T>(
     } else if (Array.isArray(body.detail)) {
       message = body.detail.map((e: { msg?: string }) => e.msg).join(", ");
     }
+
+    // A 401 on a request that carried a token means the session expired —
+    // force logout so the UI redirects to login instead of silently
+    // rendering empty state on every page. Skip /auth/* endpoints since
+    // those 401s mean "wrong credentials", not "session expired".
+    if (res.status === 401 && token && !path.startsWith("/auth/") && typeof window !== "undefined") {
+      localStorage.removeItem("auth-storage");
+      if (!window.location.pathname.startsWith("/login")) {
+        window.location.href = "/login?expired=1";
+      }
+    }
+
     throw new ApiError(res.status, message);
   }
 

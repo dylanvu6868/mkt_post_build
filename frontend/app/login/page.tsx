@@ -71,6 +71,12 @@ export default function LoginPage() {
 
   useEffect(() => { initGoogle(); }, [initGoogle, isRegister]);
 
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("expired") === "1") {
+      toast.error("Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại");
+    }
+  }, []);
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoginLoading(true);
