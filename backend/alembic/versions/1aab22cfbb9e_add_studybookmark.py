@@ -31,8 +31,7 @@ def upgrade() -> None:
     )
     op.create_index(op.f('ix_study_bookmarks_question_id'), 'study_bookmarks', ['question_id'], unique=False)
     op.create_index(op.f('ix_study_bookmarks_user_id'), 'study_bookmarks', ['user_id'], unique=False)
-    op.drop_index('ix_image_generations_user_id', table_name='image_generations')
-    op.drop_table('image_generations')
+    # image_generations is preserved
     # ### end Alembic commands ###
 
 

@@ -28,8 +28,7 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('user_id', 'topic_id')
     )
-    op.drop_index('ix_image_generations_user_id', table_name='image_generations')
-    op.drop_table('image_generations')
+    # image_generations is preserved
     # ### end Alembic commands ###
 
 

@@ -32,12 +32,7 @@ def upgrade() -> None:
     )
     op.create_index(op.f('ix_lab_history_tool_name'), 'lab_history', ['tool_name'], unique=False)
     op.create_index(op.f('ix_lab_history_user_id'), 'lab_history', ['user_id'], unique=False)
-    op.drop_index('ix_oauth_accounts_user_id', table_name='oauth_accounts')
-    op.drop_table('oauth_accounts')
-    op.drop_index('ix_image_generations_user_id', table_name='image_generations')
-    op.drop_table('image_generations')
-    op.drop_index('ix_meta_pages_user_id', table_name='meta_pages')
-    op.drop_table('meta_pages')
+    # oauth_accounts, image_generations, meta_pages are managed in their own migrations
     op.alter_column('content_items', 'created_at',
                existing_type=postgresql.TIMESTAMP(timezone=True),
                nullable=False,
@@ -46,7 +41,7 @@ def upgrade() -> None:
                existing_type=postgresql.TIMESTAMP(timezone=True),
                nullable=False,
                existing_server_default=sa.text('now()'))
-    op.create_foreign_key(None, 'content_items', 'campaigns', ['campaign_id'], ['id'], ondelete='SET NULL')
+    # op.create_foreign_key(None, 'content_items', 'campaigns', ['campaign_id'], ['id'], ondelete='SET NULL')
     op.alter_column('conversations', 'created_at',
                existing_type=postgresql.TIMESTAMP(timezone=True),
                nullable=False,
@@ -79,7 +74,7 @@ def upgrade() -> None:
                existing_type=postgresql.TIMESTAMP(timezone=True),
                nullable=False,
                existing_server_default=sa.text('now()'))
-    op.create_foreign_key(None, 'landing_pages', 'campaigns', ['campaign_id'], ['id'], ondelete='SET NULL')
+    # op.create_foreign_key(None, 'landing_pages', 'campaigns', ['campaign_id'], ['id'], ondelete='SET NULL')
     op.alter_column('messages', 'metadata_json',
                existing_type=postgresql.JSON(astext_type=sa.Text()),
                type_=sa.JSON().with_variant(postgresql.JSONB(astext_type=sa.Text()), 'postgresql'),
@@ -96,7 +91,7 @@ def upgrade() -> None:
                existing_type=postgresql.TIMESTAMP(timezone=True),
                nullable=False,
                existing_server_default=sa.text('now()'))
-    op.create_foreign_key(None, 'scheduled_emails', 'campaigns', ['campaign_id'], ['id'], ondelete='SET NULL')
+    # op.create_foreign_key(None, 'scheduled_emails', 'campaigns', ['campaign_id'], ['id'], ondelete='SET NULL')
     op.alter_column('seo_audits', 'created_at',
                existing_type=postgresql.TIMESTAMP(timezone=True),
                nullable=False,
@@ -110,7 +105,7 @@ def downgrade() -> None:
                existing_type=postgresql.TIMESTAMP(timezone=True),
                nullable=True,
                existing_server_default=sa.text('now()'))
-    op.drop_constraint(None, 'scheduled_emails', type_='foreignkey')
+    # op.drop_constraint(None, 'scheduled_emails', type_='foreignkey')
     op.alter_column('scheduled_emails', 'created_at',
                existing_type=postgresql.TIMESTAMP(timezone=True),
                nullable=True,
@@ -127,7 +122,7 @@ def downgrade() -> None:
                existing_type=sa.JSON().with_variant(postgresql.JSONB(astext_type=sa.Text()), 'postgresql'),
                type_=postgresql.JSON(astext_type=sa.Text()),
                existing_nullable=True)
-    op.drop_constraint(None, 'landing_pages', type_='foreignkey')
+    # op.drop_constraint(None, 'landing_pages', type_='foreignkey')
     op.alter_column('landing_pages', 'updated_at',
                existing_type=postgresql.TIMESTAMP(timezone=True),
                nullable=True,
@@ -160,7 +155,7 @@ def downgrade() -> None:
                existing_type=postgresql.TIMESTAMP(timezone=True),
                nullable=True,
                existing_server_default=sa.text('now()'))
-    op.drop_constraint(None, 'content_items', type_='foreignkey')
+    # op.drop_constraint(None, 'content_items', type_='foreignkey')
     op.alter_column('content_items', 'updated_at',
                existing_type=postgresql.TIMESTAMP(timezone=True),
                nullable=True,
